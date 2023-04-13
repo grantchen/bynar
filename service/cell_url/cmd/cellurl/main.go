@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -13,6 +12,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 
+	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"github.com/joho/godotenv"
 )
 
@@ -30,8 +30,7 @@ func initMySQLDB() (*sql.DB, error) {
 	connString := config.GetMySqlUsername() + ":" + config.GetMySqlPassword() + "@tcp(" +
 		config.GetMySqlHost() + ":" + config.GetMySqlPort() + ")/" + config.GetMySqlDBName()
 
-	fmt.Println(connString)
-	db, err := sql.Open("mysql", connString)
+	db, err := sql_db.NewConnection(connString)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -55,6 +54,12 @@ func handleRequests() {
 
 	fs2 := http.FileServer(http.Dir("./Grid"))
 	http.Handle("/Grid/", http.StripPrefix("/Grid/", fs2))
+	// port := os.Getenv("port")
+
+	// if port == "" {
+	// 	port = "9002"
+	// }
+	// log.Fatal(http.ListenAndServe(":9002", myRouter))
 
 	log.Println("Listening on :9003...")
 	err := http.ListenAndServe(":9003", nil)
