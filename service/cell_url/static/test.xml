@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<Grid>
+   <Cfg id='test' Size='Low' SuppressCfg='1' MainCol='warehouse_description' ShowDeleted='1' />
+   <Cfg Validate='Added,Focus,Edit,Changed,Text' ValidateMessage="Ju lutemi plotësoni të dhënat e nevojshme!" />
+   <Cfg Paging="3" PageLength="2000" AllPages='1' OnePage='7' MaxPages="2" />
+   <Cfg PageLengthDiv="10" FastPages="500" />
+   <Cfg ChildPaging="2" Expanded='0' RemoveCollapsed="2" />
+   <Cfg ChildParts="2" ChildPartLength="100" ChildPartMin="0" MaxChildParts="4" />
+   <Cfg ColPaging="2" ColPageLength="10" ColPageMin="0" MaxColPages="2" />
+   <Cfg AddFocusCol='pin' />
+   <Cfg SuppressAnimations="1" />
+   <Cfg StandardFilter='3' />
+   <Cfg FormulaEditing='1' />
+   <Cfg FormulaType='0' />
+   <Cfg AutoCalendar='1' />
+   <Cfg DynamicSpan='1' />
+   <Cfg Alternate='2' />
+   <Cfg SelectingCells='1' />
+   <Cfg ConstHeight='1' />
+   <Cfg ExportType='Expanded,Outline' />
+   <Cfg CalculateSelected='1' />
+   <Cfg PrintVarHeight='2' />
+   <Cfg LimitScroll='25' />
+   <Cfg Undo='1' />
+   <Cfg CopyPasteTree='3' />
+   <Cfg SuppressMessage='1' />
+   <Cfg NumberId='1' IdChars='0123456789' />
+   <Cfg PrintPagePrefix="&lt;center class='%9' style='width:%7px'>First example printed page %3 from %6&lt;/center>" />
+   <Cfg
+      PrintPagePostfix="&lt;center class='%9' style='width:%7px'>Page %1 horizontally from %4 , page %2 vertically from %5&lt;/center>" />
+   <Cfg Language='EN' />
+   <Actions OnDragCell="SelectCells" />
+   <Actions OnLefttDropCell="SpanSelected AND ClearSelection" />
+   <Actions OnCtrlDragCell="DragRow" />
+   <Actions OnClickCell="ClearSelection,FocusEdit" OnClick1Cell="ClearSelection,FocusEdit"
+      OnClickOutside="ClearSelection,Blur" OnClick1Outside="ClearSelection,Blur" />
+   <Actions OnLongClick='SpanSelected AND ClearSelection' />
+   <Actions OnT='AddChild' />
+   <Actions OnMiddleMouseDown='SplitSelected OR SplitCell' />
+   <Pager Width="100" Visible='1' />
+   <Def>
+
+      <D Name='Node' CDef='Data' Sorted='1' AcceptDef='Data' Spanned='1' Calculated='1' Expanded='1' CanFilter='3'
+         FormulaSuggest="6" warehouse_descriptionSuggestServer='1'  warehouse_descriptionSuggestType='StartAll,Empty,Existing'/>
+
+   </Def>
+   <LeftCols>
+   </LeftCols>
+   <Cols>
+      <C Name='warehouse_description' Type='Text' CanEdit='1' VarHeight='1' ToolTip='1' CaseSensitive='0' StoreOriginalValues='0' />
+      <C Name='warehouse_costing_methods' Type='Text' CaseSensitive='0' CanEdit='1' ToolTip='1' VarHeight='1' />
+      <C Name='warehouse_uuid' Type='Text' CaseSensitive='0' CanEdit='1' VarHeight='1' ToolTip='1' />
+      <C Name='product_description' Type='Text' CaseSensitive='0' CanEdit='1' ToolTip='1' VarHeight='1' />
+      <C Name='product_barcode' Type='Text' CaseSensitive='0' ToolTip='1' CanEdit='1' VarHeight='1' />
+      <C Name='product_quntity' Type='Float' Format='0.00' CaseSensitive='0' ToolTip='1' CanEdit='1' VarHeight='1' />
+      <C Name='product_avg_cost' Type='Float' Format='0.00' CaseSensitive='0' ToolTip='1' CanEdit='1' VarHeight='1' />
+      <C Name='product_uuid' Type='Text' CaseSensitive='0' ToolTip='1' CanEdit='1' VarHeight='1' />
+   </Cols>
+   <Head>
+      <!-- Filter row -->
+      <Filter id='Filter' Calculated='1' NoColorState='1' CaseSensitive='0' />
+
+   </Head>
+
+   <Header id="Header1" CDef='Node' Spanned='1' Calculated='1' CanDelete='0' CanSelect='0' SortIcons='0' />
+</Grid>
