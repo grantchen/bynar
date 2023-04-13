@@ -54,12 +54,6 @@ func handleRequests() {
 
 	fs2 := http.FileServer(http.Dir("./Grid"))
 	http.Handle("/Grid/", http.StripPrefix("/Grid/", fs2))
-	// port := os.Getenv("port")
-
-	// if port == "" {
-	// 	port = "9002"
-	// }
-	// log.Fatal(http.ListenAndServe(":9002", myRouter))
 
 	log.Println("Listening on :9003...")
 	err := http.ListenAndServe(":9003", nil)
