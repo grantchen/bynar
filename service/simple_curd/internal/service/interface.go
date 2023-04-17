@@ -4,7 +4,7 @@ import "git-codecommit.eu-central-1.amazonaws.com/v1/repos/simplecurd/internal/m
 
 type LanguageService interface {
 	GetAllLanguage() []*model.Language
-	AddNewLanguage(newLang *model.Language) (*model.Language, error)
-	UpdateLanguage(lang *model.Language) (*model.Language, error)
-	DeleteLanguage(ID int) error
+	AddNewLanguage(row *model.Changes) (*model.Language, error)
+	UpdateLanguage(row *model.Changes) (*model.Language, error)
+	DeleteLanguage(ID int64) error
 }

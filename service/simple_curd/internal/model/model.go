@@ -35,7 +35,7 @@ type PostRequest struct {
 	IO struct {
 		Message string
 	}
-	Changes []Changes
+	Changes []*Changes
 }
 
 // Response struct for json responses
@@ -44,5 +44,5 @@ type Response struct {
 		Message string
 		Result  int
 	}
-	Changes []ChangedRow
+	Changes []*ChangedRow
 }

@@ -6,7 +6,7 @@ type LanguageRepository interface {
 	GetAllLanguage() []*model.Language
 	AddNewLanguage(newLang *model.Language) (*model.Language, error)
 	UpdateLanguage(lang *model.Language) (*model.Language, error)
-	DeleteLanguage(ID int) error
+	DeleteLanguage(ID int64) error
 	GetCountryAndNumber(id int) (country string, number int64, err error)
 	ValidateOnIntegrity(id int, country string, number int64) (bool, error)
 }

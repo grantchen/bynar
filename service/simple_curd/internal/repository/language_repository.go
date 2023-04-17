@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/simplecurd/internal/model"
@@ -44,7 +45,7 @@ func (l *languageRepostory) AddNewLanguage(newLang *model.Language) (*model.Lang
 }
 
 // DeleteLanguage implements LanguageRepository
-func (l *languageRepostory) DeleteLanguage(ID int) error {
+func (l *languageRepostory) DeleteLanguage(ID int64) error {
 	stmt, err := l.db.Prepare("DELETE from  languages where id=?")
 	if err != nil {
 		return fmt.Errorf("prepare statement: [%w]", err)
@@ -119,8 +120,27 @@ func (l *languageRepostory) UpdateLanguage(lang *model.Language) (*model.Languag
 }
 
 // GetAllLanguage implements LanguageRepository
-func (*languageRepostory) GetAllLanguage() []*model.Language {
-	panic("unimplemented")
+func (l *languageRepostory) GetAllLanguage() []*model.Language {
+	var languages []*model.Language
+
+	// Query to get all language records
+	rows, err := l.db.Query("SELECT * FROM languages")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var lng *model.Language
+		if err := rows.Scan(&lng.Id, &lng.Country, &lng.Language, &lng.Two_letters, &lng.Three_letters, &lng.Number); err != nil {
+			log.Fatalln(err)
+		}
+		languages = append(languages, lng)
+	}
+	if err := rows.Err(); err != nil {
+		log.Fatalln(err)
+	}
+	return languages
 }
 
 // GetCountryAndNumber implements LanguageRepository
