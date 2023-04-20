@@ -8,6 +8,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/model"
 	treegrid_model "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/model/treegrid"
+	sqlbuilder "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/repository/sql_builder"
 )
 
 type transferRepository struct {
@@ -19,12 +20,12 @@ func (t *transferRepository) GetTransfersPageData(tg *treegrid_model.Treegrid) (
 	if tg.BodyParams.GetItemsRequest() {
 		logger.Debug("get items request")
 
-		query := queryChild + " WHERE parent = " + tg.BodyParams.ID + tg.FilterWhere["child"] +
-			OrderByQuery(tg.SortParams, model.TransferItemsFields)
+		query := sqlbuilder.QueryChild + " WHERE parent = " + tg.BodyParams.ID + tg.FilterWhere["child"] +
+			sqlbuilder.OrderByQuery(tg.SortParams, model.TransferItemsFields)
 
-		query = AddLimit(query)
+		query = sqlbuilder.AddLimit(query)
 		pos, _ := tg.BodyParams.IntPos()
-		query = AddOffset(query, pos)
+		query = sqlbuilder.AddOffset(query, pos)
 
 		logger.Debug("query", query, "args count", len(tg.FilterArgs["child"]))
 
@@ -40,11 +41,11 @@ func (t *transferRepository) GetTransfersPageData(tg *treegrid_model.Treegrid) (
 
 	logger.Debug("get transfers without grouping")
 
-	query := queryParent + tg.FilterWhere["child"] + tg.FilterWhere["parent"] + OrderByQuery(tg.SortParams, nil)
+	query := sqlbuilder.QueryParent + tg.FilterWhere["child"] + tg.FilterWhere["parent"] + sqlbuilder.OrderByQuery(tg.SortParams, nil)
 
-	query = AddLimit(query)
+	query = sqlbuilder.AddLimit(query)
 	pos, _ := tg.BodyParams.IntPos()
-	query = AddOffset(query, pos)
+	query = sqlbuilder.AddOffset(query, pos)
 	mergedArgs := utils.MergeMaps(tg.FilterArgs["child"], tg.FilterArgs["parent"])
 
 	logger.Debug("query", query)
@@ -58,19 +59,25 @@ func (t *transferRepository) GetTransferCount(treegrid *treegrid_model.Treegrid)
 
 	column := model.NewColumn(treegrid.GroupCols[0])
 
-	FilterWhere, FilterArgs := prepQuery(treegrid.FilterParams)
+	FilterWhere, FilterArgs := sqlbuilder.PrepQuery(treegrid.FilterParams)
 
 	if column.IsItem {
 		if FilterWhere["parent"] != "" {
-			FilterWhere["parent"] = " AND transfers_items.Parent IN (SELECT transfers.id from transfers " + queryParentJoins + dummyWhere + FilterWhere["parent"] + ") "
+			FilterWhere["parent"] = " AND transfers_items.Parent IN (SELECT transfers.id from transfers " +
+				sqlbuilder.QueryParentJoins +
+				sqlbuilder.DummyWhere +
+				FilterWhere["parent"] + ") "
 		}
-		query = queryChildCount + FilterWhere["child"] + FilterWhere["parent"]
+		query = sqlbuilder.QueryChildCount + FilterWhere["child"] + FilterWhere["parent"]
 	} else {
 		if FilterWhere["child"] != "" {
-			FilterWhere["child"] = " AND transfers.id IN (SELECT transfers_items.Parent from transfers_items " + queryChildJoins + dummyWhere + FilterWhere["child"] + ") "
+			FilterWhere["child"] = " AND transfers.id IN (SELECT transfers_items.Parent from transfers_items " +
+				sqlbuilder.QueryChildJoins +
+				sqlbuilder.DummyWhere +
+				FilterWhere["child"] + ") "
 		}
 
-		query = queryParentCount + FilterWhere["child"] + FilterWhere["parent"]
+		query = sqlbuilder.QueryParentCount + FilterWhere["child"] + FilterWhere["parent"]
 	}
 
 	mergedArgs := utils.MergeMaps(FilterArgs["child"], FilterArgs["parent"])

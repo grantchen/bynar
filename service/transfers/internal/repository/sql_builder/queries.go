@@ -1,8 +1,8 @@
-package repository
+package sqlbuilder
 
 var (
 	// Dummy where clause used before AND clauses
-	dummyWhere = " where 1=1 "
+	DummyWhere = " where 1=1 "
 
 	// WHERE Parent = ''
 

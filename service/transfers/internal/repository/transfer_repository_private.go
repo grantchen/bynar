@@ -9,6 +9,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/model"
 	treegrid_model "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/model/treegrid"
+	sqlbuilder "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/repository/sql_builder"
 )
 
 func (t *transferRepository) handleGroupBy(tg *treegrid_model.Treegrid) ([]map[string]string, error) {
@@ -18,7 +19,7 @@ func (t *transferRepository) handleGroupBy(tg *treegrid_model.Treegrid) ([]map[s
 		return t.getGroupData(tg.BodyParams.GetRowWhere(), tg)
 	}
 
-	parentBuild := queryParent
+	parentBuild := sqlbuilder.QueryParent
 
 	if tg.FilterWhere["parent"] != "" {
 		logger.Debug("filters transfer", tg.FilterWhere["parent"])
@@ -32,7 +33,7 @@ func (t *transferRepository) handleGroupBy(tg *treegrid_model.Treegrid) ([]map[s
 		parentBuild = parentBuild + " AND id IN (" +
 			"SELECT Parent FROM transfers_items " +
 			"WHERE 1=1 " + tg.FilterWhere["child"] +
-			OrderByQuery(tg.SortParams, model.TransferItemsFields) + ") "
+			sqlbuilder.OrderByQuery(tg.SortParams, model.TransferItemsFields) + ") "
 	}
 
 	mergedArgs := utils.MergeMaps(tg.FilterArgs["parent"], tg.FilterArgs["child"])
@@ -107,13 +108,13 @@ func (t *transferRepository) prepareNameCountQuery(where string, tg *treegrid_mo
 
 		logger.Debug("getting last level data")
 
-		query = queryParent
+		query = sqlbuilder.QueryParent
 		query = strings.Replace(query, "WHERE 1=1", "", 1)
 		query += where
 
 		pos, _ := tg.BodyParams.IntPos()
-		query = AddLimit(query)
-		query = AddOffset(query, pos)
+		query = sqlbuilder.AddLimit(query)
+		query = sqlbuilder.AddOffset(query, pos)
 
 		return
 	}
@@ -171,7 +172,7 @@ func (t *transferRepository) prepareNameCountQuery(where string, tg *treegrid_mo
 		return
 	}
 
-	query = "SELECT " + column.DBName + ", COUNT(*) Count FROM transfers " + queryParentJoins + where + " GROUP BY " + column.DBName
+	query = "SELECT " + column.DBName + ", COUNT(*) Count FROM transfers " + sqlbuilder.QueryParentJoins + where + " GROUP BY " + column.DBName
 
 	return
 }
@@ -189,7 +190,7 @@ func (t *transferRepository) getCascadingGroupByParentParent(firstCol, secondCol
 	GROUP BY %s
 	`
 
-	return fmt.Sprintf(query, firstCol.DBNameShort, firstCol.DBName, secondCol.DBName, queryParentJoins, where, firstCol.DBName, secondCol.DBName, firstCol.DBNameShort)
+	return fmt.Sprintf(query, firstCol.DBNameShort, firstCol.DBName, secondCol.DBName, sqlbuilder.QueryParentJoins, where, firstCol.DBName, secondCol.DBName, firstCol.DBNameShort)
 }
 
 func (t *transferRepository) getParentData(level int, group_cols []string, where string, query string, colData model.Column) ([]map[string]string, error) {
@@ -245,7 +246,7 @@ func (t *transferRepository) getParentData(level int, group_cols []string, where
 			"COALESCE(MIN(document_date), '') AS min, " +
 			"COALESCE(MAX(document_date), '') AS max " +
 			// "FROM (SELECT warehouseman_destination_approve, document_date FROM transfers " + where + where2 + ") AS temp"
-			"FROM (SELECT warehouseman_destination_approve, document_date FROM transfers " + queryParentJoins + where + where2 + ") AS temp"
+			"FROM (SELECT warehouseman_destination_approve, document_date FROM transfers " + sqlbuilder.QueryParentJoins + where + where2 + ") AS temp"
 
 		calcRows, err := t.db.Query(calcQuery)
 		if err != nil {
@@ -326,9 +327,9 @@ func (t *transferRepository) getChildData(level int, group_cols []string, where 
 SELECT COALESCE(sum(item_quantity),'') as value_sums 
 FROM (
 SELECT item_quantity 
-FROM transfers_items ` + queryChildJoins + ` 
+FROM transfers_items ` + sqlbuilder.QueryChildJoins + ` 
 WHERE Parent in (
-	SELECT transfers.id FROM transfers ` + queryParentJoins + where + `) AND ` + columnData.DBName + "='" + row.GetValue(columnData.DBNameShort) + "') AS temp;"
+	SELECT transfers.id FROM transfers ` + sqlbuilder.QueryParentJoins + where + `) AND ` + columnData.DBName + "='" + row.GetValue(columnData.DBNameShort) + "') AS temp;"
 		calcRows, err := t.db.Query(calcQuery)
 		if err != nil {
 			return tableData, fmt.Errorf("do query: '%s': [%w]", calcQuery, err)

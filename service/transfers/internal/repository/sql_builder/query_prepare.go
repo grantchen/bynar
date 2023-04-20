@@ -1,4 +1,4 @@
-package repository
+package sqlbuilder
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	treegrid_model "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/model/treegrid"
 )
 
-func prepQuery(f treegrid_model.FilterParams) (map[string]string, map[string][]interface{}) {
+func PrepQuery(f treegrid_model.FilterParams) (map[string]string, map[string][]interface{}) {
 	FilterWhere := map[string]string{}
 	FilterArgs := map[string][]interface{}{}
 

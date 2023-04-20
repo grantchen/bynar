@@ -1,4 +1,4 @@
-package repository
+package sqlbuilder
 
 import (
 	"fmt"
@@ -9,12 +9,12 @@ import (
 
 var pageSize = 100
 
-func pageSizeString() string {
+func PageSizeString() string {
 	return strconv.Itoa(pageSize)
 }
 
 func AddLimit(query string) string {
-	return query + " LIMIT " + pageSizeString()
+	return query + " LIMIT " + PageSizeString()
 }
 
 func AddOffset(query string, pos int) string {

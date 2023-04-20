@@ -1,7 +1,7 @@
-package repository
+package sqlbuilder
 
 const (
-	queryChildCount = `
+	QueryChildCount = `
 SELECT COUNT(*) as rowCount 
 FROM transfers_items 
 INNER JOIN items ON transfers_items.item_uuid = items.id  
@@ -9,7 +9,7 @@ INNER JOIN units ON transfers_items.item_unit_uuid = units.id
 INNER JOIN item_types ON items.type_uuid = item_types.id  
 where 1=1 `
 
-	queryChild = `
+	QueryChild = `
 SELECT 
 	transfers_items.id, 
 	transfers_items.Parent, 
@@ -29,7 +29,7 @@ INNER JOIN units ON transfers_items.item_unit_uuid = units.id
 INNER JOIN item_types ON items.type_uuid = item_types.id
 `
 
-	queryChildJoins = `
+	QueryChildJoins = `
 INNER JOIN items ON transfers_items.item_uuid = items.id  
 INNER JOIN units ON transfers_items.item_unit_uuid = units.id 
 INNER JOIN item_types ON items.type_uuid = item_types.id`
