@@ -16,8 +16,8 @@ type transferService struct {
 }
 
 // GetTransfersPageData implements TransferService
-func (*transferService) GetTransfersPageData(tr *treegrid_model.Treegrid) ([]map[string]string, error) {
-	panic("unimplemented")
+func (t *transferService) GetTransfersPageData(tr *treegrid_model.Treegrid) ([]map[string]string, error) {
+	return t.GetTransfersPageData(tr)
 }
 
 // GetPagesCount implements TransferService

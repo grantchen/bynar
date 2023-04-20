@@ -4,9 +4,12 @@ import (
 	"log"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/config"
+	lambda_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/handler/aws/lambda"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/aws/secretsmanager"
+
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	sql_connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-secretsmanager-caching-go/secretcache"
 )
 
@@ -45,4 +48,6 @@ func main() {
 		}
 	}()
 
+	lambdaHandler := lambda_handler.NewLambdaHandler(secretsManager, connectionPool)
+	lambda.Start(lambdaHandler)
 }

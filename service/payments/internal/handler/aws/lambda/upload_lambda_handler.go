@@ -79,7 +79,7 @@ func (h *LambdaHandler) Handle(ctx context.Context, request events.APIGatewayV2H
 		return eventResp, nil
 	}
 
-	conn, err := h.connectionPool.Get(ctx, sql_connection.ChangeDatabaseConnectionSchema(secret, strconv.Itoa(requestScope.OrganizationID)))
+	conn, err := h.connectionPool.Get(sql_connection.ChangeDatabaseConnectionSchema(secret, strconv.Itoa(requestScope.OrganizationID)))
 	if err != nil {
 		log.Println(err)
 
