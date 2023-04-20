@@ -1,7 +1,7 @@
 package repository
 
 const (
-	QueryParentCount = `
+	queryParentCount = `
 	SELECT COUNT(transfers.id) as rowCount 
 	FROM transfers 
 	INNER JOIN documents ON transfers.document_type_uuid = documents.id  
@@ -12,7 +12,7 @@ const (
 	INNER JOIN responsibility_center ON transfers.responsibility_center_uuid = responsibility_center.id 
 	WHERE 1=1 `
 
-	QueryParent = `
+	queryParent = `
 	SELECT 
 		transfers.id,  
 		transfers.document_no, 
@@ -42,7 +42,7 @@ const (
 	INNER JOIN responsibility_center ON transfers.responsibility_center_uuid = responsibility_center.id 
 	WHERE 1=1 `
 
-	QueryParentJoins = `
+	queryParentJoins = `
 	INNER JOIN documents ON transfers.document_type_uuid = documents.id  
 	INNER JOIN stores ON transfers.store_origin_uuid = stores.id 
 	INNER JOIN stores ss ON transfers.store_destination_uuid = ss.id  
@@ -50,7 +50,7 @@ const (
 	INNER JOIN warehouses wh_destination ON transfers.warehouse_destination_uuid = wh_destination.id  
 	INNER JOIN responsibility_center ON transfers.responsibility_center_uuid = responsibility_center.id 
 	`
-	QueryParentBuild = `
+	queryParentBuild = `
 	SELECT * 
 	FROM transfers `
 )

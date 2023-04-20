@@ -12,10 +12,8 @@ import (
 
 var (
 	// ModuleID is hardcoded as provided in the specification.
-	moduleID = 8
-
-	connectionStringKey = "bynar"
-	awsRegion           = "eu-central-1"
+	moduleID  = 8
+	awsRegion = "eu-central-1"
 
 	authorizationHeader = "Authorization"
 )

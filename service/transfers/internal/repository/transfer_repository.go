@@ -2,7 +2,10 @@ package repository
 
 import (
 	"database/sql"
+	"log"
 
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/model"
 	treegrid_model "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/model/treegrid"
 )
@@ -11,8 +14,46 @@ type transferRepository struct {
 	db *sql.DB
 }
 
+// GetTransfersPageData implements TransferRepository
+func (t *transferRepository) GetTransfersPageData(tg *treegrid_model.Treegrid) ([]map[string]string, error) {
+	if tg.BodyParams.GetItemsRequest() {
+		logger.Debug("get items request")
+
+		query := queryChild + " WHERE parent = " + tg.BodyParams.ID + tg.FilterWhere["child"] +
+			OrderByQuery(tg.SortParams, model.TransferItemsFields)
+
+		query = AddLimit(query)
+		pos, _ := tg.BodyParams.IntPos()
+		query = AddOffset(query, pos)
+
+		logger.Debug("query", query, "args count", len(tg.FilterArgs["child"]))
+
+		return t.getJSON(query, tg.FilterArgs["child"], tg)
+	}
+
+	// GROUP BY
+	if tg.WithGroupBy() {
+		logger.Debug("query with group by clause")
+
+		return t.handleGroupBy(tg)
+	}
+
+	logger.Debug("get transfers without grouping")
+
+	query := queryParent + tg.FilterWhere["child"] + tg.FilterWhere["parent"] + OrderByQuery(tg.SortParams, nil)
+
+	query = AddLimit(query)
+	pos, _ := tg.BodyParams.IntPos()
+	query = AddOffset(query, pos)
+	mergedArgs := utils.MergeMaps(tg.FilterArgs["child"], tg.FilterArgs["parent"])
+
+	logger.Debug("query", query)
+
+	return t.getJSON(query, mergedArgs, tg)
+}
+
 // GetTransferCount implements TransferRepository
-func (*transferRepository) GetTransferCount(treegrid *treegrid_model.Treegrid) (int, error) {
+func (t *transferRepository) GetTransferCount(treegrid *treegrid_model.Treegrid) (int, error) {
 	var query string
 
 	column := model.NewColumn(treegrid.GroupCols[0])
@@ -21,16 +62,24 @@ func (*transferRepository) GetTransferCount(treegrid *treegrid_model.Treegrid) (
 
 	if column.IsItem {
 		if FilterWhere["parent"] != "" {
-			FilterWhere["parent"] = " AND transfers_items.Parent IN (SELECT transfers.id from transfers " + QueryParentJoins + DummyWhere + FilterWhere["parent"] + ") "
+			FilterWhere["parent"] = " AND transfers_items.Parent IN (SELECT transfers.id from transfers " + queryParentJoins + dummyWhere + FilterWhere["parent"] + ") "
 		}
-		query = QueryChildCount + FilterWhere["child"] + FilterWhere["parent"]
+		query = queryChildCount + FilterWhere["child"] + FilterWhere["parent"]
 	} else {
 		if FilterWhere["child"] != "" {
-			FilterWhere["child"] = " AND transfers.id IN (SELECT transfers_items.Parent from transfers_items " + QueryChildJoins + DummyWhere + FilterWhere["child"] + ") "
+			FilterWhere["child"] = " AND transfers.id IN (SELECT transfers_items.Parent from transfers_items " + queryChildJoins + dummyWhere + FilterWhere["child"] + ") "
 		}
 
-		query = QueryParentCount + FilterWhere["child"] + FilterWhere["parent"]
+		query = queryParentCount + FilterWhere["child"] + FilterWhere["parent"]
 	}
+
+	mergedArgs := utils.MergeMaps(FilterArgs["child"], FilterArgs["parent"])
+	rows, err := t.db.Query(query, mergedArgs...)
+	if err != nil {
+		log.Fatalln(err, "query", query, "colData", column)
+	}
+
+	return utils.CheckCount(rows), nil
 
 }
 
