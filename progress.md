@@ -1,3 +1,8 @@
+Sunday, 2023/04/23
+- Fix bug for refactored transfer:
+  - null component
+  - loop recursive
+
 Thursday, 2023/04/19
 - Refactor transfer service (done). This service now has a better structure:  
 	- 3 layers
