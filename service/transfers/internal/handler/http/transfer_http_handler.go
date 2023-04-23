@@ -15,7 +15,7 @@ type TransferHttpHandler struct {
 }
 
 func NewTransferHttpHandler(transferService service.TransferService) *TransferHttpHandler {
-	return &TransferHttpHandler{}
+	return &TransferHttpHandler{transferService: transferService}
 }
 
 func (t *TransferHttpHandler) HandleGetPageCount(w http.ResponseWriter, r *http.Request) {

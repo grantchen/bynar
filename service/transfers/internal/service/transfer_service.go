@@ -17,7 +17,7 @@ type transferService struct {
 
 // GetTransfersPageData implements TransferService
 func (t *transferService) GetTransfersPageData(tr *treegrid_model.Treegrid) ([]map[string]string, error) {
-	return t.GetTransfersPageData(tr)
+	return t.transferRepository.GetTransfersPageData(tr)
 }
 
 // GetPagesCount implements TransferService
@@ -28,5 +28,5 @@ func (t *transferService) GetPagesCount(tr *treegrid_model.Treegrid) float64 {
 }
 
 func NewTransferService(transferRepository repository.TransferRepository) TransferService {
-	return &transferService{}
+	return &transferService{transferRepository: transferRepository}
 }

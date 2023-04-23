@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/config"
 	http_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/handler/http"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/service"
@@ -13,8 +12,9 @@ import (
 
 func main() {
 
-	appConfig := config.NewLocalConfig()
-	dbConnString := appConfig.GetDBConnection()
+	// appConfig := config.NewLocalConfig()
+	// dbConnString := appConfig.GetDBConnection()
+	dbConnString := "root:123456@tcp(localhost:3306)/bynar"
 
 	db, err := sql_db.NewConnection(dbConnString)
 	if err != nil {
@@ -26,7 +26,7 @@ func main() {
 	transferHandler := http_handler.NewTransferHttpHandler(transferService)
 	http.HandleFunc("/data", transferHandler.HandleGetPageCount)
 	http.HandleFunc("/page", transferHandler.HandleGetPageTransferData)
-	log.Println("start server at 8081!")
-	log.Fatal(http.ListenAndServe(":8081", nil))
+	log.Println("start server at 8080!")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 
 }
