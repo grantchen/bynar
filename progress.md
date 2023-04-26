@@ -1,3 +1,8 @@
+Wednesday, 2023/04/26
+- Move treegrid model from payments (/upload api) and transfer (/data and /page api), ready for make a solid structure with handler layer is reuseable.
+- Write handlers layer in pkgs (in-progress)
+
+
 Sunday, 2023/04/23
 - Fix bug for refactored transfer:
   - null component
