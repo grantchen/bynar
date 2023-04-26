@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/model"
-	treegrid_model "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/model/treegrid"
 )
 
-func PrepQuery(f treegrid_model.FilterParams) (map[string]string, map[string][]interface{}) {
+func PrepQuery(f treegrid.FilterParams) (map[string]string, map[string][]interface{}) {
 	FilterWhere := map[string]string{}
 	FilterArgs := map[string][]interface{}{}
 

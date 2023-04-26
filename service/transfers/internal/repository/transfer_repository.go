@@ -5,9 +5,9 @@ import (
 	"log"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/model"
-	treegrid_model "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/model/treegrid"
 	sqlbuilder "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/repository/sql_builder"
 )
 
@@ -16,7 +16,7 @@ type transferRepository struct {
 }
 
 // GetTransfersPageData implements TransferRepository
-func (t *transferRepository) GetTransfersPageData(tg *treegrid_model.Treegrid) ([]map[string]string, error) {
+func (t *transferRepository) GetTransfersPageData(tg *treegrid.Treegrid) ([]map[string]string, error) {
 	if tg.BodyParams.GetItemsRequest() {
 		logger.Debug("get items request")
 
@@ -54,7 +54,7 @@ func (t *transferRepository) GetTransfersPageData(tg *treegrid_model.Treegrid) (
 }
 
 // GetTransferCount implements TransferRepository
-func (t *transferRepository) GetTransferCount(treegrid *treegrid_model.Treegrid) (int, error) {
+func (t *transferRepository) GetTransferCount(treegrid *treegrid.Treegrid) (int, error) {
 	var query string
 
 	column := model.NewColumn(treegrid.GroupCols[0])

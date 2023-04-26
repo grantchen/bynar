@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	treegrid_model "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/model/treegrid"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
 var pageSize = 100
@@ -26,7 +26,7 @@ func AddOffset(query string, pos int) string {
 }
 
 // OrderByQuery - making 'ORDER BY' query from SortParams and fieldsMapping
-func OrderByQuery(s treegrid_model.SortParams, itemFields map[string]bool) (res string) {
+func OrderByQuery(s treegrid.SortParams, itemFields map[string]bool) (res string) {
 	for k, v := range s {
 		if itemFields == nil {
 			res += fmt.Sprintf("%s %s, ", k, v)

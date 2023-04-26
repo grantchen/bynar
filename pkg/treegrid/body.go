@@ -1,4 +1,4 @@
-package treegrid_model
+package treegrid
 
 import "strconv"
 

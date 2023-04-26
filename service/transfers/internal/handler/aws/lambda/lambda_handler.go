@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	treegrid_model "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/model/treegrid"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/service"
 	"github.com/aws/aws-lambda-go/events"
 )
@@ -62,12 +62,12 @@ func (h *LambdaHandler) getTransfersData(ctx context.Context, request events.API
 		log.Fatalln(urlQuery)
 	}
 
-	req, err := treegrid_model.ParseRequest([]byte(urlQuery["Data"][0]))
+	req, err := treegrid.ParseRequest([]byte(urlQuery["Data"][0]))
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	trGrid, err := treegrid_model.NewTreegrid(req)
+	trGrid, err := treegrid.NewTreegrid(req)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -109,12 +109,12 @@ func (h *LambdaHandler) getTransferPage(ctx context.Context, request events.APIG
 		log.Fatalln(urlQuery)
 	}
 
-	req, err := treegrid_model.ParseRequest([]byte(urlQuery["Data"][0]))
+	req, err := treegrid.ParseRequest([]byte(urlQuery["Data"][0]))
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	trGrid, err := treegrid_model.NewTreegrid(req)
+	trGrid, err := treegrid.NewTreegrid(req)
 	if err != nil {
 		log.Fatalln(err)
 	}

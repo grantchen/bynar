@@ -1,8 +1,10 @@
 package repository
 
-import treegrid_model "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/model/treegrid"
+import (
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
+)
 
 type TransferRepository interface {
-	GetTransferCount(treegrid *treegrid_model.Treegrid) (int, error)
-	GetTransfersPageData(tr *treegrid_model.Treegrid) ([]map[string]string, error)
+	GetTransferCount(treegrid *treegrid.Treegrid) (int, error)
+	GetTransfersPageData(tr *treegrid.Treegrid) ([]map[string]string, error)
 }

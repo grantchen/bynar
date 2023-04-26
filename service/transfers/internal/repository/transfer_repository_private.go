@@ -6,13 +6,13 @@ import (
 	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/model"
-	treegrid_model "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/model/treegrid"
 	sqlbuilder "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/repository/sql_builder"
 )
 
-func (t *transferRepository) handleGroupBy(tg *treegrid_model.Treegrid) ([]map[string]string, error) {
+func (t *transferRepository) handleGroupBy(tg *treegrid.Treegrid) ([]map[string]string, error) {
 	if tg.BodyParams.Rows != "" {
 		logger.Debug("with rows:", tg.BodyParams.Rows)
 
@@ -47,7 +47,7 @@ func (t *transferRepository) handleGroupBy(tg *treegrid_model.Treegrid) ([]map[s
 	return t.getGroupData(extWhereClause, tg)
 }
 
-func (t *transferRepository) getGroupData(where string, tg *treegrid_model.Treegrid) ([]map[string]string, error) {
+func (t *transferRepository) getGroupData(where string, tg *treegrid.Treegrid) ([]map[string]string, error) {
 	logger.Debug("get group data")
 
 	query, colData := t.prepareNameCountQuery(where, tg)
@@ -62,7 +62,7 @@ func (t *transferRepository) getGroupData(where string, tg *treegrid_model.Treeg
 }
 
 // Prepare and Execute the query and return the results as JSON.
-func (t *transferRepository) getJSON(sqlString string, mergedArgs []interface{}, tg *treegrid_model.Treegrid) ([]map[string]string, error) {
+func (t *transferRepository) getJSON(sqlString string, mergedArgs []interface{}, tg *treegrid.Treegrid) ([]map[string]string, error) {
 	stmt, err := t.db.Prepare(sqlString)
 	if err != nil {
 		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, sqlString)
@@ -98,7 +98,7 @@ func (t *transferRepository) getJSON(sqlString string, mergedArgs []interface{},
 	return tableData, nil
 }
 
-func (t *transferRepository) prepareNameCountQuery(where string, tg *treegrid_model.Treegrid) (query string, column model.Column) {
+func (t *transferRepository) prepareNameCountQuery(where string, tg *treegrid.Treegrid) (query string, column model.Column) {
 	// If both the level are equal then return the row
 
 	level := tg.BodyParams.GetRowLevel()

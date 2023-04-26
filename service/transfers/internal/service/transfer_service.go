@@ -3,7 +3,7 @@ package service
 import (
 	"math"
 
-	treegrid_model "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/model/treegrid"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/repository"
 )
 
@@ -16,12 +16,12 @@ type transferService struct {
 }
 
 // GetTransfersPageData implements TransferService
-func (t *transferService) GetTransfersPageData(tr *treegrid_model.Treegrid) ([]map[string]string, error) {
+func (t *transferService) GetTransfersPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
 	return t.transferRepository.GetTransfersPageData(tr)
 }
 
 // GetPagesCount implements TransferService
-func (t *transferService) GetPagesCount(tr *treegrid_model.Treegrid) float64 {
+func (t *transferService) GetPagesCount(tr *treegrid.Treegrid) float64 {
 	rowsCount, _ := t.transferRepository.GetTransferCount(tr)
 
 	return math.Ceil(float64(rowsCount) / float64(pageSize))

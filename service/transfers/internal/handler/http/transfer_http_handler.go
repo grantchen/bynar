@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	treegrid_model "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/model/treegrid"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/service"
 )
 
@@ -24,12 +24,12 @@ func (t *TransferHttpHandler) HandleGetPageCount(w http.ResponseWriter, r *http.
 		return
 	}
 
-	trRequest, err := treegrid_model.ParseRequest([]byte(r.Form.Get("Data")))
+	trRequest, err := treegrid.ParseRequest([]byte(r.Form.Get("Data")))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	treegr, err := treegrid_model.NewTreegrid(trRequest)
+	treegr, err := treegrid.NewTreegrid(trRequest)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,12 +55,12 @@ func (t *TransferHttpHandler) HandleGetPageTransferData(w http.ResponseWriter, r
 		return
 	}
 
-	trRequest, err := treegrid_model.ParseRequest([]byte(r.Form.Get("Data")))
+	trRequest, err := treegrid.ParseRequest([]byte(r.Form.Get("Data")))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	trGrid, err := treegrid_model.NewTreegrid(trRequest)
+	trGrid, err := treegrid.NewTreegrid(trRequest)
 	if err != nil {
 		log.Fatal(err)
 	}

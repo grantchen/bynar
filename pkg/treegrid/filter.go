@@ -1,4 +1,4 @@
-package treegrid_model
+package treegrid
 
 // FilterParams stores filter's data
 type FilterParams []map[string]interface{}
