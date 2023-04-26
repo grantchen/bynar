@@ -11,6 +11,7 @@ import (
 	svc "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
+	pkg_treegrid "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
 type uploadService struct {
@@ -72,8 +73,8 @@ var (
 )
 
 // Handle
-func (s *uploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
-	resp := &treegrid.PostResponse{}
+func (s *uploadService) Handle(req *pkg_treegrid.PostRequest) (*pkg_treegrid.PostResponse, error) {
+	resp := &pkg_treegrid.PostResponse{}
 
 	trList, err := treegrid.ParseRequest(req, s.gridRowReppository)
 	if err != nil {

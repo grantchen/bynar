@@ -4,7 +4,7 @@ import (
 	"database/sql"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/models"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/treegrid"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
 type UploadService interface {

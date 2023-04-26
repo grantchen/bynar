@@ -8,8 +8,8 @@ import (
 	"net/http"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/service/upload/factory"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/treegrid"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
 type UploadHandler struct {

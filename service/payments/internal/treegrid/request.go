@@ -2,6 +2,8 @@ package treegrid
 
 import (
 	"fmt"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
 type (
@@ -16,7 +18,7 @@ type (
 	}
 )
 
-func ParseRequest(req *PostRequest, identityStore IdentityStorage) (*GridList, error) {
+func ParseRequest(req *treegrid.PostRequest, identityStore IdentityStorage) (*GridList, error) {
 	trList := &GridList{
 		mainRows:  make(map[string]GridRow),
 		childRows: make(map[string][]GridRow),

@@ -12,9 +12,9 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/scope"
 	svc_upload "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/service/upload"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/service/upload/factory"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/aws/secretsmanager"
 	sql_connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"github.com/aws/aws-lambda-go/events"
 )
 
