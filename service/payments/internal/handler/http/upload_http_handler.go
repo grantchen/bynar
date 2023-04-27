@@ -3,7 +3,6 @@ package http_handler
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -60,25 +59,6 @@ func (u *UploadHandler) HandleUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	WriteResponse(w, resp)
-}
-
-func (u *UploadHandler) HandleUploadTest(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "*")
-	w.Header().Set("Content-type", " application/json")
-	var postData = &treegrid.PostRequest{
-		Changes: make([]map[string]interface{}, 10),
-	}
-	var resp = &treegrid.PostResponse{}
-	if err := r.ParseForm(); err != nil {
-
-		return
-	}
-	fmt.Printf("method: %s\n", r.Method)
-	fmt.Printf("data: %s\n", r.Form.Get("Data"))
-	json.Unmarshal([]byte(r.Form.Get("Data")), &postData)
-
-	WriteErrorResponse(w, resp, nil)
 }
 
 // WriteErrorResponse

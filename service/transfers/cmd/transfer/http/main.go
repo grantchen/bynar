@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
-	http_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/handler/http"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/service"
 )
@@ -23,9 +23,13 @@ func main() {
 
 	transferRepository := repository.NewTransferRepository(db)
 	transferService := service.NewTransferService(transferRepository)
-	transferHandler := http_handler.NewTransferHttpHandler(transferService)
-	http.HandleFunc("/data", transferHandler.HandleGetPageCount)
-	http.HandleFunc("/page", transferHandler.HandleGetPageTransferData)
+	// transferHandler := http_handler.NewTransferHttpHandler(transferService)
+
+	handler := &handler.HTTPTreeGridHandler{CallbackGetPageCountFunc: transferService.GetPagesCount,
+		CallbackGetPageDataFunc: transferService.GetTransfersPageData}
+
+	http.HandleFunc("/data", handler.HTTPHandleGetPageCount)
+	http.HandleFunc("/page", handler.HTTPHandleGetPageTransferData)
 	log.Println("start server at 8080!")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 

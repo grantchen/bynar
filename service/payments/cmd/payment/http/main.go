@@ -26,7 +26,6 @@ func main() {
 
 	uploadHandler := &http_handler.UploadHandler{ModuleID: ModuleID, AccountID: AccountID}
 	http.HandleFunc("/upload", uploadHandler.HandleUpload)
-	http.HandleFunc("/test", uploadHandler.HandleUploadTest)
 	log.Println("start server at 8081!")
 	log.Fatal(http.ListenAndServe(":8081", nil))
 

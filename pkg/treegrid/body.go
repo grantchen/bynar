@@ -6,6 +6,8 @@ type BodyParam struct {
 	ID   string `json:"id,omitempty"`
 	Rows string `json:"rows,omitempty"`
 	Pos  string `json:"pos,omitempty"`
+	Col  string `json:"Col,omitempty"`
+	Val  string `json:"Val,omitempty"`
 }
 
 // / GetRowLevel gets from rows level. Example: rows = "2WHERE filed=1", level = 1
