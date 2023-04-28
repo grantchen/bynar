@@ -8,4 +8,7 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0
 )
 
-require github.com/jmespath/go-jmespath v0.4.0 // indirect
+require (
+	github.com/aws/aws-lambda-go v1.40.0 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
+)

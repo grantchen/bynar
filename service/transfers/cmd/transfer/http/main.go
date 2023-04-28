@@ -23,13 +23,12 @@ func main() {
 
 	transferRepository := repository.NewTransferRepository(db)
 	transferService := service.NewTransferService(transferRepository)
-	// transferHandler := http_handler.NewTransferHttpHandler(transferService)
 
 	handler := &handler.HTTPTreeGridHandler{CallbackGetPageCountFunc: transferService.GetPagesCount,
 		CallbackGetPageDataFunc: transferService.GetTransfersPageData}
 
 	http.HandleFunc("/data", handler.HTTPHandleGetPageCount)
-	http.HandleFunc("/page", handler.HTTPHandleGetPageTransferData)
+	http.HandleFunc("/page", handler.HTTPHandleGetPageData)
 	log.Println("start server at 8080!")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 

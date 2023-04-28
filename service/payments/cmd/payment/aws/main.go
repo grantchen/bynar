@@ -4,8 +4,10 @@ import (
 	"log"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/config"
-	lambda_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/handler/aws/lambda"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/aws/secretsmanager"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
+
+	lambda_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/handler/aws/lambda"
 
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	sql_connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
@@ -48,6 +50,16 @@ func main() {
 		}
 	}()
 
-	lambdaHandler := lambda_handler.NewLambdaHandler(secretsManager, connectionPool)
+	paymentLambdaHandler := lambda_handler.NewLambdaHandler(secretsManager, connectionPool)
+	lambdaHandler := handler.LambdaTreeGridHandler{
+		LambdaPaths: &handler.LambdaTreeGridPaths{
+			PathPageCount: "/data",
+			PathPageData:  "/page",
+			PathUpload:    "/upload",
+			PathCell:      "/cell",
+		},
+		CallbackUploadDataFunc: paymentLambdaHandler.Handle,
+	}
+
 	lambda.Start(lambdaHandler)
 }

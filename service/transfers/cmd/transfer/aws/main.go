@@ -5,8 +5,8 @@ import (
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/aws/secretsmanager"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/config"
-	lambda_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/handler/aws/lambda"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/service"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -15,12 +15,7 @@ import (
 
 var (
 	// ModuleID is hardcoded as provided in the specification.
-	moduleID = 8
-
-	connectionStringKey = "bynar"
-	awsRegion           = "eu-central-1"
-
-	authorizationHeader = "Authorization"
+	awsRegion = "eu-central-1"
 )
 
 func getAppConfig(s secretsmanager.SecretsManager) config.AppConfig {
@@ -47,7 +42,18 @@ func main() {
 
 	transferRepository := repository.NewTransferRepository(db)
 	transferService := service.NewTransferService(transferRepository)
-	handler := lambda_handler.NewLambdaHandler(transferService)
+	// handler := lambda_handler.NewLambdaHandler(transferService)
 
-	lambda.Start(handler)
+	lambdaHandler := handler.LambdaTreeGridHandler{
+		LambdaPaths: &handler.LambdaTreeGridPaths{
+			PathPageCount: "/data",
+			PathPageData:  "/page",
+			PathUpload:    "/upload",
+			PathCell:      "/cell",
+		},
+		CallbackGetPageCountFunc: transferService.GetPagesCount,
+		CallbackGetPageDataFunc:  transferService.GetTransfersPageData,
+	}
+
+	lambda.Start(lambdaHandler)
 }

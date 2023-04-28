@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -9,11 +8,6 @@ import (
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
-
-type CallBackGetPageCount func(tr *treegrid.Treegrid) float64
-type CallBackGetPageData func(tr *treegrid.Treegrid) ([]map[string]string, error)
-type CallBackUploadData func(req *treegrid.PostRequest) (*treegrid.PostResponse, error)
-type CallBackGetCellData func(ctx context.Context, req *treegrid.Treegrid) (*treegrid.PostResponse, error)
 
 type HTTPTreeGridHandler struct {
 	CallbackGetPageCountFunc CallBackGetPageCount
@@ -53,7 +47,7 @@ func (h *HTTPTreeGridHandler) HTTPHandleGetPageCount(w http.ResponseWriter, r *h
 	w.Write(response)
 }
 
-func (h *HTTPTreeGridHandler) HTTPHandleGetPageTransferData(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPTreeGridHandler) HTTPHandleGetPageData(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		log.Fatal(err)
 		return
