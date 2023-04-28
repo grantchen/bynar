@@ -1,3 +1,8 @@
+Wednesday, 2023/04/28
+- Build a common handlers (http and lambda) for paths: /data /page /cell /upload.
+- Refactor transfer and payment apps using new handlers.
+
+
 Wednesday, 2023/04/26
 - Move treegrid model from payments (/upload api) and transfer (/data and /page api), ready for make a solid structure with handler layer is reuseable.
 - Write handlers layer in pkgs (in-progress)
