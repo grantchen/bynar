@@ -46,6 +46,7 @@ func (l *LambdaTreeGridHandler) routeRequest(ctx context.Context, request events
 	case l.LambdaPaths.PathUpload:
 		return l.handleUpload(ctx, request)
 	case l.LambdaPaths.PathCell:
+		return l.getCellData(ctx, request)
 
 	}
 	headers := map[string]string{
@@ -247,5 +248,51 @@ func (l *LambdaTreeGridHandler) handleUpload(ctx context.Context, request events
 
 func (l *LambdaTreeGridHandler) getCellData(ctx context.Context, request events.APIGatewayV2HTTPRequest) (
 	events.APIGatewayProxyResponse, error) {
-	return events.APIGatewayProxyResponse{}, nil
+	start := time.Now()
+	reqBody, err := base64.StdEncoding.DecodeString(request.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	urlQuery, err := url.ParseQuery(string(reqBody))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if len(urlQuery["Data"]) == 0 {
+		log.Fatalln(urlQuery)
+	}
+
+	req, err := treegrid.ParseRequest([]byte(urlQuery["Data"][0]))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	trGrid, err := treegrid.NewTreegrid(req)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	response, err := l.CallBackGetCellDataFunc(ctx, trGrid)
+	if err != nil {
+		log.Println("err", err)
+	}
+
+	// set this to allow Ajax requests from other origins
+	headers := map[string]string{
+		"Access-Control-Allow-Origin":  "*",
+		"Access-Control-Allow-Headers": "Origin, X-Requested-With, Content-Type, Accept",
+		"Content-type":                 "application/json",
+		"Tcalc":                        fmt.Sprintf("%d ms", time.Since(start).Milliseconds())}
+
+	respBytes, err := json.Marshal(response)
+	if err != nil {
+		log.Println("err", err)
+	}
+
+	return events.APIGatewayProxyResponse{
+		StatusCode:      200,
+		Headers:         headers,
+		Body:            string(respBytes),
+		IsBase64Encoded: false,
+	}, nil
 }
