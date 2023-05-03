@@ -2,8 +2,6 @@ package treegrid
 
 import (
 	"fmt"
-
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
 type (
@@ -18,7 +16,7 @@ type (
 	}
 )
 
-func ParseRequestUpload(req *treegrid.PostRequest, identityStore IdentityStorage) (*GridList, error) {
+func ParseRequestUpload(req PostRequest, identityStore IdentityStorage) (*GridList, error) {
 	trList := &GridList{
 		mainRows:  make(map[string]GridRow),
 		childRows: make(map[string][]GridRow),
@@ -60,6 +58,42 @@ func ParseRequestUpload(req *treegrid.PostRequest, identityStore IdentityStorage
 		trList.mainRows[k] = GridRow{
 			"id":                         k,
 			string(GridRowActionChanged): "1",
+		}
+	}
+
+	return trList, nil
+}
+
+// use by task2
+func ParseRequestUpload2(req *PostRequest) (*GridList, error) {
+	trList := &GridList{
+		mainRows:  make(map[string]GridRow),
+		childRows: make(map[string][]GridRow),
+	}
+
+	for k, change := range req.Changes {
+		changeType, ok := change[ChangeTypeField].(string)
+		if !ok {
+			return nil, fmt.Errorf("undefined change type: [%v]", change[ChangeTypeField])
+		}
+
+		ID := change[FieldNameID].(string)
+
+		// check if change is transfer of item
+		switch changeType {
+		case ChangeTypeNode:
+			trList.mainRows[ID] = req.Changes[k]
+		case ChangeTypeItem:
+			parentID, _ := change[FieldNameParent].(string)
+
+			if _, ok := trList.childRows[parentID]; !ok {
+				trList.childRows[parentID] = make([]GridRow, 0, 10)
+			}
+
+			trList.childRows[parentID] = append(trList.childRows[parentID], req.Changes[k])
+
+		default:
+			return trList, fmt.Errorf("undefined change type: '%s'", changeType)
 		}
 	}
 

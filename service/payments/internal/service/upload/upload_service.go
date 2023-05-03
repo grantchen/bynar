@@ -76,7 +76,7 @@ var (
 func (s *uploadService) Handle(req *pkg_treegrid.PostRequest) (*pkg_treegrid.PostResponse, error) {
 	resp := &pkg_treegrid.PostResponse{}
 
-	trList, err := treegrid.ParseRequest(req, s.gridRowReppository)
+	trList, err := treegrid.ParseRequestUpload(req, s.gridRowReppository)
 	if err != nil {
 		return nil, fmt.Errorf("could notparse requst: [%w]", err)
 	}

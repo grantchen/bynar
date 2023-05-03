@@ -13,7 +13,7 @@ const (
 	lineSuffix = "-line"
 )
 
-type gridRowReppository struct {
+type gridRowRepository struct {
 	conn               *sql.DB
 	tableName          string
 	lineTableName      string
@@ -22,7 +22,7 @@ type gridRowReppository struct {
 }
 
 func NewGridRepository(conn *sql.DB, tableName, lineTableName string, parentFieldMapping, childFieldMapping map[string][]string) GridRowReppository {
-	return &gridRowReppository{
+	return &gridRowRepository{
 		conn:               conn,
 		tableName:          tableName,
 		lineTableName:      lineTableName,
@@ -31,13 +31,13 @@ func NewGridRepository(conn *sql.DB, tableName, lineTableName string, parentFiel
 	}
 }
 
-func (s *gridRowReppository) IsChild(gr treegrid.GridRow) bool {
+func (s *gridRowRepository) IsChild(gr treegrid.GridRow) bool {
 	id := gr.GetIDStr()
 
 	return strings.HasSuffix(id, lineSuffix)
 }
 
-func (s *gridRowReppository) GetParentID(gr treegrid.GridRow) (parentID interface{}, err error) {
+func (s *gridRowRepository) GetParentID(gr treegrid.GridRow) (parentID interface{}, err error) {
 	query := `
 	SELECT parent_id 
 	FROM ` + s.lineTableName + `
@@ -49,7 +49,7 @@ func (s *gridRowReppository) GetParentID(gr treegrid.GridRow) (parentID interfac
 	return
 }
 
-func (s *gridRowReppository) GetStatus(id interface{}) (status interface{}, err error) {
+func (s *gridRowRepository) GetStatus(id interface{}) (status interface{}, err error) {
 	query := `
 	SELECT d.status 
 	FROM ` + s.tableName + ` t
@@ -62,7 +62,7 @@ func (s *gridRowReppository) GetStatus(id interface{}) (status interface{}, err 
 	return
 }
 
-func (s *gridRowReppository) Save(tx *sql.Tx, tr *treegrid.MainRow) error {
+func (s *gridRowRepository) Save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	logger.Debug("Save grid row id", tr.IDString())
 
 	if err := s.saveMainRow(tx, tr); err != nil {
@@ -76,7 +76,7 @@ func (s *gridRowReppository) Save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	return nil
 }
 
-func (s *gridRowReppository) saveMainRow(tx *sql.Tx, tr *treegrid.MainRow) error {
+func (s *gridRowRepository) saveMainRow(tx *sql.Tx, tr *treegrid.MainRow) error {
 	var (
 		query string
 		args  []interface{}
@@ -145,7 +145,7 @@ func (s *gridRowReppository) saveMainRow(tx *sql.Tx, tr *treegrid.MainRow) error
 	return nil
 }
 
-func (s *gridRowReppository) saveLines(tx *sql.Tx, tr *treegrid.MainRow) error {
+func (s *gridRowRepository) saveLines(tx *sql.Tx, tr *treegrid.MainRow) error {
 	logger.Debug("Save lines, count: ", len(tr.Items))
 
 	for _, item := range tr.Items {

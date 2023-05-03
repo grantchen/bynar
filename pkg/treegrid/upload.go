@@ -31,8 +31,3 @@ type (
 )
 
 type ChangeItemType string
-
-const (
-	ChangeTypeNode ChangeItemType = "Node"
-	ChangeTypeItem ChangeItemType = "Data"
-)
