@@ -5,7 +5,8 @@ import (
 	"fmt"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/models"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/repositories"
+	repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/repositories"
+	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 )
 
 const (
@@ -14,17 +15,17 @@ const (
 )
 
 type paymentService struct {
-	paymentRepository   repositories.PaymentRepository
-	procRepository      repositories.ProcurementRepository
-	currRepository      repositories.CurrencyRepository
-	cashManagRepository repositories.CashManagementRepository
+	paymentRepository   repository.PaymentRepository
+	procRepository      pkg_repository.ProcurementRepository
+	currRepository      pkg_repository.CurrencyRepository
+	cashManagRepository pkg_repository.CashManagementRepository
 }
 
 func NewPaymentService(
-	paymentRepository repositories.PaymentRepository,
-	procRepository repositories.ProcurementRepository,
-	currRepository repositories.CurrencyRepository,
-	cashManagRepository repositories.CashManagementRepository) *paymentService {
+	paymentRepository repository.PaymentRepository,
+	procRepository pkg_repository.ProcurementRepository,
+	currRepository pkg_repository.CurrencyRepository,
+	cashManagRepository pkg_repository.CashManagementRepository) *paymentService {
 	return &paymentService{
 		paymentRepository:   paymentRepository,
 		procRepository:      procRepository,

@@ -1,5 +1,7 @@
 package models
 
+import "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
+
 type Payment struct {
 	ID                     int
 	BatchID                int
@@ -31,7 +33,7 @@ type Payment struct {
 	Remaining              float32
 	PaidStatus             int
 
-	CashManagement *CashManagement
+	CashManagement *models.CashManagement
 }
 
 type PaymentLine struct {

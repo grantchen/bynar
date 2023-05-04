@@ -4,16 +4,18 @@ import (
 	"database/sql"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/mapping"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/repositories"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/repositories/gridrep"
+	repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/repositories"
 	svc "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/service"
 	svc_upload "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/service/upload"
+	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
+	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
 func NewUploadService(sqlDB *sql.DB, moduleID int, accountID int) (svc_upload.UploadService, error) {
 	// init repositories
 	// grid repo
-	gridRowRepository := gridrep.NewGridRepository(
+	gridRowRepository := treegrid.NewGridRepository(
 		sqlDB,
 		"payments",
 		"payment_lines",
@@ -21,16 +23,16 @@ func NewUploadService(sqlDB *sql.DB, moduleID int, accountID int) (svc_upload.Up
 		mapping.PaymentLineFieldNames,
 	)
 
-	paymentRepository := repositories.NewPayment(sqlDB, "payments", "payment_lines")
-	procurementRepository := repositories.NewProcurementRepository(sqlDB)
-	currencyRepository := repositories.NewCurrencyRepository(sqlDB)
-	cashManagementRepository := repositories.NewCashManagementRepository(sqlDB)
-	documentRepository := repositories.NewDocuments(sqlDB, "procurements")
-	workflowRepository := repositories.NewWorkflowRepository(sqlDB, moduleID)
+	paymentRepository := repository.NewPayment(sqlDB, "payments", "payment_lines")
+	procurementRepository := pkg_repository.NewProcurementRepository(sqlDB)
+	currencyRepository := pkg_repository.NewCurrencyRepository(sqlDB)
+	cashManagementRepository := pkg_repository.NewCashManagementRepository(sqlDB)
+	documentRepository := pkg_repository.NewDocuments(sqlDB, "procurements")
+	workflowRepository := pkg_repository.NewWorkflowRepository(sqlDB, moduleID)
 	// init services
 	// TODO
 
-	approvalSvc := svc.NewApprovalCashPaymentService(repositories.NewApprovalOrder(
+	approvalSvc := pkg_service.NewApprovalCashPaymentService(pkg_repository.NewApprovalOrder(
 		workflowRepository,
 		paymentRepository),
 	)
@@ -42,7 +44,7 @@ func NewUploadService(sqlDB *sql.DB, moduleID int, accountID int) (svc_upload.Up
 		cashManagementRepository,
 	)
 
-	docSvc := svc.NewDocumentService(documentRepository)
+	docSvc := pkg_service.NewDocumentService(documentRepository)
 
 	uploadSvc, err := svc_upload.NewUploadService(
 		sqlDB,

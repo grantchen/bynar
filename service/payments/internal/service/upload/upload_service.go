@@ -7,21 +7,19 @@ import (
 	"fmt"
 	"log"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/repositories/gridrep"
-	svc "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/service"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
+	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	pkg_treegrid "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
 type uploadService struct {
-	moduleID           int
-	accountID          int
-	conn               *sql.DB
-	approvalService    svc.ApprovalCashPaymentService
-	gridRowReppository gridrep.GridRowReppository
-	paymentService     PaymentService
-	docSvc             svc.DocumentService
+	moduleID          int
+	accountID         int
+	conn              *sql.DB
+	approvalService   pkg_service.ApprovalCashPaymentService
+	gridRowRepository pkg_treegrid.GridRowRepository
+	paymentService    PaymentService
+	docSvc            pkg_service.DocumentService
 }
 
 type ErrUpload struct {
@@ -48,21 +46,21 @@ func (e *ErrDoc) Error() string {
 // Handle implements UploadSvc
 
 func NewUploadService(conn *sql.DB,
-	approvalService svc.ApprovalCashPaymentService,
-	gridRowReppository gridrep.GridRowReppository,
+	approvalService pkg_service.ApprovalCashPaymentService,
+	gridRowReppository pkg_treegrid.GridRowRepository,
 	procurementService PaymentService,
 	moduleID, accoundID int,
-	documentService svc.DocumentService,
+	documentService pkg_service.DocumentService,
 ) (UploadService, error) {
 
 	return &uploadService{
-		conn:               conn,
-		approvalService:    approvalService,
-		gridRowReppository: gridRowReppository,
-		paymentService:     procurementService,
-		moduleID:           moduleID,
-		accountID:          accoundID,
-		docSvc:             documentService,
+		conn:              conn,
+		approvalService:   approvalService,
+		gridRowRepository: gridRowReppository,
+		paymentService:    procurementService,
+		moduleID:          moduleID,
+		accountID:         accoundID,
+		docSvc:            documentService,
 	}, nil
 }
 
@@ -76,7 +74,7 @@ var (
 func (s *uploadService) Handle(req *pkg_treegrid.PostRequest) (*pkg_treegrid.PostResponse, error) {
 	resp := &pkg_treegrid.PostResponse{}
 
-	trList, err := treegrid.ParseRequestUpload(req, s.gridRowReppository)
+	trList, err := pkg_treegrid.ParseRequestUpload(req, s.gridRowRepository)
 	if err != nil {
 		return nil, fmt.Errorf("could notparse requst: [%w]", err)
 	}
@@ -99,7 +97,7 @@ func (s *uploadService) Handle(req *pkg_treegrid.PostRequest) (*pkg_treegrid.Pos
 	return resp, nil
 }
 
-func (s *uploadService) handle(tr *treegrid.MainRow) error {
+func (s *uploadService) handle(tr *pkg_treegrid.MainRow) error {
 	// Check Approval Order
 	ok, err := s.approvalService.Check(tr, s.moduleID, s.accountID)
 	if err != nil {
@@ -118,7 +116,7 @@ func (s *uploadService) handle(tr *treegrid.MainRow) error {
 	}
 	defer tx.Rollback()
 
-	if err := s.gridRowReppository.Save(tx, tr); err != nil {
+	if err := s.gridRowRepository.Save(tx, tr); err != nil {
 		return &ErrUpload{Err: err, ID: tr.IDString()}
 	}
 

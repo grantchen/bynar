@@ -4,29 +4,10 @@ import (
 	"database/sql"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/models"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/treegrid"
 )
 
 type PaymentService interface {
 	GetTx(tx *sql.Tx, id interface{}) (*models.Payment, error)
 	Handle(tx *sql.Tx, m *models.Payment, moduleID int) error
 	HandleLine(tx *sql.Tx, payment *models.Payment, line *models.PaymentLine) (err error)
-}
-
-type DocumentService interface {
-	Handle(tx *sql.Tx, modelID, docID int, docNo string) error
-}
-
-type CashReceiptService interface {
-	GetPaymentTx(tx *sql.Tx, id interface{}) (*models.CashReceipt, error)
-	Handle(tx *sql.Tx, m *models.CashReceipt, moduleID int) error
-	HandleLine(tx *sql.Tx, pr *models.CashReceipt, l *models.CashReceiptLine) (err error)
-}
-
-type ApprovalService interface {
-	Check(tr *treegrid.MainRow, moduleID, accountID int) (bool, error)
-}
-
-type ApprovalCashPaymentService interface {
-	Check(tr *treegrid.MainRow, moduleID, accountID int) (bool, error)
 }

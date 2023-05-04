@@ -19,7 +19,7 @@ type saleService struct {
 }
 
 func NewSaleService(saleRep repository.SaleRepository, unitRep pkg_repository.UnitRepository,
-	currencyRep pkg_repository.CurrencyRepository, inventoryRep pkg_repository.InventoryRepository) *saleService {
+	currencyRep pkg_repository.CurrencyRepository, inventoryRep pkg_repository.InventoryRepository) SaleService {
 	return &saleService{
 		saleRep:      saleRep,
 		unitRep:      unitRep,
