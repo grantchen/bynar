@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
@@ -12,7 +13,77 @@ import (
 )
 
 type transferRepository struct {
-	db *sql.DB
+	gridTreeRepository treegrid.GridRowRepository
+	db                 *sql.DB
+}
+
+// Save implements TransferRepository
+func (t *transferRepository) Save(tx *sql.Tx, tr *treegrid.MainRow) error {
+	if err := t.SaveTransfer(tx, tr); err != nil {
+		return fmt.Errorf("save transfer: [%w]", err)
+	}
+
+	if err := t.SaveTransferLines(tx, tr); err != nil {
+		return fmt.Errorf("save transfer line: [%w]", err)
+	}
+
+	return nil
+}
+
+// SaveDocumentID implements TransferRepository
+func (*transferRepository) SaveDocumentID(tx *sql.Tx, tr *treegrid.MainRow, docID string) error {
+	return nil
+}
+
+// SaveTransfer implements TransferRepository
+func (t *transferRepository) SaveTransfer(tx *sql.Tx, tr *treegrid.MainRow) error {
+	return t.gridTreeRepository.SaveMainRow(tx, tr)
+}
+
+// SaveTransferLines implements TransferRepository
+func (t *transferRepository) SaveTransferLines(tx *sql.Tx, tr *treegrid.MainRow) error {
+	for _, item := range tr.Items {
+		switch item.GetActionType() {
+		case treegrid.GridRowActionAdd:
+			if err := t.validateAddTransferLine(tx, item); err != nil {
+				return fmt.Errorf("validate TransferLine: [%w]", err)
+			}
+			err := t.gridTreeRepository.SaveLineAdd(tx, item)
+			if err != nil {
+				return err
+			}
+
+			continue
+		case treegrid.GridRowActionChanged:
+			err := t.gridTreeRepository.SaveLineUpdate(tx, item)
+			if err != nil {
+				return err
+			}
+
+			if err := t.afterChangeTransferLine(tx, item); err != nil {
+				return fmt.Errorf("afterChangeTransferLine: [%w]", err)
+			}
+
+			continue
+		case treegrid.GridRowActionDeleted:
+			err := t.gridTreeRepository.SaveLineDelete(tx, item)
+
+			if err != nil {
+				return err
+			}
+			continue
+		default:
+			return fmt.Errorf("undefined row type: %s", item.GetActionType())
+		}
+
+	}
+
+	return nil
+}
+
+// UpdateStatus implements TransferRepository
+func (*transferRepository) UpdateStatus(tx *sql.Tx, status int) error {
+	return nil
 }
 
 // GetTransfersPageData implements TransferRepository
@@ -91,5 +162,14 @@ func (t *transferRepository) GetTransferCount(treegrid *treegrid.Treegrid) (int,
 }
 
 func NewTransferRepository(db *sql.DB) TransferRepository {
-	return &transferRepository{db: db}
+	grRepository := treegrid.NewGridRepository(db,
+		"transfers",
+		"transfer_lines",
+		TransferFieldNames,
+		TransferLineFieldNames,
+	)
+	return &transferRepository{
+		db:                 db,
+		gridTreeRepository: grRepository,
+	}
 }

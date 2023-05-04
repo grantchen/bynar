@@ -79,7 +79,7 @@ func (h *HTTPTreeGridHandler) HTTPHandleGetPageData(w http.ResponseWriter, r *ht
 	w.Write(result)
 }
 
-func (h *HTTPTreeGridHandler) HandleUpload(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPTreeGridHandler) HTTPHandleUpload(w http.ResponseWriter, r *http.Request) {
 	var (
 		postData = &treegrid.PostRequest{
 			Changes: make([]map[string]interface{}, 10),

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"fmt"
 	"strconv"
 	"strings"
@@ -363,4 +364,69 @@ func (t *transferRepository) addChildCondition(orignal_query string, col_name st
 	}
 
 	return orignal_query
+}
+
+func (t *transferRepository) validateAddTransferLine(tx *sql.Tx, item treegrid.GridRow) error {
+	unitID, ok := item["item_unit_id"]
+	if !ok {
+		return fmt.Errorf("absent item_unit_id")
+	}
+
+	query := `SELECT value FROM units WHERE id = ?`
+	var unitVal int
+	if err := tx.QueryRow(query, unitID).Scan(&unitVal); err != nil {
+		return fmt.Errorf("query row: [%w], query: %s", err, query)
+	}
+
+	// check item unit val
+	itemUnitVal, ok := item["item_unit_value"]
+	if !ok {
+		item["item_unit_value"] = unitVal
+	} else {
+		itemUnitValInt, _ := item.GetStrInt("item_unit_value")
+
+		if itemUnitValInt != unitVal {
+			return fmt.Errorf("invalid item_unit_value: got '%d', want '%d'", itemUnitValInt, itemUnitVal)
+		}
+	}
+
+	// check calculated quantity
+	inputQuantity, _ := item.GetStrInt("input_quantity")
+	if inputQuantity == 0 {
+		return fmt.Errorf("invalid input quantity: '%d'", inputQuantity)
+	}
+
+	item["quantity"] = inputQuantity * unitVal
+	if _, ok := item["Parent"]; !ok {
+		return fmt.Errorf("absent 'Parent' value ")
+	}
+
+	item["parent_id"] = item["Parent"]
+
+	return nil
+}
+
+func (t *transferRepository) afterChangeTransferLine(tx *sql.Tx, item treegrid.GridRow) error {
+	if _, ok := item["input_quantaty"]; ok {
+		return t.updateTransferLineQuantityVals(tx, item)
+	}
+
+	if _, ok := item["item_unit_id"]; ok {
+		return t.updateTransferLineQuantityVals(tx, item)
+
+	}
+
+	return nil
+}
+
+func (t *transferRepository) updateTransferLineQuantityVals(tx *sql.Tx, item treegrid.GridRow) error {
+	query := `
+UPDATE transfer_lines trl
+SET item_unit_value = (SELECT value FROM units WHERE id = trl.item_unit_id),
+quantity = input_quantity * (SELECT value FROM units WHERE id = trl.item_unit_id)
+WHERE id = 1
+	`
+	_, err := tx.Exec(query, item.GetID())
+
+	return err
 }

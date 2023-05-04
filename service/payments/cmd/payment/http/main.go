@@ -46,7 +46,7 @@ func main() {
 			return uploadSvc.Handle(req)
 		},
 	}
-	http.HandleFunc("/upload", handler.HandleUpload)
+	http.HandleFunc("/upload", handler.HTTPHandleUpload)
 	log.Println("start server at 8081!")
 	log.Fatal(http.ListenAndServe(":8081", nil))
 

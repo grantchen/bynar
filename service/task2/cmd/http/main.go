@@ -39,6 +39,6 @@ func main() {
 			return uploadService.Handle(req, accountID)
 		},
 	}
-	http.HandleFunc("/upload", handler.HandleUpload)
+	http.HandleFunc("/upload", handler.HTTPHandleUpload)
 
 }

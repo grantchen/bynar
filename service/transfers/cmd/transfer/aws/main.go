@@ -3,9 +3,11 @@ package main
 import (
 	"log"
 
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/aws/scope"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/aws/secretsmanager"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/config"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/service"
@@ -16,6 +18,7 @@ import (
 var (
 	// ModuleID is hardcoded as provided in the specification.
 	awsRegion = "eu-central-1"
+	accountID = 11111
 )
 
 func getAppConfig(s secretsmanager.SecretsManager) config.AppConfig {
@@ -40,9 +43,20 @@ func main() {
 		log.Panic(err)
 	}
 
+	documentRepository := repository.NewDocumentRepository(db)
+	inventoryRepository := repository.NewInventoryRepository(db)
 	transferRepository := repository.NewTransferRepository(db)
-	transferService := service.NewTransferService(transferRepository)
-	// handler := lambda_handler.NewLambdaHandler(transferService)
+	userRepository := repository.NewUserRepository(db)
+	workflowRepository := repository.NewWorkflowRepository()
+
+	transferService := service.NewTransferService(
+		db,
+		userRepository,
+		workflowRepository,
+		transferRepository,
+		inventoryRepository,
+		documentRepository,
+	)
 
 	lambdaHandler := handler.LambdaTreeGridHandler{
 		LambdaPaths: &handler.LambdaTreeGridPaths{
@@ -53,6 +67,9 @@ func main() {
 		},
 		CallbackGetPageCountFunc: transferService.GetPagesCount,
 		CallbackGetPageDataFunc:  transferService.GetTransfersPageData,
+		CallbackUploadDataFunc: func(scope *scope.RequestScope, req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
+			return transferService.HandleUpload(req, accountID)
+		},
 	}
 
 	lambda.Start(lambdaHandler)
