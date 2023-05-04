@@ -16,7 +16,7 @@ type (
 	}
 )
 
-func ParseRequestUpload(req PostRequest, identityStore IdentityStorage) (*GridList, error) {
+func ParseRequestUpload(req *PostRequest, identityStore IdentityStorage) (*GridList, error) {
 	trList := &GridList{
 		mainRows:  make(map[string]GridRow),
 		childRows: make(map[string][]GridRow),

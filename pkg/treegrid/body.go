@@ -1,6 +1,8 @@
 package treegrid
 
-import "strconv"
+import (
+	"strconv"
+)
 
 type BodyParam struct {
 	ID   string `json:"id,omitempty"`
