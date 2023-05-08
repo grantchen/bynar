@@ -35,7 +35,7 @@ func NewColumn(gridName string) (c Column) {
 
 var (
 	ItemsFields = map[string]string{
-		"item_type":          "transfers_items.item_type",
+		"item_type":          "item_types.code",
 		"item_no":            "items.no",
 		"item_name":          "items.description",
 		"item_unit":          "units.code",
@@ -45,11 +45,8 @@ var (
 		"item_tempory":       "transfers_items.item_tempory",
 		"item_uuid":          "transfers_items.item_uuid",
 		"item_unit_uuid":     "transfers_items.item_unit_uuid",
-		"item_code":          "transfers_items.item_code",
-		"item_barcode":       "transfers_items.item_barcode",
-		"item_brand":         "transfers_items.item_brand",
-		"item_category":      "transfers_items.item_category",
-		"item_subcategory":   "transfers_items.item_subcategory",
+		"item_code":          "items.code",
+		"item_barcode":       "items.code_2",
 	}
 
 	FieldAliases = map[string]string{
@@ -81,16 +78,39 @@ var (
 	}
 
 	TransferItemsFields = map[string]bool{
-		"item_uuid":        true,
-		"item_name":        true,
-		"item_code":        true,
-		"item_type":        true,
-		"item_barcode":     true,
-		"item_brand":       true,
-		"item_category":    true,
-		"item_subcategory": true,
-		"item_unit":        true,
-		"item_quantity":    true,
+		"item_uuid":    true,
+		"item_name":    true,
+		"item_code":    true,
+		"item_type":    true,
+		"item_barcode": true,
+		// "item_brand":       true,
+		// "item_category":    true,
+		// "item_subcategory": true,
+		"item_unit":     true,
+		"item_quantity": true,
+	}
+
+	TransferFields = map[string]bool{
+		"transfers.id":                               true,
+		"transfers.document_no":                      true,
+		"transfers.document_date":                    true,
+		"transfers.posting_date":                     true,
+		"transfers.entry_date":                       true,
+		"transfers.delivery_date":                    true,
+		"documents.document_type":                    true,
+		"documents.document_abbrevation":             true,
+		"stores.code":                                true,
+		"wh_origin.code":                             true,
+		"wh_destination.code":                        true,
+		"ss.code":                                    true,
+		"responsibility_center.code":                 true,
+		"transfers.document_type_uuid":               true,
+		"transfers.store_origin_uuid":                true,
+		"transfers.warehouse_origin_uuid":            true,
+		"transfers.warehouse_destination_uuid":       true,
+		"transfers.responsibility_center_uuid":       true,
+		"transfers.warehouseman_destination_approve": true,
+		"transfers.has_child":                        true,
 	}
 )
 

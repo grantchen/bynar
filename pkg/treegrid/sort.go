@@ -2,9 +2,11 @@ package treegrid
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 )
 
+// SortType - type of sorting for ORDER BY
 type SortType string
 
 const (
@@ -45,4 +47,45 @@ func ParseSortParams(sortValsStr string, sortTypesStr string) (SortParams, error
 	}
 
 	return params, nil
+}
+
+// OrderByChildQuery - making 'ORDER BY' query from SortParams and fieldsMapping
+func (s SortParams) OrderByChildQuery(itemFields map[string]bool) (res string) {
+	for k, v := range s {
+		if itemFields == nil {
+			res += fmt.Sprintf("%s %s, ", k, v)
+			continue
+		}
+
+		if itemFields[k] {
+			res += fmt.Sprintf("%s %s, ", k, v)
+		}
+	}
+
+	if len(res) > 0 {
+		res = " ORDER BY " + res[:len(res)-2]
+	}
+
+	return
+}
+
+// OrderByQueryExludeChild - making 'ORDER BY' query from SortParams and fieldsMapping EXCLUDING child sort params
+func (s SortParams) OrderByQueryExludeChild(childFields map[string]bool, fieldAlias map[string]string) (res string) {
+	for k, v := range s {
+		if childFields == nil || childFields[k] {
+			continue
+		}
+
+		if f, ok := fieldAlias[k]; ok {
+			// res += fmt.Sprintf("%s %s, ", k, v)
+
+			res += fmt.Sprintf("%s %s, ", f, v)
+		}
+	}
+
+	if len(res) > 0 {
+		res = " ORDER BY " + res[:len(res)-2]
+	}
+
+	return
 }

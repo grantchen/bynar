@@ -1,5 +1,6 @@
 package sqlbuilder
 
+// tables: transfers, documents, stores
 const (
 	QueryParentCount = `
 	SELECT COUNT(transfers.id) as rowCount 

@@ -4,10 +4,10 @@ const (
 	QueryChildCount = `
 SELECT COUNT(*) as rowCount 
 FROM transfers_items 
-INNER JOIN items ON transfers_items.item_uuid = items.id  
-INNER JOIN units ON transfers_items.item_unit_uuid = units.id 
-INNER JOIN item_types ON items.type_uuid = item_types.id  
-where 1=1 `
+	INNER JOIN items ON transfers_items.item_uuid = items.id  
+	INNER JOIN units ON transfers_items.item_unit_uuid = units.id 
+	INNER JOIN item_types ON items.type_uuid = item_types.id  
+WHERE 1=1 `
 
 	QueryChild = `
 SELECT 
@@ -24,9 +24,9 @@ SELECT
 	transfers_items.item_uuid, 
 	transfers_items.item_unit_uuid  
 FROM transfers_items 
-INNER JOIN items ON transfers_items.item_uuid = items.id  
-INNER JOIN units ON transfers_items.item_unit_uuid = units.id 
-INNER JOIN item_types ON items.type_uuid = item_types.id
+	INNER JOIN items ON transfers_items.item_uuid = items.id  
+	INNER JOIN units ON transfers_items.item_unit_uuid = units.id 
+	INNER JOIN item_types ON items.type_uuid = item_types.id
 `
 
 	QueryChildJoins = `

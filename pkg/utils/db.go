@@ -69,7 +69,12 @@ func (r *RowValues) GetValue(columnName string) string {
 		return string(val)
 	}
 
-	return fmt.Sprintf("%v", r.values[columnName])
+	val := fmt.Sprintf("%v", r.values[columnName])
+	if val == "<nil>" {
+		return ""
+	}
+
+	return val
 }
 
 func CheckCount(rows *sql.Rows) (rowCount int) {

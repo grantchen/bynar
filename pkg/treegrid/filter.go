@@ -10,8 +10,7 @@ func ParseFilterParams(filterParams []map[string]interface{}) (f FilterParams, e
 	return
 }
 
-// MainFilter returns main filter params
-func (f FilterParams) MainFilter() map[string]interface{} {
+func (f FilterParams) Filters() map[string]interface{} {
 	if len(f) == 0 {
 		return map[string]interface{}{}
 	}

@@ -34,7 +34,7 @@ func (t *transferRepository) handleGroupBy(tg *treegrid.Treegrid) ([]map[string]
 		parentBuild = parentBuild + " AND id IN (" +
 			"SELECT Parent FROM transfers_items " +
 			"WHERE 1=1 " + tg.FilterWhere["child"] +
-			sqlbuilder.OrderByQuery(tg.SortParams, model.TransferItemsFields) + ") "
+			tg.OrderByChildQuery(model.TransferItemsFields) + ") "
 	}
 
 	mergedArgs := utils.MergeMaps(tg.FilterArgs["parent"], tg.FilterArgs["child"])
@@ -52,6 +52,10 @@ func (t *transferRepository) getGroupData(where string, tg *treegrid.Treegrid) (
 	logger.Debug("get group data")
 
 	query, colData := t.prepareNameCountQuery(where, tg)
+
+	pos, _ := tg.BodyParams.IntPos()
+	query = sqlbuilder.AddLimit(query)
+	query = sqlbuilder.AddOffset(query, pos)
 
 	logger.Debug("column", colData, "prepared query: \n", query)
 
@@ -106,16 +110,11 @@ func (t *transferRepository) prepareNameCountQuery(where string, tg *treegrid.Tr
 	logger.Debug("Level", level, "len(groupCols)", len(tg.GroupCols))
 
 	if level == len(tg.GroupCols) {
-
 		logger.Debug("getting last level data")
 
 		query = sqlbuilder.QueryParent
 		query = strings.Replace(query, "WHERE 1=1", "", 1)
 		query += where
-
-		pos, _ := tg.BodyParams.IntPos()
-		query = sqlbuilder.AddLimit(query)
-		query = sqlbuilder.AddOffset(query, pos)
 
 		return
 	}
@@ -131,46 +130,36 @@ func (t *transferRepository) prepareNameCountQuery(where string, tg *treegrid.Tr
 		switch {
 		case !column.IsItem && !secColumn.IsItem:
 			return t.getCascadingGroupByParentParent(column, secColumn, where), column
+		case column.IsItem && !secColumn.IsItem, !column.IsItem && secColumn.IsItem:
+			return t.getCascadingGroupByParentChild(column, secColumn, where), column
 		}
 	}
 
 	if column.IsItem {
 		logger.Debug("grouping by item")
 
-		var innerChildConditions, updatedWhere, whereCondition string
-
-		if strings.Index(where, " AND id IN ( SELECT Parent FROM transfers_items WHERE ") > 0 {
-			innerChildConditions = utils.GetStringBetween(where, " AND id IN ( SELECT Parent FROM transfers_items WHERE ", ")")
-			subStr := utils.GetStringBetween(where, " AND id IN (", ")")
-			updatedWhere = strings.Replace(where, subStr, "", 1)
-			updatedWhere = strings.Replace(updatedWhere, "id IN ()", "1", 1)
-		}
-
-		if innerChildConditions != "" {
-			innerChildConditions = " AND " + innerChildConditions
-		}
-
-		whereCondition = where
-		if updatedWhere != "" {
-			whereCondition = updatedWhere
-		}
-
 		if val, ok := model.ItemsFields[column.GridName]; ok {
 			column.DBName = val
 		}
 
-		logger.Debug("innerchild conditions", innerChildConditions)
-
 		query = `
-		  SELECT ` + column.DBName + `, COUNT(*) Count ` +
-			`   FROM transfers_items  
-		  	    INNER JOIN items ON transfers_items.item_uuid = items.id
-				INNER JOIN units ON transfers_items.item_unit_uuid = units.id 
-				INNER JOIN item_types ON items.type_uuid = item_types.id 
-		  	    WHERE Parent IN ( 
-					SELECT id FROM transfers ` + whereCondition + " )" + innerChildConditions + " GROUP BY " + column.DBName
+	SELECT %s, COUNT(*) Count 
+	FROM transfers_items  
+	INNER JOIN items ON transfers_items.item_uuid = items.id
+	INNER JOIN units ON transfers_items.item_unit_uuid = units.id
+	INNER JOIN item_types ON items.type_uuid = item_types.id
+	INNER JOIN transfers ON transfers_items.Parent = transfers.id
+	INNER JOIN documents ON transfers.document_type_uuid = documents.id  
+	INNER JOIN stores ON transfers.store_origin_uuid = stores.id 
+	INNER JOIN stores ss ON transfers.store_destination_uuid = ss.id 
+	INNER JOIN warehouses wh_origin ON transfers.warehouse_origin_uuid = wh_origin.id 
+	INNER JOIN warehouses wh_destination ON transfers.warehouse_destination_uuid = wh_destination.id  
+	INNER JOIN responsibility_center ON transfers.responsibility_center_uuid = responsibility_center.id 
+	%s
+	GROUP BY %s
+	`
 
-		return
+		return fmt.Sprintf(query, column.DBName, where, column.DBName), column
 	}
 
 	query = "SELECT " + column.DBName + ", COUNT(*) Count FROM transfers " + sqlbuilder.QueryParentJoins + where + " GROUP BY " + column.DBName
@@ -192,6 +181,34 @@ func (t *transferRepository) getCascadingGroupByParentParent(firstCol, secondCol
 	`
 
 	return fmt.Sprintf(query, firstCol.DBNameShort, firstCol.DBName, secondCol.DBName, sqlbuilder.QueryParentJoins, where, firstCol.DBName, secondCol.DBName, firstCol.DBNameShort)
+}
+
+// when grouping by two parent (tansfer) columns
+func (t *transferRepository) getCascadingGroupByParentChild(firstCol, secondCol model.Column, where string) string {
+	query := `
+	SELECT %s, COUNT(*) Count FROM (
+		SELECT
+			%s, %s, COUNT(*) Count
+		FROM transfers_items
+			INNER JOIN items ON transfers_items.item_uuid = items.id
+			INNER JOIN units ON transfers_items.item_unit_uuid = units.id
+			INNER JOIN item_types ON items.type_uuid = item_types.id
+			INNER JOIN transfers ON transfers_items.Parent = transfers.id
+			INNER JOIN documents ON transfers.document_type_uuid = documents.id  
+			INNER JOIN stores ON transfers.store_origin_uuid = stores.id 
+			INNER JOIN stores ss ON transfers.store_destination_uuid = ss.id 
+			INNER JOIN warehouses wh_origin ON transfers.warehouse_origin_uuid = wh_origin.id 
+			INNER JOIN warehouses wh_destination ON transfers.warehouse_destination_uuid = wh_destination.id  
+			INNER JOIN responsibility_center ON transfers.responsibility_center_uuid = responsibility_center.id
+			%s  
+		GROUP BY %s, %s) t
+	GROUP BY %s
+	`
+
+	return fmt.Sprintf(query,
+		firstCol.DBNameShort,
+		firstCol.DBName, secondCol.DBName,
+		where, firstCol.DBName, secondCol.DBName, firstCol.DBNameShort)
 }
 
 func (t *transferRepository) getParentData(level int, group_cols []string, where string, query string, colData model.Column) ([]map[string]string, error) {
@@ -227,16 +244,23 @@ func (t *transferRepository) getParentData(level int, group_cols []string, where
 				tempObj[k] = row.StringValues()[k]
 			}
 
+			tempObj["Count"] = "1"
+
 			tableData = append(tableData, tempObj)
 			continue
 		}
 
-		tempObj["document_type"] = row.GetValue(colData.DBNameShort)
+		docType := row.GetValue(colData.DBNameShort)
+		if docType == "" {
+			docType = row.GetValue(colData.GridName)
+		}
+
+		tempObj["document_type"] = docType
 
 		// if grouping by document_type => DB, OPT, DT...
 		// name = document_type
 		// val = DB
-		val := row.GetValue(colData.DBNameShort)
+		val := docType
 		where2 := " AND " + colData.DBName + "='" + val + "'"
 
 		// Builds new attribute Rows for identification
@@ -278,7 +302,7 @@ func (t *transferRepository) getParentData(level int, group_cols []string, where
 	return tableData, nil
 }
 
-func (t *transferRepository) getChildData(level int, group_cols []string, where string, query string, columnData model.Column) ([]map[string]string, error) {
+func (t *transferRepository) getChildData(level int, groupCols []string, where string, query string, columnData model.Column) ([]map[string]string, error) {
 	logger.Debug("get child data")
 
 	rows, err := t.db.Query(query)
@@ -306,7 +330,7 @@ func (t *transferRepository) getChildData(level int, group_cols []string, where 
 		tempObj["Count"] = row.GetValue("Count")
 		tempObj["document_type"] = row.GetValue(columnData.DBNameShort)
 
-		if level == len(group_cols) {
+		if level == len(groupCols) {
 			tableData = append(tableData, row.StringValues())
 			continue
 		}

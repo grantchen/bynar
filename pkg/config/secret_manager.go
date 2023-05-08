@@ -2,6 +2,7 @@ package config
 
 import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/aws/secretsmanager"
+	sql_connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 )
 
@@ -20,9 +21,9 @@ func (a *awsSecretAppConfig) GetDBConnection() string {
 		return ""
 
 	}
-	return value
+	return sql_connection.JSON2DatabaseConnection(value)
 }
 
 func NewAWSSecretsManagerConfig(secretsManager secretsmanager.SecretsManager) AppConfig {
-	return &awsSecretAppConfig{}
+	return &awsSecretAppConfig{secretsmanager: secretsManager}
 }

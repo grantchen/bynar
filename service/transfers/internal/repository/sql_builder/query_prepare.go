@@ -1,17 +1,17 @@
 package sqlbuilder
 
 import (
-	"fmt"
-	"log"
-	"os"
 	"strconv"
 	"strings"
-	"time"
 
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/model"
 )
+
+func PrepFilters(tr *treegrid.Treegrid) {
+	tr.FilterWhere, tr.FilterArgs = PrepQuery(tr.FilterParams)
+}
 
 func PrepQuery(f treegrid.FilterParams) (map[string]string, map[string][]interface{}) {
 	FilterWhere := map[string]string{}
@@ -20,7 +20,7 @@ func PrepQuery(f treegrid.FilterParams) (map[string]string, map[string][]interfa
 	// Filter process
 	var curField, curFieldValue, curOperation, curMarker string
 
-	for key, el := range f.MainFilter() {
+	for key, el := range f.Filters() {
 		if key == "id" || strings.Contains(key, "Filter") {
 			continue
 		}
@@ -33,8 +33,7 @@ func PrepQuery(f treegrid.FilterParams) (map[string]string, map[string][]interfa
 			curMarker = "parent"
 		}
 
-		curField = key
-		curOperation = f.MainFilter()[curField+"Filter"].(string)
+		curOperation = f.Filters()[key+"Filter"].(string)
 		curFieldValue = el.(string)
 
 		// for child item
@@ -44,157 +43,164 @@ func PrepQuery(f treegrid.FilterParams) (map[string]string, map[string][]interfa
 
 		if model.FieldAliases[key] != "" {
 			curField = model.FieldAliases[key]
-			if curField[:11] == "STR_TO_DATE" {
-				curFieldValue = "STR_TO_DATE('" + el.(string) + "','%m/%d/%Y')"
-				FilterWhere[curMarker] += " AND " + curField + model.FieldAliasesDate[curOperation] + curFieldValue
-				continue
-			}
 		}
 
-		if curOperation != "" {
-			switch curOperation {
-			case "1":
-				prepareFilterbyDeli(curMarker, curField, curFieldValue, FilterWhere, FilterArgs, " AND ", " = ? ", "")
-			case "2":
-				prepareFilterbyDeli(curMarker, curField, curFieldValue, FilterWhere, FilterArgs, " AND ", " != ? ", "")
-			case "3":
-				prepareFilterbyDeli(curMarker, curField, curFieldValue, FilterWhere, FilterArgs, " AND ", " < ? ", "")
-			case "4":
-				prepareFilterbyDeli(curMarker, curField, curFieldValue, FilterWhere, FilterArgs, " AND ", " <= ? ", "")
-			case "5":
-				prepareFilterbyDeli(curMarker, curField, curFieldValue, FilterWhere, FilterArgs, " AND ", " > ? ", "")
-			case "6":
-				prepareFilterbyDeli(curMarker, curField, curFieldValue, FilterWhere, FilterArgs, " AND ", " >= ? ", "")
-			case "7":
-				prepareFilterbyDeli(curMarker, curField, curFieldValue, FilterWhere, FilterArgs, " AND ", " LIKE ? ", "end")
-			case "8":
-				prepareFilterbyDeli(curMarker, curField, curFieldValue, FilterWhere, FilterArgs, " AND ", " NOT LIKE ? ", "end")
-			case "9":
-				prepareFilterbyDeli(curMarker, curField, curFieldValue, FilterWhere, FilterArgs, " AND ", " LIKE ? ", "start")
-			case "10":
-				prepareFilterbyDeli(curMarker, curField, curFieldValue, FilterWhere, FilterArgs, " AND ", " NOT LIKE ? ", "start")
-			case "11":
-				prepareFilterbyDeli(curMarker, curField, curFieldValue, FilterWhere, FilterArgs, " AND ", " LIKE ? ", "both")
-			case "12":
-				prepareFilterbyDeli(curMarker, curField, curFieldValue, FilterWhere, FilterArgs, " AND ", " NOT LIKE ? ", "both")
-			case "13":
-				prepareFilterbyDeli(curMarker, curField, curFieldValue, FilterWhere, FilterArgs, " AND ", " IN ? ", "")
-			}
+		operatorInt, _ := strconv.Atoi(curOperation)
+
+		if curField == "" {
+			logger.Debug("undefined filter column: ", key)
+
+			continue
 		}
+
+		if operatorInt < 7 {
+			filterWhere, filterArgs := PrepareFilters(operatorInt, curField, curFieldValue)
+			FilterWhere[curMarker] += " AND " + filterWhere
+			FilterArgs[curMarker] = append(FilterArgs[curMarker], filterArgs...)
+			continue
+		}
+
+		// LIKE operators for text search
+		filterWhere, filterArgs := PrepareTextFilters(operatorInt, curField, curFieldValue)
+		FilterWhere[curMarker] += " AND " + filterWhere
+		FilterArgs[curMarker] = append(FilterArgs[curMarker], filterArgs...)
 	}
 
 	return FilterWhere, FilterArgs
 }
 
-func prepareFilterbyDeli(
-	curMarker string, curField string, curFieldValue string,
-	filterWhere map[string]string, filterArgs map[string][]interface{},
-	condition string, conditionVal string, modPosition string) {
-	// Check if filter have any delimited values
-	splitValue := strings.Split(curFieldValue, ";")
-	// Check if filter have any Range values
-	rangeValue := strings.Split(curFieldValue, "~")
-	inValues := strings.Split(curFieldValue, ",")
+func PrepareTextFilters(operator int, colName, val string) (whereSql string, args []interface{}) {
+	var valPrefix, valSuffix, sqlOperator, sqlOperatorJoin string
 
-	// condition = " AND ", conditionVal = " LIKE ? ", modPosition = "end"
-	if len(splitValue) > 1 {
-		for i := 0; i < len(splitValue); i++ {
-			if i == 0 {
-				filterWhere[curMarker] += condition + curField + conditionVal
-			} else {
-				filterWhere[curMarker] += " OR " + curField + conditionVal
-			}
+	switch operator {
 
-			if modPosition == "both" {
-				filterArgs[curMarker] = append(filterArgs[curMarker], "%"+splitValue[i]+"%")
-			} else if modPosition == "start" {
-				filterArgs[curMarker] = append(filterArgs[curMarker], "%"+splitValue[i])
-			} else if modPosition == "end" {
-				filterArgs[curMarker] = append(filterArgs[curMarker], splitValue[i]+"%")
-			} else {
-				filterArgs[curMarker] = append(filterArgs[curMarker], splitValue[i])
-			}
+	// 7-12 text operators
+	case 7:
+		valSuffix = "%"
+		sqlOperator = " LIKE "
+		sqlOperatorJoin = " OR "
+	case 8:
+		valSuffix = "%"
+		sqlOperator = " NOT LIKE "
+		sqlOperatorJoin = " AND "
+	case 9:
+		valPrefix = "%"
+		sqlOperator = " LIKE "
+		sqlOperatorJoin = " OR "
+	case 10:
+		valPrefix = "%"
+		sqlOperator = " NOT LIKE "
+		sqlOperatorJoin = " AND "
+	case 11:
+		valPrefix = "%"
+		valSuffix = "%"
+		sqlOperator = " LIKE "
+		sqlOperatorJoin = " OR "
+	case 12:
+		valPrefix = "%"
+		valSuffix = "%"
+		sqlOperator = " NOT LIKE "
+		sqlOperatorJoin = " AND "
+	}
+
+	sqlParts := strings.Split(val, ";")
+	lenSqlParts := len(sqlParts)
+	args = make([]interface{}, 0, lenSqlParts)
+
+	for k := range sqlParts {
+		whereSql += colName + sqlOperator + " ? "
+		if k != (lenSqlParts - 1) {
+			whereSql += sqlOperatorJoin
 		}
+
+		args = append(args, valPrefix+sqlParts[k]+valSuffix)
+	}
+
+	return "(" + whereSql + ")", args
+}
+
+func PrepareFilters(operator int, colName, val string) (whereSql string, args []interface{}) {
+	var sqlOperator, sqlOperatorJoin, rangeOperator string
+
+	logger.Debug("operator", operator, "colName", colName, "val", val)
+
+	switch operator {
+	case 1:
+		sqlOperator = " = "
+		sqlOperatorJoin = " OR "
+		rangeOperator = " BETWEEN "
+	case 2:
+		sqlOperator = " != "
+		sqlOperatorJoin = " AND "
+		rangeOperator = " NOT BETWEEN "
+	case 3:
+		whereSql = " (" + colName + " < ? )"
+		args = append(args, val)
+
+		return
+	case 4:
+		whereSql = " (" + colName + " <= ? )"
+		args = append(args, val)
+
+		return
+	case 5:
+		whereSql = " (" + colName + " > ? )"
+		args = append(args, val)
+
+		return
+	case 6:
+		whereSql = " (" + colName + " >= ? )"
+		args = append(args, val)
+
 		return
 	}
 
-	if len(rangeValue) > 1 {
-		if !utils.IsDateValue(rangeValue[0]) {
-			// Check if Range is numeric value
-			start, _ := strconv.Atoi(rangeValue[0])
-			end, _ := strconv.Atoi(rangeValue[1])
-			count := 0
-			for i := start; i < end; i++ {
-				if count == 0 {
-					filterWhere[curMarker] += condition + curField + conditionVal
-				} else {
-					filterWhere[curMarker] += " OR " + curField + conditionVal
-				}
-				if modPosition == "both" {
-					filterArgs[curMarker] = append(filterArgs[curMarker], "%"+strconv.Itoa(i)+"%")
-				} else if modPosition == "start" {
-					filterArgs[curMarker] = append(filterArgs[curMarker], "%"+strconv.Itoa(i))
-				} else if modPosition == "end" {
-					filterArgs[curMarker] = append(filterArgs[curMarker], strconv.Itoa(i)+"%")
-				} else {
-					filterArgs[curMarker] = append(filterArgs[curMarker], strconv.Itoa(i))
-				}
-				count += 1
-			}
-		} else if utils.IsDateValue(rangeValue[0]) {
-			// Check if Range is date value
-			var err error
-			start, err := time.Parse("01/02/2006", splitValue[0])
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "err3", err)
-				log.Fatal(err)
-			}
-			end, err := time.Parse("01/02/2006", splitValue[1])
-			count := 0
-			if err == nil {
-				for d := start; !d.After(end); d = d.AddDate(0, 0, 1) {
-					if count == 0 {
-						filterWhere[curMarker] += condition + curField + conditionVal
-					} else {
-						filterWhere[curMarker] += " OR " + curField + conditionVal
-					}
-					if modPosition == "both" {
-						filterArgs[curMarker] = append(filterArgs[curMarker], "%"+d.Format("2006-01-02")+"%")
-					} else if modPosition == "start" {
-						filterArgs[curMarker] = append(filterArgs[curMarker], "%"+d.Format("2006-01-02"))
-					} else if modPosition == "end" {
-						filterArgs[curMarker] = append(filterArgs[curMarker], d.Format("2006-01-02")+"%")
-					} else {
-						filterArgs[curMarker] = append(filterArgs[curMarker], d.Format("2006-01-02"))
-					}
-					count += 1
-				}
+	sqlParts := strings.Split(val, ";")
+	lenSqlParts := len(sqlParts)
+	args = make([]interface{}, 0, lenSqlParts)
+
+	for k, val := range sqlParts {
+		rangeVals := strings.Split(val, "~")
+
+		// value without range condition "1;2;3;6"
+		if len(rangeVals) == 1 {
+			if !IsDateCol(colName) {
+				whereSql += colName + sqlOperator + " ? "
 			} else {
-				fmt.Fprintln(os.Stderr, "err4", err)
-				log.Fatal(err)
+				whereSql += colName + sqlOperator + " STR_TO_DATE(?,'%m/%d/%Y') "
 			}
+
+			if k != (lenSqlParts - 1) {
+				whereSql += sqlOperatorJoin
+			}
+
+			args = append(args, sqlParts[k])
+
+			continue
+		}
+
+		// condition with range "1~4"
+		if len(rangeVals) != 2 {
+			logger.Debug("invalid range condition", val)
+
+			continue
+		}
+		if !IsDateCol(colName) {
+			whereSql += " ( " + colName + rangeOperator + " ? AND ? )"
 		} else {
-			filterWhere[curMarker] += condition + curField + conditionVal
-			// filterArgs[curMarker] = append(filterArgs[curMarker], "%"+curFieldValue+"%")
-			filterArgs[curMarker] = append(filterArgs[curMarker], curFieldValue)
+			whereSql += " ( " + colName + rangeOperator + " STR_TO_DATE(?,'%m/%d/%Y') AND STR_TO_DATE(?,'%m/%d/%Y') )"
 		}
-		return
-	}
-	// condition , conditionVal, modPosition
-	// " AND ", " IN ? ", ""
-	if len(inValues) > 1 {
-		noOfValues := ""
-		for i := 0; i < len(inValues); i++ {
-			noOfValues += "?,"
-			filterArgs[curMarker] = append(filterArgs[curMarker], inValues[i])
-		}
-		noOfValues = noOfValues[:len(noOfValues)-1]
-		filterWhere[curMarker] += condition + curField + " IN (" + noOfValues + ")"
 
-		return
+		if k != (lenSqlParts - 1) {
+			whereSql += sqlOperatorJoin
+		}
+
+		args = append(args, rangeVals[0], rangeVals[1])
 	}
 
-	filterWhere[curMarker] += condition + curField + conditionVal
-	// filterArgs[curMarker] = append(filterArgs[curMarker], "%"+curFieldValue+"%")
-	filterArgs[curMarker] = append(filterArgs[curMarker], curFieldValue)
+	return " (" + whereSql + ") ", args
+}
+
+func IsDateCol(colName string) bool {
+	return strings.Contains(colName, "_date")
 }

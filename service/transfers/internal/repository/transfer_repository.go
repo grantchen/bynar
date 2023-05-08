@@ -88,17 +88,20 @@ func (*transferRepository) UpdateStatus(tx *sql.Tx, status int) error {
 
 // GetTransfersPageData implements TransferRepository
 func (t *transferRepository) GetTransfersPageData(tg *treegrid.Treegrid) ([]map[string]string, error) {
+	// Prepare filter for WHERE condition with args
+	sqlbuilder.PrepFilters(tg)
+
+	// items request
 	if tg.BodyParams.GetItemsRequest() {
 		logger.Debug("get items request")
 
-		query := sqlbuilder.QueryChild + " WHERE parent = " + tg.BodyParams.ID + tg.FilterWhere["child"] +
-			sqlbuilder.OrderByQuery(tg.SortParams, model.TransferItemsFields)
+		query := sqlbuilder.QueryChild + " WHERE parent = " + tg.BodyParams.ID + tg.OrderByChildQuery(model.TransferItemsFields)
 
 		query = sqlbuilder.AddLimit(query)
 		pos, _ := tg.BodyParams.IntPos()
 		query = sqlbuilder.AddOffset(query, pos)
 
-		logger.Debug("query", query, "args count", len(tg.FilterArgs["child"]))
+		logger.Debug("query", query)
 
 		return t.getJSON(query, tg.FilterArgs["child"], tg)
 	}
@@ -112,14 +115,19 @@ func (t *transferRepository) GetTransfersPageData(tg *treegrid.Treegrid) ([]map[
 
 	logger.Debug("get transfers without grouping")
 
-	query := sqlbuilder.QueryParent + tg.FilterWhere["child"] + tg.FilterWhere["parent"] + sqlbuilder.OrderByQuery(tg.SortParams, nil)
+	query := sqlbuilder.QueryParent + tg.FilterWhere["parent"]
+	if tg.FilterWhere["child"] != "" {
+		query += ` AND transfers.id IN ( SELECT Parent FROM transfers_items ` + sqlbuilder.QueryChildJoins + tg.FilterWhere["child"] + `) `
+	}
+
+	query += tg.SortParams.OrderByQueryExludeChild(model.TransferItemsFields, model.FieldAliases)
 
 	query = sqlbuilder.AddLimit(query)
 	pos, _ := tg.BodyParams.IntPos()
 	query = sqlbuilder.AddOffset(query, pos)
-	mergedArgs := utils.MergeMaps(tg.FilterArgs["child"], tg.FilterArgs["parent"])
+	mergedArgs := utils.MergeMaps(tg.FilterArgs["parent"], tg.FilterArgs["child"])
 
-	logger.Debug("query", query)
+	logger.Debug("query", query, "args", mergedArgs)
 
 	return t.getJSON(query, mergedArgs, tg)
 }
