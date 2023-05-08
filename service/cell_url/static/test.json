@@ -1,0 +1,170 @@
+{
+	"Cfg": {
+	  "id": "test",
+	  "Size": "Low",
+	  "SuppressCfg": "1",
+	  "MainCol": "warehouse_description",
+	  "ShowDeleted": "1",
+	  "Validate": "Added,Focus,Edit,Changed,Text",
+	  "ValidateMessage": "Ju lutemi plotësoni të dhënat e nevojshme!",
+	  "Paging": "3",
+	  "PageLength": "2000",
+	  "AllPages": "1",
+	  "OnePage": "7",
+	  "MaxPages": "2",
+	  "PageLengthDiv": "10",
+	  "FastPages": "500",
+	  "ChildPaging": "2",
+	  "Expanded": "0",
+	  "RemoveCollapsed": "2",
+	  "ChildParts": "2",
+	  "ChildPartLength": "100",
+	  "ChildPartMin": "0",
+	  "MaxChildParts": "4",
+	  "ColPaging": "2",
+	  "ColPageLength": "10",
+	  "ColPageMin": "0",
+	  "MaxColPages": "2",
+	  "AddFocusCol": "pin",
+	  "SuppressAnimations": "1",
+	  "StandardFilter": "3",
+	  "FormulaEditing": "1",
+	  "FormulaType": "0",
+	  "AutoCalendar": "1",
+	  "DynamicSpan": "1",
+	  "Alternate": "2",
+	  "SelectingCells": "1",
+	  "ConstHeight": "1",
+	  "ExportType": "Expanded,Outline",
+	  "CalculateSelected": "1",
+	  "PrintVarHeight": "2",
+	  "LimitScroll": "25",
+	  "Undo": "1",
+	  "CopyPasteTree": "3",
+	  "SuppressMessage": "1",
+	  "NumberId": "1",
+	  "IdChars": "0123456789",
+	  "PrintPagePrefix": "<center class='%9' style='width:%7px'>First example printed page %3 from %6</center>",
+	  "PrintPagePostfix": "<center class='%9' style='width:%7px'>Page %1 horizontally from %4 , page %2 vertically from %5</center>",
+	  "Language": "EN"
+	},
+	"Cols": [
+	  {
+		"Name": "warehouse_description",
+		"Type": "Text",
+		"CanEdit": "1",
+		"VarHeight": "1",
+		"ToolTip": "1",
+		"CaseSensitive": "0",
+		"StoreOriginalValues": "0"
+	  },
+	  {
+		"Name": "warehouse_costing_methods",
+		"Type": "Text",
+		"CaseSensitive": "0",
+		"CanEdit": "1",
+		"ToolTip": "1",
+		"VarHeight": "1"
+	  },
+	  {
+		"Name": "warehouse_uuid",
+		"Type": "Text",
+		"CaseSensitive": "0",
+		"CanEdit": "1",
+		"VarHeight": "1",
+		"ToolTip": "1"
+	  },
+	  {
+		"Name": "product_description",
+		"Type": "Text",
+		"CaseSensitive": "0",
+		"CanEdit": "1",
+		"ToolTip": "1",
+		"VarHeight": "1"
+	  },
+	  {
+		"Name": "product_barcode",
+		"Type": "Text",
+		"CaseSensitive": "0",
+		"ToolTip": "1",
+		"CanEdit": "1",
+		"VarHeight": "1"
+	  },
+	  {
+		"Name": "product_quntity",
+		"Type": "Float",
+		"Format": "0.00",
+		"CaseSensitive": "0",
+		"ToolTip": "1",
+		"CanEdit": "1",
+		"VarHeight": "1"
+	  },
+	  {
+		"Name": "product_avg_cost",
+		"Type": "Float",
+		"Format": "0.00",
+		"CaseSensitive": "0",
+		"ToolTip": "1",
+		"CanEdit": "1",
+		"VarHeight": "1"
+	  },
+	  {
+		"Name": "product_uuid",
+		"Type": "Text",
+		"CaseSensitive": "0",
+		"ToolTip": "1",
+		"CanEdit": "1",
+		"VarHeight": "1"
+	  }
+	],
+	"Actions": [
+	  {
+		"OnDragCell": "SelectCells"
+	  },
+	  {
+		"OnLefttDropCell": "SpanSelected AND ClearSelection"
+	  },
+	  {
+		"OnCtrlDragCell": "DragRow"
+	  },
+	  {
+		"OnClickCell": "ClearSelection,FocusEdit",
+		"OnClick1Cell": "ClearSelection,FocusEdit",
+		"OnClickOutside": "ClearSelection,Blur",
+		"OnClick1Outside": "ClearSelection,Blur"
+	  },
+	  {
+		"OnLongClick": "SpanSelected AND ClearSelection"
+	  },
+	  {
+		"OnT": "AddChild"
+	  },
+	  {
+		"OnMiddleMouseDown": "SplitSelected OR SplitCell"
+	  }
+	],
+	"Def": [
+	  {
+		"Name": "Node",
+		"CDef": "Data",
+		"Sorted": "1",
+		"AcceptDef": "Data",
+		"Spanned": "1",
+		"Calculated": "1",
+		"Expanded": "1",
+		"CanFilter": "3",
+		"FormulaSuggest": "6",
+		"warehouse_descriptionSuggestServer": "1",
+		"warehouse_descriptionSuggestType": "StartAll,Empty,Existing"
+	  }
+	],
+	"Header": {
+		"id": "Header1",
+		"CDef": "Node",
+		"Spanned": "1",
+		"Calculated": "1",
+		"CanDelete": "0",
+		"CanSelect": "0",
+		"SortIcons": "0"
+	}
+  }
