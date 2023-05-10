@@ -37,6 +37,7 @@ type gridRowRepository struct {
 type SaveLineCallBack struct {
 }
 
+// use for table pair with format table and table_lines
 func NewGridRepository(conn *sql.DB, tableName, lineTableName string, parentFieldMapping, childFieldMapping map[string][]string) GridRowRepository {
 	return &gridRowRepository{
 		conn:               conn,

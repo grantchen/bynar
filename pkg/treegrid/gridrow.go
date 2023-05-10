@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 )
 
 type (
@@ -25,6 +27,16 @@ func (f GridRow) GetParentID() string {
 	pID, _ := f.GetValString("Parent")
 
 	return pID
+}
+
+func (f GridRow) ValidateOnRequiredAll(fieldsMapping map[string][]string) error {
+	for key, _ := range fieldsMapping {
+		_, ok := f[key]
+		if !ok {
+			return fmt.Errorf("[%w]: %s", errors.ErrMissingRequiredParams, "key")
+		}
+	}
+	return nil
 }
 
 // MakeInsertQuery - returns query and args for query execution

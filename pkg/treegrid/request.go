@@ -16,6 +16,18 @@ type (
 	}
 )
 
+// ParseRequestUploadSingleRow parse request upload from table without child
+func ParseRequestUploadSingleRow(req *PostRequest) ([]GridRow, error) {
+	grRowList := make([]GridRow, 0)
+
+	for k := range req.Changes {
+		ch := GridRow(req.Changes[k])
+		grRowList = append(grRowList, ch)
+	}
+	return grRowList, nil
+}
+
+// ParseRequestUpload parse request upload for parent-child table
 func ParseRequestUpload(req *PostRequest, identityStore IdentityStorage) (*GridList, error) {
 	trList := &GridList{
 		mainRows:  make(map[string]GridRow),
@@ -136,7 +148,7 @@ func SetGridRowIdentity(gr GridRow, identityStore IdentityStorage) (isChild bool
 
 // MainRows - contains all received transfer attributes with related items
 func (l *GridList) MainRows() []*MainRow {
-	transfers := make([]*MainRow, 0, len(l.mainRows))
+	mainRows := make([]*MainRow, 0, len(l.mainRows))
 
 	for k := range l.mainRows {
 		tr := &MainRow{
@@ -144,8 +156,8 @@ func (l *GridList) MainRows() []*MainRow {
 			Items:  l.childRows[k],
 		}
 
-		transfers = append(transfers, tr)
+		mainRows = append(mainRows, tr)
 	}
 
-	return transfers
+	return mainRows
 }
