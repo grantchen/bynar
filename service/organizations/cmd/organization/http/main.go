@@ -36,14 +36,21 @@ func main() {
 	}
 
 	simpleOrganizationRepository := treegrid.NewSimpleGridRowRepository(db, "organizations", repository.OrganizationFieldNames)
-	organizationService := service.NewOrganizationService(db)
+	organizationService := service.NewOrganizationService(db, simpleOrganizationRepository)
 
 	uploadService, _ := service.NewUploadService(db, organizationService, simpleOrganizationRepository)
 
 	handler := &handler.HTTPTreeGridHandler{
-		CallbackUploadDataFunc: uploadService.Handle,
+		CallbackUploadDataFunc:  uploadService.Handle,
+		CallbackGetPageDataFunc: organizationService.GetPageData,
+		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) float64 {
+			return float64(organizationService.GetPageCount(tr))
+		},
 	}
 	http.HandleFunc("/upload", handler.HTTPHandleUpload)
+	http.HandleFunc("/data", handler.HTTPHandleGetPageCount)
+	http.HandleFunc("/page", handler.HTTPHandleGetPageData)
+
 	log.Println("start server at 8080!")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
