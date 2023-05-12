@@ -3,18 +3,27 @@ package treegrid
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 )
 
-func buildSimpleQueryCount(tableName string, fieldMapping map[string][]string) string {
+var (
+	// Dummy where clause used before AND clauses
+	DummyWhere = " where 1=1 "
+
+	// WHERE Parent = ''
+
+)
+
+func BuildSimpleQueryCount(tableName string, fieldMapping map[string][]string) string {
 	query := `select COUNT(*) FROM ` + tableName
 	return query
 }
 
-func buildSimpleQueryCountWithGroupping(tableName string, fieldMapping map[string][]string, groupField string) string {
+func BuildSimpleQueryCountWithGroupping(tableName string, fieldMapping map[string][]string, groupField string) string {
 	return ""
 }
 
-func buildSimpleQuery(tableName string, fieldMapping map[string][]string) string {
+func BuildSimpleQuery(tableName string, fieldMapping map[string][]string) string {
 	var queryBuffer bytes.Buffer
 	queryBuffer.WriteString(`select `)
 	totalField := len(fieldMapping)
@@ -32,6 +41,10 @@ func buildSimpleQuery(tableName string, fieldMapping map[string][]string) string
 	return queryBuffer.String()
 }
 
-func appendWhereCondition() {
+func AppendLimitToQuery(query string, pagesize int, pos int) string {
+	return query + " LIMIT " + strconv.Itoa(pagesize) + " OFFSET " + strconv.Itoa(pos*pagesize)
+}
+
+func AppendWhereCondition() {
 
 }

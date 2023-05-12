@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
@@ -23,16 +24,21 @@ type simpleGridRepository struct {
 	db           *sql.DB
 	tableName    string
 	fieldMapping map[string][]string
+	pageSize     int
 }
 
 // GetPageData implements SimpleGridRowRepository
 func (s *simpleGridRepository) GetPageData(tg *Treegrid) ([]map[string]string, error) {
 	b, _ := json.Marshal(tg)
 	fmt.Printf("req data: %s\n", string(b))
-	query := buildSimpleQuery(s.tableName, s.fieldMapping)
+	pos, _ := tg.BodyParams.IntPos()
+	query := BuildSimpleQuery(s.tableName, s.fieldMapping)
 
-	rows, err := s.db.Query(query)
-	fmt.Printf("query: %s\n", query)
+	FilterWhere, FilterArgs := PrepQuerySimple(tg.FilterParams, s.fieldMapping)
+
+	query = query + DummyWhere + FilterWhere
+	query = AppendLimitToQuery(query, s.pageSize, pos)
+	rows, err := s.db.Query(query, FilterArgs...)
 	if err != nil {
 		return nil, fmt.Errorf("do query: '%s': [%w]", query, err)
 	}
@@ -57,8 +63,6 @@ func (s *simpleGridRepository) GetPageData(tg *Treegrid) ([]map[string]string, e
 
 		tableData = append(tableData, entry)
 	}
-	b, _ = json.Marshal(tableData)
-	fmt.Printf("req data: %s\n", b)
 	// tableData := make([]map[string]string, 0, 0)
 
 	return tableData, nil
@@ -69,30 +73,30 @@ func (s *simpleGridRepository) GetPageCount(tg *Treegrid) int64 {
 	b, _ := json.Marshal(tg)
 	fmt.Printf("req data: %s\n", string(b))
 	if !tg.WithGroupBy() {
-		query := buildSimpleQueryCount(s.tableName, s.fieldMapping)
+		query := BuildSimpleQueryCount(s.tableName, s.fieldMapping)
 		rows, err := s.db.Query(query)
 		if err != nil {
 			log.Fatalln(err, "query", query, "colData", tg.GroupCols[0])
 		}
 
-		return int64(utils.CheckCount(rows))
+		return int64(math.Ceil(float64(utils.CheckCount(rows)) / float64(s.pageSize)))
 	}
 	return 0
 }
 
-func NewSimpleGridRowRepository(db *sql.DB, tableName string, fieldMapping map[string][]string) SimpleGridRowRepository {
+func NewSimpleGridRowRepository(db *sql.DB, tableName string, fieldMapping map[string][]string, maxPage int) SimpleGridRowRepository {
 	return &simpleGridRepository{
 		db:           db,
 		tableName:    tableName,
 		fieldMapping: fieldMapping,
+		pageSize:     maxPage,
 	}
 }
 
 // Delete implements SimpleGridRowRepository
 func (s *simpleGridRepository) Delete(tx *sql.Tx, gr GridRow) error {
-	logger.Debug("delete parent")
-
 	query, args := gr.MakeDeleteQuery(s.tableName)
+	fmt.Printf("query: %s, %s\n", query, gr.GetID())
 	args = append(args, gr.GetID())
 
 	if _, err := tx.Exec(query, args...); err != nil {
@@ -123,6 +127,7 @@ func (s *simpleGridRepository) Add(tx *sql.Tx, gr GridRow) error {
 // Update implements SimpleGridRowRepository
 func (s *simpleGridRepository) Update(tx *sql.Tx, gr GridRow) error {
 	query, args := gr.MakeUpdateQuery(s.tableName, s.fieldMapping)
+	args = append(args, gr.GetID())
 	if _, err := tx.Exec(query, args...); err != nil {
 		return fmt.Errorf("exec query: [%w], query: %s, args count: %d", err, query, len(args))
 	}

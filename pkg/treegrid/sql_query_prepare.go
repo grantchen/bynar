@@ -7,11 +7,12 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 )
 
-func PrepFilters(tr *Treegrid) {
-	tr.FilterWhere, tr.FilterArgs = PrepQuery(tr.FilterParams)
+func PrepFilters(tr *Treegrid, fieldAliasesParent map[string][]string, fieldAliasesChild map[string][]string) {
+	tr.FilterWhere, tr.FilterArgs = PrepQueryComplex(tr.FilterParams, fieldAliasesParent, fieldAliasesChild)
 }
 
-func PrepQuery(f FilterParams) (map[string]string, map[string][]interface{}) {
+// with parent and child
+func PrepQueryComplex(f FilterParams, fieldAliasesParent map[string][]string, fieldAliasesChild map[string][]string) (map[string]string, map[string][]interface{}) {
 	FilterWhere := map[string]string{}
 	FilterArgs := map[string][]interface{}{}
 
@@ -19,18 +20,21 @@ func PrepQuery(f FilterParams) (map[string]string, map[string][]interface{}) {
 	var curField, curFieldValue, curOperation, curMarker string
 
 	for key, el := range f.Filters() {
+
 		if key == "id" || strings.Contains(key, "Filter") {
 			continue
 		}
 
-		// Check if cur field is child's or parent's and generate preWhere and postWhere correspondingly
-		// if model.ItemsFields[key] != "" {
-		// 	curMarker = "child"
-		// } else {
-		// 	// cur column is a parent column
-
-		// }
-		curMarker = "parent"
+		if fieldAliasesParent[key][0] != "" {
+			curMarker = "parent"
+			curField = fieldAliasesParent[key][0]
+		} else if fieldAliasesChild[key][0] != "" {
+			// cur column is a parent column
+			curMarker = "child"
+			curField = fieldAliasesChild[key][0]
+		} else {
+			break
+		}
 
 		curOperation = f.Filters()[key+"Filter"].(string)
 		curFieldValue = el.(string)
@@ -57,6 +61,13 @@ func PrepQuery(f FilterParams) (map[string]string, map[string][]interface{}) {
 	}
 
 	return FilterWhere, FilterArgs
+}
+
+// only without child
+func PrepQuerySimple(f FilterParams, fieldAliases map[string][]string) (string, []interface{}) {
+	dummyMap := make(map[string][]string, 0)
+	FilterWhere, FilterArgs := PrepQueryComplex(f, fieldAliases, dummyMap)
+	return FilterWhere["parent"], FilterArgs["parent"]
 }
 
 func PrepareTextFilters(operator int, colName, val string) (whereSql string, args []interface{}) {

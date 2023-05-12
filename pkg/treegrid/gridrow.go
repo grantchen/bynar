@@ -126,7 +126,7 @@ func (f GridRow) MakeUpdateQuery(tableName string, fieldsMapping map[string][]st
 }
 
 func (f GridRow) MakeDeleteQuery(tableName string) (query string, args []interface{}) {
-	args = make([]interface{}, 0, 1)
+	args = make([]interface{}, 0)
 
 	query = `
 	DELETE FROM %s
@@ -163,6 +163,11 @@ func (g GridRow) GetIDStr() (id string) {
 	}
 
 	return
+}
+
+func (g GridRow) GetIDInt() (id int) {
+	id, _ = strconv.Atoi(g.GetIDStr())
+	return id
 }
 
 func (g GridRow) GetID() (id interface{}) {
