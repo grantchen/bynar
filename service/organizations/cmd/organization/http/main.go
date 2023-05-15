@@ -35,7 +35,8 @@ func main() {
 		log.Panic(err)
 	}
 
-	simpleOrganizationRepository := treegrid.NewSimpleGridRowRepository(db, "organizations", repository.OrganizationFieldNames, 100)
+	simpleOrganizationRepository := treegrid.NewSimpleGridRowRepositoryWithCfg(db, "organizations", repository.OrganizationFieldNames,
+		100, &treegrid.SimpleGridRepositoryCfg{MainCol: "code"})
 	organizationService := service.NewOrganizationService(db, simpleOrganizationRepository)
 
 	uploadService, _ := service.NewUploadService(db, organizationService, simpleOrganizationRepository)
