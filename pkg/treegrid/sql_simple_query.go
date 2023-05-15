@@ -52,7 +52,7 @@ func BuildSimpleQuery(tableName string, fieldMapping map[string][]string) string
 	return queryBuffer.String()
 }
 
-func BuildSimpleQueryGroupBy(tableName string, fieldMapping map[string][]string, groupCol []string, whereCondition string) string {
+func BuildSimpleQueryGroupBy(tableName string, fieldMapping map[string][]string, groupCol []string, whereCondition string, level int) string {
 	var queryBuffer bytes.Buffer
 	queryBuffer.WriteString(`select `)
 	groupBy := make([]string, 0)
@@ -63,10 +63,10 @@ func BuildSimpleQueryGroupBy(tableName string, fieldMapping map[string][]string,
 		groupBy = append(groupBy, dbCol)
 	}
 
-	queryBuffer.WriteString(strings.Join(sel[:], ","))
+	queryBuffer.WriteString(sel[level])
 	queryBuffer.WriteString(", COUNT(*) AS Count FROM " + tableName)
 	queryBuffer.WriteString(DummyWhere + whereCondition)
-	queryBuffer.WriteString(" GROUP BY " + strings.Join(groupBy[:], ","))
+	queryBuffer.WriteString(" GROUP BY " + groupBy[level])
 
 	return queryBuffer.String()
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"strconv"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
@@ -20,11 +21,17 @@ type SimpleGridRowRepository interface {
 	ValidateOnIntegrity(gr GridRow, validateFields []string) (bool, error)
 }
 
+type SimpleGridRepositoryCfg struct {
+	MainCol   string
+	MapSorted map[string]bool
+}
+
 type simpleGridRepository struct {
 	db           *sql.DB
 	tableName    string
 	fieldMapping map[string][]string
 	pageSize     int
+	cfg          *SimpleGridRepositoryCfg
 }
 
 // ValidateOnIntegrity implements SimpleGridRowRepository
@@ -48,13 +55,19 @@ func (s *simpleGridRepository) GetPageData(tg *Treegrid) ([]map[string]string, e
 	if tg.WithGroupBy() {
 		return s.GetPageDataGroupBy(tg)
 	}
+
+	return s.getPageData(tg, "")
+}
+
+func (s *simpleGridRepository) getPageData(tg *Treegrid, additionWhere string) ([]map[string]string, error) {
 	pos, _ := tg.BodyParams.IntPos()
 	query := BuildSimpleQuery(s.tableName, s.fieldMapping)
 
 	FilterWhere, FilterArgs := PrepQuerySimple(tg.FilterParams, s.fieldMapping)
 
-	query = query + DummyWhere + FilterWhere
+	query = query + DummyWhere + FilterWhere + " " + additionWhere + tg.OrderByChildQuery(s.cfg.MapSorted)
 	query = AppendLimitToQuery(query, s.pageSize, pos)
+	fmt.Printf("getPageData query: %s\n", query)
 	rows, err := s.db.Query(query, FilterArgs...)
 	if err != nil {
 		return nil, fmt.Errorf("do query: '%s': [%w]", query, err)
@@ -75,19 +88,26 @@ func (s *simpleGridRepository) GetPageData(tg *Treegrid) ([]map[string]string, e
 		entry := rowVals.StringValues()
 		if !tg.BodyParams.GetItemsRequest() {
 			entry["Expanded"] = "0"
-			entry["Count"] = "1"
+			entry["Count"] = "0"
 		}
 
 		tableData = append(tableData, entry)
 	}
-	// tableData := make([]map[string]string, 0, 0)
-
 	return tableData, nil
 }
 
 func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]string, error) {
+	level := tg.BodyParams.GetRowLevel()
+	where := tg.BodyParams.GetRowWhere()
+
+	if level == len(tg.GroupCols) {
+		return s.getPageData(tg, where)
+	}
 	FilterWhere, FilterArgs := PrepQuerySimple(tg.FilterParams, s.fieldMapping)
-	query := BuildSimpleQueryGroupBy(s.tableName, s.fieldMapping, tg.GroupCols, FilterWhere)
+	if level > 0 {
+		FilterWhere = FilterWhere + tg.BodyParams.GetRowWhere()
+	}
+	query := BuildSimpleQueryGroupBy(s.tableName, s.fieldMapping, tg.GroupCols, FilterWhere, level)
 
 	pos, _ := tg.BodyParams.IntPos()
 	query = AppendLimitToQuery(query, s.pageSize, pos)
@@ -105,6 +125,7 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 	}
 
 	tableData := make([]map[string]string, 0)
+
 	for rows.Next() {
 		if err := rowVals.Parse(rows); err != nil {
 			return tableData, fmt.Errorf("parse rows: [%w]", err)
@@ -112,9 +133,22 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 		entry := rowVals.StringValues()
 		entry["Def"] = "Group"
 		entry["Expanded"] = "0"
+		tgCol := tg.GroupCols[level]
+		if s.cfg != nil && s.cfg.MainCol != "" {
+			entry[s.cfg.MainCol] = entry[tgCol]
+		}
+		entry["Rows"] = strconv.Itoa(level+1) + "AND " + s.fieldMapping[tgCol][0] + " = '" + entry[tgCol] + "'"
 		tableData = append(tableData, entry)
 	}
 	return tableData, nil
+}
+
+func createOrderMapping(fieldsMapping map[string][]string) map[string]bool {
+	result := make(map[string]bool)
+	for k, _ := range fieldsMapping {
+		result[k] = true
+	}
+	return result
 }
 
 // GetPageCount implements SimpleGridRowRepository
@@ -144,6 +178,24 @@ func NewSimpleGridRowRepository(db *sql.DB, tableName string, fieldMapping map[s
 		tableName:    tableName,
 		fieldMapping: fieldMapping,
 		pageSize:     maxPage,
+		cfg:          &SimpleGridRepositoryCfg{MapSorted: createOrderMapping(fieldMapping)},
+	}
+}
+
+func NewSimpleGridRowRepositoryWithCfg(db *sql.DB,
+	tableName string,
+	fieldMapping map[string][]string,
+	maxPage int,
+	cfg *SimpleGridRepositoryCfg) SimpleGridRowRepository {
+	if cfg.MapSorted == nil {
+		cfg.MapSorted = createOrderMapping(fieldMapping)
+	}
+	return &simpleGridRepository{
+		db:           db,
+		tableName:    tableName,
+		fieldMapping: fieldMapping,
+		pageSize:     maxPage,
+		cfg:          cfg,
 	}
 }
 
