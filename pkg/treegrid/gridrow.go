@@ -31,12 +31,47 @@ func (f GridRow) GetParentID() string {
 
 func (f GridRow) ValidateOnRequiredAll(fieldsMapping map[string][]string) error {
 	for key, _ := range fieldsMapping {
-		_, ok := f[key]
-		if !ok {
-			return fmt.Errorf("[%w]: %s", errors.ErrMissingRequiredParams, "key")
+		val, ok := f[key]
+		if !ok || val == "" {
+			return fmt.Errorf("[%w]: %s", errors.ErrMissingRequiredParams, key)
 		}
 	}
 	return nil
+}
+
+// used to check empty update key.
+func (f GridRow) ValidateOnRequired(fieldsMapping map[string][]string) error {
+	for key, _ := range fieldsMapping {
+		if key == "Changed" || key == "id" {
+			continue
+		}
+		val, ok := f[key]
+		if ok && val == "" {
+			return fmt.Errorf("[%w]: %s", errors.ErrMissingRequiredParams, key)
+		}
+	}
+	return nil
+}
+
+func (f GridRow) MakeValidateOnIntegrityQuery(tableName string, fieldsMapping map[string][]string, fieldsValidating []string) (query string, args []interface{}) {
+	queryFormat := `select COUNT(*) as Count
+	FROM %s
+	WHERE 1=1 %s `
+
+	var whereCondition string
+	args = make([]interface{}, 0)
+	for _, field := range fieldsValidating {
+		dbFields, ok := fieldsMapping[field]
+		if !ok {
+			continue
+		}
+		whereCondition += fmt.Sprintf(" AND %s = ? ", dbFields[0])
+		args = append(args, f[field])
+	}
+	whereCondition += " AND id != ? "
+	args = append(args, f.GetID())
+	query = fmt.Sprintf(queryFormat, tableName, whereCondition)
+	return
 }
 
 // MakeInsertQuery - returns query and args for query execution

@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strings"
 
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
@@ -55,11 +57,29 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 	}
 	defer tx.Rollback()
 
+	fieldsValidating := []string{"code"}
+
 	// add addition here
 	switch gr.GetActionType() {
 	case treegrid.GridRowActionAdd:
+		err1 := gr.ValidateOnRequiredAll(repository.OrganizationFieldNames)
+		if err1 != nil {
+			return err1
+		}
+		ok, err1 := s.organizationSimpleRepository.ValidateOnIntegrity(gr, fieldsValidating)
+		if !ok || err1 != nil {
+			return fmt.Errorf("validate duplicate: [%v], field: %s", err1, strings.Join(fieldsValidating, ", "))
+		}
 		err = s.organizationSimpleRepository.Add(tx, gr)
 	case treegrid.GridRowActionChanged:
+		err1 := gr.ValidateOnRequired(repository.OrganizationFieldNames)
+		if err1 != nil {
+			return err1
+		}
+		ok, err1 := s.organizationSimpleRepository.ValidateOnIntegrity(gr, fieldsValidating)
+		if !ok || err1 != nil {
+			return fmt.Errorf("validate duplicate: [%w], field: %s", err1, strings.Join(fieldsValidating, ", "))
+		}
 		err = s.organizationSimpleRepository.Update(tx, gr)
 	case treegrid.GridRowActionDeleted:
 		err = s.organizationSimpleRepository.Delete(tx, gr)
