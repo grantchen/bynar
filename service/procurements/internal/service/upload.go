@@ -12,7 +12,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
-type UploadSvc struct {
+type UploadService struct {
 	moduleID          int
 	accountID         int
 	conn              *sql.DB
@@ -28,9 +28,9 @@ func NewService(conn *sql.DB,
 	procurementSvc ProcurementService,
 	moduleID, accoundID int,
 	docSvc service.DocumentService,
-) (*UploadSvc, error) {
+) (*UploadService, error) {
 
-	return &UploadSvc{
+	return &UploadService{
 		conn:              conn,
 		approvalService:   approvalService,
 		gridRowRepository: gridRowRepository,
@@ -42,7 +42,7 @@ func NewService(conn *sql.DB,
 }
 
 // Handle
-func (s *UploadSvc) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
+func (s *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	resp := &treegrid.PostResponse{}
 
 	trList, err := treegrid.ParseRequestUpload(req, s.gridRowRepository)
@@ -68,7 +68,7 @@ func (s *UploadSvc) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, e
 	return resp, nil
 }
 
-func (s *UploadSvc) handle(tr *treegrid.MainRow) error {
+func (s *UploadService) handle(tr *treegrid.MainRow) error {
 	// Check Approval Order
 	ok, err := s.approvalService.Check(tr, s.moduleID, s.accountID)
 	if err != nil {

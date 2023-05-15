@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 )
 
 type (
@@ -25,6 +27,51 @@ func (f GridRow) GetParentID() string {
 	pID, _ := f.GetValString("Parent")
 
 	return pID
+}
+
+func (f GridRow) ValidateOnRequiredAll(fieldsMapping map[string][]string) error {
+	for key, _ := range fieldsMapping {
+		val, ok := f[key]
+		if !ok || val == "" {
+			return fmt.Errorf("[%w]: %s", errors.ErrMissingRequiredParams, key)
+		}
+	}
+	return nil
+}
+
+// used to check empty update key.
+func (f GridRow) ValidateOnRequired(fieldsMapping map[string][]string) error {
+	for key, _ := range fieldsMapping {
+		if key == "Changed" || key == "id" {
+			continue
+		}
+		val, ok := f[key]
+		if ok && val == "" {
+			return fmt.Errorf("[%w]: %s", errors.ErrMissingRequiredParams, key)
+		}
+	}
+	return nil
+}
+
+func (f GridRow) MakeValidateOnIntegrityQuery(tableName string, fieldsMapping map[string][]string, fieldsValidating []string) (query string, args []interface{}) {
+	queryFormat := `select COUNT(*) as Count
+	FROM %s
+	WHERE 1=1 %s `
+
+	var whereCondition string
+	args = make([]interface{}, 0)
+	for _, field := range fieldsValidating {
+		dbFields, ok := fieldsMapping[field]
+		if !ok {
+			continue
+		}
+		whereCondition += fmt.Sprintf(" AND %s = ? ", dbFields[0])
+		args = append(args, f[field])
+	}
+	whereCondition += " AND id != ? "
+	args = append(args, f.GetID())
+	query = fmt.Sprintf(queryFormat, tableName, whereCondition)
+	return
 }
 
 // MakeInsertQuery - returns query and args for query execution
@@ -114,7 +161,7 @@ func (f GridRow) MakeUpdateQuery(tableName string, fieldsMapping map[string][]st
 }
 
 func (f GridRow) MakeDeleteQuery(tableName string) (query string, args []interface{}) {
-	args = make([]interface{}, 0, 1)
+	args = make([]interface{}, 0)
 
 	query = `
 	DELETE FROM %s
@@ -151,6 +198,11 @@ func (g GridRow) GetIDStr() (id string) {
 	}
 
 	return
+}
+
+func (g GridRow) GetIDInt() (id int) {
+	id, _ = strconv.Atoi(g.GetIDStr())
+	return id
 }
 
 func (g GridRow) GetID() (id interface{}) {

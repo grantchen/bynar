@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	organizations_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/external/handler/http"
 	payments_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/external/handler/http"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
@@ -44,6 +45,9 @@ func main() {
 	lsHandlerMapping = append(lsHandlerMapping,
 		&HandlerMapping{handler: procurements_handler.NewProcurementHTTPHandler(appConfig),
 			prefixPath: "/procurements"})
+	lsHandlerMapping = append(lsHandlerMapping,
+		&HandlerMapping{handler: organizations_handler.NewHTTPHandler(appConfig),
+			prefixPath: "/organizations"})
 
 	for _, handlerMapping := range lsHandlerMapping {
 		http.HandleFunc(prefix+handlerMapping.prefixPath+"/data", handlerMapping.handler.HTTPHandleGetPageCount)

@@ -1,6 +1,7 @@
 package http_handler
 
 import (
+	"fmt"
 	"log"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
@@ -21,6 +22,7 @@ var (
 
 func NewSaleHTTPHandler(appConfig config.AppConfig) *handler.HTTPTreeGridHandler {
 	db, err := sql_db.NewConnection(appConfig.GetDBConnection())
+	fmt.Println(appConfig.GetDBConnection())
 
 	if err != nil {
 		log.Panic(err)

@@ -89,7 +89,7 @@ func (l *languageService) GetAllLanguage() []*model.Language {
 
 // UpdateLanguage implements LanguageService
 func (l *languageService) UpdateLanguage(row *model.Changes) (*model.Language, error) {
-	id, err := strconv.Atoi(row.Id)
+	id, _ := strconv.Atoi(row.Id)
 	country, number, err := l.langRepository.GetCountryAndNumber(id)
 	if err != nil {
 		return nil, fmt.Errorf("get country and number (id '%s'): [%w]", row.Id, err)
@@ -120,7 +120,7 @@ func (l *languageService) UpdateLanguage(row *model.Changes) (*model.Language, e
 
 	lang, err := gridRowToLanguage(row)
 	if err != nil {
-		return nil, fmt.Errorf("Parse param error: [%w]", err)
+		return nil, fmt.Errorf("parse param error: [%w]", err)
 	}
 
 	return l.langRepository.UpdateLanguage(lang)

@@ -7,8 +7,8 @@ import (
 
 type (
 	MainRow struct {
-		Fields GridRow
-		Items  []GridRow
+		Fields GridRow   // main row
+		Items  []GridRow // child row
 	}
 )
 
