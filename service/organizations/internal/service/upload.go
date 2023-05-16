@@ -46,6 +46,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 			break
 		}
 		resp.Changes = append(resp.Changes, gr)
+		resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
 	}
 
 	return resp, nil
