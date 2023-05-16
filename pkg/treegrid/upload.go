@@ -1,5 +1,7 @@
 package treegrid
 
+import "encoding/json"
+
 type (
 	// ChangedRow: used to return Messages for POST update
 	ChangedRow struct {
@@ -29,5 +31,17 @@ type (
 		Changes []map[string]interface{}
 	}
 )
+
+func GenColorChangeError(gr GridRow) ChangedRow {
+	return ChangedRow{Id: gr.GetIDStr(), Color: "rgb(255,0,0)"}
+}
+
+func GenMapColorChangeError(gr GridRow) map[string]interface{} {
+	var inInterface map[string]interface{}
+	change := GenColorChangeError(gr)
+	inrec, _ := json.Marshal(change)
+	json.Unmarshal(inrec, &inInterface)
+	return inInterface
+}
 
 type ChangeItemType string

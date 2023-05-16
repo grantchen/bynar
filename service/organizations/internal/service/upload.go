@@ -42,6 +42,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 
 			resp.IO.Result = -1
 			resp.IO.Message += err.Error() + "\n"
+			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
 			break
 		}
 		resp.Changes = append(resp.Changes, gr)
