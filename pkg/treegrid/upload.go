@@ -36,9 +36,21 @@ func GenColorChangeError(gr GridRow) ChangedRow {
 	return ChangedRow{Id: gr.GetIDStr(), Color: "rgb(255,0,0)"}
 }
 
+func GenColorChangeSuccess(gr GridRow) ChangedRow {
+	return ChangedRow{Id: gr.GetIDStr(), Color: "rgb(255, 255, 166)"}
+}
+
 func GenMapColorChangeError(gr GridRow) map[string]interface{} {
 	var inInterface map[string]interface{}
 	change := GenColorChangeError(gr)
+	inrec, _ := json.Marshal(change)
+	json.Unmarshal(inrec, &inInterface)
+	return inInterface
+}
+
+func GenMapColorChangeSuccess(gr GridRow) map[string]interface{} {
+	var inInterface map[string]interface{}
+	change := GenColorChangeSuccess(gr)
 	inrec, _ := json.Marshal(change)
 	json.Unmarshal(inrec, &inInterface)
 	return inInterface
