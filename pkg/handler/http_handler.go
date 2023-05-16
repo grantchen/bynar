@@ -102,6 +102,7 @@ func (h *HTTPTreeGridHandler) HTTPHandleUpload(w http.ResponseWriter, r *http.Re
 	}
 
 	resp, err := h.CallbackUploadDataFunc(postData)
+
 	if err != nil {
 		writeErrorResponse(w, resp, err)
 
