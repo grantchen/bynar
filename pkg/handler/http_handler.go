@@ -18,18 +18,18 @@ type HTTPTreeGridHandler struct {
 
 func (h *HTTPTreeGridHandler) HTTPHandleGetPageCount(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return
 	}
 
 	trRequest, err := treegrid.ParseRequest([]byte(r.Form.Get("Data")))
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	treegr, err := treegrid.NewTreegrid(trRequest)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	allPages := h.CallbackGetPageCountFunc(treegr)
@@ -39,7 +39,7 @@ func (h *HTTPTreeGridHandler) HTTPHandleGetPageCount(w http.ResponseWriter, r *h
 	}))
 
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -49,18 +49,18 @@ func (h *HTTPTreeGridHandler) HTTPHandleGetPageCount(w http.ResponseWriter, r *h
 
 func (h *HTTPTreeGridHandler) HTTPHandleGetPageData(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return
 	}
 
 	trRequest, err := treegrid.ParseRequest([]byte(r.Form.Get("Data")))
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	trGrid, err := treegrid.NewTreegrid(trRequest)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	var response = make([]map[string]string, 0, 100)
@@ -114,18 +114,18 @@ func (h *HTTPTreeGridHandler) HTTPHandleUpload(w http.ResponseWriter, r *http.Re
 
 func (h *HTTPTreeGridHandler) HandleCell(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return
 	}
 
 	trRequest, err := treegrid.ParseRequest([]byte(r.Form.Get("Data")))
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	trGrid, err := treegrid.NewTreegrid(trRequest)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	resp, err := h.CallBackGetCellDataFunc(r.Context(), trGrid)

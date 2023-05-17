@@ -17,7 +17,7 @@ var (
 	AccountID int = 123456
 )
 
-func NewTransferHTTPHandler(appConfig config.AppConfig) *handler.HTTPTreeGridHandler {
+func NewHTTPHandler(appConfig config.AppConfig) *handler.HTTPTreeGridHandler {
 	dbConnString := appConfig.GetDBConnection()
 
 	db, err := sql_db.NewConnection(dbConnString)
