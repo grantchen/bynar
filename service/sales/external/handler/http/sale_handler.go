@@ -20,7 +20,7 @@ var (
 	AccountID int = 123456
 )
 
-func NewSaleHTTPHandler(appConfig config.AppConfig) *handler.HTTPTreeGridHandler {
+func NewHTTPHandler(appConfig config.AppConfig) *handler.HTTPTreeGridHandler {
 	db, err := sql_db.NewConnection(appConfig.GetDBConnection())
 	fmt.Println(appConfig.GetDBConnection())
 

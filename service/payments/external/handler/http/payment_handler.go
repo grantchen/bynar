@@ -16,7 +16,7 @@ var (
 	AccountID int = 123456
 )
 
-func NewPaymentHTTPHandler(appConfig config.AppConfig) *handler.HTTPTreeGridHandler {
+func NewHTTPHandler(appConfig config.AppConfig) *handler.HTTPTreeGridHandler {
 	dbConnString := appConfig.GetDBConnection()
 
 	if _, err := sql_db.NewConnection(dbConnString); err != nil {

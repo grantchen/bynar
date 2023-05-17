@@ -5,12 +5,12 @@ import "encoding/json"
 type (
 	// ChangedRow: used to return Messages for POST update
 	ChangedRow struct {
-		Id      string `json:"id,omitempty"`
-		NewId   string `json:"NewId,omitempty"`
-		Changed int    `json:"Changed,omitempty"`
-		Added   int    `json:"Added,omitempty"`
-		Deleted int    `json:"Deleted,omitempty"`
-		Color   string `json:"Color,omitempty"`
+		Id      interface{} `json:"id,omitempty"`
+		NewId   string      `json:"NewId,omitempty"`
+		Changed int         `json:"Changed,omitempty"`
+		Added   int         `json:"Added,omitempty"`
+		Deleted int         `json:"Deleted,omitempty"`
+		Color   string      `json:"Color,omitempty"`
 	}
 
 	// PostRequest struct for mapping to post requests
@@ -33,11 +33,11 @@ type (
 )
 
 func GenColorChangeError(gr GridRow) ChangedRow {
-	return ChangedRow{Id: gr.GetIDStr(), Color: "rgb(255,0,0)"}
+	return ChangedRow{Id: gr.GetID(), Color: "rgb(255,0,0)"}
 }
 
 func GenColorChangeSuccess(gr GridRow) ChangedRow {
-	return ChangedRow{Id: gr.GetIDStr(), Color: "rgb(255, 255, 166)"}
+	return ChangedRow{Id: gr.GetID(), Color: "rgb(255, 255, 166)"}
 }
 
 func GenMapColorChangeError(gr GridRow) map[string]interface{} {
