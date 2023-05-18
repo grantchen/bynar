@@ -17,14 +17,14 @@ type UploadService struct {
 	accountID         int
 	conn              *sql.DB
 	approvalService   service.ApprovalService
-	gridRowRepository treegrid.GridRowRepository
+	gridRowRepository treegrid.GridRowRepositoryWithChild
 	procurementSvc    ProcurementService
 	docSvc            service.DocumentService
 }
 
 func NewService(conn *sql.DB,
 	approvalService service.ApprovalService,
-	gridRowRepository treegrid.GridRowRepository,
+	gridRowRepository treegrid.GridRowRepositoryWithChild,
 	procurementSvc ProcurementService,
 	moduleID, accoundID int,
 	docSvc service.DocumentService,

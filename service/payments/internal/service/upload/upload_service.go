@@ -17,7 +17,7 @@ type uploadService struct {
 	accountID         int
 	conn              *sql.DB
 	approvalService   pkg_service.ApprovalCashPaymentService
-	gridRowRepository pkg_treegrid.GridRowRepository
+	gridRowRepository pkg_treegrid.GridRowRepositoryWithChild
 	paymentService    PaymentService
 	docSvc            pkg_service.DocumentService
 }
@@ -47,7 +47,7 @@ func (e *ErrDoc) Error() string {
 
 func NewUploadService(conn *sql.DB,
 	approvalService pkg_service.ApprovalCashPaymentService,
-	gridRowReppository pkg_treegrid.GridRowRepository,
+	gridRowReppository pkg_treegrid.GridRowRepositoryWithChild,
 	procurementService PaymentService,
 	moduleID, accoundID int,
 	documentService pkg_service.DocumentService,

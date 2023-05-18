@@ -24,7 +24,7 @@ type (
 		accountID         int
 		conn              *sql.DB
 		approvalService   service.ApprovalService
-		gridRowRepository treegrid.GridRowRepository
+		gridRowRepository treegrid.GridRowRepositoryWithChild
 		saleSvc           SaleService
 		docSvc            service.DocumentService
 	}
@@ -32,7 +32,7 @@ type (
 
 func NewService(conn *sql.DB,
 	approvalService service.ApprovalService,
-	gridRowRepository treegrid.GridRowRepository,
+	gridRowRepository treegrid.GridRowRepositoryWithChild,
 	procurementSvc SaleService,
 	moduleID, accoundID int,
 	docSvc service.DocumentService,

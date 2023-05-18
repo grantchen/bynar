@@ -61,7 +61,7 @@ func main() {
 
 	docSvc := pkg_service.NewDocumentService(documentRepository)
 
-	uploadSvc, err := service.NewService(
+	uploadSvc, _ := service.NewService(
 		db,
 		approvalSvc,
 		gridRowRep,
