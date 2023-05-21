@@ -89,3 +89,24 @@ func (s SortParams) OrderByQueryExludeChild(childFields map[string]bool, fieldAl
 
 	return
 }
+
+// OrderByQueryExludeChild - making 'ORDER BY' query from SortParams and fieldsMapping EXCLUDING child sort params
+func (s SortParams) OrderByQueryExludeChild2(childFields map[string]bool, fieldAlias map[string][]string) (res string) {
+	for k, v := range s {
+		if childFields == nil || childFields[k] {
+			continue
+		}
+
+		if f, ok := fieldAlias[k]; ok {
+			// res += fmt.Sprintf("%s %s, ", k, v)
+
+			res += fmt.Sprintf("%s %s, ", f[0], v)
+		}
+	}
+
+	if len(res) > 0 {
+		res = " ORDER BY " + res[:len(res)-2]
+	}
+
+	return
+}

@@ -158,6 +158,7 @@ func (t *transferRepository) GetTransferCount(treegrid *treegrid.Treegrid) (int,
 		}
 
 		query = sqlbuilder.QueryParentCount + FilterWhere["child"] + FilterWhere["parent"]
+		fmt.Printf("filter where[child]: %s\n", FilterWhere["child"])
 		fmt.Printf("query count2: %s\n", query)
 	}
 

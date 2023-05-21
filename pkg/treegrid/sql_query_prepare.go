@@ -25,13 +25,13 @@ func PrepQueryComplex(f FilterParams, fieldAliasesParent map[string][]string, fi
 			continue
 		}
 
-		if fieldAliasesParent[key][0] != "" {
+		if list, ok := fieldAliasesParent[key]; ok && list[0] != "" {
 			curMarker = "parent"
-			curField = fieldAliasesParent[key][0]
-		} else if fieldAliasesChild[key][0] != "" {
+			curField = list[0]
+		} else if list, ok := fieldAliasesChild[key]; ok && list[0] != "" {
 			// cur column is a parent column
 			curMarker = "child"
-			curField = fieldAliasesChild[key][0]
+			curField = list[0]
 		} else {
 			break
 		}

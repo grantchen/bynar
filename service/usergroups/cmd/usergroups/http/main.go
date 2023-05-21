@@ -43,8 +43,10 @@ func main() {
 		100,
 		&treegrid.GridRowDataRepositoryWithChildCfg{
 			MainCol:                  "code",
+			QueryParent:              repository.QueryParent,
 			QueryParentCount:         repository.QueryParentCount,
 			QueryParentJoins:         repository.QueryParentJoins,
+			QueryChild:               repository.QueryChild,
 			QueryChildCount:          repository.QueryChildCount,
 			QueryChildJoins:          repository.QueryChildJoins,
 			ChildJoinFieldWithParent: "parent_id",

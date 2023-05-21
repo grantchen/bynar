@@ -9,8 +9,8 @@ const (
 
 	QueryChild = `
 	SELECT user_group_lines.user_id,
-	user.full_name,
-	user.email 
+	users.full_name,
+	users.email 
 	FROM user_group_lines 
 		INNER JOIN users ON user_group_lines.user_id = users.id`
 
