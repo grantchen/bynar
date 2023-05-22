@@ -82,7 +82,7 @@ func (g *gridRowDataRepositoryWithChild) GetPageCount(tg *Treegrid) int64 {
 				FilterWhere["parent"] + ") "
 		}
 		query = g.cfg.QueryChildCount + FilterWhere["child"] + FilterWhere["parent"]
-		fmt.Printf("query count1: %s\n", query)
+		logger.Debug("query count1:", query)
 	} else {
 		if FilterWhere["child"] != "" {
 			// FilterWhere["child"] = " AND transfers.id IN (SELECT transfers_items.Parent from transfers_items " +
@@ -100,7 +100,7 @@ func (g *gridRowDataRepositoryWithChild) GetPageCount(tg *Treegrid) int64 {
 		}
 
 		query = g.cfg.QueryParentCount + FilterWhere["child"] + FilterWhere["parent"]
-		fmt.Printf("query count2: %s\n", query)
+		logger.Debug("query count2: ", query)
 	}
 
 	mergedArgs := utils.MergeMaps(FilterArgs["child"], FilterArgs["parent"])
@@ -235,7 +235,8 @@ func (g *gridRowDataRepositoryWithChild) handleGroupBy(tg *Treegrid) ([]map[stri
 		// 	tg.OrderByChildQuery(model.TransferItemsFields) + ") "
 
 		parentBuild = parentBuild +
-			fmt.Sprintf("AND %s IN (SELECT %s FROM %s", g.cfg.ParentIdField, g.cfg.ChildJoinFieldWithParent, g.lineTableName) +
+			fmt.Sprintf("AND %s.%s IN (SELECT %s FROM %s", g.tableName, g.cfg.ParentIdField, g.cfg.ChildJoinFieldWithParent, g.lineTableName) +
+			g.cfg.QueryChildJoins +
 			DummyWhere +
 			tg.FilterWhere["child"] +
 			tg.OrderByChildQuery(g.toBooleanMapping(g.childFieldMapping)) + ") "
@@ -271,7 +272,7 @@ func (g *gridRowDataRepositoryWithChild) getGroupData(where string, tg *Treegrid
 	return g.getParentData(tg.BodyParams.GetRowLevel(), tg.GroupCols, where, query, colData)
 }
 
-func (g *gridRowDataRepositoryWithChild) generateNameCountQuery(where string, column Column) string {
+func (g *gridRowDataRepositoryWithChild) generateNameCountQuery(where string, column Column, tg *Treegrid) string {
 	// query := `
 	// SELECT %s, COUNT(*) Count
 	// FROM transfers_items
@@ -289,18 +290,22 @@ func (g *gridRowDataRepositoryWithChild) generateNameCountQuery(where string, co
 	// GROUP BY %s
 	// `
 	var query string = g.cfg.QueryChildCount
-	if strings.Index(where, g.tableName) > 0 {
 
-		// join with parent table
-		query = query + fmt.Sprintf(`
+	// join with parent table
+	// if strings.Index(where, g.tableName) > 0 {
+	query = query + fmt.Sprintf(`
 		INNER JOIN %s ON %s.%s = %s.%s
 		`, g.tableName, g.tableName, g.cfg.ParentIdField, g.lineTableName, g.cfg.ChildJoinFieldWithParent)
-	}
 
 	query = strings.Replace(query, "SELECT ", `SELECT %s, `, 1) +
-		`%s GROUP BY %s`
+		`%s %s GROUP BY %s`
+	// }
 
-	return fmt.Sprintf(query, column.DBName, where, column.DBName)
+	// fix here
+	additionChildCondition := utils.ExtractWhereClause("WHERE "+tg.FilterWhere["child"], tg.FilterArgs["child"])
+	additionChildCondition = additionChildCondition[len("WHERE"):]
+	logger.Debug("additionChildCondition: ", additionChildCondition, "filter where: ", tg.FilterWhere["child"], "filter args", tg.FilterArgs["child"])
+	return fmt.Sprintf(query, column.DBName, where, additionChildCondition, column.DBName)
 }
 
 func (g *gridRowDataRepositoryWithChild) prepareNameCountQuery(where string, tg *Treegrid) (query string, column Column) {
@@ -342,8 +347,8 @@ func (g *gridRowDataRepositoryWithChild) prepareNameCountQuery(where string, tg 
 			column.DBName = val[0]
 		}
 
-		query = g.generateNameCountQuery(where, column)
-		fmt.Printf("query check: %s, where: %s\n", query, where)
+		query = g.generateNameCountQuery(where, column, tg)
+		logger.Debug("query check: ", query, "where:", where)
 		return query, column
 	}
 
