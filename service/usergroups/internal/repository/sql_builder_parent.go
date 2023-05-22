@@ -2,7 +2,7 @@ package repository
 
 const (
 	QueryParentCount = `
-	SELECT COUNT(user_groups.id) as rowCount 
+	SELECT COUNT(user_groups.id) as Count 
 	FROM user_groups 
 	WHERE 1=1 `
 

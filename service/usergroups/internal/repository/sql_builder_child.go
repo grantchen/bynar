@@ -2,10 +2,10 @@ package repository
 
 const (
 	QueryChildCount = `
-		SELECT COUNT(*) as rowCount
+		SELECT COUNT(*) as Count
 		FROM user_group_lines 
 		INNER JOIN users ON user_group_lines.user_id = users.id
-		WHERE 1=1 `
+		`
 
 	QueryChild = `
 	SELECT user_group_lines.user_id,

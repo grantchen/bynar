@@ -4,16 +4,21 @@
 
    <Cfg id='user_groups' Size="Low" MainCol='code' SuppressCfg='1' ShowDeleted='1' Deleting='1' ShowButtons="3" PasteSelected ='0' Scrollbar='0'/>
    <Cfg Validate='Added,Focus,Edit,Changed,Text' ValidateMessageTime='2500' ValidateMessage="Ju lutemi plotësoni të dhënat e nevojshme tek qelizat me ngjyrë të kuqe !"/>
-   <Cfg Paging="3"   PageLength="100" AllPages='1' MaxPages="1"/>
+   <Cfg DuplicateId='4' AutoIdPrefix="SRee" IdNames='' IgnoreIdNames='1' />
+   <Cfg SearchCells='1' SearchAction='Select' SearchHidden='1'/>
+   <Cfg RowIndex='Nr.' RowIndexWidth='80' />
+   <Cfg Paging="3" ColPaging="2" PageLengthDiv="2" FastPages="500" PageLength="100"  AllPages='1' RemoveUnusedPages='3' />
    <Cfg ChildPaging="3" ChildPageLength="100" ChildPageDiff="-100"/>
    <Cfg ChildParts="2" ChildPartMin="0"/>
-   <Cfg Alternate='2'/>  
+   
+   <Cfg MaxHeight='1'/>
+   <Cfg CopyPasteTree ='3'/>
+   <Cfg Alternate='2'/>   
    <Cfg AutoCalendar='1'/> 
-   <Cfg ExactSize='0'/>
-   <Cfg ConstHeight='1' ConstWidth='1'/>
    <Cfg SelectingCells='1' />
+   <Cfg ConstHeight='1'/>
+   <Cfg SearchNotFound='1' />
    <Cfg ExportType='Expanded,Outline'/>
-   <Cfg EnterMode="1"/>
    <Cfg CalculateSelected='1'/> 
    <Cfg PrintVarHeight='2'/>
    <Cfg Undo='1'/>
@@ -22,9 +27,10 @@
    <Cfg PrintPagePrefix="&lt;center class='%9' style='width:%7px'>First example printed page %3 from %6&lt;/center>"/>
    <Cfg PrintPagePostfix="&lt;center class='%9' style='width:%7px'>Page %1 horizontally from %4 , page %2 vertically from %5&lt;/center>"/>
    <Cfg Language='EN'/>
-   <Actions OnMouseOverEditable="Grid.MouseCursor('url(aero_prec.cur),default')"/> 
+   <Colors Alternate="rgb(251,251,251,1)"/>
    <Actions OnDel="ClearValue"/>
-   <Pager Width="100" Visible='0' Caption='Navigimi'/>
+   <Actions OnMouseOverEditable="Grid.MouseCursor('url(aero_prec.cur),default')"/>
+   <Pager Width="100" Visible='0'/>
 
    <Def>      
       <D Name='Node' Parent='#Body' CDef='Data' Sorted='1' CanEdit='1' AcceptDef='Data' Spanned='1' Calculated='1' Expanded='1' CanFilter='1' 

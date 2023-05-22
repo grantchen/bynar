@@ -6,6 +6,7 @@
    <Cfg RowIndex='Nr.' RowIndexWidth='80' />
    <Cfg Paging="3" ColPaging="2" PageLengthDiv="2" FastPages="500" PageLength="100"  AllPages='1' RemoveUnusedPages='3' />
    <Cfg ChildPaging="3" ChildPageLength="100" ChildPageDiff="-100"/>
+   <Cfg DuplicateId="4" />
    <Cfg ChildParts="2" ChildPartMin="0"/>
    <Cfg MaxHeight='1'/>
    <Cfg CopyPasteTree ='3'/>
