@@ -1,23 +1,16 @@
 package http_handler
 
 import (
-	"log"
+	"database/sql"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/internal/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
-func NewHTTPHandler(appConfig config.AppConfig) *handler.HTTPTreeGridHandler {
-	connString := appConfig.GetDBConnection()
-	db, err := sql_db.NewConnection(connString)
-
-	if err != nil {
-		log.Panic(err)
-	}
+func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGridHandler {
 
 	simpleOrganizationRepository := treegrid.NewSimpleGridRowRepositoryWithCfg(db, "organizations", repository.OrganizationFieldNames,
 		100, &treegrid.SimpleGridRepositoryCfg{MainCol: "code"})
