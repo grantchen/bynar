@@ -23,10 +23,6 @@ type GridRowRepositoryWithChild interface {
 	SaveLineDelete(tx *sql.Tx, gr GridRow) error
 }
 
-const (
-	lineSuffix = "-line"
-)
-
 type gridRowRepository struct {
 	conn               *sql.DB
 	tableName          string
@@ -133,14 +129,14 @@ func (s *gridRowRepository) SaveMainRow(tx *sql.Tx, tr *MainRow) error {
 
 		return nil
 	case GridRowActionChanged:
-		logger.Debug("update parent row")
+		logger.Debug("update parent row", tr.Fields)
 
 		query, args = tr.Fields.MakeUpdateQuery(s.tableName, s.parentFieldMapping)
 		args = append(args, tr.Fields.GetID())
 
 		// parent contains only id - have nothing to update
 		if len(args) == 1 {
-			logger.Debug("Updates only id, nothing to update", tr.IDString())
+			logger.Debug("Updates only id, nothing to update", tr.IDString(), args)
 
 			return nil
 		}
@@ -228,6 +224,7 @@ func (s *gridRowRepository) SaveLines(tx *sql.Tx, tr *MainRow) error {
 func (s *gridRowRepository) SaveLineAdd(tx *sql.Tx, item GridRow) error {
 	query, args := item.MakeInsertQuery(s.lineTableName, s.childFieldMapping)
 
+	logger.Debug("query: ", query, "args: ", args)
 	res, err := tx.Exec(query, args...)
 	if err != nil {
 		return fmt.Errorf("exec query: [%w], query: %s", err, query)

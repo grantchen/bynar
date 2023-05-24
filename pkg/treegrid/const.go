@@ -10,3 +10,11 @@ const (
 	FieldNameParent = "Parent"
 	FieldStatus     = "status"
 )
+
+const (
+	NewID = "NewId"
+)
+
+const (
+	lineSuffix = "-line"
+)

@@ -233,9 +233,13 @@ func (s *simpleGridRepository) Add(tx *sql.Tx, gr GridRow) error {
 // Update implements SimpleGridRowRepository
 func (s *simpleGridRepository) Update(tx *sql.Tx, gr GridRow) error {
 	query, args := gr.MakeUpdateQuery(s.tableName, s.fieldMapping)
+	if len(args) == 0 {
+		return fmt.Errorf("not field update detected")
+	}
 	args = append(args, gr.GetID())
+	logger.Debug(query, "args", args)
 	if _, err := tx.Exec(query, args...); err != nil {
-		return fmt.Errorf("exec query: [%w], query: %s, args count: %d", err, query, len(args))
+		return fmt.Errorf("exec query: [%w], query: %s, args: %d", err, query, len(args))
 	}
 
 	return nil

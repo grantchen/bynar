@@ -8,7 +8,8 @@ const (
 		`
 
 	QueryChild = `
-	SELECT user_group_lines.user_id,
+	SELECT CONCAT (user_group_lines.id, '-line') as id, 
+	user_group_lines.user_id,
 	users.full_name,
 	users.email 
 	FROM user_group_lines 

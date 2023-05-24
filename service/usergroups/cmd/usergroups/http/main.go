@@ -55,12 +55,19 @@ func main() {
 	)
 	userGroupService := service.NewUserGroupService(db, gridRowDataRepositoryWithChild)
 
-	gridRowDataUploadRepositoryWithChild := treegrid.NewGridRepository(db, "user_groups",
+	grUserGroupDataUploadRepositoryWithChild := treegrid.NewGridRepository(db, "user_groups",
 		"user_group_lines",
 		repository.UserGroupFieldNames,
 		repository.UserGroupLineFieldUploadNames)
 
-	uploadService := service.NewUploadService(db, gridRowDataUploadRepositoryWithChild)
+	grUserRepository := treegrid.NewSimpleGridRowRepository(
+		db,
+		"users",
+		repository.UserUploadNames,
+		1, // arbitrary
+	)
+
+	uploadService := service.NewUploadService(db, grUserGroupDataUploadRepositoryWithChild, grUserRepository)
 
 	handler := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,

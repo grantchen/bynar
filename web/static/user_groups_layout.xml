@@ -55,7 +55,7 @@
       /> -->
       <D 
          Name='Node' 
-         Parent='#Body' CDef='Data' Sorted='1' AcceptDef='Data' Spanned='1' Calculated='1' Expanded='1' CanFilter='1' 
+         Parent='#Body' CDef='Data' Sorted='1' AcceptDef='Data' Spanned='1' Calculated='1' Expanded='1' CanFilter='1' CanEdit='1'
          applies_document_type='Parent' applies_document_typeType='Text' applies_document_typeSpan="4" applies_document_typeCanEdit="0"  applies_document_typeAlign="Center" 
 
       />
@@ -64,7 +64,7 @@
          Name='Data' 
          CDef='' AcceptDef='Data' 
          Calculated='1' Spanned='1' Expanded='1' FormulaSuggest="6" 
-         document_id ='Child' document_idSpan='16' document_idAlign="Center" document_idType='Text'  document_idCanEdit="0"
+         document_id ='Child' document_idSpan='16' document_idAlign="Center" document_idType='Text'  document_idCanEdit="0" 
          user_group_id='Child' user_group_idSpan='6' user_group_idAlign="Center" user_group_idType='Text'  user_group_idCanEdit="0"
       />
    </Def>
