@@ -1,11 +1,9 @@
 package http_handler
 
 import (
-	"fmt"
-	"log"
+	"database/sql"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
@@ -20,13 +18,7 @@ var (
 	AccountID int = 123456
 )
 
-func NewHTTPHandler(appConfig config.AppConfig) *handler.HTTPTreeGridHandler {
-	db, err := sql_db.NewConnection(appConfig.GetDBConnection())
-	fmt.Println(appConfig.GetDBConnection())
-
-	if err != nil {
-		log.Panic(err)
-	}
+func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGridHandler {
 
 	gridRowRep := treegrid.NewGridRepository(db, "sales",
 		"sale_lines",

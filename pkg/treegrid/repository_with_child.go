@@ -2,16 +2,17 @@ package treegrid
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 )
 
-type GridRowRepository interface {
+type GridRowRepositoryWithChild interface {
 	IsChild(gr GridRow) bool
 	GetParentID(gr GridRow) (parentID interface{}, err error)
-	GetStatus(id interface{}) (status interface{}, err error)
+	// GetStatus(id interface{}) (status interface{}, err error)
 	Save(tx *sql.Tx, tr *MainRow) error
 	SaveMainRow(tx *sql.Tx, tr *MainRow) error
 	SaveLines(tx *sql.Tx, tr *MainRow) error
@@ -21,10 +22,6 @@ type GridRowRepository interface {
 	SaveLineUpdate(tx *sql.Tx, gr GridRow) error
 	SaveLineDelete(tx *sql.Tx, gr GridRow) error
 }
-
-const (
-	lineSuffix = "-line"
-)
 
 type gridRowRepository struct {
 	conn               *sql.DB
@@ -37,8 +34,8 @@ type gridRowRepository struct {
 type SaveLineCallBack struct {
 }
 
-// use for table pair with format table and table_lines
-func NewGridRepository(conn *sql.DB, tableName, lineTableName string, parentFieldMapping, childFieldMapping map[string][]string) GridRowRepository {
+// use for table pair with format table and table_lines, only for update
+func NewGridRepository(conn *sql.DB, tableName, lineTableName string, parentFieldMapping, childFieldMapping map[string][]string) GridRowRepositoryWithChild {
 	return &gridRowRepository{
 		conn:               conn,
 		tableName:          tableName,
@@ -66,18 +63,18 @@ func (s *gridRowRepository) GetParentID(gr GridRow) (parentID interface{}, err e
 	return
 }
 
-func (s *gridRowRepository) GetStatus(id interface{}) (status interface{}, err error) {
-	query := `
-	SELECT d.status 
-	FROM ` + s.tableName + ` t
-		INNER JOIN documents d ON d.id = t.document_id
-	WHERE t.id = ?
-	`
+// func (s *gridRowRepository) GetStatus(id interface{}) (status interface{}, err error) {
+// 	query := `
+// 	SELECT d.status
+// 	FROM ` + s.tableName + ` t
+// 		INNER JOIN documents d ON d.id = t.document_id
+// 	WHERE t.id = ?
+// 	`
 
-	err = s.conn.QueryRow(query, id).Scan(&status)
+// 	err = s.conn.QueryRow(query, id).Scan(&status)
 
-	return
-}
+// 	return
+// }
 
 func (s *gridRowRepository) Save(tx *sql.Tx, tr *MainRow) error {
 	logger.Debug("Save grid row id", tr.IDString())
@@ -111,6 +108,9 @@ func (s *gridRowRepository) SaveMainRow(tx *sql.Tx, tr *MainRow) error {
 			return fmt.Errorf("exec query: [%w], query: %s", err, query)
 		}
 
+		b, _ := json.Marshal(res)
+		logger.Debug("add main row res: ", string(b))
+
 		newID, err := res.LastInsertId()
 		if err != nil {
 			return fmt.Errorf("last inserted id: [%w]", err)
@@ -129,14 +129,14 @@ func (s *gridRowRepository) SaveMainRow(tx *sql.Tx, tr *MainRow) error {
 
 		return nil
 	case GridRowActionChanged:
-		logger.Debug("update parent row")
+		logger.Debug("update parent row", tr.Fields)
 
 		query, args = tr.Fields.MakeUpdateQuery(s.tableName, s.parentFieldMapping)
 		args = append(args, tr.Fields.GetID())
 
 		// parent contains only id - have nothing to update
 		if len(args) == 1 {
-			logger.Debug("Updates only id, nothing to update", tr.IDString())
+			logger.Debug("Updates only id, nothing to update", tr.IDString(), args)
 
 			return nil
 		}
@@ -148,6 +148,13 @@ func (s *gridRowRepository) SaveMainRow(tx *sql.Tx, tr *MainRow) error {
 		return nil
 	case GridRowActionDeleted:
 		logger.Debug("delete parent")
+
+		// ignore id start with CR
+		idStr := tr.Fields.GetIDStr()
+		if strings.HasPrefix(idStr, "CR") {
+			logger.Debug("ignore this id: ", idStr)
+			return nil
+		}
 
 		query, args = tr.Fields.MakeDeleteQuery(s.tableName)
 		args = append(args, tr.Fields.GetID())
@@ -217,6 +224,7 @@ func (s *gridRowRepository) SaveLines(tx *sql.Tx, tr *MainRow) error {
 func (s *gridRowRepository) SaveLineAdd(tx *sql.Tx, item GridRow) error {
 	query, args := item.MakeInsertQuery(s.lineTableName, s.childFieldMapping)
 
+	logger.Debug("query: ", query, "args: ", args)
 	res, err := tx.Exec(query, args...)
 	if err != nil {
 		return fmt.Errorf("exec query: [%w], query: %s", err, query)

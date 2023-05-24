@@ -30,10 +30,6 @@ func BuildSimpleQueryGroupByCount(tableName string, fieldMapping map[string][]st
 	return query
 }
 
-func BuildSimpleQueryCountWithGroupping(tableName string, fieldMapping map[string][]string, groupField string) string {
-	return ""
-}
-
 func BuildSimpleQuery(tableName string, fieldMapping map[string][]string) string {
 	var queryBuffer bytes.Buffer
 	queryBuffer.WriteString(`select `)

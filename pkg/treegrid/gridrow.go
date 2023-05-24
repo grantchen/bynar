@@ -29,6 +29,10 @@ func (f GridRow) GetParentID() string {
 	return pID
 }
 
+func (f GridRow) GetLineID() string {
+	return strings.Trim(f.GetIDStr(), lineSuffix)
+}
+
 func (f GridRow) ValidateOnRequiredAll(fieldsMapping map[string][]string) error {
 	for key, _ := range fieldsMapping {
 		val, ok := f[key]

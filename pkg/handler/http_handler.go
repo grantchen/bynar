@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
@@ -90,17 +91,21 @@ func (h *HTTPTreeGridHandler) HTTPHandleUpload(w http.ResponseWriter, r *http.Re
 
 	// get and parse post data
 	if err := r.ParseForm(); err != nil {
+		logger.Debug("parse form err: ", err)
 		writeErrorResponse(w, resp, err)
 
 		return
 	}
 
 	if err := json.Unmarshal([]byte(r.Form.Get("Data")), &postData); err != nil {
+		logger.Debug("unmarshal err: ", err)
 		writeErrorResponse(w, resp, err)
 
 		return
 	}
 
+	// b, _ := json.Marshal(postData)
+	// logger.Debug("postData: ", string(b), "form data: ", r.Form.Get("Data"))
 	resp, err := h.CallbackUploadDataFunc(postData)
 
 	if err != nil {

@@ -17,14 +17,14 @@ type UploadService struct {
 	accountID         int
 	conn              *sql.DB
 	approvalService   service.ApprovalService
-	gridRowRepository treegrid.GridRowRepository
+	gridRowRepository treegrid.GridRowRepositoryWithChild
 	procurementSvc    ProcurementService
 	docSvc            service.DocumentService
 }
 
 func NewService(conn *sql.DB,
 	approvalService service.ApprovalService,
-	gridRowRepository treegrid.GridRowRepository,
+	gridRowRepository treegrid.GridRowRepositoryWithChild,
 	procurementSvc ProcurementService,
 	moduleID, accoundID int,
 	docSvc service.DocumentService,
@@ -87,7 +87,7 @@ func (s *UploadService) handle(tr *treegrid.MainRow) error {
 	defer tx.Rollback()
 
 	if err := s.gridRowRepository.Save(tx, tr); err != nil {
-		return fmt.Errorf("transfer svc save '%s': [%w]", tr.IDString(), err)
+		return fmt.Errorf("procecurement svc save '%s': [%w]", tr.IDString(), err)
 	}
 
 	if tr.Status() == 1 {

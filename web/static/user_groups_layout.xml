@@ -2,16 +2,21 @@
 <?xml version="1.0"?>
 <Grid>
 
-   <Cfg id='organizations' Size="Low"   SuppressCfg='1' ShowDeleted='1' Deleting='1' ShowButtons="3" PasteSelected ='0' Scrollbar='0'/>
-   <Cfg Validate='Added,Focus,Edit,Changed,Text' ValidateMessageTime='2500' ValidateMessage="Ju lutemi plotësoni të dhënat e nevojshme tek qelizat me ngjyrë të kuqe !"/>
-   <Cfg Paging="3"   PageLength="100" AllPages='1' MaxPages="1"/>
-   <Cfg Alternate='2'/>  
+   <Cfg id='user_groups' Size="Low" MainCol='code' SuppressCfg='1' ShowDeleted='1' Deleting='1' ShowButtons="3" PasteSelected ='0' Scrollbar='0'/>
+   <Cfg Validate='All,Added,Focus,Edit,Changed,Text' ValidateMessageTime='2500' ValidateMessage="Ju lutemi plotësoni të dhënat e nevojshme tek qelizat me ngjyrë të kuqe!"/>
+   <Cfg SearchCells='1' SearchAction='Select' SearchHidden='1'/>
+   <Cfg RowIndex='Nr.' RowIndexWidth='80' />
+   <Cfg Paging="3" ColPaging="2" PageLengthDiv="2" FastPages="500" PageLength="100"  AllPages='1' RemoveUnusedPages='3' />
+   <Cfg ChildPaging="3" ChildPageLength="100" ChildPageDiff="-100"/>
+   <Cfg ChildParts="2" ChildPartMin="0"/>
+   <Cfg MaxHeight='1'/>
+   <Cfg CopyPasteTree ='3'/>
+   <Cfg Alternate='2'/>   
    <Cfg AutoCalendar='1'/> 
-   <Cfg ExactSize='0'/>
-   <Cfg ConstHeight='1' ConstWidth='1'/>
    <Cfg SelectingCells='1' />
+   <Cfg ConstHeight='1'/>
+   <Cfg SearchNotFound='1' />
    <Cfg ExportType='Expanded,Outline'/>
-   <Cfg EnterMode="1"/>
    <Cfg CalculateSelected='1'/> 
    <Cfg PrintVarHeight='2'/>
    <Cfg Undo='1'/>
@@ -20,12 +25,13 @@
    <Cfg PrintPagePrefix="&lt;center class='%9' style='width:%7px'>First example printed page %3 from %6&lt;/center>"/>
    <Cfg PrintPagePostfix="&lt;center class='%9' style='width:%7px'>Page %1 horizontally from %4 , page %2 vertically from %5&lt;/center>"/>
    <Cfg Language='EN'/>
-   <Actions OnMouseOverEditable="Grid.MouseCursor('url(aero_prec.cur),default')"/> 
+   <Colors Alternate="rgb(251,251,251,1)"/>
    <Actions OnDel="ClearValue"/>
-   <Pager Width="100" Visible='0' Caption='Navigimi'/>
+   <Actions OnMouseOverEditable="Grid.MouseCursor('url(aero_prec.cur),default')"/>
+   <Pager Width="100" Visible='0'/>
 
    <Def>      
-      <D Name='Node' Parent='#Body' CDef='Data' Sorted='1' CanEdit='1' AcceptDef='Data' Spanned='1' Calculated='1' Expanded='1' CanFilter='1' 
+      <!-- <D Name='Node' Parent='#Body' CDef='Data' Sorted='1' CanEdit='1' AcceptDef='Data' Spanned='1' Calculated='1' Expanded='1' CanFilter='1' 
       
       nameSuggest='|*RowsCanFilter'
       codeSuggest='|*RowsCanFilter'
@@ -41,20 +47,41 @@
       calculationResultMask=".+"
       percentageResultMask=".+"
       status='1'
+      full_name="Users" full_nameSpan="3" full_nameAlign="Scroll" 
+      />
 
+      <D Name='Data' Sorted='1' CanEdit='1' AcceptDef='Data' Spanned='1' Calculated='1' Expanded='1' CanFilter='1'  
+         code="User groups" codeSpan="3" codeAlign="Scroll" 
+      /> -->
+      <D 
+         Name='Node' 
+         Parent='#Body' CDef='Data' Sorted='1' AcceptDef='Data' Spanned='1' Calculated='1' Expanded='1' CanFilter='1' CanEdit='1'
+         applies_document_type='Parent' applies_document_typeType='Text' applies_document_typeSpan="4" applies_document_typeCanEdit="0"  applies_document_typeAlign="Center" 
+
+      />
+
+      <D 
+         Name='Data' 
+         CDef='' AcceptDef='Data' 
+         Calculated='1' Spanned='1' Expanded='1' FormulaSuggest="6" 
+         document_id ='Child' document_idSpan='16' document_idAlign="Center" document_idType='Text'  document_idCanEdit="0" 
+         user_group_id='Child' user_group_idSpan='6' user_group_idAlign="Center" user_group_idType='Text'  user_group_idCanEdit="0"
       />
    </Def>
 
    <Cols>
-      <C Name='code' Width='150' Type='Text' CaseSensitive='0' CanEdit='1'   VarHeight='1' />
-      <C Name='name' Width='150' Type='Text' CaseSensitive='0' CanEdit='1'   VarHeight='1' />
-      <C Name='vat_no'  Width='150' Type='Text' CanEdit='1' VarHeight='1'    />
-      <C Name='state' Width='150' Type='Text' CaseSensitive='0' CanEdit='1'   VarHeight='1' />
+      <C Name='code' Width='150' Type='Text' CaseSensitive='0' CanEdit='1' VarHeight='1' />
+      <C Name='description' Width='150' Type='Text' CaseSensitive='0' CanEdit='1' VarHeight='1' />
+      <C Name='status' Width='150' Type='Bool' CaseSensitive='0' CanEdit='1'   VarHeight='1' />
+      <C Name='full_name'  Width='150' Type='Text' CanEdit='1' VarHeight='1' />
+      <C Name='email'  Width='150' Type='Text' CanEdit='1' VarHeight='1' />
+      <C Name='user_id' Width='150' Type='Text' CaseSensitive='0' CanEdit='1'   VarHeight='1' />
    </Cols>
 
+   <Root CDef='Node' AcceptDef='Node'/>
     <Solid>     
 
-      <Group Space='1' Calculated='1' Panel='1' id='Group' CanFocus='0' NoUpload="0" Visible='0' CanGroup='1'/>
+      <Group Space='1' Calculated='1' Panel='1' id='Group' CanFocus='0' NoUpload="1" Visible='1' CanGroup='1'/>
       
       <Search Space='1' Panel='1' id='Search' CanFocus='0' NoUpload="0" Calculated='1' Visible='0'
          Cells='Case,Type,Expression,Sep1,Filter,Select,Mark,Find,Clear,Sep2'

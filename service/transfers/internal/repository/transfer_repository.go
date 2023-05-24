@@ -13,7 +13,7 @@ import (
 )
 
 type transferRepository struct {
-	gridTreeRepository treegrid.GridRowRepository
+	gridTreeRepository treegrid.GridRowRepositoryWithChild
 	db                 *sql.DB
 }
 
@@ -113,7 +113,7 @@ func (t *transferRepository) GetTransfersPageData(tg *treegrid.Treegrid) ([]map[
 		return t.handleGroupBy(tg)
 	}
 
-	logger.Debug("get transfers without grouping")
+	logger.Debug("get without grouping")
 
 	query := sqlbuilder.QueryParent + tg.FilterWhere["parent"]
 	if tg.FilterWhere["child"] != "" {
@@ -148,6 +148,7 @@ func (t *transferRepository) GetTransferCount(treegrid *treegrid.Treegrid) (int,
 				FilterWhere["parent"] + ") "
 		}
 		query = sqlbuilder.QueryChildCount + FilterWhere["child"] + FilterWhere["parent"]
+		fmt.Printf("query count1: %s\n", query)
 	} else {
 		if FilterWhere["child"] != "" {
 			FilterWhere["child"] = " AND transfers.id IN (SELECT transfers_items.Parent from transfers_items " +
@@ -157,9 +158,12 @@ func (t *transferRepository) GetTransferCount(treegrid *treegrid.Treegrid) (int,
 		}
 
 		query = sqlbuilder.QueryParentCount + FilterWhere["child"] + FilterWhere["parent"]
+		fmt.Printf("filter where[child]: %s\n", FilterWhere["child"])
+		fmt.Printf("query count2: %s\n", query)
 	}
 
 	mergedArgs := utils.MergeMaps(FilterArgs["child"], FilterArgs["parent"])
+
 	rows, err := t.db.Query(query, mergedArgs...)
 	if err != nil {
 		log.Fatalln(err, "query", query, "colData", column)
