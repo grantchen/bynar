@@ -33,8 +33,22 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 	)
 	userGroupService := service.NewUserGroupService(db, gridRowDataRepositoryWithChild)
 
+	grUserGroupDataUploadRepositoryWithChild := treegrid.NewGridRepository(db, "user_groups",
+		"user_group_lines",
+		repository.UserGroupFieldNames,
+		repository.UserGroupLineFieldUploadNames)
+
+	grUserRepository := treegrid.NewSimpleGridRowRepository(
+		db,
+		"users",
+		repository.UserUploadNames,
+		1, // arbitrary
+	)
+
+	uploadService := service.NewUploadService(db, grUserGroupDataUploadRepositoryWithChild, grUserRepository)
+
 	handler := &handler.HTTPTreeGridHandler{
-		// CallbackUploadDataFunc:  uploadService.Handle,
+		CallbackUploadDataFunc:  uploadService.Handle,
 		CallbackGetPageDataFunc: userGroupService.GetPageData,
 		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) float64 {
 			return float64(userGroupService.GetPageCount(tr))
