@@ -55,8 +55,15 @@ func main() {
 	)
 	userGroupService := service.NewUserGroupService(db, gridRowDataRepositoryWithChild)
 
+	gridRowDataUploadRepositoryWithChild := treegrid.NewGridRepository(db, "user_groups",
+		"user_group_lines",
+		repository.UserGroupFieldNames,
+		repository.UserGroupLineFieldUploadNames)
+
+	uploadService := service.NewUploadService(db, gridRowDataUploadRepositoryWithChild)
+
 	handler := &handler.HTTPTreeGridHandler{
-		// CallbackUploadDataFunc:  uploadService.Handle,
+		CallbackUploadDataFunc:  uploadService.Handle,
 		CallbackGetPageDataFunc: userGroupService.GetPageData,
 		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) float64 {
 			return float64(userGroupService.GetPageCount(tr))

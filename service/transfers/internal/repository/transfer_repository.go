@@ -113,7 +113,7 @@ func (t *transferRepository) GetTransfersPageData(tg *treegrid.Treegrid) ([]map[
 		return t.handleGroupBy(tg)
 	}
 
-	logger.Debug("get transfers without grouping")
+	logger.Debug("get without grouping")
 
 	query := sqlbuilder.QueryParent + tg.FilterWhere["parent"]
 	if tg.FilterWhere["child"] != "" {

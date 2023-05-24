@@ -35,9 +35,9 @@ func ParseRequestUpload(req *PostRequest, identityStore IdentityStorage) (*GridL
 	}
 
 	// sort changes on transfers and items
+	// logger.Debug("change len: ", len(req.Changes))
 	for k := range req.Changes {
 		ch := GridRow(req.Changes[k])
-
 		isChild, err := SetGridRowIdentity(ch, identityStore)
 		if err != nil {
 			return nil, fmt.Errorf("set gridRow identity: [%w]", err)

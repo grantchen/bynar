@@ -3,20 +3,15 @@
 <Grid>
 
    <Cfg id='organizations' Size="Low"   SuppressCfg='1' ShowDeleted='1' Deleting='1' ShowButtons="3" PasteSelected ='0' Scrollbar='0'/>
-   <Cfg Validate='All,Added,Focus,Edit,Changed,Text' ValidateMessageTime='2500' ValidateMessage="Ju lutemi plotësoni të dhënat e nevojshme tek qelizat me ngjyrë të kuqe!"/>
-   <Cfg SearchCells='1' SearchAction='Select' SearchHidden='1'/>
-   <Cfg RowIndex='Nr.' RowIndexWidth='80' />
-   <Cfg Paging="3" ColPaging="2" PageLengthDiv="2" FastPages="500" PageLength="100"  AllPages='1' RemoveUnusedPages='3' />
-   <Cfg ChildPaging="3" ChildPageLength="100" ChildPageDiff="-100"/>
-   <Cfg ChildParts="2" ChildPartMin="0"/>
-   <Cfg MaxHeight='1'/>
-   <Cfg CopyPasteTree ='3'/>
-   <Cfg Alternate='2'/>   
+   <Cfg Validate='Added,Focus,Edit,Changed,Text' ValidateMessageTime='2500' ValidateMessage="Ju lutemi plotësoni të dhënat e nevojshme tek qelizat me ngjyrë të kuqe !"/>
+   <Cfg Paging="3"   PageLength="100" AllPages='1' MaxPages="1"/>
+   <Cfg Alternate='2'/>  
    <Cfg AutoCalendar='1'/> 
+   <Cfg ExactSize='0'/>
+   <Cfg ConstHeight='1' ConstWidth='1'/>
    <Cfg SelectingCells='1' />
-   <Cfg ConstHeight='1'/>
-   <Cfg SearchNotFound='1' />
    <Cfg ExportType='Expanded,Outline'/>
+   <Cfg EnterMode="1"/>
    <Cfg CalculateSelected='1'/> 
    <Cfg PrintVarHeight='2'/>
    <Cfg Undo='1'/>
@@ -25,11 +20,9 @@
    <Cfg PrintPagePrefix="&lt;center class='%9' style='width:%7px'>First example printed page %3 from %6&lt;/center>"/>
    <Cfg PrintPagePostfix="&lt;center class='%9' style='width:%7px'>Page %1 horizontally from %4 , page %2 vertically from %5&lt;/center>"/>
    <Cfg Language='EN'/>
-   <Colors Alternate="rgb(251,251,251,1)"/>
+   <Actions OnMouseOverEditable="Grid.MouseCursor('url(aero_prec.cur),default')"/> 
    <Actions OnDel="ClearValue"/>
-   <Actions OnMouseOverEditable="Grid.MouseCursor('url(aero_prec.cur),default')"/>
-   <Pager Width="100" Visible='0'/>
-
+   <Pager Width="100" Visible='0' Caption='Navigimi'/>
 
    <Def>      
       <D Name='Node' Parent='#Body' CDef='Data' Sorted='1' CanEdit='1' AcceptDef='Data' Spanned='1' Calculated='1' Expanded='1' CanFilter='1' 
@@ -61,8 +54,7 @@
 
     <Solid>     
 
-      <!-- <Group Space='1' Calculated='1' Panel='1' id='Group' CanFocus='0' NoUpload="0" Visible='0' CanGroup='1'/> -->
-      <Group Space='1' Calculated='1' Panel='1' Custom='1' id='Group' CanFocus='0' NoUpload="1" CanGroup='1'/>
+      <Group Space='1' Calculated='1' Panel='1' id='Group' CanFocus='0' NoUpload="0" Visible='0' CanGroup='1'/>
       
       <Search Space='1' Panel='1' id='Search' CanFocus='0' NoUpload="0" Calculated='1' Visible='0'
          Cells='Case,Type,Expression,Sep1,Filter,Select,Mark,Find,Clear,Sep2'

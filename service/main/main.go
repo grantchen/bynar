@@ -43,16 +43,16 @@ func main() {
 
 	lsHandlerMapping := make([]*HandlerMapping, 0)
 	lsHandlerMapping = append(lsHandlerMapping,
-		&HandlerMapping{handler: sales_handler.NewHTTPHandler(appConfig),
+		&HandlerMapping{handler: sales_handler.NewHTTPHandler(appConfig, db),
 			prefixPath: "/sales"})
 	lsHandlerMapping = append(lsHandlerMapping,
-		&HandlerMapping{handler: payments_handler.NewHTTPHandler(appConfig),
+		&HandlerMapping{handler: payments_handler.NewHTTPHandler(appConfig, db),
 			prefixPath: "/payments"})
 	lsHandlerMapping = append(lsHandlerMapping,
-		&HandlerMapping{handler: transfers_handler.NewHTTPHandler(appConfig),
+		&HandlerMapping{handler: transfers_handler.NewHTTPHandler(appConfig, db),
 			prefixPath: "/transfers"})
 	lsHandlerMapping = append(lsHandlerMapping,
-		&HandlerMapping{handler: procurements_handler.NewHTTPHandler(appConfig),
+		&HandlerMapping{handler: procurements_handler.NewHTTPHandler(appConfig, db),
 			prefixPath: "/procurements"})
 	lsHandlerMapping = append(lsHandlerMapping,
 		&HandlerMapping{handler: organizations_handler.NewHTTPHandler(appConfig, db),

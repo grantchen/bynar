@@ -151,7 +151,7 @@ func (g *gridRowDataRepositoryWithChild) GetPageData(tg *Treegrid) ([]map[string
 		return g.handleGroupBy(tg)
 	}
 
-	logger.Debug("get transfers without grouping")
+	logger.Debug("get without grouping")
 
 	query := g.cfg.QueryParent + tg.FilterWhere["parent"]
 	if tg.FilterWhere["child"] != "" {
@@ -201,6 +201,7 @@ func (g *gridRowDataRepositoryWithChild) getJSON(sqlString string, mergedArgs []
 		if !tg.BodyParams.GetItemsRequest() {
 			entry["Expanded"] = "0"
 			entry["Count"] = "2"
+			// entry["MinLevels"] = "2"
 			entry["has_child"] = "1"
 		}
 

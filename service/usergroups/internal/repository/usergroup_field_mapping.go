@@ -15,4 +15,15 @@ var (
 		"email":     {"users.email"},
 		"full_name": {"users.full_name"},
 	}
+
+	UserGroupLineFieldUploadNames = map[string][]string{
+		"id":      {"user_group_lines.id"},
+		"parent":  {"user_group_lines.parent"},
+		"user_id": {"user_group_lines.user_id"},
+	}
+
+	UserUploadNames = map[string][]string{
+		"email":     {"users.email"},
+		"full_name": {"users.full_name"},
+	}
 )

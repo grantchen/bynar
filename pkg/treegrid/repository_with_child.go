@@ -2,6 +2,7 @@ package treegrid
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -37,7 +38,7 @@ type gridRowRepository struct {
 type SaveLineCallBack struct {
 }
 
-// use for table pair with format table and table_lines
+// use for table pair with format table and table_lines, only for update
 func NewGridRepository(conn *sql.DB, tableName, lineTableName string, parentFieldMapping, childFieldMapping map[string][]string) GridRowRepositoryWithChild {
 	return &gridRowRepository{
 		conn:               conn,
@@ -66,18 +67,18 @@ func (s *gridRowRepository) GetParentID(gr GridRow) (parentID interface{}, err e
 	return
 }
 
-func (s *gridRowRepository) GetStatus(id interface{}) (status interface{}, err error) {
-	query := `
-	SELECT d.status
-	FROM ` + s.tableName + ` t
-		INNER JOIN documents d ON d.id = t.document_id
-	WHERE t.id = ?
-	`
+// func (s *gridRowRepository) GetStatus(id interface{}) (status interface{}, err error) {
+// 	query := `
+// 	SELECT d.status
+// 	FROM ` + s.tableName + ` t
+// 		INNER JOIN documents d ON d.id = t.document_id
+// 	WHERE t.id = ?
+// 	`
 
-	err = s.conn.QueryRow(query, id).Scan(&status)
+// 	err = s.conn.QueryRow(query, id).Scan(&status)
 
-	return
-}
+// 	return
+// }
 
 func (s *gridRowRepository) Save(tx *sql.Tx, tr *MainRow) error {
 	logger.Debug("Save grid row id", tr.IDString())
@@ -110,6 +111,9 @@ func (s *gridRowRepository) SaveMainRow(tx *sql.Tx, tr *MainRow) error {
 		if err != nil {
 			return fmt.Errorf("exec query: [%w], query: %s", err, query)
 		}
+
+		b, _ := json.Marshal(res)
+		logger.Debug("add main row res: ", string(b))
 
 		newID, err := res.LastInsertId()
 		if err != nil {
@@ -148,6 +152,13 @@ func (s *gridRowRepository) SaveMainRow(tx *sql.Tx, tr *MainRow) error {
 		return nil
 	case GridRowActionDeleted:
 		logger.Debug("delete parent")
+
+		// ignore id start with CR
+		idStr := tr.Fields.GetIDStr()
+		if strings.HasPrefix(idStr, "CR") {
+			logger.Debug("ignore this id: ", idStr)
+			return nil
+		}
 
 		query, args = tr.Fields.MakeDeleteQuery(s.tableName)
 		args = append(args, tr.Fields.GetID())

@@ -1,7 +1,7 @@
 package http_handler
 
 import (
-	"log"
+	"database/sql"
 	"net/http"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/config"
@@ -16,12 +16,7 @@ var (
 	AccountID int = 123456
 )
 
-func NewHTTPHandler(appConfig config.AppConfig) *handler.HTTPTreeGridHandler {
-	dbConnString := appConfig.GetDBConnection()
-
-	if _, err := sql_db.NewConnection(dbConnString); err != nil {
-		log.Fatalln("new connection", err)
-	}
+func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGridHandler {
 
 	// uploadHandler := &http_handler.UploadHandler{ModuleID: ModuleID, AccountID: AccountID}
 	handler := &handler.HTTPTreeGridHandler{

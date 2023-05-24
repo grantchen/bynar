@@ -87,7 +87,7 @@ func (s *UploadService) handle(tr *treegrid.MainRow) error {
 	defer tx.Rollback()
 
 	if err := s.gridRowRepository.Save(tx, tr); err != nil {
-		return fmt.Errorf("transfer svc save '%s': [%w]", tr.IDString(), err)
+		return fmt.Errorf("procecurement svc save '%s': [%w]", tr.IDString(), err)
 	}
 
 	if tr.Status() == 1 {
