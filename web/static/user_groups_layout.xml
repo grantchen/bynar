@@ -3,14 +3,12 @@
 <Grid>
 
    <Cfg id='user_groups' Size="Low" MainCol='code' SuppressCfg='1' ShowDeleted='1' Deleting='1' ShowButtons="3" PasteSelected ='0' Scrollbar='0'/>
-   <Cfg Validate='Added,Focus,Edit,Changed,Text' ValidateMessageTime='2500' ValidateMessage="Ju lutemi plotësoni të dhënat e nevojshme tek qelizat me ngjyrë të kuqe !"/>
-   <Cfg DuplicateId='4' AutoIdPrefix="SRee" IdNames='' IgnoreIdNames='1' />
+   <Cfg Validate='All,Added,Focus,Edit,Changed,Text' ValidateMessageTime='2500' ValidateMessage="Ju lutemi plotësoni të dhënat e nevojshme tek qelizat me ngjyrë të kuqe!"/>
    <Cfg SearchCells='1' SearchAction='Select' SearchHidden='1'/>
    <Cfg RowIndex='Nr.' RowIndexWidth='80' />
    <Cfg Paging="3" ColPaging="2" PageLengthDiv="2" FastPages="500" PageLength="100"  AllPages='1' RemoveUnusedPages='3' />
    <Cfg ChildPaging="3" ChildPageLength="100" ChildPageDiff="-100"/>
    <Cfg ChildParts="2" ChildPartMin="0"/>
-   
    <Cfg MaxHeight='1'/>
    <Cfg CopyPasteTree ='3'/>
    <Cfg Alternate='2'/>   
@@ -33,7 +31,7 @@
    <Pager Width="100" Visible='0'/>
 
    <Def>      
-      <D Name='Node' Parent='#Body' CDef='Data' Sorted='1' CanEdit='1' AcceptDef='Data' Spanned='1' Calculated='1' Expanded='1' CanFilter='1' 
+      <!-- <D Name='Node' Parent='#Body' CDef='Data' Sorted='1' CanEdit='1' AcceptDef='Data' Spanned='1' Calculated='1' Expanded='1' CanFilter='1' 
       
       nameSuggest='|*RowsCanFilter'
       codeSuggest='|*RowsCanFilter'
@@ -52,9 +50,23 @@
       full_name="Users" full_nameSpan="3" full_nameAlign="Scroll" 
       />
 
-         <D Name='Data' Sorted='1' CanEdit='1' AcceptDef='Data' Spanned='1' Calculated='1' Expanded='1' CanFilter='1'  
-            code="User groups" codeSpan="3" codeAlign="Scroll" 
-         />
+      <D Name='Data' Sorted='1' CanEdit='1' AcceptDef='Data' Spanned='1' Calculated='1' Expanded='1' CanFilter='1'  
+         code="User groups" codeSpan="3" codeAlign="Scroll" 
+      /> -->
+      <D 
+         Name='Node' 
+         Parent='#Body' CDef='Data' Sorted='1' AcceptDef='Data' Spanned='1' Calculated='1' Expanded='1' CanFilter='1' 
+         applies_document_type='Parent' applies_document_typeType='Text' applies_document_typeSpan="4" applies_document_typeCanEdit="0"  applies_document_typeAlign="Center" 
+
+      />
+
+      <D 
+         Name='Data' 
+         CDef='' AcceptDef='Data' 
+         Calculated='1' Spanned='1' Expanded='1' FormulaSuggest="6" 
+         document_id ='Child' document_idSpan='16' document_idAlign="Center" document_idType='Text'  document_idCanEdit="0"
+         user_group_id='Child' user_group_idSpan='6' user_group_idAlign="Center" user_group_idType='Text'  user_group_idCanEdit="0"
+      />
    </Def>
 
    <Cols>
@@ -66,6 +78,7 @@
       <C Name='user_id' Width='150' Type='Text' CaseSensitive='0' CanEdit='1'   VarHeight='1' />
    </Cols>
 
+   <Root CDef='Node' AcceptDef='Node'/>
     <Solid>     
 
       <Group Space='1' Calculated='1' Panel='1' id='Group' CanFocus='0' NoUpload="1" Visible='1' CanGroup='1'/>
