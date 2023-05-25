@@ -10,6 +10,7 @@
    <Cfg ChildPaging="3" ChildPageLength="100" ChildPageDiff="-100"/>
    <Cfg ChildParts="2" ChildPartMin="0"/>
    <Cfg MaxHeight='1'/>
+   <Cfg DuplicateId='4' AutoIdPrefix='test' FullId='1'/>
    <Cfg CopyPasteTree ='3'/>
    <Cfg Alternate='2'/>   
    <Cfg AutoCalendar='1'/> 

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 )
 
 type (
@@ -18,6 +19,8 @@ const (
 	GridRowActionDeleted GridRowActionType = "Deleted"
 	GridRowActionChanged GridRowActionType = "Changed"
 )
+
+const reqID = "reqID"
 
 func (f GridRow) IsChild() bool {
 	panic("not implemented yet")
@@ -192,12 +195,13 @@ func (g GridRow) GetActionType() GridRowActionType {
 
 func (g GridRow) GetIDStr() (id string) {
 	if val, ok := g["NewId"]; ok {
-		return val.(string)
+		return g.removeGroupID(val.(string))
 	}
 
 	for name, val := range g {
 		if name == "id" {
 			id, _ = val.(string)
+			id = g.removeGroupID(id)
 		}
 	}
 
@@ -209,7 +213,33 @@ func (g GridRow) GetIDInt() (id int) {
 	return id
 }
 
+func (g *GridRow) removeGroupID(id string) string {
+	//check is group
+	if strings.Contains(id, "$") { // id when group by have format: (CR[0-9]+\$)+<real_id>
+		idGroup := strings.Split(id, "$")
+		newId := idGroup[len(idGroup)-1]
+		return newId
+	}
+
+	return id
+}
+
+func (g *GridRow) removeGroupIDInterface(input interface{}) interface{} {
+	// idString := id.(string)
+	idStr, _ := input.(string)
+	if strings.Contains(idStr, "$") { // id when group by have format: (CR[0-9]+\$)+<real_id>
+		idGroup := strings.Split(idStr, "$")
+		newId := idGroup[len(idGroup)-1]
+		return newId
+	}
+	return input
+}
+
 func (g GridRow) GetID() (id interface{}) {
+	return g.removeGroupIDInterface(g.getOriginID())
+}
+
+func (g GridRow) getOriginID() (id interface{}) {
 	if val, ok := g["NewId"]; ok {
 		return val
 	}
@@ -223,6 +253,16 @@ func (g GridRow) GetID() (id interface{}) {
 	}
 
 	return
+}
+
+// return raw id from treegrid req, used for grouping feature when id include parent: ex id: 2-line => CR5$2-line
+func (g GridRow) GetTreeGridID() (id interface{}) {
+	logger.Debug("orgin id: ", g[reqID])
+	return g[reqID]
+}
+
+func (g GridRow) StoreGridTreeID() {
+	g[reqID] = g.getOriginID()
 }
 
 func (g GridRow) GetValString(name string) (string, bool) {

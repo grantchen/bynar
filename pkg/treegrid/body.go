@@ -2,6 +2,7 @@ package treegrid
 
 import (
 	"strconv"
+	"strings"
 )
 
 type BodyParam struct {
@@ -13,7 +14,7 @@ type BodyParam struct {
 }
 
 // / GetRowLevel gets from rows level. Example: rows = "2WHERE filed=1", level = 1
-func (b BodyParam) GetRowLevel() int {
+func (b *BodyParam) GetRowLevel() int {
 	if b.Rows == "" {
 		return 0
 	}
@@ -24,7 +25,7 @@ func (b BodyParam) GetRowLevel() int {
 }
 
 // GetRowWhere gets from rows where clause. Example: rows = "2WHERE filed=1", return WHERE filed=1
-func (b BodyParam) GetRowWhere() string {
+func (b *BodyParam) GetRowWhere() string {
 	if b.Rows == "" {
 		return ""
 	}
@@ -34,7 +35,15 @@ func (b BodyParam) GetRowWhere() string {
 
 // GetItemsRequest defines type of response - Transfer of TransferItems
 // Conditions for items response:  "id" is digit and "rows" == ""
-func (b BodyParam) GetItemsRequest() bool {
+func (b *BodyParam) GetItemsRequest() bool {
+
+	//check is group
+	if strings.Contains(b.ID, "$") {
+		idGroup := strings.Split(b.ID, "$")
+		newId := idGroup[len(idGroup)-1]
+		b.ID = newId
+	}
+
 	if _, ok := b.IntID(); !ok {
 		return false
 	}
@@ -47,9 +56,16 @@ func (b BodyParam) GetItemsRequest() bool {
 }
 
 // IntID converts id string to int with indicating id existence
-func (b BodyParam) IntID() (int, bool) {
+func (b *BodyParam) IntID() (int, bool) {
 	if b.ID == "" {
 		return 0, false
+	}
+
+	//check is group
+	if strings.Contains(b.ID, "$") {
+		idGroup := strings.Split(b.ID, "$")
+		newId := idGroup[len(idGroup)-1]
+		b.ID = newId
 	}
 
 	id, err := strconv.Atoi(b.ID)

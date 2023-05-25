@@ -4,6 +4,9 @@ import (
 	"fmt"
 )
 
+// because in case child row maybe has id which concat with parent's id: ex: 2-line has id: CR5$2-line, copy origin to mark this id
+// this can be used when return result
+
 type (
 	GridList struct {
 		mainRows  map[string]GridRow
@@ -38,6 +41,9 @@ func ParseRequestUpload(req *PostRequest, identityStore IdentityStorage) (*GridL
 	// logger.Debug("change len: ", len(req.Changes))
 	for k := range req.Changes {
 		ch := GridRow(req.Changes[k])
+		// store origin id of gridtree, very useful in case row is child
+		ch.StoreGridTreeID()
+
 		isChild, err := SetGridRowIdentity(ch, identityStore)
 		if err != nil {
 			return nil, fmt.Errorf("set gridRow identity: [%w]", err)
@@ -71,6 +77,7 @@ func ParseRequestUpload(req *PostRequest, identityStore IdentityStorage) (*GridL
 			"id":                         k,
 			string(GridRowActionChanged): "1",
 		}
+		trList.mainRows[k].StoreGridTreeID()
 	}
 
 	return trList, nil

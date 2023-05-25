@@ -128,7 +128,7 @@ func (g *gridRowDataRepositoryWithChild) GetPageData(tg *Treegrid) ([]map[string
 
 	// items request
 	if tg.BodyParams.GetItemsRequest() {
-		logger.Debug("get items request")
+		logger.Debug("get items request, body id: ", tg.BodyParams.ID)
 
 		query := g.cfg.QueryChild +
 			// " WHERE parent = " +
