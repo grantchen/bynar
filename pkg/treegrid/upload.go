@@ -33,11 +33,11 @@ type (
 )
 
 func GenColorChangeError(gr GridRow) ChangedRow {
-	return ChangedRow{Id: gr.GetID(), Color: "rgb(255,0,0)"}
+	return ChangedRow{Id: gr.GetTreeGridID(), Color: "rgb(255,0,0)"}
 }
 
 func GenColorChangeSuccess(gr GridRow) ChangedRow {
-	return ChangedRow{Id: gr.GetID(), Color: "rgb(255, 255, 166)"}
+	return ChangedRow{Id: gr.GetTreeGridID(), Color: "rgb(255, 255, 166)"}
 }
 
 func GenMapColorChangeError(gr GridRow) map[string]interface{} {
