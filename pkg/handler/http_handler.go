@@ -1,20 +1,42 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
+
+var (
+	// ModuleID is hardcoded as provided in the specification.
+	ModuleID = 8
+
+	connectionStringKey = "bynar"
+	awsRegion           = "eu-central-1"
+
+	httpAuthorizationHeader = "Authorization"
+)
+
+type ReqContext struct {
+	connectionString string
+}
+
+type key string
+
+const RequestContext key = "reqContext"
 
 type HTTPTreeGridHandler struct {
 	CallbackGetPageCountFunc CallBackGetPageCount
 	CallbackGetPageDataFunc  CallBackGetPageData
 	CallbackUploadDataFunc   CallBackUploadData
 	CallBackGetCellDataFunc  CallBackGetCellData
+	PathPrefix               string
+	AccountManagerService    service.AccountManagerService
 }
 
 func (h *HTTPTreeGridHandler) HTTPHandleGetPageCount(w http.ResponseWriter, r *http.Request) {
@@ -181,4 +203,45 @@ func writeResponse(w http.ResponseWriter, resp *treegrid.PostResponse) {
 	if _, err := w.Write(respBytes); err != nil {
 		log.Println("Err", err)
 	}
+}
+
+func (h *HTTPTreeGridHandler) authenMW(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := "<<Extract token from req here>>"
+
+		// if true {
+		// 	next.ServeHTTP(w, r)
+		// 	return
+		// }
+		logger.Debug("check permission")
+		ok, err := h.AccountManagerService.CheckPermission(token)
+
+		if err != nil {
+			log.Println("Err", err)
+			writeErrorResponse(w, &treegrid.PostResponse{}, err)
+			return
+		}
+
+		if !ok {
+			writeErrorResponse(w, &treegrid.PostResponse{}, err)
+			return
+		}
+		var connString string
+		connString, _ = h.AccountManagerService.GetNewStringConnection(token)
+		ctx := context.WithValue(r.Context(), RequestContext, &ReqContext{connectionString: connString})
+		newReq := r.WithContext(ctx)
+		next.ServeHTTP(w, newReq)
+	})
+}
+
+func (h *HTTPTreeGridHandler) HandleHTTPReqWithAuthenMWAndDefaultPath() {
+
+	if h.AccountManagerService == nil {
+		panic("account manager service is null")
+	}
+
+	http.Handle(h.PathPrefix+"/upload", h.authenMW(http.HandlerFunc(h.HTTPHandleUpload)))
+	http.Handle(h.PathPrefix+"/data", h.authenMW(http.HandlerFunc(h.HTTPHandleGetPageCount)))
+	http.Handle(h.PathPrefix+"/page", h.authenMW(http.HandlerFunc(h.HTTPHandleGetPageData)))
+
 }

@@ -30,3 +30,8 @@ type ApprovalService interface {
 type ApprovalCashPaymentService interface {
 	Check(tr *treegrid.MainRow, moduleID, accountID int) (bool, error)
 }
+
+type AccountManagerService interface {
+	CheckPermission(token string) (bool, error)
+	GetNewStringConnection(token string) (string, error)
+}

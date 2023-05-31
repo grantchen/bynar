@@ -82,3 +82,7 @@ type BoundFlowRepository interface {
 	SaveOutboundFlow(tx *sql.Tx, outFlow models.OutboundFlow) (err error)
 	SaveInboundFlow(tx *sql.Tx, inFlow models.InboundFlow) (err error)
 }
+
+type AccountManagerRepository interface {
+	CheckPermission(accountID int, organizationID int) (bool, error)
+}
