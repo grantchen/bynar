@@ -6,6 +6,7 @@ import (
 
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
+	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/internal/service"
@@ -27,12 +28,15 @@ func main() {
 	// }
 
 	connString := "root:123456@tcp(localhost:3306)/bynar"
+	connAccountString := "root:123456@tcp(localhost:3306)/accounts_manager"
 	// connString := "root:Munrfe2020@tcp(bynar-cet.ccwuyxj7ucnd.eu-central-1.rds.amazonaws.com:3306)/bynar"
 	db, err := sql_db.NewConnection(connString)
 
 	if err != nil {
 		log.Panic(err)
 	}
+
+	dbAccount, _ := sql_db.NewConnection(connAccountString)
 
 	gridRowDataRepositoryWithChild := treegrid.NewGridRowDataRepositoryWithChild(
 		db,
@@ -69,17 +73,19 @@ func main() {
 
 	uploadService := service.NewUploadService(db, grUserGroupDataUploadRepositoryWithChild, grUserRepository)
 
+	accountService := pkg_service.NewAccountManagerService(dbAccount)
+
 	handler := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,
 		CallbackGetPageDataFunc: userGroupService.GetPageData,
 		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) float64 {
 			return float64(userGroupService.GetPageCount(tr))
 		},
+		AccountManagerService: accountService,
 	}
-	http.HandleFunc("/upload", handler.HTTPHandleUpload)
-	http.HandleFunc("/data", handler.HTTPHandleGetPageCount)
-	http.HandleFunc("/page", handler.HTTPHandleGetPageData)
 
+	handler.HandleHTTPReqWithAuthenMWAndDefaultPath()
+	// server
 	log.Println("start server at 8080!")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
