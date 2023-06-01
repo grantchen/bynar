@@ -1,13 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
+	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/internal/service"
 )
@@ -73,7 +76,13 @@ func main() {
 
 	uploadService := service.NewUploadService(db, grUserGroupDataUploadRepositoryWithChild, grUserRepository)
 
-	accountService := pkg_service.NewAccountManagerService(dbAccount)
+	secretmanager, err := utils.GetSecretManager()
+	if err != nil {
+		fmt.Printf("error: %v", err)
+		log.Panic(err)
+	}
+	accountRepository := pkg_repository.NewAccountManagerRepository(dbAccount)
+	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, secretmanager)
 
 	handler := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,

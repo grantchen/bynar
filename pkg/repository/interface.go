@@ -84,5 +84,5 @@ type BoundFlowRepository interface {
 }
 
 type AccountManagerRepository interface {
-	CheckPermission(accountID int, organizationID int) (bool, error)
+	CheckPermission(accountID int, organizationID int) (*PermissionInfo, bool, error)
 }

@@ -28,8 +28,8 @@ func main() {
 
 	// appConfig := config.NewAWSSecretsManagerConfig(secretmanager)
 	// connString := appConfig.GetDBConnection()
-	connString := "root:123456@tcp(localhost:3306)/bynar"
-	// connString := "root:Munrfe2020@tcp(bynar-cet.ccwuyxj7ucnd.eu-central-1.rds.amazonaws.com:3306)/bynar"
+	// connString := "root:123456@tcp(localhost:3306)/bynar"
+	connString := "root:Munrfe2020@tcp(bynar-cet.ccwuyxj7ucnd.eu-central-1.rds.amazonaws.com:3306)/bynar"
 	db, err := sql_db.NewConnection(connString)
 
 	if err != nil {

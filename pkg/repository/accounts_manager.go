@@ -10,12 +10,20 @@ type accountManagerRepository struct {
 }
 
 type PermissionInfo struct {
+	Id             int
+	OrganizationId int `field:"organization_id"`
+	Archived       int
+	Status         int
+	Suspended      int
+	MStatus        int `field:"mstatus"`
+	Enterprise     int
+	SecretName     string `field:"secret_name"`
 }
 
 // CheckPermission implements AccountManagerRepository
-func (a *accountManagerRepository) CheckPermission(accountID int, organizationID int) (bool, error) {
-	queryCheck := `SELECT accounts.id, accounts.organizations_id, organization.archived, tenants.status,
-					tenants_management.status,tenants_management.suspended
+func (a *accountManagerRepository) CheckPermission(accountID int, organizationID int) (*PermissionInfo, bool, error) {
+	queryCheck := `SELECT accounts.id, accounts.organization_id, organization.archived, tenants.status,
+					tenants_management.status as mstatus,tenants_management.suspended, tenants.enterprise, tenants.secret_name
 		FROM accounts
 		INNER JOIN organizations ON organizations.id = accounts.id,
 		INNER JOIN tenants_management ON tenants_management.organizations_id = organizations.id
@@ -24,23 +32,31 @@ func (a *accountManagerRepository) CheckPermission(accountID int, organizationID
 	`
 	stmt, err := a.db.Prepare(queryCheck)
 	if err != nil {
-		return false, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, queryCheck)
+		return nil, false, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, queryCheck)
 	}
 
 	defer stmt.Close()
 
 	rows, err := stmt.Query(accountID, organizationID)
 	if err != nil {
-		return false, fmt.Errorf("query: [%w], sql string: [%s]", err, queryCheck)
+		return nil, false, fmt.Errorf("query: [%w], sql string: [%s]", err, queryCheck)
 	}
 
 	count := 0
 	for rows.Next() {
 		count += 1
-		rows.Scan()
+		permissionInfo := &PermissionInfo{Id: -1, OrganizationId: -1, Archived: -1, Status: -1, Suspended: -1, MStatus: -1,
+			Enterprise: -1, SecretName: ""}
+		rows.Scan(
+			&permissionInfo.Id, &permissionInfo.OrganizationId, &permissionInfo.Archived,
+			&permissionInfo.Status, &permissionInfo.MStatus, &permissionInfo.Suspended,
+			&permissionInfo.Enterprise, &permissionInfo.SecretName,
+		)
+		return permissionInfo, true, nil
 	}
 	defer rows.Close()
 
+	return nil, false, fmt.Errorf("something when wrong when parse result, count rows: %d", count)
 }
 
 func NewAccountManagerRepository(db *sql.DB) AccountManagerRepository {

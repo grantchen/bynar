@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
@@ -32,6 +33,6 @@ type ApprovalCashPaymentService interface {
 }
 
 type AccountManagerService interface {
-	CheckPermission(token string) (bool, error)
-	GetNewStringConnection(token string) (string, error)
+	CheckPermission(token string) (*repository.PermissionInfo, bool, error)
+	GetNewStringConnection(token string, permission *repository.PermissionInfo) (string, error)
 }
