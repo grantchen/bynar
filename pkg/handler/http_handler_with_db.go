@@ -7,16 +7,37 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/aws/scope"
+	sql_connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
+type ConnectionResolver interface {
+	Get(string) (*sql.DB, error)
+}
+
 type HTTPTreeGridHandlerWithDynamicDB struct {
 	PathPrefix             string
 	AccountManagerService  service.AccountManagerService
 	TreeGridServiceFactory treegrid.TreeGridServiceFactoryFunc
+	ConnectionPool         ConnectionResolver
+}
+
+func NewHTTPTreeGridHandlerWithDynamicDB(
+	accountManagerService service.AccountManagerService,
+	treeGridServiceFactory treegrid.TreeGridServiceFactoryFunc,
+	connectionPool ConnectionResolver,
+) *HTTPTreeGridHandlerWithDynamicDB {
+	return &HTTPTreeGridHandlerWithDynamicDB{
+		AccountManagerService:  accountManagerService,
+		TreeGridServiceFactory: treeGridServiceFactory,
+		ConnectionPool:         connectionPool,
+	}
 }
 
 type ReqContext struct {
@@ -166,30 +187,78 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) HandleCell(w http.ResponseWriter, r *
 	writeResponse(w, resp)
 }
 
+func getModuleFromPath(r *http.Request) string {
+	path := r.URL.Path
+	splittedPath := strings.Split(path, "/")
+	if len(splittedPath) > 1 {
+		return splittedPath[len(splittedPath)-2]
+	}
+	return splittedPath[0]
+}
+
 func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := "<<Extract token from req here>>"
 
-		// if true {
-		// 	next.ServeHTTP(w, r)
-		// 	return
-		// }
+		defaultResponse := &treegrid.PostResponse{}
+		defaultResponse.Changes = make([]map[string]interface{}, 0)
+		requestScope, err := scope.ResolveFromToken(token)
+
+		// hard code to test
+		requestScope.OrganizationID = 1
+		requestScope.AccountID = 2
+		if err != nil {
+			writeErrorResponse(w, defaultResponse, err)
+			return
+		}
 		logger.Debug("check permission")
-		permission, ok, err := h.AccountManagerService.CheckPermission(token)
+		permission, ok, err := h.AccountManagerService.CheckPermission(&requestScope)
 
 		if err != nil {
 			log.Println("Err", err)
-			writeErrorResponse(w, &treegrid.PostResponse{}, err)
+			writeErrorResponse(w, defaultResponse, err)
 			return
 		}
 
 		if !ok {
-			writeErrorResponse(w, &treegrid.PostResponse{}, err)
+			writeErrorResponse(w, defaultResponse, err)
 			return
 		}
+
+		// check role
+		roles, err := h.AccountManagerService.GetRole(requestScope.AccountID)
+
+		if err != nil {
+			log.Println("Err", err)
+			writeErrorResponse(w, defaultResponse, err)
+			return
+		}
+		moduleStr := getModuleFromPath(r)
+		logger.Debug("role: ", roles, "req string: ", r.URL.Path, "module str", moduleStr)
+
+		moduleVal, ok := roles[moduleStr]
+		if !ok {
+			writeErrorResponse(w, defaultResponse, fmt.Errorf("not found module in policies: [%s]", moduleStr))
+			return
+		}
+
+		if moduleVal == 0 {
+			writeErrorResponse(w, defaultResponse, fmt.Errorf("no permission allow to access module: [%s]", moduleStr))
+			return
+		}
+
 		var connString string
+
 		connString, _ = h.AccountManagerService.GetNewStringConnection(token, permission)
-		ctx := context.WithValue(r.Context(), RequestContextKey, &ReqContext{connectionString: connString})
+		connString = sql_connection.ChangeDatabaseConnectionSchema(connString, strconv.Itoa(permission.TMOrganizationId))
+		db, err := h.ConnectionPool.Get(connString)
+
+		if err != nil {
+			log.Println("Err get connection db", err)
+			writeErrorResponse(w, defaultResponse, err)
+			return
+		}
+		ctx := context.WithValue(r.Context(), RequestContextKey, &ReqContext{connectionString: connString, db: db})
 		newReq := r.WithContext(ctx)
 		next.ServeHTTP(w, newReq)
 	})

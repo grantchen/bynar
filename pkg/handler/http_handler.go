@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -22,10 +21,6 @@ var (
 
 	httpAuthorizationHeader = "Authorization"
 )
-
-type ConnectionResolver interface {
-	Get(context.Context, string) (*sql.DB, error)
-}
 
 type HTTPTreeGridHandler struct {
 	CallbackGetPageCountFunc CallBackGetPageCount
@@ -208,30 +203,8 @@ func writeResponse(w http.ResponseWriter, resp *treegrid.PostResponse) {
 
 func (h *HTTPTreeGridHandler) authenMW(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token := "<<Extract token from req here>>"
 
-		// if true {
-		// 	next.ServeHTTP(w, r)
-		// 	return
-		// }
-		logger.Debug("check permission")
-		permission, ok, err := h.AccountManagerService.CheckPermission(token)
-
-		if err != nil {
-			log.Println("Err", err)
-			writeErrorResponse(w, &treegrid.PostResponse{}, err)
-			return
-		}
-
-		if !ok {
-			writeErrorResponse(w, &treegrid.PostResponse{}, err)
-			return
-		}
-		var connString string
-		connString, _ = h.AccountManagerService.GetNewStringConnection(token, permission)
-		ctx := context.WithValue(r.Context(), RequestContextKey, &ReqContext{connectionString: connString})
-		newReq := r.WithContext(ctx)
-		next.ServeHTTP(w, newReq)
+		next.ServeHTTP(w, r)
 	})
 }
 

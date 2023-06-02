@@ -6,9 +6,11 @@ import (
 	"net/http"
 
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/external/service"
 )
@@ -30,10 +32,19 @@ func main() {
 	accountRepository := pkg_repository.NewAccountManagerRepository(dbAccount)
 	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, secretmanager)
 
+	connectionPool := connection.NewPool()
+	defer func() {
+		if closeErr := connectionPool.Close(); closeErr != nil {
+			log.Println(closeErr)
+		}
+	}()
+
 	treegridService := service.NewTreeGridServiceFactory()
 	handler := &handler.HTTPTreeGridHandlerWithDynamicDB{
 		AccountManagerService:  accountService,
 		TreeGridServiceFactory: treegridService,
+		ConnectionPool:         connectionPool,
+		PathPrefix:             "/user_groups",
 	}
 
 	handler.HandleHTTPReqWithAuthenMWAndDefaultPath()

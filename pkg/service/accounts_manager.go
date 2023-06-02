@@ -2,14 +2,13 @@ package service
 
 import (
 	"database/sql"
-	"fmt"
 	"strconv"
 
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/aws/scope"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/aws/secretsmanager"
 	sql_connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/scope"
 )
 
 type accountManagerRepository struct {
@@ -31,11 +30,7 @@ func NewAccountManagerService(
 }
 
 // CheckPermission implements AccountManagerService
-func (a *accountManagerRepository) CheckPermission(token string) (*repository.PermissionInfo, bool, error) {
-	requestScope, err := scope.ResolveFromToken(token)
-	if err != nil {
-		return nil, false, fmt.Errorf("check permission error: [%w]", err)
-	}
+func (a *accountManagerRepository) CheckPermission(requestScope *scope.RequestScope) (*repository.PermissionInfo, bool, error) {
 
 	permission, ok, err := a.accountManagerRepository.CheckPermission(requestScope.AccountID, requestScope.OrganizationID)
 
@@ -65,4 +60,9 @@ func (a *accountManagerRepository) GetNewStringConnection(token string, permissi
 
 	connectionString = sql_connection.ChangeDatabaseConnectionSchema(connectionString, strconv.Itoa(permission.OrganizationId))
 	return connectionString, nil
+}
+
+// GetRole implements AccountManagerService
+func (a *accountManagerRepository) GetRole(accountID int) (map[string]int, error) {
+	return a.accountManagerRepository.CheckRole(accountID)
 }
