@@ -243,7 +243,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		}
 
 		if moduleVal == 0 {
-			writeErrorResponse(w, defaultResponse, fmt.Errorf("no permission allow to access module: [%s]", moduleStr))
+			writeErrorResponse(w, defaultResponse, fmt.Errorf("no permission allowed to access module: [%s]", moduleStr))
 			return
 		}
 

@@ -93,7 +93,10 @@ func main() {
 		AccountManagerService: accountService,
 	}
 
-	handler.HandleHTTPReqWithAuthenMWAndDefaultPath()
+	http.HandleFunc("/upload", handler.HTTPHandleUpload)
+	http.HandleFunc("/data", handler.HTTPHandleGetPageCount)
+	http.HandleFunc("/page", handler.HTTPHandleGetPageData)
+
 	// server
 	log.Println("start server at 8080!")
 	log.Fatal(http.ListenAndServe(":8080", nil))

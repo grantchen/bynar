@@ -200,22 +200,3 @@ func writeResponse(w http.ResponseWriter, resp *treegrid.PostResponse) {
 		log.Println("Err", err)
 	}
 }
-
-func (h *HTTPTreeGridHandler) authenMW(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		next.ServeHTTP(w, r)
-	})
-}
-
-func (h *HTTPTreeGridHandler) HandleHTTPReqWithAuthenMWAndDefaultPath() {
-
-	if h.AccountManagerService == nil {
-		panic("account manager service is null")
-	}
-
-	http.Handle(h.PathPrefix+"/upload", h.authenMW(http.HandlerFunc(h.HTTPHandleUpload)))
-	http.Handle(h.PathPrefix+"/data", h.authenMW(http.HandlerFunc(h.HTTPHandleGetPageCount)))
-	http.Handle(h.PathPrefix+"/page", h.authenMW(http.HandlerFunc(h.HTTPHandleGetPageData)))
-
-}
