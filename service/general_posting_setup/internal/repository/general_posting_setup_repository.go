@@ -21,7 +21,14 @@ func (g *generalSettingUploadRepository) GetGeneralPostingSetup(tx *sql.Tx, gene
 	defer stmt.Close()
 
 	rows, err := stmt.Query(generalPostingSetupID)
+	if err != nil {
+		return nil, fmt.Errorf("query error: [%w], sql string: [%s]", err, query)
+	}
 	rowVals, err := utils.NewRowVals(rows)
+
+	if err != nil {
+		return nil, fmt.Errorf("parse new row error: [%w], sql string: [%s]", err, query)
+	}
 
 	for rows.Next() {
 		if err := rowVals.Parse(rows); err != nil {

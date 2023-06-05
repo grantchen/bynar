@@ -1,0 +1,116 @@
+<Grid>
+​
+<Cfg id='general_posting_setup' Size="Low"  SuppressCfg='1' ShowDeleted='1' Deleting='1' ShowButtons="3" PasteSelected ='0' Scrollbar='0'/>
+   <Cfg Validate='Added,Focus,Edit,Changed,Text' ValidateMessageTime='2500' ValidateMessage="Ju lutemi plotësoni të dhënat e nevojshme tek qelizat me ngjyrë të kuqe !"/>
+   <Cfg Paging="2" PageLength="50" AllPages='1' MaxPages="1"/>
+   <Cfg Alternate='2'/>  
+   <Cfg AutoCalendar='1'/> 
+   <Cfg ExactSize='0'/>
+   <Cfg ConstHeight='1' ConstWidth='1'/>
+   <Cfg SelectingCells='1' />
+   <Cfg ExportType='Expanded,Outline'/>
+   <Cfg EnterMode="1"/>
+   <Cfg CalculateSelected='1'/> 
+   <Cfg PrintVarHeight='2'/>
+   <Cfg Undo='1'/>
+   <Cfg SuppressMessage='1'/>
+   <Cfg NumberId='1' IdChars='0123456789'/> 
+   <Cfg PrintPagePrefix="&lt;center class='%9' style='width:%7px'>First example printed page %3 from %6&lt;/center>"/>
+   <Cfg PrintPagePostfix="&lt;center class='%9' style='width:%7px'>Page %1 horizontally from %4 , page %2 vertically from %5&lt;/center>"/>
+   <Cfg Language='EN'/>
+   <Actions OnMouseOverEditable="Grid.MouseCursor('url(aero_prec.cur),default')"/> 
+   <Actions OnDel="ClearValue"/>
+   <Pager Width="100" Visible='0' Caption='Navigim'/>
+​
+   <Def>      
+      <D Name='Node' Parent='#Body' CDef='Data' Sorted='1' AcceptDef='Data' Spanned='1' Calculated='1' Expanded='1' CanFilter='1' CanEdit='1' 
+​
+      codeSuggest='|*RowsCanFilter'
+      descriptionSuggest='|*RowsCanFilter'
+      default_vat_business_posting_group_codeSuggestServer = '1'
+      default_vat_business_posting_group_codeSuggestType="Start,Replace,Esc,Empty,Separator"
+​
+      />
+   </Def>
+​
+   <Cols>
+      <C Name='code' Width='150' Type='Text' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='description' Width='150' Type='Text' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='sales_account' Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='sales_credit_memo_account' Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='sales_line_discount_account' Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='sales_inventory_discount_account' Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='sales_payment_discount_debit_account' Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='sales_payment_discount_credit_account' Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='sales_prepayments_account' Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='purchase_account' Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='purchase_credit_memo_account' Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='purchase_line_discount_account' Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='purchase_inventory_discount_account' Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='purchase_payment_discount_debit_account' Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='purchase_payment_discount_credit_account' Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='purchase_prepayments_account' Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='cogs_account' CanHidden='0' Visible='0' Width='150' Type='Int' CanEdit='2'  CaseSensitive='0' VarHeight='1' />
+      <C Name='inventory_adjustment_account'  Width='150' Type='Int' CanEdit='2'  CaseSensitive='0' VarHeight='1' />
+      <C Name='overhead_applied_account'  Width='150' Type='Int' CanEdit='2'  CaseSensitive='0' VarHeight='1' />
+      <C Name='purchase_variance_account'  Width='150' Type='Int' CanEdit='2'  CaseSensitive='0' VarHeight='1' />
+      <C Name='used_ledger' Width='150' Type='Int' CanEdit='2'  CaseSensitive='0' VarHeight='1' />
+      <C Name='general_business_posting_group_id' Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='general_product_posting_group_id'  Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+   </Cols>
+​
+   <Root CDef='Node' AcceptDef='Node'/>
+​
+    <Solid>     
+​
+      <Group Space='1' Calculated='1' Panel='1' id='Group' CanFocus='0'  NoUpload="0" CanGroup='1'/>
+      
+   </Solid>
+​
+   <Head>
+      <Header id="Header2" CDef = 'Node' Spanned='1' Calculated='1'  SortIcons='0' CanFilter='3' 
+​
+      document_no=''
+      code="Profil postimi" codeSpan="3" codeAlign="Scroll"  
+​
+​
+      />
+   </Head> 
+​
+   <Head>
+​
+   <Header id="Header"  CDef = 'Node' Calculated='1'  Spanned='1'  CanFilter='3' CanDelete='1' CanSelect='1'
+      description='Përshkrimi'
+      code='Kodi'
+      default_vat_business_posting_group_code='Grup postimi tatimi'
+      />
+   </Head>
+​
+   <Head>
+​
+   <Filter id='Filter'  Calculated='1' CaseSensitive='0' CanEdit='1'      
+      descriptionSuggest='|*RowsCanFilter'
+      codeSuggest='|*RowsCanFilter'
+      def_vat_bus_posting_groupSuggest='|*RowsCanFilter'
+      />
+   </Head>
+      
+   <Foot>
+         <I id='Foot' Def='Foot' CanDelete='0' CanEdit='2' Calculated='1'  Spanned='1' CanSelect='0' CanFilter='0' CanFocus='2'
+            codeFormula='"Total "+"( " + count() + " )"'
+            description='' descriptionSpan='2'
+          />
+​
+   </Foot>
+​
+   <Toolbar Space='-1' Contrast='0' Size='0' Indent='0' Outdent='0' WinScroll='0' Repaint='0'
+             Language='0'  Contrasts='0' Scales='0' Styles='0' Scroll='0' Render='0' Lock='0' Resize='0' Sizes ='0' Debug='0'
+             Help='0'  Calc='0'  
+             Cells10Right="directory,separator"
+             directoryWidth="-2" directoryNoColor="1" directoryType='Html' directoryCanFocus="0"
+             separatorWidth="-2" separatorNoColor="1" separatorType='Html' separatorCanFocus="0"
+             separator="&lt;i style='font-size:17px;font-weight:300;padding:5px' class='ms-Icon ms-Icon--Separator'>" 
+             directory="GRUP POSTIMI - BIZNES" 
+    />
+​
+</Grid>

@@ -26,7 +26,7 @@ func main() {
 		repository.GeneralPostingSetupFieldNames,
 		100,
 		&treegrid.SimpleGridRepositoryCfg{
-			MainCol:     "sale_account",
+			MainCol:     "code",
 			QueryString: repository.QuerySelect,
 			QueryJoin:   repository.QueryJoin,
 			QueryCount:  repository.QueryCount,
@@ -51,5 +51,8 @@ func main() {
 	http.HandleFunc("/upload", handler.HTTPHandleUpload)
 	http.HandleFunc("/data", handler.HTTPHandleGetPageCount)
 	http.HandleFunc("/page", handler.HTTPHandleGetPageData)
+
+	log.Println("start server at 8080!")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 
 }
