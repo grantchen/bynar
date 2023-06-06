@@ -33,7 +33,7 @@ func main() {
 		},
 	)
 
-	generalPostingSetupRepository := repository.NewPostingSetupRepository()
+	generalPostingSetupRepository := repository.NewPostingSetupRepository(db)
 	generalPostingSetupService := service.NewGeneralPostingSetupService(simpleGeneralPostingSetupRepository)
 	uploadService := service.NewUploadService(
 		db,

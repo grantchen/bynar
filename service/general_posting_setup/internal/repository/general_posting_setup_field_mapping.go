@@ -25,4 +25,6 @@ var GeneralPostingSetupFieldNames = map[string][]string{
 	"used_ledger":                              {"used_ledger"},
 	"general_business_posting_group_id":        {"general_business_posting_group_id"},
 	"general_product_posting_group_id":         {"general_product_posting_group_id"},
+	"status":                                   {"status"},
+	"archived":                                 {"archived"},
 }

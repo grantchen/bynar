@@ -8,5 +8,6 @@ import (
 
 type GeneralPostingSetupRepository interface {
 	IsContainCombination(tx *sql.Tx, status int, generalProductPostingGroupID int, generalBussinessPostingGroupID int) (bool, error)
-	GetGeneralPostingSetup(tx *sql.Tx, generalPostingSetupID int) (*model.GeneralPostingSetup, error)
+	GetGeneralPostingSetup(generalPostingSetupID int) (*model.GeneralPostingSetup, error)
+	GetGeneralPostingSetupAsMap(generalPostingSetupID int) (map[string]interface{}, error)
 }

@@ -40,7 +40,7 @@ type simpleGridRepository struct {
 // ValidateOnIntegrity implements SimpleGridRowRepository
 func (s *simpleGridRepository) ValidateOnIntegrity(gr GridRow, validateFields []string) (bool, error) {
 	query, args := gr.MakeValidateOnIntegrityQuery(s.tableName, s.fieldMapping, validateFields)
-	fmt.Printf("ValidateOnIntegrity query: %s\n", query)
+	fmt.Printf("ValidateOnIntegrity query: %s, %s\n", query, args)
 
 	var Count int
 	err := s.db.QueryRow(query, args...).Scan(&Count)

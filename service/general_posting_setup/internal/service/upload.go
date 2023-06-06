@@ -9,6 +9,7 @@ import (
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/internal/repository"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
@@ -62,29 +63,33 @@ func (u *uploadService) handle(gr treegrid.GridRow) error {
 	}
 	defer tx.Rollback()
 
-	fieldsValidating := []string{"status", "general_product_posting_group_id", "general_business_posting_group_id"}
+	fieldsCombinationValidating := []string{"status", "general_product_posting_group_id", "general_business_posting_group_id"}
 	switch gr.GetActionType() {
 	case treegrid.GridRowActionAdd:
+
+		err = gr.ValidateOnRequired(repository.GeneralPostingSetupFieldNames)
+		if err != nil {
+			return err
+		}
 		generalPostingSetup, _ := model.ParseGridRow(gr)
 		err = u.checkGeneralPostSetupCondition(generalPostingSetup)
 		if err != nil {
 			return err
 		}
 
-		ok, err := u.tgGeneralPostingSetupSimpleRepository.ValidateOnIntegrity(gr, fieldsValidating)
-		if !ok || err != nil {
-			return fmt.Errorf("validate duplicate when add: [%v], field: %s", err, strings.Join(fieldsValidating, ", "))
-		}
+		if generalPostingSetup.Status == 1 {
 
+			ok, err := u.tgGeneralPostingSetupSimpleRepository.ValidateOnIntegrity(gr, fieldsCombinationValidating)
+			if !ok || err != nil {
+				return fmt.Errorf("validate duplicate when add: [%v], field: %s, status = 1", err, strings.Join(fieldsCombinationValidating, ", "))
+			}
+		}
 		err = u.tgGeneralPostingSetupSimpleRepository.Add(tx, gr)
-		return err
 	case treegrid.GridRowActionChanged:
-		// err := gr.ValidateOnRequired(repository.OrganizationFieldNames)
-		// if err != nil {
-		// 	return err
-		// }
+
 		id := gr.GetIDInt()
-		generalPostingSetup, err := u.generalPostingSetupRepository.GetGeneralPostingSetup(tx, gr.GetIDInt())
+		var generalPostingSetup *model.GeneralPostingSetup
+		generalPostingSetup, err = u.generalPostingSetupRepository.GetGeneralPostingSetup(gr.GetIDInt())
 		if err != nil {
 			return err
 		}
@@ -104,15 +109,20 @@ func (u *uploadService) handle(gr treegrid.GridRow) error {
 			return fmt.Errorf("invalid condition when update data: [%w]", err)
 		}
 
-		ok, err := u.tgGeneralPostingSetupSimpleRepository.ValidateOnIntegrity(gr, fieldsValidating)
-		if !ok || err != nil {
-			return fmt.Errorf("validate duplicate when update: [%v], field: %s", err, strings.Join(fieldsValidating, ", "))
+		logger.Debug("status: ", generalPostingSetup.Status, "check: ", generalPostingSetup.Status == 1)
+		if generalPostingSetup.Status == 1 {
+			newGr := gr.MergeWithMap(generalPostingSetup.ToMap())
+			logger.Debug("newMap", newGr)
+			ok, err := u.tgGeneralPostingSetupSimpleRepository.ValidateOnIntegrity(newGr, fieldsCombinationValidating)
+			if !ok || err != nil {
+				return fmt.Errorf("validate duplicate when update: [%v], field: %s, status = 1", err, strings.Join(fieldsCombinationValidating, ", "))
+			}
 		}
 		err = u.tgGeneralPostingSetupSimpleRepository.Update(tx, gr)
-		return err
 	case treegrid.GridRowActionDeleted:
 		id := gr.GetIDInt()
-		generalPostingSetup, err := u.generalPostingSetupRepository.GetGeneralPostingSetup(tx, gr.GetIDInt())
+		var generalPostingSetup *model.GeneralPostingSetup
+		generalPostingSetup, err = u.generalPostingSetupRepository.GetGeneralPostingSetup(gr.GetIDInt())
 		if err != nil {
 			return err
 		}
@@ -138,11 +148,13 @@ func (u *uploadService) handle(gr treegrid.GridRow) error {
 }
 
 func (u *uploadService) checkGeneralPostSetupCondition(gps *model.GeneralPostingSetup) error {
-	if gps.Archived != 0 || gps.Archived != 1 {
+
+	if gps.Archived != 0 && gps.Archived != 1 {
+		logger.Debug("gps: ", gps.Archived)
 		return fmt.Errorf("not valid archived value")
 	}
 
-	if gps.Status != 0 || gps.Status != 1 {
+	if gps.Status != 0 && gps.Status != 1 {
 		return fmt.Errorf("not valid status value")
 	}
 

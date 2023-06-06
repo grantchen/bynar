@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 )
 
 type (
@@ -257,7 +256,7 @@ func (g GridRow) getOriginID() (id interface{}) {
 
 // return raw id from treegrid req, used for grouping feature when id include parent: ex id: 2-line => CR5$2-line
 func (g GridRow) GetTreeGridID() (id interface{}) {
-	logger.Debug("orgin id: ", g[reqID])
+	// logger.Debug("orgin id: ", g[reqID])
 	return g[reqID]
 }
 
@@ -336,4 +335,18 @@ func (g GridRow) GetStrInt(name string) (int, bool) {
 	}
 
 	return valInt, true
+}
+
+func (g GridRow) MergeWithMap(m map[string]interface{}) GridRow {
+	newG := make(map[string]interface{})
+
+	for k, v := range g {
+		newG[k] = v
+	}
+
+	for k, v := range m {
+		newG[k] = v
+	}
+
+	return newG
 }
