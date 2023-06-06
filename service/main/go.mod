@@ -10,6 +10,7 @@ require (
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales v0.0.0
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers v0.0.0
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups v0.0.0
+	git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup v0.0.0
 // replace component here
 )
 
@@ -34,3 +35,5 @@ replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/procurements => ../pr
 replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations => ../organizations
 
 replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups => ../usergroups
+
+replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup => ../general_posting_setup

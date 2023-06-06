@@ -22,8 +22,11 @@ type SimpleGridRowRepository interface {
 }
 
 type SimpleGridRepositoryCfg struct {
-	MainCol   string
-	MapSorted map[string]bool
+	MainCol     string
+	MapSorted   map[string]bool
+	QueryString string
+	QueryJoin   string
+	QueryCount  string
 }
 
 type simpleGridRepository struct {
@@ -37,7 +40,7 @@ type simpleGridRepository struct {
 // ValidateOnIntegrity implements SimpleGridRowRepository
 func (s *simpleGridRepository) ValidateOnIntegrity(gr GridRow, validateFields []string) (bool, error) {
 	query, args := gr.MakeValidateOnIntegrityQuery(s.tableName, s.fieldMapping, validateFields)
-	fmt.Printf("ValidateOnIntegrity query: %s\n", query)
+	fmt.Printf("ValidateOnIntegrity query: %s, %s\n", query, args)
 
 	var Count int
 	err := s.db.QueryRow(query, args...).Scan(&Count)
@@ -61,7 +64,7 @@ func (s *simpleGridRepository) GetPageData(tg *Treegrid) ([]map[string]string, e
 
 func (s *simpleGridRepository) getPageData(tg *Treegrid, additionWhere string) ([]map[string]string, error) {
 	pos, _ := tg.BodyParams.IntPos()
-	query := BuildSimpleQuery(s.tableName, s.fieldMapping)
+	query := BuildSimpleQuery(s.tableName, s.fieldMapping, s.cfg.QueryString)
 
 	FilterWhere, FilterArgs := PrepQuerySimple(tg.FilterParams, s.fieldMapping)
 
@@ -107,7 +110,7 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 	if level > 0 {
 		FilterWhere = FilterWhere + tg.BodyParams.GetRowWhere()
 	}
-	query := BuildSimpleQueryGroupBy(s.tableName, s.fieldMapping, tg.GroupCols, FilterWhere, level)
+	query := BuildSimpleQueryGroupBy(s.tableName, s.fieldMapping, tg.GroupCols, FilterWhere, level, s.cfg.QueryJoin)
 
 	pos, _ := tg.BodyParams.IntPos()
 	query = AppendLimitToQuery(query, s.pageSize, pos)
@@ -157,10 +160,10 @@ func (s *simpleGridRepository) GetPageCount(tg *Treegrid) int64 {
 	fmt.Printf("req data: %s\n", string(b))
 	var query string
 	if !tg.WithGroupBy() {
-		query = BuildSimpleQueryCount(s.tableName, s.fieldMapping)
+		query = BuildSimpleQueryCount(s.tableName, s.fieldMapping, s.cfg.QueryCount)
 
 	} else {
-		query = BuildSimpleQueryGroupByCount(s.tableName, s.fieldMapping, tg.GroupCols)
+		query = BuildSimpleQueryGroupByCount(s.tableName, s.fieldMapping, tg.GroupCols, s.cfg.QueryCount)
 	}
 
 	rows, err := s.db.Query(query)

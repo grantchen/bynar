@@ -1,13 +1,25 @@
 package handler
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
+)
+
+var (
+	// ModuleID is hardcoded as provided in the specification.
+	ModuleID = 8
+
+	connectionStringKey = "bynar"
+	awsRegion           = "eu-central-1"
+
+	httpAuthorizationHeader = "Authorization"
 )
 
 type HTTPTreeGridHandler struct {
@@ -15,6 +27,12 @@ type HTTPTreeGridHandler struct {
 	CallbackGetPageDataFunc  CallBackGetPageData
 	CallbackUploadDataFunc   CallBackUploadData
 	CallBackGetCellDataFunc  CallBackGetCellData
+	PathPrefix               string
+	AccountManagerService    service.AccountManagerService
+}
+
+func (h *HTTPTreeGridHandler) getDB(r *http.Request) *sql.DB {
+	return nil
 }
 
 func (h *HTTPTreeGridHandler) HTTPHandleGetPageCount(w http.ResponseWriter, r *http.Request) {

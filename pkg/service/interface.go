@@ -3,7 +3,9 @@ package service
 import (
 	"database/sql"
 
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/aws/scope"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
@@ -29,4 +31,10 @@ type ApprovalService interface {
 
 type ApprovalCashPaymentService interface {
 	Check(tr *treegrid.MainRow, moduleID, accountID int) (bool, error)
+}
+
+type AccountManagerService interface {
+	CheckPermission(scope *scope.RequestScope) (*repository.PermissionInfo, bool, error)
+	GetNewStringConnection(token string, permission *repository.PermissionInfo) (string, error)
+	GetRole(accountID int) (map[string]int, error)
 }

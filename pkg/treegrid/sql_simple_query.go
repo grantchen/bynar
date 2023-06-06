@@ -15,22 +15,33 @@ var (
 
 )
 
-func BuildSimpleQueryCount(tableName string, fieldMapping map[string][]string) string {
+func BuildSimpleQueryCount(tableName string, fieldMapping map[string][]string, defaultQueryCount string) string {
+	if defaultQueryCount != "" {
+		return defaultQueryCount
+	}
 	query := `select COUNT(*) FROM ` + tableName
 	return query
 }
 
-func BuildSimpleQueryGroupByCount(tableName string, fieldMapping map[string][]string, groupCol []string) string {
+func BuildSimpleQueryGroupByCount(tableName string, fieldMapping map[string][]string, groupCol []string, defaultQueryCount string) string {
 	groupBy := make([]string, 0)
 	for _, field := range groupCol {
 		dbCol := fieldMapping[field][0]
 		groupBy = append(groupBy, dbCol)
 	}
-	query := `select COUNT(*) FROM ` + tableName + " group by " + strings.Join(groupBy[:], ",")
+	var query string
+	if defaultQueryCount == "" {
+		query = `select COUNT(*) FROM ` + tableName + " group by " + strings.Join(groupBy[:], ",")
+	} else {
+		query = defaultQueryCount + " group by " + strings.Join(groupBy[:], ",")
+	}
 	return query
 }
 
-func BuildSimpleQuery(tableName string, fieldMapping map[string][]string) string {
+func BuildSimpleQuery(tableName string, fieldMapping map[string][]string, defaultQuery string) string {
+	if defaultQuery != "" {
+		return defaultQuery
+	}
 	var queryBuffer bytes.Buffer
 	queryBuffer.WriteString(`select `)
 	totalField := len(fieldMapping)
@@ -48,7 +59,7 @@ func BuildSimpleQuery(tableName string, fieldMapping map[string][]string) string
 	return queryBuffer.String()
 }
 
-func BuildSimpleQueryGroupBy(tableName string, fieldMapping map[string][]string, groupCol []string, whereCondition string, level int) string {
+func BuildSimpleQueryGroupBy(tableName string, fieldMapping map[string][]string, groupCol []string, whereCondition string, level int, innerJoin string) string {
 	var queryBuffer bytes.Buffer
 	queryBuffer.WriteString(`select `)
 	groupBy := make([]string, 0)
@@ -61,6 +72,9 @@ func BuildSimpleQueryGroupBy(tableName string, fieldMapping map[string][]string,
 
 	queryBuffer.WriteString(sel[level])
 	queryBuffer.WriteString(", COUNT(*) AS Count FROM " + tableName)
+	if innerJoin != "" {
+		queryBuffer.WriteString(innerJoin)
+	}
 	queryBuffer.WriteString(DummyWhere + whereCondition)
 	queryBuffer.WriteString(" GROUP BY " + groupBy[level])
 
@@ -69,8 +83,4 @@ func BuildSimpleQueryGroupBy(tableName string, fieldMapping map[string][]string,
 
 func AppendLimitToQuery(query string, pagesize int, pos int) string {
 	return query + " LIMIT " + strconv.Itoa(pagesize) + " OFFSET " + strconv.Itoa(pos*pagesize)
-}
-
-func AppendWhereCondition() {
-
 }

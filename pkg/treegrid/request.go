@@ -25,6 +25,7 @@ func ParseRequestUploadSingleRow(req *PostRequest) ([]GridRow, error) {
 
 	for k := range req.Changes {
 		ch := GridRow(req.Changes[k])
+		ch.StoreGridTreeID()
 		grRowList = append(grRowList, ch)
 	}
 	return grRowList, nil
