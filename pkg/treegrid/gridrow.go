@@ -19,6 +19,7 @@ const (
 	GridRowActionChanged GridRowActionType = "Changed"
 )
 
+// use when grouping by
 const reqID = "reqID"
 
 func (f GridRow) IsChild() bool {
@@ -256,8 +257,12 @@ func (g GridRow) getOriginID() (id interface{}) {
 
 // return raw id from treegrid req, used for grouping feature when id include parent: ex id: 2-line => CR5$2-line
 func (g GridRow) GetTreeGridID() (id interface{}) {
+	id, ok := g[reqID]
+	if ok {
+		return id
+	}
 	// logger.Debug("orgin id: ", g[reqID])
-	return g[reqID]
+	return g.GetID()
 }
 
 func (g GridRow) StoreGridTreeID() {

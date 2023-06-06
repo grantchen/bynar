@@ -43,7 +43,7 @@
       <C Name='code' Width='150' Type='Text' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
 	   <C Name='general_business_posting_group_id' Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
       <C Name='general_product_posting_group_id'  Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
-      <C Name='status'  Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='status'  Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1'/>
       <C Name='archived'  Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
       <C Name='description' Width='150' Type='Text' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
       <C Name='sales_account' Width='150' Type='Int' CanEdit='1'  CaseSensitive='0' VarHeight='1' />

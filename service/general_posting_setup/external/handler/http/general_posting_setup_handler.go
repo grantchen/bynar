@@ -1,25 +1,17 @@
-package main
+package http_handler
 
 import (
-	"log"
+	"database/sql"
 	"net/http"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/internal/service"
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
-func main() {
-	connString := "root:123456@tcp(localhost:3306)/bynar"
-	// connString := "root:Munrfe2020@tcp(bynar-cet.ccwuyxj7ucnd.eu-central-1.rds.amazonaws.com:3306)/bynar"
-	db, err := sql_db.NewConnection(connString)
-
-	if err != nil {
-		log.Panic(err)
-	}
-
+func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGridHandler {
 	simpleGeneralPostingSetupRepository := treegrid.NewSimpleGridRowRepositoryWithCfg(
 		db,
 		"general_posting_setup",
@@ -48,11 +40,9 @@ func main() {
 			return float64(generalPostingSetupService.GetPageCount(tr))
 		},
 	}
-	http.HandleFunc("/apprunnerurl/general_posting_setup/upload", handler.HTTPHandleUpload)
-	http.HandleFunc("/apprunnerurl/general_posting_setup/data", handler.HTTPHandleGetPageCount)
-	http.HandleFunc("/apprunnerurl/general_posting_setup/page", handler.HTTPHandleGetPageData)
+	http.HandleFunc("/upload", handler.HTTPHandleUpload)
+	http.HandleFunc("/data", handler.HTTPHandleGetPageCount)
+	http.HandleFunc("/page", handler.HTTPHandleGetPageData)
 
-	log.Println("start server at 8080!")
-	log.Fatal(http.ListenAndServe(":8080", nil))
-
+	return handler
 }
