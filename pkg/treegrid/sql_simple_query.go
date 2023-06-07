@@ -23,7 +23,8 @@ func BuildSimpleQueryCount(tableName string, fieldMapping map[string][]string, d
 	return query
 }
 
-func BuildSimpleQueryGroupByCount(tableName string, fieldMapping map[string][]string, groupCol []string, defaultQueryCount string) string {
+// BuildSimpleQueryGroupByCount build query group by, note that WHERE key word is NOT added in here
+func BuildSimpleQueryGroupByCount(tableName string, fieldMapping map[string][]string, groupCol []string, where string, defaultQueryCount string) string {
 	groupBy := make([]string, 0)
 	for _, field := range groupCol {
 		dbCol := fieldMapping[field][0]
@@ -31,9 +32,9 @@ func BuildSimpleQueryGroupByCount(tableName string, fieldMapping map[string][]st
 	}
 	var query string
 	if defaultQueryCount == "" {
-		query = `select COUNT(*) FROM ` + tableName + " group by " + strings.Join(groupBy[:], ",")
+		query = `select COUNT(*) FROM ` + where + tableName + " group by " + strings.Join(groupBy[:], ",")
 	} else {
-		query = defaultQueryCount + " group by " + strings.Join(groupBy[:], ",")
+		query = defaultQueryCount + where + " group by " + strings.Join(groupBy[:], ",")
 	}
 	return query
 }
@@ -59,6 +60,7 @@ func BuildSimpleQuery(tableName string, fieldMapping map[string][]string, defaul
 	return queryBuffer.String()
 }
 
+// BuildSimpleQueryGroupBy build query group by, note that WHERE key word is added in here
 func BuildSimpleQueryGroupBy(tableName string, fieldMapping map[string][]string, groupCol []string, whereCondition string, level int, innerJoin string) string {
 	var queryBuffer bytes.Buffer
 	queryBuffer.WriteString(`select `)
@@ -75,7 +77,7 @@ func BuildSimpleQueryGroupBy(tableName string, fieldMapping map[string][]string,
 	if innerJoin != "" {
 		queryBuffer.WriteString(innerJoin)
 	}
-	queryBuffer.WriteString(DummyWhere + whereCondition)
+	queryBuffer.WriteString(whereCondition)
 	queryBuffer.WriteString(" GROUP BY " + groupBy[level])
 
 	return queryBuffer.String()

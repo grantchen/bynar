@@ -11,6 +11,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
+// use for test only this module without permission
 func main() {
 	// gr := &treegrid.GridRow{}
 	// (*gr)["id"] = "1"
@@ -28,8 +29,8 @@ func main() {
 
 	// appConfig := config.NewAWSSecretsManagerConfig(secretmanager)
 	// connString := appConfig.GetDBConnection()
-	// connString := "root:123456@tcp(localhost:3306)/bynar"
-	connString := "root:Munrfe2020@tcp(bynar-cet.ccwuyxj7ucnd.eu-central-1.rds.amazonaws.com:3306)/bynar"
+	connString := "root:123456@tcp(localhost:3306)/bynar"
+	// connString := "root:Munrfe2020@tcp(bynar-cet.ccwuyxj7ucnd.eu-central-1.rds.amazonaws.com:3306)/bynar"
 	db, err := sql_db.NewConnection(connString)
 
 	if err != nil {
@@ -37,7 +38,11 @@ func main() {
 	}
 
 	simpleOrganizationRepository := treegrid.NewSimpleGridRowRepositoryWithCfg(db, "organizations", repository.OrganizationFieldNames,
-		100, &treegrid.SimpleGridRepositoryCfg{MainCol: "code"})
+		100, &treegrid.SimpleGridRepositoryCfg{
+			MainCol:     "code",
+			QueryString: repository.QuerySelect,
+			QueryCount:  repository.QueryCount,
+		})
 	organizationService := service.NewOrganizationService(db, simpleOrganizationRepository)
 
 	uploadService, _ := service.NewUploadService(db, organizationService, simpleOrganizationRepository)

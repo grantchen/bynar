@@ -58,7 +58,7 @@ func newTreeGridService(db *sql.DB) treegrid.TreeGridService {
 }
 
 func NewTreeGridServiceFactory() treegrid.TreeGridServiceFactoryFunc {
-	return func(db *sql.DB) treegrid.TreeGridService {
+	return func(db *sql.DB, AccountID int, permissionInfo *treegrid.PermissionInfo) treegrid.TreeGridService {
 		return newTreeGridService(db)
 	}
 }

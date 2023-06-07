@@ -18,6 +18,7 @@ type UserRepository interface {
 	ModuleID() int
 	HasPermission(moduleID string, accountID string) (bool, error)
 	GetUserID(accountID int) (int, error)
+	GetUserGroupID(accountID int) (int, error)
 }
 
 type ProcurementRepository interface {
