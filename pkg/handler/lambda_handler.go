@@ -145,7 +145,7 @@ func (l *LambdaTreeGridHandler) getPageCount(ctx context.Context, request events
 		log.Fatalln(err)
 	}
 
-	allPages := l.CallbackGetPageCountFunc(trGrid)
+	allPages, _ := l.CallbackGetPageCountFunc(trGrid)
 
 	// set this to allow Ajax requests from other origins
 	headers := map[string]string{

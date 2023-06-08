@@ -15,7 +15,7 @@ type treegridService struct {
 	uploadService              service.UploadService
 }
 
-func newTreeGridService(db *sql.DB) treegrid.TreeGridService {
+func newTreeGridService(db *sql.DB, accountID int) treegrid.TreeGridService {
 	simpleGeneralPostingSetupRepository := treegrid.NewSimpleGridRowRepositoryWithCfg(
 		db,
 		"general_posting_setup",
@@ -44,8 +44,8 @@ func newTreeGridService(db *sql.DB) treegrid.TreeGridService {
 }
 
 func NewTreeGridServiceFactory() treegrid.TreeGridServiceFactoryFunc {
-	return func(db *sql.DB) treegrid.TreeGridService {
-		return newTreeGridService(db)
+	return func(db *sql.DB, accountID int, permissionInfo *treegrid.PermissionInfo) treegrid.TreeGridService {
+		return newTreeGridService(db, accountID)
 	}
 }
 
@@ -55,8 +55,9 @@ func (*treegridService) GetCellData(ctx context.Context, req *treegrid.Treegrid)
 }
 
 // GetPageCount implements treegrid.TreeGridService
-func (s *treegridService) GetPageCount(tr *treegrid.Treegrid) float64 {
-	return float64(s.generalPostingSetupService.GetPageCount(tr))
+func (s *treegridService) GetPageCount(tr *treegrid.Treegrid) (float64, error) {
+	count, err := s.generalPostingSetupService.GetPageCount(tr)
+	return float64(count), err
 }
 
 // GetPageData implements treegrid.TreeGridService

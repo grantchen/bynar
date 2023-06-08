@@ -12,6 +12,22 @@ type userRepository struct {
 	moduleID  int
 }
 
+// GetUserGroupID implements UserRepository
+func (u *userRepository) GetUserGroupID(accountID int) (int, error) {
+	var id int
+	query := `
+	SELECT parent_id 
+	FROM user_group_lines
+	WHERE user_id = ?
+	`
+	row := u.conn.QueryRow(query, accountID)
+	if err := row.Scan(&id); err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
 func NewUserRepository(conn *sql.DB, accountID, moduleID int) UserRepository {
 	return &userRepository{conn: conn, accountID: accountID, moduleID: moduleID}
 }

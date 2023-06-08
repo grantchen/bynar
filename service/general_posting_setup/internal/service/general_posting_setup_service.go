@@ -13,7 +13,7 @@ func NewGeneralPostingSetupService(generalPostingSetupSimpleRepository treegrid.
 }
 
 // GetPageCount implements GeneralPostingSetupService
-func (g *generalPostingSetupService) GetPageCount(tr *treegrid.Treegrid) int64 {
+func (g *generalPostingSetupService) GetPageCount(tr *treegrid.Treegrid) (int64, error) {
 	return g.generalPostingSetupSimpleRepository.GetPageCount(tr)
 }
 

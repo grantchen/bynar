@@ -51,7 +51,7 @@ func (h *HTTPTreeGridHandler) HTTPHandleGetPageCount(w http.ResponseWriter, r *h
 		log.Println(err)
 	}
 
-	allPages := h.CallbackGetPageCountFunc(treegr)
+	allPages, _ := h.CallbackGetPageCountFunc(treegr)
 
 	response, err := json.Marshal((map[string]interface{}{
 		"Body": []string{`#@@@` + fmt.Sprintf("%v", allPages)},

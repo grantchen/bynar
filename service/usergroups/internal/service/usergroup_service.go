@@ -12,7 +12,7 @@ type userGroupService struct {
 }
 
 // GetTransferCount implements UserGroupsService
-func (u *userGroupService) GetPageCount(tr *treegrid.Treegrid) int64 {
+func (u *userGroupService) GetPageCount(tr *treegrid.Treegrid) (int64, error) {
 	return u.gridRowDataRepositoryWithChild.GetPageCount(tr)
 }
 

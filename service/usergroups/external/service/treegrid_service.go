@@ -58,7 +58,7 @@ func newTreeGridService(db *sql.DB) treegrid.TreeGridService {
 }
 
 func NewTreeGridServiceFactory() treegrid.TreeGridServiceFactoryFunc {
-	return func(db *sql.DB) treegrid.TreeGridService {
+	return func(db *sql.DB, AccountID int, permissionInfo *treegrid.PermissionInfo) treegrid.TreeGridService {
 		return newTreeGridService(db)
 	}
 }
@@ -69,8 +69,9 @@ func (*treegridService) GetCellData(ctx context.Context, req *treegrid.Treegrid)
 }
 
 // GetPageCount implements treegrid.TreeGridService
-func (s *treegridService) GetPageCount(tr *treegrid.Treegrid) float64 {
-	return float64(s.userGroupService.GetPageCount(tr))
+func (s *treegridService) GetPageCount(tr *treegrid.Treegrid) (float64, error) {
+	count, err := s.userGroupService.GetPageCount(tr)
+	return float64(count), err
 }
 
 // GetPageData implements treegrid.TreeGridService

@@ -35,10 +35,10 @@ func (t *transferService) GetTransfersPageData(tr *treegrid.Treegrid) ([]map[str
 }
 
 // GetPagesCount implements TransferService
-func (t *transferService) GetPagesCount(tr *treegrid.Treegrid) float64 {
+func (t *transferService) GetPagesCount(tr *treegrid.Treegrid) (float64, error) {
 	rowsCount, _ := t.transferRepository.GetTransferCount(tr)
 
-	return math.Ceil(float64(rowsCount) / float64(pageSize))
+	return math.Ceil(float64(rowsCount) / float64(pageSize)), nil
 }
 
 func NewTransferService(db *sql.DB, userRepository repository.UserRepository,

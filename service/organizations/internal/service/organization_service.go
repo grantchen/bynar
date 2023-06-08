@@ -12,7 +12,7 @@ type organizationService struct {
 }
 
 // GetPageCount implements OrganizationService
-func (o *organizationService) GetPageCount(tr *treegrid.Treegrid) int64 {
+func (o *organizationService) GetPageCount(tr *treegrid.Treegrid) (int64, error) {
 	return o.simpleOrganizationRepository.GetPageCount(tr)
 }
 

@@ -2,7 +2,6 @@ package treegrid
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"math"
 	"strconv"
@@ -16,17 +15,18 @@ type SimpleGridRowRepository interface {
 	Add(tx *sql.Tx, gr GridRow) error
 	Update(tx *sql.Tx, gr GridRow) error
 	Delete(tx *sql.Tx, gr GridRow) error
-	GetPageCount(tg *Treegrid) int64
+	GetPageCount(tg *Treegrid) (int64, error)
 	GetPageData(tg *Treegrid) ([]map[string]string, error)
 	ValidateOnIntegrity(gr GridRow, validateFields []string) (bool, error)
 }
 
 type SimpleGridRepositoryCfg struct {
-	MainCol     string
-	MapSorted   map[string]bool
-	QueryString string
-	QueryJoin   string
-	QueryCount  string
+	MainCol       string
+	MapSorted     map[string]bool
+	QueryString   string
+	QueryJoin     string
+	QueryCount    string
+	AdditionWhere string // using addtion, example for permission
 }
 
 type simpleGridRepository struct {
@@ -53,13 +53,11 @@ func (s *simpleGridRepository) ValidateOnIntegrity(gr GridRow, validateFields []
 
 // GetPageData implements SimpleGridRowRepository
 func (s *simpleGridRepository) GetPageData(tg *Treegrid) ([]map[string]string, error) {
-	b, _ := json.Marshal(tg)
-	fmt.Printf("req data: %s\n", string(b))
 	if tg.WithGroupBy() {
 		return s.GetPageDataGroupBy(tg)
 	}
 
-	return s.getPageData(tg, "")
+	return s.getPageData(tg, s.cfg.AdditionWhere)
 }
 
 func (s *simpleGridRepository) getPageData(tg *Treegrid, additionWhere string) ([]map[string]string, error) {
@@ -70,8 +68,9 @@ func (s *simpleGridRepository) getPageData(tg *Treegrid, additionWhere string) (
 
 	query = query + DummyWhere + FilterWhere + " " + additionWhere + tg.OrderByChildQuery(s.cfg.MapSorted)
 	query = AppendLimitToQuery(query, s.pageSize, pos)
-	fmt.Printf("getPageData query: %s\n", query)
 	rows, err := s.db.Query(query, FilterArgs...)
+
+	logger.Debug("query getPageData: ", query, "addition where: ", additionWhere)
 	if err != nil {
 		return nil, fmt.Errorf("do query: '%s': [%w]", query, err)
 	}
@@ -85,7 +84,7 @@ func (s *simpleGridRepository) getPageData(tg *Treegrid, additionWhere string) (
 	tableData := make([]map[string]string, 0)
 	for rows.Next() {
 		if err := rowVals.Parse(rows); err != nil {
-			return tableData, fmt.Errorf("parse rows: [%w]", err)
+			return tableData, fmt.Errorf("parse rows getPageData: [%w]", err)
 		}
 
 		entry := rowVals.StringValues()
@@ -104,17 +103,21 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 	where := tg.BodyParams.GetRowWhere()
 
 	if level == len(tg.GroupCols) {
+		where = where + s.cfg.AdditionWhere
 		return s.getPageData(tg, where)
 	}
 	FilterWhere, FilterArgs := PrepQuerySimple(tg.FilterParams, s.fieldMapping)
 	if level > 0 {
-		FilterWhere = FilterWhere + tg.BodyParams.GetRowWhere()
+		FilterWhere = FilterWhere + tg.BodyParams.GetRowWhere() + s.cfg.AdditionWhere
+	} else {
+		FilterWhere = FilterWhere + s.cfg.AdditionWhere
 	}
-	query := BuildSimpleQueryGroupBy(s.tableName, s.fieldMapping, tg.GroupCols, FilterWhere, level, s.cfg.QueryJoin)
+
+	where = DummyWhere + FilterWhere
+	query := BuildSimpleQueryGroupBy(s.tableName, s.fieldMapping, tg.GroupCols, where, level, s.cfg.QueryJoin)
 
 	pos, _ := tg.BodyParams.IntPos()
 	query = AppendLimitToQuery(query, s.pageSize, pos)
-	fmt.Printf("query: %s\n", query)
 	rows, err := s.db.Query(query, FilterArgs...)
 
 	if err != nil {
@@ -131,7 +134,7 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 
 	for rows.Next() {
 		if err := rowVals.Parse(rows); err != nil {
-			return tableData, fmt.Errorf("parse rows: [%w]", err)
+			return tableData, fmt.Errorf("parse rows GetPageDataGroupBy: [%w]", err)
 		}
 		entry := rowVals.StringValues()
 		entry["Def"] = "Group"
@@ -155,24 +158,27 @@ func createOrderMapping(fieldsMapping map[string][]string) map[string]bool {
 }
 
 // GetPageCount implements SimpleGridRowRepository
-func (s *simpleGridRepository) GetPageCount(tg *Treegrid) int64 {
-	b, _ := json.Marshal(tg)
-	fmt.Printf("req data: %s\n", string(b))
+func (s *simpleGridRepository) GetPageCount(tg *Treegrid) (int64, error) {
 	var query string
+	FilterWhere, FilterArgs := PrepQuerySimple(tg.FilterParams, s.fieldMapping)
 	if !tg.WithGroupBy() {
 		query = BuildSimpleQueryCount(s.tableName, s.fieldMapping, s.cfg.QueryCount)
-
+		query = query + DummyWhere + FilterWhere + s.cfg.AdditionWhere
 	} else {
-		query = BuildSimpleQueryGroupByCount(s.tableName, s.fieldMapping, tg.GroupCols, s.cfg.QueryCount)
+
+		where := DummyWhere + FilterWhere + s.cfg.AdditionWhere
+		query = BuildSimpleQueryGroupByCount(s.tableName, s.fieldMapping, tg.GroupCols, where, s.cfg.QueryCount)
 	}
 
-	rows, err := s.db.Query(query)
+	logger.Debug("query GetPageCount: ")
+
+	rows, err := s.db.Query(query, FilterArgs...)
 	if err != nil {
 		fmt.Printf("parse rows: [%v]", err)
-		return 0
+		return 0, err
 	}
 
-	return int64(math.Ceil(float64(utils.CheckCount(rows)) / float64(s.pageSize)))
+	return int64(math.Ceil(float64(utils.CheckCount(rows)) / float64(s.pageSize))), nil
 }
 
 func NewSimpleGridRowRepository(db *sql.DB, tableName string, fieldMapping map[string][]string, maxPage int) SimpleGridRowRepository {

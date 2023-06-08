@@ -36,8 +36,9 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 	handler := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,
 		CallbackGetPageDataFunc: generalPostingSetupService.GetPageData,
-		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) float64 {
-			return float64(generalPostingSetupService.GetPageCount(tr))
+		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) (float64, error) {
+			count, err := generalPostingSetupService.GetPageCount(tr)
+			return float64(count), err
 		},
 	}
 	http.HandleFunc("/upload", handler.HTTPHandleUpload)

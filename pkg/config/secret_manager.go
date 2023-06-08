@@ -11,6 +11,19 @@ type awsSecretAppConfig struct {
 }
 
 const dbConnKey = "bynar"
+const dbAccountManagerConnectionKey = "accounts_management"
+
+// GetAccountManagerConnection implements AppConfig
+func (a *awsSecretAppConfig) GetAccountManagementConnection() string {
+	value, err := a.secretsmanager.GetString(dbAccountManagerConnectionKey)
+
+	if err != nil {
+		logger.Debug(err)
+		return ""
+
+	}
+	return sql_connection.JSON2DatabaseConnection(value)
+}
 
 // GetDBConnection implements AppConfig
 func (a *awsSecretAppConfig) GetDBConnection() string {
