@@ -13,7 +13,7 @@ import (
 )
 
 type GridRowDataRepositoryWithChild interface {
-	GetPageCount(tg *Treegrid) int64
+	GetPageCount(tg *Treegrid) (int64, error)
 	GetPageData(tg *Treegrid) ([]map[string]string, error)
 }
 
@@ -61,7 +61,7 @@ func NewGridRowDataRepositoryWithChild(
 }
 
 // GetPageCount implements GridRowDataRepositoryWithChild
-func (g *gridRowDataRepositoryWithChild) GetPageCount(tg *Treegrid) int64 {
+func (g *gridRowDataRepositoryWithChild) GetPageCount(tg *Treegrid) (int64, error) {
 	var query string
 
 	column := NewColumn(tg.GroupCols[0], g.childFieldMapping, g.parentFieldMapping)
@@ -107,9 +107,10 @@ func (g *gridRowDataRepositoryWithChild) GetPageCount(tg *Treegrid) int64 {
 	rows, err := g.db.Query(query, mergedArgs...)
 	if err != nil {
 		log.Println(err, "query", query, "colData", column)
+		return 0, err
 	}
 
-	return int64(math.Ceil(float64(utils.CheckCount(rows)) / float64(g.pageSize)))
+	return int64(math.Ceil(float64(utils.CheckCount(rows)) / float64(g.pageSize))), nil
 	// return 0
 }
 

@@ -87,8 +87,9 @@ func main() {
 	handler := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,
 		CallbackGetPageDataFunc: userGroupService.GetPageData,
-		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) float64 {
-			return float64(userGroupService.GetPageCount(tr))
+		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) (float64, error) {
+			count, err := userGroupService.GetPageCount(tr)
+			return float64(count), err
 		},
 		AccountManagerService: accountService,
 	}

@@ -86,7 +86,14 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleGetPageCount(w http.Respons
 	}
 
 	treegridService := h.getTreeGridService(r)
-	allPages := treegridService.GetPageCount(treegr)
+	allPages, err := treegridService.GetPageCount(treegr)
+
+	if err != nil {
+		defaultResponse := &treegrid.PostResponse{}
+		defaultResponse.Changes = make([]map[string]interface{}, 0)
+		writeErrorResponse(w, defaultResponse, err)
+		return
+	}
 
 	response, err := json.Marshal((map[string]interface{}{
 		"Body": []string{`#@@@` + fmt.Sprintf("%v", allPages)},
@@ -282,7 +289,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 			accID = 0
 		} else {
 			if modulePath.pathFeature != PageCountPathString && modulePath.pathFeature != PageDataPathString {
-				writeErrorResponse(w, defaultResponse, fmt.Errorf("Action is not allowed, Only /page and /data allowed"))
+				writeErrorResponse(w, defaultResponse, fmt.Errorf("action is not allowed, Only /page and /data allowed"))
 				return
 			}
 		}
@@ -290,10 +297,11 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		var connString string
 
 		connString, _ = h.AccountManagerService.GetNewStringConnection(token, permission)
-		connString = sql_connection.ChangeDatabaseConnectionSchema(connString, strconv.Itoa(permission.TMOrganizationId))
-
+		if permission.Enterprise == 0 {
+			connString = sql_connection.ChangeDatabaseConnectionSchema(connString, strconv.Itoa(permission.TMOrganizationId))
+		}
 		//hardcode to test
-		connString = "root:123456@tcp(localhost:3306)/bynar"
+		// connString = "root:123456@tcp(localhost:3306)/bynar"
 
 		db, err := h.ConnectionPool.Get(connString)
 
@@ -322,6 +330,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) HandleHTTPReqWithAuthenMWAndDefaultPa
 		panic("account manager service is null")
 	}
 
+	logger.Debug(h.PathPrefix + "/" + UploadPathString)
 	http.Handle(h.PathPrefix+"/"+UploadPathString, h.authenMW(http.HandlerFunc(h.HTTPHandleUpload)))
 	http.Handle(h.PathPrefix+"/"+PageCountPathString, h.authenMW(http.HandlerFunc(h.HTTPHandleGetPageCount)))
 	http.Handle(h.PathPrefix+"/"+PageDataPathString, h.authenMW(http.HandlerFunc(h.HTTPHandleGetPageData)))

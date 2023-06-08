@@ -50,8 +50,9 @@ func main() {
 	handler := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,
 		CallbackGetPageDataFunc: organizationService.GetPageData,
-		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) float64 {
-			return float64(organizationService.GetPageCount(tr))
+		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) (float64, error) {
+			count, err := organizationService.GetPageCount(tr)
+			return float64(count), err
 		},
 	}
 	http.HandleFunc("/upload", handler.HTTPHandleUpload)

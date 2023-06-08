@@ -4,6 +4,7 @@ import "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/aws/secretsmanag
 
 type AppConfig interface {
 	GetDBConnection() string
+	GetAccountManagementConnection() string
 }
 
 func GetAppConfig(s secretsmanager.SecretsManager) AppConfig {

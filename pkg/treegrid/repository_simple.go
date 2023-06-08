@@ -15,7 +15,7 @@ type SimpleGridRowRepository interface {
 	Add(tx *sql.Tx, gr GridRow) error
 	Update(tx *sql.Tx, gr GridRow) error
 	Delete(tx *sql.Tx, gr GridRow) error
-	GetPageCount(tg *Treegrid) int64
+	GetPageCount(tg *Treegrid) (int64, error)
 	GetPageData(tg *Treegrid) ([]map[string]string, error)
 	ValidateOnIntegrity(gr GridRow, validateFields []string) (bool, error)
 }
@@ -158,7 +158,7 @@ func createOrderMapping(fieldsMapping map[string][]string) map[string]bool {
 }
 
 // GetPageCount implements SimpleGridRowRepository
-func (s *simpleGridRepository) GetPageCount(tg *Treegrid) int64 {
+func (s *simpleGridRepository) GetPageCount(tg *Treegrid) (int64, error) {
 	var query string
 	FilterWhere, FilterArgs := PrepQuerySimple(tg.FilterParams, s.fieldMapping)
 	if !tg.WithGroupBy() {
@@ -175,10 +175,10 @@ func (s *simpleGridRepository) GetPageCount(tg *Treegrid) int64 {
 	rows, err := s.db.Query(query, FilterArgs...)
 	if err != nil {
 		fmt.Printf("parse rows: [%v]", err)
-		return 0
+		return 0, err
 	}
 
-	return int64(math.Ceil(float64(utils.CheckCount(rows)) / float64(s.pageSize)))
+	return int64(math.Ceil(float64(utils.CheckCount(rows)) / float64(s.pageSize))), nil
 }
 
 func NewSimpleGridRowRepository(db *sql.DB, tableName string, fieldMapping map[string][]string, maxPage int) SimpleGridRowRepository {

@@ -43,7 +43,7 @@ func main() {
 		AccountManagerService:  accountService,
 		TreeGridServiceFactory: treegridService,
 		ConnectionPool:         connectionPool,
-		PathPrefix:             "/organizations",
+		PathPrefix:             "/apprunnerurl/organizations",
 	}
 
 	handler.HandleHTTPReqWithAuthenMWAndDefaultPath()

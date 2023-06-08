@@ -6,7 +6,7 @@ import (
 )
 
 type TreeGridService interface {
-	GetPageCount(tr *Treegrid) float64
+	GetPageCount(tr *Treegrid) (float64, error)
 	GetPageData(tr *Treegrid) ([]map[string]string, error)
 	Upload(req *PostRequest) (*PostResponse, error)
 	GetCellData(ctx context.Context, req *Treegrid) (*PostResponse, error)

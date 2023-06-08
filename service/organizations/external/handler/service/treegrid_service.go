@@ -55,8 +55,9 @@ func (*treegridService) GetCellData(ctx context.Context, req *treegrid.Treegrid)
 }
 
 // GetPageCount implements treegrid.TreeGridService
-func (s *treegridService) GetPageCount(tr *treegrid.Treegrid) float64 {
-	return float64(s.organizationService.GetPageCount(tr))
+func (s *treegridService) GetPageCount(tr *treegrid.Treegrid) (float64, error) {
+	count, err := s.organizationService.GetPageCount(tr)
+	return float64(count), err
 }
 
 // GetPageData implements treegrid.TreeGridService
