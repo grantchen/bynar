@@ -2,6 +2,7 @@ package treegrid
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math"
@@ -15,6 +16,7 @@ import (
 type GridRowDataRepositoryWithChild interface {
 	GetPageCount(tg *Treegrid) (int64, error)
 	GetPageData(tg *Treegrid) ([]map[string]string, error)
+	GetChildSuggestion(tg *Treegrid) ([]map[string]interface{}, error)
 }
 
 type GridRowDataRepositoryWithChildCfg struct {
@@ -26,6 +28,7 @@ type GridRowDataRepositoryWithChildCfg struct {
 	QueryChildCount          string
 	QueryChild               string
 	QueryParent              string
+	QueryChildSuggestion     string
 	ChildJoinFieldWithParent string // example in user_group_lines: parent_id
 	ParentIdField            string // example in user_groups: id
 }
@@ -58,6 +61,40 @@ func NewGridRowDataRepositoryWithChild(
 		pageSize:           pageSize,
 		cfg:                cfg,
 	}
+}
+
+// GetChildSuggestion implements GridRowDataRepositoryWithChild
+func (g *gridRowDataRepositoryWithChild) GetChildSuggestion(tg *Treegrid) ([]map[string]interface{}, error) {
+	var query string
+	id := tg.BodyParams.ID
+	origin := tg.BodyParams.TreegridOriginID
+	split := strings.Split(origin, "$")
+
+	if len(split) > 1 {
+		id = split[len(split)-2]
+	}
+	searchValue := "%" + tg.BodyParams.Val + "%"
+	query = g.cfg.QueryChildSuggestion
+	AppendLimitToQuery(query, g.pageSize, 0)
+	params := []interface{}{searchValue, id}
+	logger.Debug("query: ", query, "param: ", params)
+	data, err := g.getJSON(query, params, tg)
+	if err != nil {
+		return nil, err
+	}
+
+	mapResult := make([]map[string]interface{}, 0)
+
+	for _, element := range data {
+		newElement := make(map[string]interface{})
+
+		for k, v := range element {
+			newElement[k] = v
+		}
+		mapResult = append(mapResult, newElement)
+	}
+
+	return mapResult, nil
 }
 
 // GetPageCount implements GridRowDataRepositoryWithChild
@@ -129,7 +166,8 @@ func (g *gridRowDataRepositoryWithChild) GetPageData(tg *Treegrid) ([]map[string
 
 	// items request
 	if tg.BodyParams.GetItemsRequest() {
-		logger.Debug("get items request, body id: ", tg.BodyParams.ID)
+		b, _ := json.Marshal(tg)
+		logger.Debug("get items request, body id: ", tg.BodyParams.ID, "param: ", string(b))
 
 		query := g.cfg.QueryChild +
 			// " WHERE parent = " +

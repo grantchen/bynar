@@ -31,6 +31,7 @@ func newTreeGridService(db *sql.DB) treegrid.TreeGridService {
 			QueryChild:               repository.QueryChild,
 			QueryChildCount:          repository.QueryChildCount,
 			QueryChildJoins:          repository.QueryChildJoins,
+			QueryChildSuggestion:     repository.QueryChildSuggestion,
 			ChildJoinFieldWithParent: "parent_id",
 			ParentIdField:            "id",
 		},

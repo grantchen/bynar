@@ -1,6 +1,9 @@
 package treegrid
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type Treegrid struct {
 	RawSortCols  string
@@ -41,6 +44,15 @@ func NewTreegrid(req *Request) (*Treegrid, error) {
 
 	if len(req.Body) > 0 {
 		tr.BodyParams = req.Body[0]
+
+		// parse ID here, remove group path
+		if strings.Contains(tr.BodyParams.ID, "$") {
+			idGroup := strings.Split(tr.BodyParams.ID, "$")
+			newId := idGroup[len(idGroup)-1]
+			tr.BodyParams.TreegridOriginID = tr.BodyParams.ID
+			tr.BodyParams.ID = newId
+
+		}
 	}
 
 	return tr, nil

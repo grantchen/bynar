@@ -120,11 +120,11 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, pare
 		switch item.GetActionType() {
 		case treegrid.GridRowActionAdd:
 			logger.Debug("add child row")
-			//add to users
-			err := s.updateGRUserRepository.Add(tx, item)
-			if err != nil {
-				return fmt.Errorf("add child user error: [%w]", err)
-			}
+			//add to users == DONT ADD USER ANYMORE,JUST CHECK USER AND WHERE THERE IS A LINE IN USER GROUP LINES TABLE OR NOT
+			// err := s.updateGRUserRepository.Add(tx, item)
+			// if err != nil {
+			// 	return fmt.Errorf("add child user error: [%w]", err)
+			// }
 
 			// get id of user and assign to user_id
 			item["user_id"] = item.GetID()
@@ -134,28 +134,18 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, pare
 				return fmt.Errorf("add child user groups line error: [%w]", err)
 			}
 		case treegrid.GridRowActionChanged:
-
-			// assign userId to id to update user table
-			item["id"] = userId
-
-			// update user
-			err := s.updateGRUserRepository.Update(tx, item)
-			if err != nil {
-				return fmt.Errorf("update child user error: [%w]", err)
-			}
-
-			// nothing else to update user_group_lines now, re-assign id
-			item["id"] = userGroupId
+			// DO NOTHING WITH ACTION UPDATE, NOT ALLOW UPDATE LINES TABLE
 		case treegrid.GridRowActionDeleted:
 			logger.Debug("delete child")
 			item["id"] = userId
 
-			err := s.updateGRUserRepository.Delete(tx, item)
+			// ____ NOT DELETE USER FROM USER TALBLE, JUST REMOVE LINE FROM USER_GROUP_LINE TABLE
+			// err := s.updateGRUserRepository.Delete(tx, item)
 
-			// delete userid first
-			if err != nil {
-				return fmt.Errorf("delete child user error: [%w]", err)
-			}
+			// // delete userid first
+			// if err != nil {
+			// 	return fmt.Errorf("delete child user error: [%w]", err)
+			// }
 
 			// re-assign user_group_lines id
 			item["id"] = userGroupId

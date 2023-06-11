@@ -135,7 +135,7 @@ func (h *HTTPTreeGridHandler) HTTPHandleUpload(w http.ResponseWriter, r *http.Re
 	writeResponse(w, resp)
 }
 
-func (h *HTTPTreeGridHandler) HandleCell(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPTreeGridHandler) HTTPHandleCell(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		log.Println(err)
 		return
@@ -151,7 +151,7 @@ func (h *HTTPTreeGridHandler) HandleCell(w http.ResponseWriter, r *http.Request)
 		log.Println(err)
 	}
 
-	resp, err := h.CallBackGetCellDataFunc(r.Context(), trGrid)
+	resp, err := h.CallBackGetCellDataFunc(trGrid)
 	if err != nil {
 		writeErrorResponse(w, resp, err)
 

@@ -272,7 +272,7 @@ func (l *LambdaTreeGridHandler) getCellData(ctx context.Context, request events.
 		log.Fatalln(err)
 	}
 
-	response, err := l.CallBackGetCellDataFunc(ctx, trGrid)
+	response, err := l.CallBackGetCellDataFunc(trGrid)
 	if err != nil {
 		log.Println("err", err)
 	}
