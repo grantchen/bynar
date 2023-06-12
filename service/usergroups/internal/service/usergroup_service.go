@@ -3,7 +3,6 @@ package service
 import (
 	"database/sql"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
@@ -27,7 +26,6 @@ func (u *userGroupService) GetCellSuggestion(tr *treegrid.Treegrid) (*treegrid.P
 	suggestion := &treegrid.Suggestion{
 		Items: data,
 	}
-	logger.Debug("data: ", suggestion)
 	resp.Changes = append(resp.Changes, treegrid.CreateSuggestionResult(tr.BodyParams.Col, suggestion, tr))
 	return resp, nil
 }
