@@ -127,7 +127,7 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, pare
 			// }
 
 			// get id of user and assign to user_id
-			item["user_id"] = item.GetID()
+			// item["user_id"] = item.GetID()
 
 			err = s.updateGRUserGroupRepository.SaveLineAdd(tx, item)
 			if err != nil {

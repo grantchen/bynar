@@ -28,7 +28,7 @@ func (u *userGroupService) GetCellSuggestion(tr *treegrid.Treegrid) (*treegrid.P
 		Items: data,
 	}
 	logger.Debug("data: ", suggestion)
-	resp.Changes = append(resp.Changes, treegrid.CreateSuggestionResult(suggestion, tr))
+	resp.Changes = append(resp.Changes, treegrid.CreateSuggestionResult(tr.BodyParams.Col, suggestion, tr))
 	return resp, nil
 }
 

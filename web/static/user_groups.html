@@ -27,59 +27,16 @@ Page_Url='https://l4e89kfivi.execute-api.eu-central-1.amazonaws.com/page' Page_F
          Upload_Format='Json' </bdo>
    </div>
 </div> -->
+<script src="./cell_url.js"></script>
 <script>
    const keySuggest = 'full_nameSuggest'
+   const lsSuggestionField = ["full_name", "email", "user_id"]
    function LoadMyData(url, param, callback) {
       AjaxCall(url, param, function (code, data) {
-         data = generateHTMLData(data);
+         data = parseItemSuggestionCallBack(keySuggest, data)
          callback(code, data);
       });
    }
-
-   function generateHTMLData(data) {
-      let jsonData = JSON.parse(data);
-      let dataSuggest = jsonData.Changes[0][keySuggest];
-      let Items = dataSuggest.Items;
-
-      if (Items.length == 0) { return data; }
-
-      let lsField = Object.keys(Items[0])
-      console.log(lsField)
-      let nRow = Items.length + 1
-
-      let newItems = []
-      let dummyItems = []
-      let tableItems = new Array(lsField.length * (Items.length + 1))
-
-      let tmpItems = []
-      //create header
-      let idx = 0;
-
-      lsField.forEach(function (value, index) { tableItems[idx] = { "Text": `<b>${value}</b>`, "Disabled": 1 }; idx += nRow; })
-      idx = 1
-      for (let i = 0; i < Items.length; i++) {
-         let Item = Items[i]
-         let rowValue = ""
-         let allValue = []
-         for (let j = 0; j < lsField.length; j++) {
-            allValue.push(Item[lsField[j]]);
-         }
-         rowValue = allValue.join("__")
-
-         for (let j = 0; j < lsField.length; j++) {
-            tableItems[idx] = { Value: rowValue, Text: Item[lsField[j]] }
-            idx += nRow
-         }
-         idx = i + 2
-         dummyItems.push({ ...{ Value: rowValue, Hidden: 1, }, ...Item })
-      }
-      Items = [{ Columns: lsField.length, Items: tableItems }]
-      Items = Items.concat(dummyItems)
-      jsonData.Changes[0][keySuggest] = { Head: "suggest", Items: Items }
-      return JSON.stringify(jsonData)
-   }
-
-
 
    Grids.OnExpand = function (G, row) {
       if (row.Def.Name == "Node") {
@@ -142,32 +99,7 @@ Page_Url='https://l4e89kfivi.execute-api.eu-central-1.amazonaws.com/page' Page_F
       }
    }
 
-   // Using OnAfterValueChanged to ensure  SetValue is not overridden by subsequent grid lifecycle events 
-   Grids.OnAfterValueChanged = function (G, row, col, val) {
-      try {
-         let lsSuggestionField = ["full_name", "email", "user_id"]
-         let suggestionKey = lsSuggestionField[0] + "Suggest"
-         let suggestionData = row[suggestionKey]
-         var s_items = suggestionData.Items;
-         console.log(s_items)
-         for (i = 0; i < s_items.length; i++) {
-
-            if (s_items[i].Value == val) {
-               // Clear the undo buffer to remove the entry with html string
-               G.ClearUndo();
-               for (j = 0; j < lsSuggestionField.length; j++) {
-                  let field = lsSuggestionField[j]
-                  G.SetValue(row, field, s_items[i][field], 1);
-               }
-               break;
-            }
-         }
-      } catch (ex) {
-         console.log(ex)
-      }
-
-   }
-
+   Grids.OnAfterValueChanged = parseCellSuggestionCallback(keySuggest, lsSuggestionField)
 
    Grids.OnDownloadPage = function (G, Row) {
       G.RecalculateRows(G.Rows.Fix1, 1);
