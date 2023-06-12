@@ -3,9 +3,9 @@ package utils
 import (
 	"database/sql"
 	"fmt"
-	"log"
-	"os"
 	"strings"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 )
 
 type RowValues struct {
@@ -81,12 +81,22 @@ func CheckCount(rows *sql.Rows) (rowCount int) {
 	for rows.Next() {
 		err := rows.Scan(&rowCount)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "err7", err)
-			log.Fatalln(err)
+			logger.Debug(err)
 		}
 	}
 
 	return rowCount
+}
+
+func CheckCoutWithError(rows *sql.Rows) (rowCount int, err error) {
+	for rows.Next() {
+		err := rows.Scan(&rowCount)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return rowCount, nil
 }
 
 func ExtractWhereClause(query string, params []interface{}) string {
