@@ -27,6 +27,7 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 			QueryChild:               repository.QueryChild,
 			QueryChildCount:          repository.QueryChildCount,
 			QueryChildJoins:          repository.QueryChildJoins,
+			QueryChildSuggestion:     repository.QueryChildSuggestion,
 			ChildJoinFieldWithParent: "parent_id",
 			ParentIdField:            "id",
 		},
@@ -54,6 +55,7 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 			count, err := userGroupService.GetPageCount(tr)
 			return float64(count), err
 		},
+		CallBackGetCellDataFunc: userGroupService.GetCellSuggestion,
 	}
 
 	return handler

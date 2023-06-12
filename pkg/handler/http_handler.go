@@ -136,6 +136,7 @@ func (h *HTTPTreeGridHandler) HTTPHandleUpload(w http.ResponseWriter, r *http.Re
 }
 
 func (h *HTTPTreeGridHandler) HTTPHandleCell(w http.ResponseWriter, r *http.Request) {
+	logger.Debug("request come here")
 	if err := r.ParseForm(); err != nil {
 		log.Println(err)
 		return
