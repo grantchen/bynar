@@ -56,6 +56,7 @@ func main() {
 			QueryChild:               repository.QueryChild,
 			QueryChildCount:          repository.QueryChildCount,
 			QueryChildJoins:          repository.QueryChildJoins,
+			QueryChildSuggestion:     repository.QueryChildSuggestion,
 			ChildJoinFieldWithParent: "parent_id",
 			ParentIdField:            "id",
 		},
@@ -87,6 +88,7 @@ func main() {
 	handler := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,
 		CallbackGetPageDataFunc: userGroupService.GetPageData,
+		CallBackGetCellDataFunc: userGroupService.GetCellSuggestion,
 		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) (float64, error) {
 			count, err := userGroupService.GetPageCount(tr)
 			return float64(count), err
@@ -97,6 +99,7 @@ func main() {
 	http.HandleFunc("/upload", handler.HTTPHandleUpload)
 	http.HandleFunc("/data", handler.HTTPHandleGetPageCount)
 	http.HandleFunc("/page", handler.HTTPHandleGetPageData)
+	http.HandleFunc("/cell", handler.HTTPHandleCell)
 
 	// server
 	log.Println("start server at 8080!")

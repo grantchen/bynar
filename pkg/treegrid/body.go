@@ -2,15 +2,15 @@ package treegrid
 
 import (
 	"strconv"
-	"strings"
 )
 
 type BodyParam struct {
-	ID   string `json:"id,omitempty"`
-	Rows string `json:"rows,omitempty"`
-	Pos  string `json:"pos,omitempty"`
-	Col  string `json:"Col,omitempty"`
-	Val  string `json:"Val,omitempty"`
+	ID               string `json:"id,omitempty"`
+	Rows             string `json:"rows,omitempty"`
+	Pos              string `json:"pos,omitempty"`
+	Col              string `json:"Col,omitempty"`
+	Val              string `json:"Val,omitempty"`
+	TreegridOriginID string // using for keep id from treegrid, especially with child row, and group with $
 }
 
 // / GetRowLevel gets from rows level. Example: rows = "2WHERE filed=1", level = 1
@@ -37,12 +37,12 @@ func (b *BodyParam) GetRowWhere() string {
 // Conditions for items response:  "id" is digit and "rows" == ""
 func (b *BodyParam) GetItemsRequest() bool {
 
-	//check is group
-	if strings.Contains(b.ID, "$") {
-		idGroup := strings.Split(b.ID, "$")
-		newId := idGroup[len(idGroup)-1]
-		b.ID = newId
-	}
+	//check is group, move outside, parse request
+	// if strings.Contains(b.ID, "$") {
+	// 	idGroup := strings.Split(b.ID, "$")
+	// 	newId := idGroup[len(idGroup)-1]
+	// 	b.ID = newId
+	// }
 
 	if _, ok := b.IntID(); !ok {
 		return false
@@ -61,12 +61,12 @@ func (b *BodyParam) IntID() (int, bool) {
 		return 0, false
 	}
 
-	//check is group
-	if strings.Contains(b.ID, "$") {
-		idGroup := strings.Split(b.ID, "$")
-		newId := idGroup[len(idGroup)-1]
-		b.ID = newId
-	}
+	//check is group, move to outside, parse request
+	// if strings.Contains(b.ID, "$") {
+	// 	idGroup := strings.Split(b.ID, "$")
+	// 	newId := idGroup[len(idGroup)-1]
+	// 	b.ID = newId
+	// }
 
 	id, err := strconv.Atoi(b.ID)
 	if err != nil {

@@ -71,22 +71,22 @@
 
       <D 
          Name='Data' 
-         CDef='' AcceptDef='Data'
+         CDef='' AcceptDef='Data' 
          Calculated='1' Spanned='1' Expanded='1' FormulaSuggest="6" 
          document_id ='Child' document_idSpan='16' document_idAlign="Center" document_idType='Text'  document_idCanEdit="0" 
          user_group_id='Child' user_group_idSpan='6' user_group_idAlign="Center" user_group_idType='Text'  user_group_idCanEdit="0"
-         FormulaSuggest="1" full_nameSuggestServer='1'  full_nameSuggestType='StartAll,Empty,Existing'
+         
       />
       <!-- FormulaSuggest="1" full_nameSuggestServer='1'  full_nameSuggestType='StartAll,Empty,Existing' -->
    </Def>
 
    <Cols>
-      <C Name='code' Width='150' Type='Text' CaseSensitive='0' CanEdit='1' VarHeight='1'/>
+      <C Name='code' Width='150' Type='Text' CaseSensitive='0' CanEdit='1' VarHeight='1' />
       <C Name='description' Width='150' Type='Text' CaseSensitive='0' CanEdit='1' VarHeight='1' />
       <C Name='status' Width='150' Type='Bool' CaseSensitive='0' CanEdit='1'   VarHeight='1' />
       <C Name='full_name'  Width='150' Type='Text' CanEdit='1' VarHeight='1' />
       <C Name='email'  Width='150' Type='Text' CanEdit='1' VarHeight='1' />
-      <C Name='user_id' Width='150' Type='Text' CaseSensitive='0' CanEdit='1' VarHeight='1' />
+      <C Name='user_id' Width='150' Type='Text' CaseSensitive='0' CanEdit='1'   VarHeight='1' />
    </Cols>
 
    <Root CDef='Node' AcceptDef='Node'/>

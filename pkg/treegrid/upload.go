@@ -56,4 +56,11 @@ func GenMapColorChangeSuccess(gr GridRow) map[string]interface{} {
 	return inInterface
 }
 
+func CreateSuggestionResult(suggestionKey string, suggestion *Suggestion, tr *Treegrid) map[string]interface{} {
+	result := make(map[string]interface{}, 0)
+	result[suggestionKey+"Suggest"] = suggestion
+	result["id"] = tr.BodyParams.TreegridOriginID
+	return result
+}
+
 type ChangeItemType string
