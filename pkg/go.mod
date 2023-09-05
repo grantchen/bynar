@@ -8,6 +8,7 @@ require (
 	github.com/aws/aws-sdk-go v1.44.237
 	github.com/aws/aws-secretsmanager-caching-go v1.1.0
 	github.com/go-sql-driver/mysql v1.7.0
+	github.com/sendgrid/sendgrid-go v3.13.0+incompatible
 	github.com/joho/godotenv v1.5.1
 	google.golang.org/api v0.138.0
 )
@@ -30,6 +31,7 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.2.5 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	github.com/sendgrid/rest v2.6.9+incompatible // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.12.0 // indirect
 	golang.org/x/net v0.14.0 // indirect
