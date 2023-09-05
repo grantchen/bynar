@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-
 	"github.com/sirupsen/logrus"
 )
 

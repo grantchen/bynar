@@ -10,16 +10,17 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/aws/secretsmanager"
+	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/configuration"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 )
 
 type paymentClient struct {
-	sm                  secretsmanager.SecretsManager // todo remove
 	clientID            string
 	clientSecret        string
 	processingChannelID string
@@ -30,7 +31,7 @@ func (p paymentClient) GenerateAccessToken(scope models.CheckoutScopes) (AccessT
 	var accessToken AccessTokenResponse
 	payload := strings.NewReader("grant_type=client_credentials&scope=" + url.QueryEscape(string(scope)))
 	client := &http.Client{}
-	req, err := http.NewRequest("POST", string(models.GenerateAuthTokenURL), payload)
+	req, err := http.NewRequest("POST", configuration.CurrentEnv().AuthorizationUri(), payload)
 	if err != nil {
 		log.Printf("GenerateAuthToken: Error in creating new request %v", err)
 		return accessToken, err
@@ -64,12 +65,24 @@ func (p paymentClient) GenerateAccessToken(scope models.CheckoutScopes) (AccessT
 }
 
 // NewPaymentClient create paymentClient to call checkout api
-func NewPaymentClient(sm secretsmanager.SecretsManager) (PaymentClient, error) {
-	// todo test set sandbox clientId and clientSecret and clientId etc will set to .env file and will remove input params sm
+func NewPaymentClient() (PaymentClient, error) {
+	clientId := os.Getenv(configuration.ENVCheckoutClientId)
+	if "" == clientId {
+		var errMsg = fmt.Sprintf("no %s variable in .env file or blank", configuration.ENVCheckoutClientId)
+		err := errors.New(errMsg)
+		log.Printf("NewPaymentClient: Error in getting environment variable %+v", err)
+		return nil, err
+	}
+	clientSecret := os.Getenv(configuration.ENVCheckoutClientSecret)
+	if "" == clientSecret {
+		var errMsg = fmt.Sprintf("no %s variable in .env file or blank", configuration.ENVCheckoutClientSecret)
+		err := errors.New(errMsg)
+		log.Printf("NewPaymentClient: Error in getting environment variable %+v", err)
+		return nil, err
+	}
 	return &paymentClient{
-		sm:                  sm,
-		clientID:            "ack_3kgxgdj773yubf4sfmiht3r4h4",
-		clientSecret:        "PddTMk1FBjk1MDQHtBt1U8cHjZvS+Guc80NmcUHp3pHevOpt7EgYkT/DWae7gnOTlF6kPCPo+RZEu9xut/5VWA==",
+		clientID:            clientId,
+		clientSecret:        clientSecret,
 		processingChannelID: "",
 	}, nil
 }
