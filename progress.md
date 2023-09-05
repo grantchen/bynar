@@ -1,3 +1,6 @@
+Tuesday, 2023/09/05
+- implement some interfaces of google identity platform (pkg/providers/gip).
+
 Wednesday, 2023/04/28
 - Build a common handlers (http and lambda) for paths: /data /page /cell /upload.
 - Refactor transfer and payment apps using new handlers.
