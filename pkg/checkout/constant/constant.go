@@ -4,7 +4,7 @@
     @description:
 **/
 
-package configuration
+package constant
 
 const (
 	ENVCheckoutClientId     = "checkout.client_id"
