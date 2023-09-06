@@ -65,6 +65,11 @@ func (h *AccountHandler) VerifyCard(w http.ResponseWriter, r *http.Request) {
 		render.Error(w, err.Error())
 		return
 	}
+	err := h.as.VerifyCard(req.ID, req.Token, req.Email, req.Name)
+	if err != nil {
+		render.Error(w, err.Error())
+		return
+	}
 	render.Ok(w, nil)
 }
 

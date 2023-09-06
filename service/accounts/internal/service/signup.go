@@ -4,21 +4,34 @@ import (
 	"context"
 	"errors"
 
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/models"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 )
 
 // Signup is a service method which check the account is exist
 func (s *accountServiceHandler) Signup(email string) error {
-	return s.ar.Signup(email)
+	err := s.ar.Signup(email)
+	if err != nil {
+		return err
+	}
+	return gip.SendRegistrationEmail(email)
 }
 
 // ConfirmEmail is a service method which confirms the email of new account
 func (s *accountServiceHandler) ConfirmEmail(email, code string) (int, error) {
-	return 2, nil
+	err := gip.VerificationEmail(code)
+	if err != nil {
+		return 0, err
+	}
+	return 0, nil
 }
 
 // VerifyCard is a service method which verify card of new account
-func (s *accountServiceHandler) VerifyCard(id, token, email, name string) error {
+func (s *accountServiceHandler) VerifyCard(id int, token, email, name string) error {
+	_, err := s.paymentProvider.ValidateCard(&models.ValidateCardRequest{ID: id, Token: token, Email: email, Name: name})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

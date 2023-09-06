@@ -12,7 +12,7 @@ import (
 type AccountService interface {
 	Signup(email string) error
 	ConfirmEmail(email, code string) (int, error)
-	VerifyCard(id, token, email, name string) error
+	VerifyCard(id int, token, email, name string) error
 	CreateUser(email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry string) (string, error)
 }
 
