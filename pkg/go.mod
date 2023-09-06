@@ -8,8 +8,8 @@ require (
 	github.com/aws/aws-sdk-go v1.44.237
 	github.com/aws/aws-secretsmanager-caching-go v1.1.0
 	github.com/go-sql-driver/mysql v1.7.0
-	github.com/sendgrid/sendgrid-go v3.13.0+incompatible
 	github.com/joho/godotenv v1.5.1
+	github.com/sendgrid/sendgrid-go v3.13.0+incompatible
 	google.golang.org/api v0.138.0
 )
 
