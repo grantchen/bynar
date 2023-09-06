@@ -50,7 +50,7 @@ func NewPaymentClient() (PaymentClient, error) {
 	return &paymentClient{
 		clientID:            clientId,
 		clientSecret:        clientSecret,
-		processingChannelID: "",
+		processingChannelID: "pc_2hmsdjcaf5kuhdrrr4p4assizi",
 	}, nil
 }
 
@@ -65,7 +65,6 @@ func (p paymentClient) GenerateAuthToken(scope string) (models.AccessTokenRespon
 		return accessToken, err
 	}
 	encoded := base64.StdEncoding.EncodeToString([]byte(p.clientID + ":" + p.clientSecret))
-	base64.StdEncoding.DecodeString("")
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Authorization", "Basic "+encoded)
 

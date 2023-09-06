@@ -16,10 +16,6 @@ import (
 // generate_access_token test method
 func TestGenerateAccessToken(t *testing.T) {
 	// todo refactor
-	//err := godotenv.Load(".env")
-	//if err != nil {
-	//	log.Fatalf("Error loading .env file")
-	//}
 	client, err := checkout.NewPaymentClient()
 	if err != nil {
 		t.Log(err)
@@ -39,15 +35,14 @@ func TestValidateCard(t *testing.T) {
 		t.Log(err)
 	}
 	request := models.ValidateCardRequest{
-		ID:    1,
-		Token: "tok_u6fryvo7bcfubdv5c5jlqy6cee",
+		Token: "tok_tszdbkbr5bkulhgnuxho2gip3u",
 		Email: "dongjs@tajansoft.com",
 		Name:  "dongjinshuai",
 	}
-	token, err := client.ValidateCard(&request)
+	card, err := client.ValidateCard(&request)
 	if err != nil {
 		t.Log(err)
 	} else {
-		t.Logf("access_token is %+v", token)
+		t.Logf("card info is %+v", card)
 	}
 }
