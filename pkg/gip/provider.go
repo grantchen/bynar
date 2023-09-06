@@ -2,8 +2,6 @@ package gip
 
 import (
 	"context"
-
-	"firebase.google.com/go/v4/auth"
 )
 
 type AuthProvider interface {
@@ -22,10 +20,10 @@ type AuthProvider interface {
 	// LogOut logs out the user by the given UID.
 	LogOut(ctx context.Context, uid string) error
 	// VerifyIDToken verifies the signature	and payload of the provided ID token.
-	VerifyIDToken(ctx context.Context, idToken string) (*auth.Token, error)
+	VerifyIDToken(ctx context.Context, idToken string) (claims map[string]interface{}, err error)
 	// VerifyIDTokenAndCheckRevoked verifies the provided ID token, and additionally checks that the
 	// token has not been revoked or disabled.
-	VerifyIDTokenAndCheckRevoked(ctx context.Context, idToken string) (*auth.Token, error)
+	VerifyIDTokenAndCheckRevoked(ctx context.Context, idToken string) (claims map[string]interface{}, err error)
 	// EmailSignInLink generates the out-of-band email action link for email link sign-in flows, using the action
 	// code settings provided.
 	EmailSignInLink(ctx context.Context, email string) (string, error)

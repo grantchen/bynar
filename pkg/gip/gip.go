@@ -22,6 +22,7 @@ const (
 )
 
 var ErrUserNotFound = errors.New("user not found")
+var ErrIDTokenInvalid = errors.New("id token invalid")
 
 // gipClient is the interface for the AuthProvider.
 type gipClient struct {
@@ -29,7 +30,6 @@ type gipClient struct {
 	apiKey string
 }
 
-// TODO test
 func NewGIPClient() (AuthProvider, error) {
 	opt := option.WithCredentialsFile(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"))
 	app, err := firebase.NewApp(context.Background(), nil, opt)
@@ -197,7 +197,7 @@ func (g gipClient) LogOut(ctx context.Context, uid string) error {
 }
 
 // VerifyIDToken verifies the signature	and payload of the provided ID token.
-func (g gipClient) VerifyIDToken(ctx context.Context, idToken string) (*auth.Token, error) {
+func (g gipClient) VerifyIDToken(ctx context.Context, idToken string) (claims map[string]interface{}, err error) {
 	client, err := g.app.Auth(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error getting Auth client: %v", err)
@@ -208,12 +208,12 @@ func (g gipClient) VerifyIDToken(ctx context.Context, idToken string) (*auth.Tok
 		return nil, fmt.Errorf("error verifying id token: %v", err)
 	}
 
-	return token, nil
+	return token.Claims, nil
 }
 
 // VerifyIDTokenAndCheckRevoked verifies the provided ID token, and additionally checks that the
 // token has not been revoked or disabled.
-func (g gipClient) VerifyIDTokenAndCheckRevoked(ctx context.Context, idToken string) (*auth.Token, error) {
+func (g gipClient) VerifyIDTokenAndCheckRevoked(ctx context.Context, idToken string) (claims map[string]interface{}, err error) {
 	client, err := g.app.Auth(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error getting Auth client: %v", err)
@@ -221,10 +221,13 @@ func (g gipClient) VerifyIDTokenAndCheckRevoked(ctx context.Context, idToken str
 
 	token, err := client.VerifyIDTokenAndCheckRevoked(ctx, idToken)
 	if err != nil {
+		if auth.IsIDTokenInvalid(err) {
+			return nil, ErrIDTokenInvalid
+		}
 		return nil, fmt.Errorf("error verifying id token and check revoked: %v", err)
 	}
 
-	return token, nil
+	return token.Claims, nil
 }
 
 // EmailSignInLink generates the out-of-band email action link for email link sign-in flows, using the action
