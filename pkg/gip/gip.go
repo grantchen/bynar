@@ -230,23 +230,6 @@ func (g gipClient) VerifyIDTokenAndCheckRevoked(ctx context.Context, idToken str
 	return token.Claims, nil
 }
 
-// EmailSignInLink generates the out-of-band email action link for email link sign-in flows, using the action
-// code settings provided.
-func (g gipClient) EmailSignInLink(ctx context.Context, email string) (string, error) {
-	client, err := g.app.Auth(ctx)
-	if err != nil {
-		return "", fmt.Errorf("error getting Auth client: %v", err)
-	}
-
-	actionCodeSettings := newActionCodeSettings()
-	link, err := client.EmailSignInLink(ctx, email, actionCodeSettings)
-	if err != nil {
-		return "", fmt.Errorf("error generating email link: %v", err)
-	}
-
-	return link, nil
-}
-
 func (g gipClient) signInWithCustomTokenForTenant(token string, tenantID string) (string, error) {
 	payload := map[string]interface{}{
 		"token":             token,
@@ -299,18 +282,4 @@ func (g gipClient) postRequest(url string, req []byte) ([]byte, error) {
 		return nil, fmt.Errorf("unexpected http status code: %d", resp.StatusCode)
 	}
 	return io.ReadAll(resp.Body)
-}
-
-func newActionCodeSettings() *auth.ActionCodeSettings {
-	// TODO example config
-	actionCodeSettings := &auth.ActionCodeSettings{
-		URL:                   "https://www.example.com/checkout?cartId=1234",
-		HandleCodeInApp:       true,
-		IOSBundleID:           "com.example.ios",
-		AndroidPackageName:    "com.example.android",
-		AndroidInstallApp:     true,
-		AndroidMinimumVersion: "12",
-		DynamicLinkDomain:     "coolapp.page.link",
-	}
-	return actionCodeSettings
 }

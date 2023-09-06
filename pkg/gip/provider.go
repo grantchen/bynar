@@ -24,7 +24,4 @@ type AuthProvider interface {
 	// VerifyIDTokenAndCheckRevoked verifies the provided ID token, and additionally checks that the
 	// token has not been revoked or disabled.
 	VerifyIDTokenAndCheckRevoked(ctx context.Context, idToken string) (claims map[string]interface{}, err error)
-	// EmailSignInLink generates the out-of-band email action link for email link sign-in flows, using the action
-	// code settings provided.
-	EmailSignInLink(ctx context.Context, email string) (string, error)
 }
