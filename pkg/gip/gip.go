@@ -41,65 +41,48 @@ func NewGIPClient() (AuthProvider, error) {
 	}, nil
 }
 
-// GetUser gets the user data corresponding to the specified user ID.
-func (g gipClient) GetUser(ctx context.Context, uid string) (*auth.UserRecord, error) {
+// IsUserExists checks if the user with the specified email exists.
+func (g gipClient) IsUserExists(ctx context.Context, email string) (bool, error) {
 	client, err := g.app.Auth(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error getting Auth client: %v", err)
-	}
-
-	u, err := client.GetUser(ctx, uid)
-	if err != nil {
-		return nil, fmt.Errorf("error getting user %s: %v", uid, err)
-	}
-
-	return u, nil
-}
-
-// GetUserByEmail gets the user data corresponding to the specified email.
-func (g gipClient) GetUserByEmail(ctx context.Context, email string) (*auth.UserRecord, error) {
-	client, err := g.app.Auth(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("error getting Auth client: %v", err)
+		return false, fmt.Errorf("error getting Auth client: %v", err)
 	}
 
 	u, err := client.GetUserByEmail(ctx, email)
 	if err != nil {
-		return nil, fmt.Errorf("error getting user by email %s: %v", email, err)
+		return false, fmt.Errorf("error getting user by email %s: %v", email, err)
 	}
 
-	return u, nil
+	return u != nil, nil
 }
 
 // CreateUser creates a new user with the specified properties.
-func (g gipClient) CreateUser(ctx context.Context, email string) (*auth.UserRecord, error) {
+func (g gipClient) CreateUser(ctx context.Context, email, displayName, phoneNumber string) (uid string, err error) {
 	client, err := g.app.Auth(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error getting Auth client: %v", err)
+		return "", fmt.Errorf("error getting Auth client: %v", err)
 	}
 
 	params := (&auth.UserToCreate{}).
 		Email(email).
+		DisplayName(displayName).
+		PhoneNumber(phoneNumber).
 		EmailVerified(false).
 		Password(utils.RandString(10)).
 		Disabled(false)
 	u, err := client.CreateUser(ctx, params)
 	if err != nil {
-		return nil, fmt.Errorf("error creating user: %v", err)
+		return "", fmt.Errorf("error creating user: %v", err)
 	}
 
-	return u, nil
+	return u.UID, nil
 }
 
 // UpdateUser updates an existing user account with the specified properties.
-func (g gipClient) UpdateUser(ctx context.Context, uid string, params map[string]interface{}) (*auth.UserRecord, error) {
+func (g gipClient) UpdateUser(ctx context.Context, uid string, params map[string]interface{}) error {
 	client, err := g.app.Auth(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error getting Auth client: %v", err)
-	}
-
-	if len(params) == 0 {
-		return nil, errors.New("no params provided")
+		return fmt.Errorf("error getting Auth client: %v", err)
 	}
 
 	updateParams := &auth.UserToUpdate{}
@@ -107,16 +90,28 @@ func (g gipClient) UpdateUser(ctx context.Context, uid string, params map[string
 		updateParams.Email(email)
 	}
 
-	if disabled, ok := params["disabled"].(bool); ok {
-		updateParams.Disabled(disabled)
+	if displayName, ok := params["displayName"].(string); ok {
+		updateParams.DisplayName(displayName)
 	}
 
-	u, err := client.UpdateUser(ctx, uid, updateParams)
+	if phoneNumber, ok := params["phoneNumber"].(string); ok {
+		updateParams.PhoneNumber(phoneNumber)
+	}
+
+	if disableUser, ok := params["disableUser"].(bool); ok {
+		updateParams.Disabled(disableUser)
+	}
+
+	if customClaims, ok := params["customClaims"].(map[string]interface{}); ok {
+		updateParams.CustomClaims(customClaims)
+	}
+
+	_, err = client.UpdateUser(ctx, uid, updateParams)
 	if err != nil {
-		return nil, fmt.Errorf("error updating user: %v", err)
+		return fmt.Errorf("error updating user: %v", err)
 	}
 
-	return u, nil
+	return nil
 }
 
 // DeleteUser deletes the user by the given UID.
@@ -134,6 +129,21 @@ func (g gipClient) DeleteUser(ctx context.Context, uid string) error {
 	return nil
 }
 
+// SignIn signs in the user by the given UID.
+func (g gipClient) SignIn(ctx context.Context, uid string, devClaims map[string]interface{}) (idToken string, err error) {
+	token, err := g.customTokenWithClaims(ctx, uid, devClaims)
+	if err != nil {
+		return "", fmt.Errorf("error creating custom token with claims: %v", err)
+	}
+
+	idToken, err = g.signInWithCustomToken(token)
+	if err != nil {
+		return "", fmt.Errorf("error sign in with custom token: %v", err)
+	}
+
+	return idToken, nil
+}
+
 // LogOut logs out the user by the given UID.
 func (g gipClient) LogOut(ctx context.Context, uid string) error {
 	client, err := g.app.Auth(ctx)
@@ -149,9 +159,35 @@ func (g gipClient) LogOut(ctx context.Context, uid string) error {
 	return nil
 }
 
-// SignIn signs in with the provided token.
-func (g gipClient) SignIn(ctx context.Context, token string) (idToken string, err error) {
-	return g.signInWithCustomTokenForTenant(token, "")
+// VerifyIDToken verifies the signature	and payload of the provided ID token.
+func (g gipClient) VerifyIDToken(ctx context.Context, idToken string) (*auth.Token, error) {
+	client, err := g.app.Auth(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error getting Auth client: %v", err)
+	}
+
+	token, err := client.VerifyIDToken(ctx, idToken)
+	if err != nil {
+		return nil, fmt.Errorf("error verify id token: %v", err)
+	}
+
+	return token, nil
+}
+
+// VerifyIDTokenAndCheckRevoked verifies the provided ID token, and additionally checks that the
+// token has not been revoked or disabled.
+func (g gipClient) VerifyIDTokenAndCheckRevoked(ctx context.Context, idToken string) (*auth.Token, error) {
+	client, err := g.app.Auth(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error getting Auth client: %v", err)
+	}
+
+	token, err := client.VerifyIDTokenAndCheckRevoked(ctx, idToken)
+	if err != nil {
+		return nil, fmt.Errorf("error verify id token and check revoked: %v", err)
+	}
+
+	return token, nil
 }
 
 // EmailSignInLink generates the out-of-band email action link for email link sign-in flows, using the action
@@ -196,6 +232,20 @@ func (g gipClient) signInWithCustomTokenForTenant(token string, tenantID string)
 		return "", err
 	}
 	return respBody.IDToken, err
+}
+
+func (g gipClient) signInWithCustomToken(token string) (string, error) {
+	return g.signInWithCustomTokenForTenant(token, "")
+}
+
+// creates a signed custom authentication token with the specified user ID.
+func (g gipClient) customTokenWithClaims(ctx context.Context, uid string, devClaims map[string]interface{}) (string, error) {
+	client, err := g.app.Auth(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	return client.CustomTokenWithClaims(ctx, uid, devClaims)
 }
 
 func (g gipClient) postRequest(url string, req []byte) ([]byte, error) {
