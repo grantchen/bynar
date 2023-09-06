@@ -1,41 +1,69 @@
 package service
 
 import (
+	"context"
 	"errors"
-	"github.com/sirupsen/logrus"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 )
 
-// CreateUser is a service method which handles the logic of new user registration
-func (s *accountServiceHandler) CreateUser(email string) (string, error) {
-	if len(email) == 0 {
-		logrus.Errorf("email doesn't met required validation criteria")
-		return "", errors.New("email doesn't met required validation criteria")
-	}
-	return "", s.ar.CreateUser(email)
-
+// Signup is a service method which check the account is exist
+func (s *accountServiceHandler) Signup(email string) error {
+	return s.ar.Signup(email)
 }
 
 // ConfirmEmail is a service method which confirms the email of new account
 func (s *accountServiceHandler) ConfirmEmail(email, code string) (int, error) {
-	return 0, nil
+	return 2, nil
 }
 
-// ResendVerificationCode is a service method which resend the verification code for email verification
-func (s *accountServiceHandler) ResendVerificationCode(email string) error {
+// VerifyCard is a service method which verify card of new account
+func (s *accountServiceHandler) VerifyCard(id, token, email, name string) error {
 	return nil
 }
 
-// AddUserDetails is a service method which add contract infomation of new account
-func (s *accountServiceHandler) AddUserDetails(fullName, country, address, address2, city, postalCode, state, phone string) error {
-	return nil
-}
+// // ResendVerificationCode is a service method which resend the verification code for email verification
+// func (s *accountServiceHandler) ResendVerificationCode(email string) error {
+// 	return nil
+// }
 
-// AddTaxDetails is a service method which add tax infomation of new account
-func (s *accountServiceHandler) AddTaxDetails(organization, number, country string) error {
-	return nil
-}
+// // AddUserDetails is a service method which add contract infomation of new account
+// func (s *accountServiceHandler) AddUserDetails(fullName, country, address, address2, city, postalCode, state, phone string) error {
+// 	return nil
+// }
 
-// AddCreditCard is a service method which validating the user with help of Checkout.com API
-func (s *accountServiceHandler) AddCreditCard(number, date, code string) error {
-	return nil
+// // AddTaxDetails is a service method which add tax infomation of new account
+// func (s *accountServiceHandler) AddTaxDetails(organization, number, country string) error {
+// 	return nil
+// }
+
+// // AddCreditCard is a service method which validating the user with help of Checkout.com API
+// func (s *accountServiceHandler) AddCreditCard(number, date, code string) error {
+// 	return nil
+// }
+
+// CreateUser is a service method which handles the logic of new user registration
+func (s *accountServiceHandler) CreateUser(email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry string) (string, error) {
+	ok, err := s.authProvider.IsUserExists(context.TODO(), email)
+	if err != nil && !errors.Is(err, gip.ErrUserNotFound) {
+		return "", err
+	}
+	if ok || errors.Is(err, gip.ErrUserNotFound) {
+		err = s.authProvider.DeleteUserByEmail(context.TODO(), email)
+		if err != nil && !errors.Is(err, gip.ErrUserNotFound) {
+			return "", err
+		}
+	}
+	uid, err := s.authProvider.CreateUser(context.TODO(), email, fullName, phoneNumber)
+	if err != nil {
+		return uid, err
+	}
+	customClaims := map[string]interface{}{
+		"country": organisationCountry,
+	}
+	err = s.authProvider.UpdateUser(context.TODO(), uid, map[string]interface{}{"customClaims": customClaims})
+	if err != nil {
+		return uid, err
+	}
+	return uid, s.ar.CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry)
 }

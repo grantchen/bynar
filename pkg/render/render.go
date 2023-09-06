@@ -2,9 +2,11 @@ package render
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"math"
 	"net/http"
+	"reflect"
 )
 
 type PaginationResponse struct {
@@ -36,19 +38,41 @@ func DecodeJSON(r io.Reader, v interface{}) error {
 		return err
 	}
 	err = json.Unmarshal(data, v)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered. Error:\n", r)
+		}
+	}()
+	typ := reflect.TypeOf(v).Elem()
+	val := reflect.ValueOf(v).Elem()
+	for i := 0; i < val.NumField(); i++ {
+		if _, ok := typ.Field(i).Tag.Lookup("valid"); ok {
+			if len(val.Field(i).String()) == 0 {
+				return fmt.Errorf("%s is empty", typ.Field(i).Name)
+			}
+		}
+	}
 	return err
 }
 
 func Ok(w http.ResponseWriter, v interface{}) {
-	renderJSON(w, Response{Code: 200, Message: "OK", Data: v})
+	if v == nil {
+		v = struct {
+			Msg string `json:"msg"`
+		}{Msg: "OK"}
+	}
+	renderJSON(w, v)
+}
+
+func Error(w http.ResponseWriter, msg string) {
+	http.Error(w, msg, http.StatusInternalServerError)
 }
 
 func Pagination(w http.ResponseWriter, v []interface{}, currentPage, totalCount, perPage int) {
 	renderJSON(w, Response{Code: 200, Message: "OK", Data: v, Pagination: newPagination(currentPage, totalCount, perPage)})
-}
-
-func Error(w http.ResponseWriter, code int, msg string) {
-	renderJSON(w, Response{Code: code, Message: msg})
 }
 
 func renderJSON(w http.ResponseWriter, v interface{}) {

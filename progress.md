@@ -1,5 +1,5 @@
 Tuesday, 2023/09/05
-- implement some interfaces of google identity platform (pkg/providers/gip).
+- implement some interfaces of google identity platform.
 - implment some sign up process code
 - add checkout GenerateAccessToken api code
 - add send mail using sendgrid code
