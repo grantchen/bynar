@@ -32,7 +32,6 @@ type paymentClient struct {
 // NewPaymentClient create paymentClient to call checkout api
 func NewPaymentClient() (PaymentClient, error) {
 	clientId := os.Getenv(constant.ENVCheckoutClientId)
-	clientId = "ack_ef432xcm7xvejmhyo6ddfuxrdy"
 	if "" == clientId {
 		var errMsg = fmt.Sprintf("no %s variable in .env file or blank", constant.ENVCheckoutClientId)
 		err := errors.New(errMsg)
@@ -40,9 +39,15 @@ func NewPaymentClient() (PaymentClient, error) {
 		return nil, err
 	}
 	clientSecret := os.Getenv(constant.ENVCheckoutClientSecret)
-	clientSecret = "jj5SoKXUOUTtrwdtiMXkQLsxh4V_s35aTQWQiwNuke2ROana8JdRD0TMZSGrSsCLyzbWF-DopmDPzkwUGRenSg"
 	if "" == clientSecret {
 		var errMsg = fmt.Sprintf("no %s variable in .env file or blank", constant.ENVCheckoutClientSecret)
+		err := errors.New(errMsg)
+		log.Printf("NewPaymentClient: Error in getting environment variable %+v", err)
+		return nil, err
+	}
+	processingChannelID := os.Getenv(constant.ENVCheckoutProcessChannelId)
+	if "" == processingChannelID {
+		var errMsg = fmt.Sprintf("no %s variable in .env file or blank", constant.ENVCheckoutProcessChannelId)
 		err := errors.New(errMsg)
 		log.Printf("NewPaymentClient: Error in getting environment variable %+v", err)
 		return nil, err
@@ -50,7 +55,7 @@ func NewPaymentClient() (PaymentClient, error) {
 	return &paymentClient{
 		clientID:            clientId,
 		clientSecret:        clientSecret,
-		processingChannelID: "pc_2hmsdjcaf5kuhdrrr4p4assizi",
+		processingChannelID: processingChannelID,
 	}, nil
 }
 
