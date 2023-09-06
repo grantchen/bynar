@@ -1,6 +1,7 @@
 Wednesday, 2023/09/06
 - Refactor the gip package and add unit tests (done).
 - Accounts service handler add gip and checkout providers for verify email and card.
+- Refactor the checkout.com generate GenerateAuthToken and ValidateCard api and test successfully.
 
 Tuesday, 2023/09/05
 - implement some interfaces of google identity platform.
