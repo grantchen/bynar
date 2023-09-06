@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -52,7 +53,23 @@ func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, add
 	}
 	_, err = tx.Exec(
 		`INSERT INTO account_cards (user_payment_gateway_id, user_id, status, is_default, source_id, account_id) VALUES (?, ?, ?, ?, ?, ?)`,
-		"", userID, 1, 1, 1, userID,
+		userID, userID, 1, 1, 1, userID,
+	)
+	if err != nil {
+		logrus.Errorf("CreateUser: error: %v", err)
+		tx.Rollback()
+		return err
+	}
+	var tanantID int
+	var organizations int
+	var organizationsAllowed int
+	err = r.db.QueryRow("SELECT id, oraginzations, organizations_allowed FROM tenants WHERE region = ?", state).Scan(&tanantID, &organizations, organizationsAllowed)
+	if err != nil || organizations >= organizationsAllowed {
+		return errors.New("not allowed to insert tenants")
+	}
+	_, err = tx.Exec(
+		`INSERT INTO tenants_management (organization_id, tenant_id, status, suspended) VALUES (?, ?, ?, ?)`,
+		organizationID, tanantID, 1, 0,
 	)
 	if err != nil {
 		logrus.Errorf("CreateUser: error: %v", err)
