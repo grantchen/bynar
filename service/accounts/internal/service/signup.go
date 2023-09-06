@@ -9,12 +9,20 @@ import (
 
 // Signup is a service method which check the account is exist
 func (s *accountServiceHandler) Signup(email string) error {
-	return s.ar.Signup(email)
+	err := s.ar.Signup(email)
+	if err != nil {
+		return err
+	}
+	return gip.SendRegistrationEmail(email)
 }
 
 // ConfirmEmail is a service method which confirms the email of new account
 func (s *accountServiceHandler) ConfirmEmail(email, code string) (int, error) {
-	return 2, nil
+	err := gip.VerificationEmail(code)
+	if err != nil {
+		return 0, err
+	}
+	return 0, nil
 }
 
 // VerifyCard is a service method which verify card of new account
