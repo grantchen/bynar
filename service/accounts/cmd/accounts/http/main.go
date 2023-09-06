@@ -3,23 +3,44 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/http_handler"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
+	"github.com/joho/godotenv"
 )
 
 // use for test only this module without permission
 func main() {
-	connString := "root:123456@tcp(localhost:3306)/accounts_management"
-	db, err := sql_db.NewConnection(connString)
-
+	err := godotenv.Load("../main/.env")
 	if err != nil {
-		log.Panic(err)
+		log.Fatal("Error loading .env file in main service")
 	}
 
-	handler := http_handler.NewHTTPHandler(db)
+	db, err := sql_db.NewConnection(os.Getenv("accounts.db_uri"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	authProvider, err := gip.NewGIPClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+	paymentProvider, err := checkout.NewPaymentClient()
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	handler := http_handler.NewHTTPHandler(db, authProvider, paymentProvider)
+
+	// Signup endpoints
 	http.HandleFunc("/signup", handler.Signup)
+	http.HandleFunc("/confirm-email", handler.ConfirmEmail)
+	http.HandleFunc("/verify-card", handler.VerifyCard)
+	http.HandleFunc("/create-user", handler.CreateUser)
+
+	// Signin endpoints
 	http.HandleFunc("/signin", handler.Signin)
 
 	log.Println("start server at 8080!")

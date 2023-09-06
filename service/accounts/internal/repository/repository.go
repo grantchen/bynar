@@ -6,7 +6,8 @@ import (
 
 // AccountRepository provides a interface on db level for user
 type AccountRepository interface {
-	CreateUser(email string) error
+	Signup(email string) error
+	CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry string) error
 }
 
 type accountRepositoryHandler struct {
