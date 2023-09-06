@@ -21,6 +21,8 @@ const (
 	verifyCustomTokenURL = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyCustomToken?key=%s"
 )
 
+var ErrUserNotFound = errors.New("user not found")
+
 // gipClient is the interface for the AuthProvider.
 type gipClient struct {
 	app    *firebase.App
@@ -50,6 +52,9 @@ func (g gipClient) IsUserExists(ctx context.Context, email string) (bool, error)
 
 	u, err := client.GetUserByEmail(ctx, email)
 	if err != nil {
+		if auth.IsUserNotFound(err) {
+			return false, nil
+		}
 		return false, fmt.Errorf("error getting user by email %s: %v", email, err)
 	}
 
@@ -108,6 +113,9 @@ func (g gipClient) UpdateUser(ctx context.Context, uid string, params map[string
 
 	_, err = client.UpdateUser(ctx, uid, updateParams)
 	if err != nil {
+		if auth.IsUserNotFound(err) {
+			return ErrUserNotFound
+		}
 		return fmt.Errorf("error updating user: %v", err)
 	}
 
@@ -123,6 +131,35 @@ func (g gipClient) DeleteUser(ctx context.Context, uid string) error {
 
 	err = client.DeleteUser(ctx, uid)
 	if err != nil {
+		if auth.IsUserNotFound(err) {
+			return ErrUserNotFound
+		}
+		return fmt.Errorf("error deleting user: %v", err)
+	}
+
+	return nil
+}
+
+// DeleteUserByEmail deletes the user by the given email.
+func (g gipClient) DeleteUserByEmail(ctx context.Context, email string) error {
+	client, err := g.app.Auth(ctx)
+	if err != nil {
+		return fmt.Errorf("error getting Auth client: %v", err)
+	}
+
+	u, err := client.GetUserByEmail(ctx, email)
+	if err != nil {
+		if auth.IsUserNotFound(err) {
+			return ErrUserNotFound
+		}
+		return fmt.Errorf("error getting user by email %s: %v", email, err)
+	}
+
+	err = client.DeleteUser(ctx, u.UID)
+	if err != nil {
+		if auth.IsUserNotFound(err) {
+			return ErrUserNotFound
+		}
 		return fmt.Errorf("error deleting user: %v", err)
 	}
 
@@ -138,7 +175,7 @@ func (g gipClient) SignIn(ctx context.Context, uid string, devClaims map[string]
 
 	idToken, err = g.signInWithCustomToken(token)
 	if err != nil {
-		return "", fmt.Errorf("error sign in with custom token: %v", err)
+		return "", fmt.Errorf("error signing in with custom token: %v", err)
 	}
 
 	return idToken, nil
@@ -153,7 +190,7 @@ func (g gipClient) LogOut(ctx context.Context, uid string) error {
 
 	err = client.RevokeRefreshTokens(ctx, uid)
 	if err != nil {
-		return fmt.Errorf("error revoke token: %v", err)
+		return fmt.Errorf("error revoking token: %v", err)
 	}
 
 	return nil
@@ -168,7 +205,7 @@ func (g gipClient) VerifyIDToken(ctx context.Context, idToken string) (*auth.Tok
 
 	token, err := client.VerifyIDToken(ctx, idToken)
 	if err != nil {
-		return nil, fmt.Errorf("error verify id token: %v", err)
+		return nil, fmt.Errorf("error verifying id token: %v", err)
 	}
 
 	return token, nil
@@ -184,7 +221,7 @@ func (g gipClient) VerifyIDTokenAndCheckRevoked(ctx context.Context, idToken str
 
 	token, err := client.VerifyIDTokenAndCheckRevoked(ctx, idToken)
 	if err != nil {
-		return nil, fmt.Errorf("error verify id token and check revoked: %v", err)
+		return nil, fmt.Errorf("error verifying id token and check revoked: %v", err)
 	}
 
 	return token, nil
