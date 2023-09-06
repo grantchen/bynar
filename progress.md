@@ -1,3 +1,6 @@
+Wednesday, 2023/09/06
+- Refactor the gip package and add unit tests (done).
+
 Tuesday, 2023/09/05
 - implement some interfaces of google identity platform.
 - implment some sign up process code
