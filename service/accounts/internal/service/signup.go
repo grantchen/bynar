@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/models"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 )
 
@@ -26,7 +27,11 @@ func (s *accountServiceHandler) ConfirmEmail(email, code string) (int, error) {
 }
 
 // VerifyCard is a service method which verify card of new account
-func (s *accountServiceHandler) VerifyCard(id, token, email, name string) error {
+func (s *accountServiceHandler) VerifyCard(id int, token, email, name string) error {
+	_, err := s.paymentProvider.ValidateCard(&models.ValidateCardRequest{ID: id, Token: token, Email: email, Name: name})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

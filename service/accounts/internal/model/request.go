@@ -10,7 +10,7 @@ type ConfirmEmailRequest struct {
 }
 
 type VerifyCardRequest struct {
-	ID    string `json:"id" valid:""`
+	ID    int    `json:"id" valid:""`
 	Token string `json:"token" valid:""`
 	Email string `json:"email" valid:""`
 	Name  string `json:"name" valid:""`
