@@ -205,6 +205,9 @@ func (g gipClient) VerifyIDToken(ctx context.Context, idToken string) (claims ma
 
 	token, err := client.VerifyIDToken(ctx, idToken)
 	if err != nil {
+		if auth.IsIDTokenInvalid(err) {
+			return nil, ErrIDTokenInvalid
+		}
 		return nil, fmt.Errorf("error verifying id token: %v", err)
 	}
 
