@@ -21,6 +21,11 @@ const (
 	verifyCustomTokenURL = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyCustomToken?key=%s"
 )
 
+const (
+	ENVGoogleApplicationCredentials = "GOOGLE_APPLICATION_CREDENTIALS"
+	ENVGoogleAPIKey                 = "GOOGLE_API_KEY"
+)
+
 var ErrUserNotFound = errors.New("user not found")
 var ErrIDTokenInvalid = errors.New("id token invalid")
 
@@ -31,7 +36,7 @@ type gipClient struct {
 }
 
 func NewGIPClient() (AuthProvider, error) {
-	opt := option.WithCredentialsFile(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+	opt := option.WithCredentialsFile(os.Getenv(ENVGoogleApplicationCredentials))
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
 		return nil, errors.New("error initializing gip app: " + err.Error())
@@ -39,7 +44,7 @@ func NewGIPClient() (AuthProvider, error) {
 
 	return &gipClient{
 		app:    app,
-		apiKey: os.Getenv("GOOGLE_API_KEY"),
+		apiKey: os.Getenv(ENVGoogleAPIKey),
 	}, nil
 }
 
