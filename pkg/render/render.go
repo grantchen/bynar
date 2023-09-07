@@ -8,6 +8,16 @@ import (
 	"reflect"
 )
 
+func CorsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "OPTIONS" {
+			Ok(w, nil)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func DecodeJSON(r io.Reader, v interface{}) error {
 	data, err := io.ReadAll(r)
 	if err != nil {
