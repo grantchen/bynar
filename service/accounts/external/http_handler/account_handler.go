@@ -23,7 +23,7 @@ func NewHTTPHandler(db *sql.DB, authProvider gip.AuthProvider, paymentProvider c
 
 func (h *AccountHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		render.MethodNotAllowed(w)
 		return
 	}
 	var req model.SignupRequest
@@ -40,7 +40,7 @@ func (h *AccountHandler) Signup(w http.ResponseWriter, r *http.Request) {
 
 func (h *AccountHandler) ConfirmEmail(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		render.MethodNotAllowed(w)
 		return
 	}
 	var req model.ConfirmEmailRequest
@@ -57,7 +57,7 @@ func (h *AccountHandler) ConfirmEmail(w http.ResponseWriter, r *http.Request) {
 
 func (h *AccountHandler) VerifyCard(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		render.MethodNotAllowed(w)
 		return
 	}
 	var req model.VerifyCardRequest
@@ -75,7 +75,7 @@ func (h *AccountHandler) VerifyCard(w http.ResponseWriter, r *http.Request) {
 
 func (h *AccountHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		render.MethodNotAllowed(w)
 		return
 	}
 	var req model.CreateUserRequest
@@ -97,7 +97,7 @@ func (h *AccountHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *AccountHandler) Signin(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		render.MethodNotAllowed(w)
 		return
 	}
 	// TODO:
