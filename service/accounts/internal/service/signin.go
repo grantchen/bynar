@@ -1,16 +1,23 @@
 package service
 
 import (
-	"errors"
-	"github.com/sirupsen/logrus"
+	"context"
+	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 )
 
 // Signin is a service method which handles the logic of user login
 func (s *accountServiceHandler) Signin(email string) error {
-	if len(email) == 0 {
-		logrus.Errorf("email doesn't met required validation criteria")
-		return errors.New("email doesn't met required validation criteria")
+	err := s.ar.CheckUserExists(email)
+	if err == nil {
+		return fmt.Errorf("account with email: %s has not signup", email)
 	}
-	return nil
-
+	exists, err := s.authProvider.IsUserExists(context.Background(), email)
+	if err != nil {
+		return err
+	}
+	if exists == false {
+		return fmt.Errorf("account with email: %s has not signup", email)
+	}
+	return gip.SendRegistrationEmail(email)
 }

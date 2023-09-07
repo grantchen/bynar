@@ -31,3 +31,8 @@ type CreateUserRequest struct {
 	OrganisationCountry string `json:"organisationCountry" valid:""`
 	IsAgreementSigned   bool   `json:"isAgreementSigned" valid:""`
 }
+
+// SignInRequest user sign_in request struct
+type SignInRequest struct {
+	Email string `json:"email" valid:""`
+}

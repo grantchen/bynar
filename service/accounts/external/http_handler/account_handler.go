@@ -101,5 +101,10 @@ func (h *AccountHandler) Signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// TODO:
+	var req model.SignInRequest
+	if err := render.DecodeJSON(r.Body, &req); err != nil {
+		render.Error(w, err.Error())
+		return
+	}
 	render.Ok(w, nil)
 }

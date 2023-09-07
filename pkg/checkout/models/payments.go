@@ -9,9 +9,10 @@ package models
 import "time"
 
 // ValidateCardRequest validate card request struct
+// Token is Frames card details tokenized
 type ValidateCardRequest struct {
 	ID    int    `json:"id"`
-	Token string `json:"token"` //Frames card details tokenized
+	Token string `json:"token"`
 	Email string `json:"email"`
 	Name  string `json:"name"`
 }
