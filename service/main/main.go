@@ -44,13 +44,12 @@ const prefix = "/apprunnerurl"
 
 func main() {
 
-	secretmanager, err := utils.GetSecretManager()
+	err := godotenv.Load(".env")
 	if err != nil {
-		fmt.Printf("error: %v", err)
-		log.Panic(err)
+		log.Fatal("Error loading .env file in main service")
 	}
 
-	appConfig := config.NewAWSSecretsManagerConfig(secretmanager)
+	appConfig := config.NewLocalConfig()
 
 	connString := appConfig.GetDBConnection()
 	db, err := sql_db.NewConnection(connString)
@@ -59,12 +58,7 @@ func main() {
 		log.Panic(err)
 	}
 
-	err = godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("Error loading .env file in main service")
-	}
-
-	accountDB, err := sql_db.NewConnection(os.Getenv("accounts.db_uri"))
+	accountDB, err := sql_db.NewConnection(appConfig.GetAccountManagementConnection())
 	if err != nil {
 		log.Fatal(err)
 	}
