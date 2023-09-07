@@ -14,7 +14,7 @@ import (
 // Send registration email
 func SendRegistrationEmail(email string) error {
 	url := "https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=%s"
-	url = fmt.Sprintf(url, os.Getenv("GOOGLE_API_KEY"))
+	url = fmt.Sprintf(url, os.Getenv(ENVGoogleAPIKey))
 	data := map[string]interface{}{
 		"requestType": "EMAIL_SIGNIN",
 		"email":       email,
@@ -46,7 +46,7 @@ func SendRegistrationEmail(email string) error {
 // Verification email, invalid for type 'EMAIL SIGNIN'
 func VerificationEmail(oobCode string) error {
 	url := "https://identitytoolkit.googleapis.com/v1/accounts:update?key=%s"
-	url = fmt.Sprintf(url, os.Getenv("GOOGLE_API_KEY"))
+	url = fmt.Sprintf(url, os.Getenv(ENVGoogleAPIKey))
 	data := map[string]interface{}{
 		"oobCode": oobCode,
 	}

@@ -7,6 +7,7 @@ type SignupRequest struct {
 type ConfirmEmailRequest struct {
 	Email string `json:"email" valid:""`
 	Code  string `json:"code" valid:""`
+	Sign  string `json:"sign" valid:""`
 }
 
 type VerifyCardRequest struct {
@@ -30,6 +31,9 @@ type CreateUserRequest struct {
 	VAT                 string `json:"VAT" valid:""`
 	OrganisationCountry string `json:"organisationCountry" valid:""`
 	IsAgreementSigned   bool   `json:"isAgreementSigned" valid:""`
+	Token               string `json:"token" valid:""`
+	Code                string `json:"code" valid:""`
+	Sign                string `json:"sign" valid:""`
 }
 
 // SignInRequest user sign_in request struct

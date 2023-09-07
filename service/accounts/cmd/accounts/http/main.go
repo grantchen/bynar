@@ -3,10 +3,10 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/http_handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"github.com/joho/godotenv"
@@ -18,11 +18,13 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file in main service")
 	}
+	appConfig := config.NewLocalConfig()
 
-	db, err := sql_db.NewConnection(os.Getenv("ACCOUNTS_DB_URI"))
+	db, err := sql_db.NewConnection(appConfig.GetAccountManagementConnection())
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	authProvider, err := gip.NewGIPClient()
 	if err != nil {
 		log.Fatal(err)

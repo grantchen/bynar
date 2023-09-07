@@ -27,8 +27,8 @@ func (s *accountServiceHandler) ConfirmEmail(email, code string) (int, error) {
 }
 
 // VerifyCard is a service method which verify card of new account
-func (s *accountServiceHandler) VerifyCard(id int, token, email, name string) error {
-	_, err := s.paymentProvider.ValidateCard(&models.ValidateCardRequest{ID: id, Token: token, Email: email, Name: name})
+func (s *accountServiceHandler) VerifyCard(token, email, name string) error {
+	_, err := s.paymentProvider.ValidateCard(&models.ValidateCardRequest{Token: token, Email: email, Name: name})
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,23 @@ func (s *accountServiceHandler) VerifyCard(id int, token, email, name string) er
 // }
 
 // CreateUser is a service method which handles the logic of new user registration
-func (s *accountServiceHandler) CreateUser(email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry string) (string, error) {
+func (s *accountServiceHandler) CreateUser(email, code, sign, token, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry string) (string, error) {
+	// recheck user exist
+	err := s.ar.CheckUserExists(email)
+	if err != nil {
+		return "", err
+	}
+	// revalidate email
+	err = gip.VerificationEmail(code)
+	if err != nil {
+		return "", err
+	}
+	// revalidate card
+	cardResp, err := s.paymentProvider.ValidateCard(&models.ValidateCardRequest{Token: token, Email: email, Name: fullName})
+	if err != nil {
+		return "", err
+	}
+	// create user in gip
 	ok, err := s.authProvider.IsUserExists(context.TODO(), email)
 	if err != nil && !errors.Is(err, gip.ErrUserNotFound) {
 		return "", err
@@ -78,5 +94,6 @@ func (s *accountServiceHandler) CreateUser(email, fullName, country, addressLine
 	if err != nil {
 		return uid, err
 	}
-	return uid, s.ar.CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry)
+	// create user in db
+	return uid, s.ar.CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, cardResp.Customer.ID, cardResp.Source.ID)
 }
