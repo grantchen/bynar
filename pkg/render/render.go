@@ -54,10 +54,18 @@ func Ok(w http.ResponseWriter, v interface{}) {
 }
 
 func Error(w http.ResponseWriter, msg string) {
+	data, err := json.Marshal(struct {
+		Error string `json:"error"`
+	}{Error: msg})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Add("Content-Type", "application/json; charset=utf-8")
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 	w.Header().Add("Access-Control-Allow-Methods", "GET, POST")
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
-	http.Error(w, msg, http.StatusInternalServerError)
+	http.Error(w, string(data), http.StatusInternalServerError)
 }
 
 func MethodNotAllowed(w http.ResponseWriter) {
