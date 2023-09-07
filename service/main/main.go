@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/joho/godotenv"
 
@@ -47,6 +46,12 @@ func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal("Error loading .env file in main service")
+	}
+
+	secretmanager, err := utils.GetSecretManager()
+	if err != nil {
+		fmt.Printf("error: %v", err)
+		log.Panic(err)
 	}
 
 	appConfig := config.NewLocalConfig()
