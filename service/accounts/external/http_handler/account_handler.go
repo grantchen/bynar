@@ -102,12 +102,32 @@ func (h *AccountHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 		render.MethodNotAllowed(w)
 		return
 	}
-	// TODO:
 	var req model.SignInRequest
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
 		render.Error(w, err.Error())
 		return
 	}
-	h.as.SignIn(req.Email, req.OobCode)
+	idToke, err := h.as.SignIn(req.Email, req.OobCode)
+	if err != nil {
+		render.Error(w, err.Error())
+	}
+	render.Ok(w, model.SignInResponse{IdToke: idToke})
+}
+
+// SendSignInEmail send sign in email of Google Identify Platform
+func (h *AccountHandler) SendSignInEmail(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		render.MethodNotAllowed(w)
+		return
+	}
+	var req model.SendSignInEmailRequest
+	if err := render.DecodeJSON(r.Body, &req); err != nil {
+		render.Error(w, err.Error())
+		return
+	}
+	err := h.as.SendSignInEmail(req.Email)
+	if err != nil {
+		render.Error(w, err.Error())
+	}
 	render.Ok(w, nil)
 }

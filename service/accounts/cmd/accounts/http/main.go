@@ -44,7 +44,8 @@ func main() {
 	http.Handle("/create-user", render.CorsMiddleware(http.HandlerFunc(handler.CreateUser)))
 
 	// Signin endpoints
-	http.Handle("/signin", render.CorsMiddleware(http.HandlerFunc(handler.Signin)))
+	http.Handle("/signin-email", render.CorsMiddleware(http.HandlerFunc(handler.SendSignInEmail)))
+	http.Handle("/signin", render.CorsMiddleware(http.HandlerFunc(handler.SignIn)))
 
 	log.Println("start server at 8080!")
 	log.Fatal(http.ListenAndServe(":8080", nil))

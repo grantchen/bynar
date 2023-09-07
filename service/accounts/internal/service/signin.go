@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
+	"os"
 )
 
 // SignIn is a service method which handles the logic of user login
@@ -11,7 +12,10 @@ func (s *accountServiceHandler) SignIn(email, oobCode string) (idToken string, e
 	if err := s.VerifyEmail(email); err != nil {
 		return "", err
 	}
-	// todo call google identify platform api to check email and oobCode
+	err = gip.VerificationEmail(oobCode)
+	if err != nil {
+		return "", fmt.Errorf("SignIn: verification oobCode err: %+v", err)
+	}
 	account, err := s.ar.SelectAccount(email)
 	if err != nil || account == nil {
 		return "", fmt.Errorf("SignIn: %s no user selected", email)
@@ -38,7 +42,7 @@ func (s *accountServiceHandler) SendSignInEmail(email string) error {
 	if err := s.VerifyEmail(email); err != nil {
 		return err
 	}
-	return gip.SendRegistrationEmail(email)
+	return gip.SendRegistrationEmail(email, os.Getenv("SIGNIN_REDIRECT_URL"))
 }
 
 // VerifyEmail check email is stored in db and google identify platform

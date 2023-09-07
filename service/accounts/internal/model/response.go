@@ -12,3 +12,7 @@ type VerifyCardResponse struct {
 type CreateUserResponse struct {
 	Token string `json:"token"`
 }
+
+type SignInResponse struct {
+	IdToke string `json:"idToke"`
+}
