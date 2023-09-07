@@ -12,8 +12,8 @@ import (
 type AccountService interface {
 	Signup(email string) error
 	ConfirmEmail(email, timestamp, signature string) (int, error)
-	VerifyCard(token, email, name string) error
-	CreateUser(email, code, sign, token, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry string) (string, error)
+	VerifyCard(token, email, name string) (string, string, error)
+	CreateUser(email, code, sign, token, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID string) (string, error)
 	Signin(email string) error
 }
 

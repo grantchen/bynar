@@ -34,6 +34,8 @@ type CreateUserRequest struct {
 	Token               string `json:"token" valid:""`
 	Code                string `json:"code" valid:""`
 	Sign                string `json:"sign" valid:""`
+	CustomerID          string `json:"customerID" valid:""`
+	SourceID            string `json:"sourceID" valid:""`
 }
 
 // SignInRequest user sign_in request struct

@@ -59,36 +59,16 @@ func (s *accountServiceHandler) ConfirmEmail(email, timestamp, signature string)
 }
 
 // VerifyCard is a service method which verify card of new account
-func (s *accountServiceHandler) VerifyCard(token, email, name string) error {
-	_, err := s.paymentProvider.ValidateCard(&models.ValidateCardRequest{Token: token, Email: email, Name: name})
+func (s *accountServiceHandler) VerifyCard(token, email, name string) (string, string, error) {
+	resp, err := s.paymentProvider.ValidateCard(&models.ValidateCardRequest{Token: token, Email: email, Name: name})
 	if err != nil {
-		return err
+		return "", "", err
 	}
-	return nil
+	return resp.Customer.ID, resp.Source.ID, nil
 }
 
-// // ResendVerificationCode is a service method which resend the verification code for email verification
-// func (s *accountServiceHandler) ResendVerificationCode(email string) error {
-// 	return nil
-// }
-
-// // AddUserDetails is a service method which add contract infomation of new account
-// func (s *accountServiceHandler) AddUserDetails(fullName, country, address, address2, city, postalCode, state, phone string) error {
-// 	return nil
-// }
-
-// // AddTaxDetails is a service method which add tax infomation of new account
-// func (s *accountServiceHandler) AddTaxDetails(organization, number, country string) error {
-// 	return nil
-// }
-
-// // AddCreditCard is a service method which validating the user with help of Checkout.com API
-// func (s *accountServiceHandler) AddCreditCard(number, date, code string) error {
-// 	return nil
-// }
-
 // CreateUser is a service method which handles the logic of new user registration
-func (s *accountServiceHandler) CreateUser(email, code, sign, token, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry string) (string, error) {
+func (s *accountServiceHandler) CreateUser(email, code, sign, token, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID string) (string, error) {
 	// recheck user exist
 	err := s.ar.CheckUserExists(email)
 	if err != nil {
@@ -96,11 +76,6 @@ func (s *accountServiceHandler) CreateUser(email, code, sign, token, fullName, c
 	}
 	// revalidate email
 	err = gip.VerificationEmail(code)
-	if err != nil {
-		return "", err
-	}
-	// revalidate card
-	cardResp, err := s.paymentProvider.ValidateCard(&models.ValidateCardRequest{Token: token, Email: email, Name: fullName})
 	if err != nil {
 		return "", err
 	}
@@ -127,5 +102,5 @@ func (s *accountServiceHandler) CreateUser(email, code, sign, token, fullName, c
 		return uid, err
 	}
 	// create user in db
-	return uid, s.ar.CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, cardResp.Customer.ID, cardResp.Source.ID)
+	return uid, s.ar.CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID)
 }
