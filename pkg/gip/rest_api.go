@@ -5,20 +5,20 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"time"
 )
 
 // Send registration email
-func SendRegistrationEmail(email string) error {
+func SendRegistrationEmail(email, continueUrl string) error {
 	url := "https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=%s"
 	url = fmt.Sprintf(url, os.Getenv(ENVGoogleAPIKey))
 	data := map[string]interface{}{
 		"requestType": "EMAIL_SIGNIN",
 		"email":       email,
-		"continueUrl": "http://bynar-397714.firebaseapp.com/signup",
+		"continueUrl": continueUrl,
 	}
 	jsonByte, _ := json.Marshal(data)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonByte))
@@ -35,7 +35,7 @@ func SendRegistrationEmail(email string) error {
 		return err
 	}
 	defer res.Body.Close()
-	response, _ := ioutil.ReadAll(res.Body)
+	response, _ := io.ReadAll(res.Body)
 	if res.StatusCode != 200 {
 		return errors.New(string(response))
 	}
@@ -65,7 +65,7 @@ func VerificationEmail(oobCode string) error {
 		return err
 	}
 	defer res.Body.Close()
-	response, _ := ioutil.ReadAll(res.Body)
+	response, _ := io.ReadAll(res.Body)
 	if res.StatusCode != 200 {
 		return errors.New(string(response))
 	}

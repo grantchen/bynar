@@ -48,7 +48,7 @@ func (h *AccountHandler) ConfirmEmail(w http.ResponseWriter, r *http.Request) {
 		render.Error(w, err.Error())
 		return
 	}
-	id, err := h.as.ConfirmEmail(req.Email, req.Code)
+	id, err := h.as.ConfirmEmail(req.Email, req.Timestamp, req.Signature)
 	if err != nil {
 		render.Error(w, err.Error())
 	}

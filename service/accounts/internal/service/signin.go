@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
+	"os"
 )
 
 // Signin is a service method which handles the logic of user login
@@ -19,5 +20,5 @@ func (s *accountServiceHandler) Signin(email string) error {
 	if exists == false {
 		return fmt.Errorf("account with email: %s has not signup", email)
 	}
-	return gip.SendRegistrationEmail(email)
+	return gip.SendRegistrationEmail(email, os.Getenv("SIGNIN_REDIRECT_URL"))
 }

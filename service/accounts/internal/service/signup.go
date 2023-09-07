@@ -3,6 +3,11 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
+	"os"
+	"strconv"
+	"time"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/models"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
@@ -14,15 +19,42 @@ func (s *accountServiceHandler) Signup(email string) error {
 	if err != nil {
 		return err
 	}
-	return gip.SendRegistrationEmail(email)
+
+	// Since unregistered users cannot verify oobcode in google identify platform, we decided to customize the verification
+	// We sign mailboxes and timestamps to prevent data from being tampered with and to verify expiration dates
+	// A character string to be signed in the following format
+	needSignatureString := "email=%s&timestamp=%s"
+	needSignatureString = fmt.Sprintf(needSignatureString, email, strconv.FormatInt(time.Now().UnixMilli(), 10))
+	// Sign data with a custom key
+	signature := utils.HmacSha1Signature(os.Getenv("SIGNUP_CUSTOM_VERIFICATION_KEY"), needSignatureString)
+	// Append the signature to continueUrl
+	continueUrl := "%s?%s&signature=%s"
+	continueUrl = fmt.Sprintf(continueUrl, os.Getenv("SIGNUP_REDIRECT_URL"), needSignatureString, signature)
+
+	return gip.SendRegistrationEmail(email, continueUrl)
 }
 
 // ConfirmEmail is a service method which confirms the email of new account
-func (s *accountServiceHandler) ConfirmEmail(email, code string) (int, error) {
-	err := gip.VerificationEmail(code)
-	if err != nil {
-		return 0, err
+func (s *accountServiceHandler) ConfirmEmail(email, timestamp, signature string) (int, error) {
+	// Since unregistered users cannot verify oobcode in google identify platform, we decided to customize the verification
+	// We sign mailboxes and timestamps to prevent data from being tampered with and to verify expiration dates
+	// A character string to be signed in the following format
+	needSignatureString := "email=%s&timestamp=%s"
+	needSignatureString = fmt.Sprintf(needSignatureString, email, timestamp)
+	// Sign data with a custom key
+	nowSignature := utils.HmacSha1Signature(os.Getenv("SIGNUP_CUSTOM_VERIFICATION_KEY"), needSignatureString)
+
+	// Verify whether the signatures are consistent
+	if signature != nowSignature {
+		return 0, errors.New("wrong signature")
 	}
+
+	// Verify that the timestamp is expired. The expiration time is 5 minutes
+	timestampInt64, _ := strconv.ParseInt(timestamp, 10, 64)
+	if (time.Now().UnixMilli()-timestampInt64)/1000 > 60*5 {
+		return 0, errors.New("the timestamp has expired")
+	}
+
 	return 0, nil
 }
 

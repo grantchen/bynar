@@ -1,3 +1,6 @@
+Thursday, 2023/09/07
+- Use a custom verification process when registering. The hmac-sha1 algorithm is used (done).
+
 Wednesday, 2023/09/06
 - Refactor the gip package and add unit tests (done).
 - Accounts service handler add gip and checkout providers for verify email and card.
