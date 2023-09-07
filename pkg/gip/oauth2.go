@@ -1,0 +1,57 @@
+package gip
+
+import (
+	"context"
+	"net/http"
+	"os"
+
+	"google.golang.org/api/option"
+	"google.golang.org/api/transport"
+)
+
+// firebaseScopes is the set of OAuth2 scopes used by the Admin SDK.
+var firebaseScopes = []string{
+	"https://www.googleapis.com/auth/cloud-platform",
+	"https://www.googleapis.com/auth/datastore",
+	"https://www.googleapis.com/auth/devstorage.full_control",
+	"https://www.googleapis.com/auth/firebase",
+	"https://www.googleapis.com/auth/identitytoolkit",
+	"https://www.googleapis.com/auth/userinfo.email",
+}
+
+// oauth2Client is client for Google API OAuth2.
+type oauth2Client struct {
+	projectID string
+	opts      []option.ClientOption // option for a Google API client
+}
+
+func newOAuth2Client(ctx context.Context, opts ...option.ClientOption) (*oauth2Client, error) {
+	o := []option.ClientOption{
+		option.WithScopes(firebaseScopes...),
+		option.WithCredentialsFile(os.Getenv(ENVGoogleApplicationCredentials)),
+	}
+	o = append(o, opts...)
+
+	return &oauth2Client{
+		opts:      o,
+		projectID: getProjectID(ctx),
+	}, nil
+}
+
+// newHttpClient creates a new instance of the Http Client with oauth2 options.
+func (c *oauth2Client) newHttpClient(ctx context.Context) (*http.Client, error) {
+	httpClient, _, err := transport.NewHTTPClient(ctx, c.opts...)
+	if err != nil {
+		return nil, err
+	}
+	return httpClient, nil
+}
+
+func getProjectID(ctx context.Context, opts ...option.ClientOption) string {
+	creds, _ := transport.Creds(ctx, opts...)
+	if creds != nil && creds.ProjectID != "" {
+		return creds.ProjectID
+	}
+
+	return ""
+}

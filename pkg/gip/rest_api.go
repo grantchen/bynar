@@ -2,6 +2,7 @@ package gip
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,8 +14,13 @@ import (
 
 // Send registration email
 func SendRegistrationEmail(email, continueUrl string) error {
-	url := "https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=%s"
-	url = fmt.Sprintf(url, os.Getenv(ENVGoogleAPIKey))
+	oAuthClient, err := newOAuth2Client(context.Background())
+	if err != nil {
+		return err
+	}
+
+	url := "https://identitytoolkit.googleapis.com/v1/projects/%s/accounts:sendOobCode?key=%s"
+	url = fmt.Sprintf(url, oAuthClient.projectID, os.Getenv(ENVGoogleAPIKey))
 	data := map[string]interface{}{
 		"requestType": "EMAIL_SIGNIN",
 		"email":       email,
@@ -27,10 +33,11 @@ func SendRegistrationEmail(email, continueUrl string) error {
 	}
 	defer req.Body.Close()
 
-	client := &http.Client{
-		Timeout: 20 * time.Second,
+	httpClient, err := oAuthClient.newHttpClient(context.Background())
+	if err != nil {
+		return err
 	}
-	res, err := client.Do(req)
+	res, err := httpClient.Do(req)
 	if err != nil {
 		return err
 	}
