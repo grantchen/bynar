@@ -17,6 +17,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/render"
 	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
@@ -80,10 +81,10 @@ func main() {
 	accountHandler := account_http_handler.NewHTTPHandler(accountDB, authProvider, paymentProvider)
 
 	// Signup endpoints
-	http.HandleFunc("/signup", accountHandler.Signup)
-	http.HandleFunc("/confirm-email", accountHandler.ConfirmEmail)
-	http.HandleFunc("/verify-card", accountHandler.VerifyCard)
-	http.HandleFunc("/create-user", accountHandler.CreateUser)
+	http.Handle("/signup", render.CorsMiddleware(http.HandlerFunc(accountHandler.Signup)))
+	http.Handle("/confirm-email", render.CorsMiddleware(http.HandlerFunc(accountHandler.ConfirmEmail)))
+	http.Handle("/verify-card", render.CorsMiddleware(http.HandlerFunc(accountHandler.VerifyCard)))
+	http.Handle("/create-user", render.CorsMiddleware(http.HandlerFunc(accountHandler.CreateUser)))
 
 	lsHandlerMapping := make([]*HandlerMapping, 0)
 	lsHandlerMapping = append(lsHandlerMapping,

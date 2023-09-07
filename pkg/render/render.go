@@ -8,6 +8,16 @@ import (
 	"reflect"
 )
 
+func CorsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "OPTIONS" {
+			Ok(w, nil)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func DecodeJSON(r io.Reader, v interface{}) error {
 	data, err := io.ReadAll(r)
 	if err != nil {
@@ -44,7 +54,25 @@ func Ok(w http.ResponseWriter, v interface{}) {
 }
 
 func Error(w http.ResponseWriter, msg string) {
-	http.Error(w, msg, http.StatusInternalServerError)
+	data, err := json.Marshal(struct {
+		Error string `json:"error"`
+	}{Error: msg})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Add("Content-Type", "application/json; charset=utf-8")
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+	w.Header().Add("Access-Control-Allow-Methods", "GET, POST")
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+	http.Error(w, string(data), http.StatusInternalServerError)
+}
+
+func MethodNotAllowed(w http.ResponseWriter) {
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+	w.Header().Add("Access-Control-Allow-Methods", "GET, POST")
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 }
 
 func renderJSON(w http.ResponseWriter, v interface{}) {
@@ -54,5 +82,8 @@ func renderJSON(w http.ResponseWriter, v interface{}) {
 		return
 	}
 	w.Header().Add("Content-Type", "application/json; charset=utf-8")
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+	w.Header().Add("Access-Control-Allow-Methods", "GET, POST")
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
 	w.Write(data)
 }

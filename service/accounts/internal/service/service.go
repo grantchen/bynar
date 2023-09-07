@@ -11,9 +11,9 @@ import (
 // AccountService is a interface which provide helper methods to access account related operations
 type AccountService interface {
 	Signup(email string) error
-	ConfirmEmail(email, code string) (int, error)
-	VerifyCard(token, email, name string) error
-	CreateUser(email, code, sign, token, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry string) (string, error)
+	ConfirmEmail(email, timestamp, signature string) (int, error)
+	VerifyCard(token, email, name string) (string, string, error)
+	CreateUser(email, code, sign, token, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID string) (string, error)
 	SignIn(email, oobCode string) (string, error)
 	SendSignInEmail(email string) error
 	VerifyEmail(email string) error

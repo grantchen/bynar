@@ -3,6 +3,11 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
+	"os"
+	"strconv"
+	"time"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/models"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
@@ -14,49 +19,56 @@ func (s *accountServiceHandler) Signup(email string) error {
 	if err != nil {
 		return err
 	}
-	return gip.SendRegistrationEmail(email)
+
+	// Since unregistered users cannot verify oobcode in google identify platform, we decided to customize the verification
+	// We sign mailboxes and timestamps to prevent data from being tampered with and to verify expiration dates
+	// A character string to be signed in the following format
+	needSignatureString := "email=%s&timestamp=%s"
+	needSignatureString = fmt.Sprintf(needSignatureString, email, strconv.FormatInt(time.Now().UnixMilli(), 10))
+	// Sign data with a custom key
+	signature := utils.HmacSha1Signature(os.Getenv("SIGNUP_CUSTOM_VERIFICATION_KEY"), needSignatureString)
+	// Append the signature to continueUrl
+	continueUrl := "%s?%s&signature=%s"
+	continueUrl = fmt.Sprintf(continueUrl, os.Getenv("SIGNUP_REDIRECT_URL"), needSignatureString, signature)
+
+	return gip.SendRegistrationEmail(email, continueUrl)
 }
 
 // ConfirmEmail is a service method which confirms the email of new account
-func (s *accountServiceHandler) ConfirmEmail(email, code string) (int, error) {
-	err := gip.VerificationEmail(code)
-	if err != nil {
-		return 0, err
+func (s *accountServiceHandler) ConfirmEmail(email, timestamp, signature string) (int, error) {
+	// Since unregistered users cannot verify oobcode in google identify platform, we decided to customize the verification
+	// We sign mailboxes and timestamps to prevent data from being tampered with and to verify expiration dates
+	// A character string to be signed in the following format
+	needSignatureString := "email=%s&timestamp=%s"
+	needSignatureString = fmt.Sprintf(needSignatureString, email, timestamp)
+	// Sign data with a custom key
+	nowSignature := utils.HmacSha1Signature(os.Getenv("SIGNUP_CUSTOM_VERIFICATION_KEY"), needSignatureString)
+
+	// Verify whether the signatures are consistent
+	if signature != nowSignature {
+		return 0, errors.New("wrong signature")
 	}
+
+	// Verify that the timestamp is expired. The expiration time is 5 minutes
+	timestampInt64, _ := strconv.ParseInt(timestamp, 10, 64)
+	if (time.Now().UnixMilli()-timestampInt64)/1000 > 60*5 {
+		return 0, errors.New("the timestamp has expired")
+	}
+
 	return 0, nil
 }
 
 // VerifyCard is a service method which verify card of new account
-func (s *accountServiceHandler) VerifyCard(token, email, name string) error {
-	_, err := s.paymentProvider.ValidateCard(&models.ValidateCardRequest{Token: token, Email: email, Name: name})
+func (s *accountServiceHandler) VerifyCard(token, email, name string) (string, string, error) {
+	resp, err := s.paymentProvider.ValidateCard(&models.ValidateCardRequest{Token: token, Email: email, Name: name})
 	if err != nil {
-		return err
+		return "", "", err
 	}
-	return nil
+	return resp.Customer.ID, resp.Source.ID, nil
 }
 
-// // ResendVerificationCode is a service method which resend the verification code for email verification
-// func (s *accountServiceHandler) ResendVerificationCode(email string) error {
-// 	return nil
-// }
-
-// // AddUserDetails is a service method which add contract infomation of new account
-// func (s *accountServiceHandler) AddUserDetails(fullName, country, address, address2, city, postalCode, state, phone string) error {
-// 	return nil
-// }
-
-// // AddTaxDetails is a service method which add tax infomation of new account
-// func (s *accountServiceHandler) AddTaxDetails(organization, number, country string) error {
-// 	return nil
-// }
-
-// // AddCreditCard is a service method which validating the user with help of Checkout.com API
-// func (s *accountServiceHandler) AddCreditCard(number, date, code string) error {
-// 	return nil
-// }
-
 // CreateUser is a service method which handles the logic of new user registration
-func (s *accountServiceHandler) CreateUser(email, code, sign, token, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry string) (string, error) {
+func (s *accountServiceHandler) CreateUser(email, code, sign, token, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID string) (string, error) {
 	// recheck user exist
 	err := s.ar.CheckUserExists(email)
 	if err != nil {
@@ -64,11 +76,6 @@ func (s *accountServiceHandler) CreateUser(email, code, sign, token, fullName, c
 	}
 	// revalidate email
 	err = gip.VerificationEmail(code)
-	if err != nil {
-		return "", err
-	}
-	// revalidate card
-	cardResp, err := s.paymentProvider.ValidateCard(&models.ValidateCardRequest{Token: token, Email: email, Name: fullName})
 	if err != nil {
 		return "", err
 	}
@@ -95,5 +102,5 @@ func (s *accountServiceHandler) CreateUser(email, code, sign, token, fullName, c
 		return uid, err
 	}
 	// create user in db
-	return uid, s.ar.CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, cardResp.Customer.ID, cardResp.Source.ID)
+	return uid, s.ar.CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID)
 }

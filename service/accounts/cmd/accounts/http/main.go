@@ -9,6 +9,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/render"
 	"github.com/joho/godotenv"
 )
 
@@ -37,13 +38,13 @@ func main() {
 	handler := http_handler.NewHTTPHandler(db, authProvider, paymentProvider)
 
 	// Signup endpoints
-	http.HandleFunc("/signup", handler.Signup)
-	http.HandleFunc("/confirm-email", handler.ConfirmEmail)
-	http.HandleFunc("/verify-card", handler.VerifyCard)
-	http.HandleFunc("/create-user", handler.CreateUser)
+	http.Handle("/signup", render.CorsMiddleware(http.HandlerFunc(handler.Signup)))
+	http.Handle("/confirm-email", render.CorsMiddleware(http.HandlerFunc(handler.ConfirmEmail)))
+	http.Handle("/verify-card", render.CorsMiddleware(http.HandlerFunc(handler.VerifyCard)))
+	http.Handle("/create-user", render.CorsMiddleware(http.HandlerFunc(handler.CreateUser)))
 
 	// Signin endpoints
-	http.HandleFunc("/signin", handler.Signin)
+	http.Handle("/signin", render.CorsMiddleware(http.HandlerFunc(handler.Signin)))
 
 	log.Println("start server at 8080!")
 	log.Fatal(http.ListenAndServe(":8080", nil))

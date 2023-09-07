@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -14,7 +13,7 @@ func (r *accountRepositoryHandler) CheckUserExists(email string) error {
 	var id int
 	err := r.db.QueryRow("SELECT id FROM accounts WHERE email = ? AND status=1;", email).Scan(&id)
 	if err == nil && id != 0 {
-		return fmt.Errorf("account with email: %s has already exist", email)
+		return errors.New("username already exist")
 	}
 	return nil
 }

@@ -23,7 +23,7 @@ func NewHTTPHandler(db *sql.DB, authProvider gip.AuthProvider, paymentProvider c
 
 func (h *AccountHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		render.MethodNotAllowed(w)
 		return
 	}
 	var req model.SignupRequest
@@ -40,7 +40,7 @@ func (h *AccountHandler) Signup(w http.ResponseWriter, r *http.Request) {
 
 func (h *AccountHandler) ConfirmEmail(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		render.MethodNotAllowed(w)
 		return
 	}
 	var req model.ConfirmEmailRequest
@@ -48,16 +48,17 @@ func (h *AccountHandler) ConfirmEmail(w http.ResponseWriter, r *http.Request) {
 		render.Error(w, err.Error())
 		return
 	}
-	id, err := h.as.ConfirmEmail(req.Email, req.Code)
+	id, err := h.as.ConfirmEmail(req.Email, req.Timestamp, req.Signature)
 	if err != nil {
 		render.Error(w, err.Error())
+		return
 	}
 	render.Ok(w, model.ConfirmEmailResponse{AccountID: id})
 }
 
 func (h *AccountHandler) VerifyCard(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		render.MethodNotAllowed(w)
 		return
 	}
 	var req model.VerifyCardRequest
@@ -65,17 +66,17 @@ func (h *AccountHandler) VerifyCard(w http.ResponseWriter, r *http.Request) {
 		render.Error(w, err.Error())
 		return
 	}
-	err := h.as.VerifyCard(req.Token, req.Email, req.Name)
+	customerID, sourceID, err := h.as.VerifyCard(req.Token, req.Email, req.Name)
 	if err != nil {
 		render.Error(w, err.Error())
 		return
 	}
-	render.Ok(w, nil)
+	render.Ok(w, &model.VerifyCardResponse{CustomerID: customerID, SourceID: sourceID})
 }
 
 func (h *AccountHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		render.MethodNotAllowed(w)
 		return
 	}
 	var req model.CreateUserRequest
@@ -87,7 +88,7 @@ func (h *AccountHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		render.Error(w, "Agreement not signed")
 		return
 	}
-	uid, err := h.as.CreateUser(req.Username, req.Code, req.Sign, req.Token, req.FullName, req.Country, req.AddressLine, req.AddressLine2, req.City, req.PostalCode, req.State, req.PhoneNumber, req.OrganizationName, req.VAT, req.OrganisationCountry)
+	uid, err := h.as.CreateUser(req.Username, req.Code, req.Sign, req.Token, req.FullName, req.Country, req.AddressLine, req.AddressLine2, req.City, req.PostalCode, req.State, req.PhoneNumber, req.OrganizationName, req.VAT, req.OrganisationCountry, req.CustomerID, req.SourceID)
 	if err != nil {
 		render.Error(w, err.Error())
 		return
@@ -98,7 +99,7 @@ func (h *AccountHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 // SignIn user sign in api
 func (h *AccountHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		render.MethodNotAllowed(w)
 		return
 	}
 	// TODO:
