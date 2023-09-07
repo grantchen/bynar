@@ -14,7 +14,9 @@ type AccountService interface {
 	ConfirmEmail(email, code string) (int, error)
 	VerifyCard(token, email, name string) error
 	CreateUser(email, code, sign, token, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry string) (string, error)
-	Signin(email string) error
+	SignIn(email, oobCode string) (string, error)
+	SendSignInEmail(email string) error
+	VerifyEmail(email string) error
 }
 
 type accountServiceHandler struct {

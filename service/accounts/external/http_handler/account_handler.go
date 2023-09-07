@@ -95,7 +95,8 @@ func (h *AccountHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	render.Ok(w, model.CreateUserResponse{Token: uid})
 }
 
-func (h *AccountHandler) Signin(w http.ResponseWriter, r *http.Request) {
+// SignIn user sign in api
+func (h *AccountHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -106,5 +107,6 @@ func (h *AccountHandler) Signin(w http.ResponseWriter, r *http.Request) {
 		render.Error(w, err.Error())
 		return
 	}
+	h.as.SignIn(req.Email, req.OobCode)
 	render.Ok(w, nil)
 }

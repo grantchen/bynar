@@ -38,5 +38,6 @@ type CreateUserRequest struct {
 
 // SignInRequest user sign_in request struct
 type SignInRequest struct {
-	Email string `json:"email" valid:""`
+	Email   string `json:"email" valid:""`
+	OobCode string `json:"oobCode" valid:""`
 }
