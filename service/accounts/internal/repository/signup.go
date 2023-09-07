@@ -70,7 +70,7 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region str
 }
 
 // CreateUser create a new account in db
-func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry string) error {
+func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID string) error {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return err
@@ -90,7 +90,7 @@ func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, add
 	}
 	_, err = tx.Exec(
 		`INSERT INTO account_cards (user_payment_gateway_id, user_id, status, is_default, source_id, account_id) VALUES (?, ?, ?, ?, ?, ?)`,
-		userID, userID, 1, 1, 1, userID,
+		customerID, sourceID, 1, 1, 1, userID,
 	)
 	if err != nil {
 		logrus.Errorf("CreateUser: error: %v", err)

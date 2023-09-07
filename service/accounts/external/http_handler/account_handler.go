@@ -65,7 +65,7 @@ func (h *AccountHandler) VerifyCard(w http.ResponseWriter, r *http.Request) {
 		render.Error(w, err.Error())
 		return
 	}
-	err := h.as.VerifyCard(req.ID, req.Token, req.Email, req.Name)
+	err := h.as.VerifyCard(req.Token, req.Email, req.Name)
 	if err != nil {
 		render.Error(w, err.Error())
 		return
@@ -87,7 +87,7 @@ func (h *AccountHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		render.Error(w, "Agreement not signed")
 		return
 	}
-	uid, err := h.as.CreateUser(req.Username, req.FullName, req.Country, req.AddressLine, req.AddressLine2, req.City, req.PostalCode, req.State, req.PhoneNumber, req.OrganizationName, req.VAT, req.OrganisationCountry)
+	uid, err := h.as.CreateUser(req.Username, req.Code, req.Sign, req.Token, req.FullName, req.Country, req.AddressLine, req.AddressLine2, req.City, req.PostalCode, req.State, req.PhoneNumber, req.OrganizationName, req.VAT, req.OrganisationCountry)
 	if err != nil {
 		render.Error(w, err.Error())
 		return

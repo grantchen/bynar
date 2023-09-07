@@ -13,7 +13,7 @@ func (*localConfig) GetDBConnection() string {
 	return os.Getenv(localDBConnKey)
 }
 
-// GetDBConnection implements AppConfig
+// GetAccountManagementConnection implements AppConfig
 func (*localConfig) GetAccountManagementConnection() string {
 	return os.Getenv(localAccountConnKey)
 }
