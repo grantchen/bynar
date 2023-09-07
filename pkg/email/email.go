@@ -3,18 +3,17 @@ package email
 import (
 	"errors"
 	"fmt"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
+	"os"
 )
 
 // Send mail
 func SendEmail(subject, toAddress, plainTextContent, htmlContent string) error {
-	sendgridConfig := config.GetSendgridConfig()
-	from := mail.NewEmail(sendgridConfig.FromName, sendgridConfig.FromAddress)
-	to := mail.NewEmail(sendgridConfig.ToName, toAddress)
+	from := mail.NewEmail(os.Getenv("SENDGRID_FROM_NAME"), os.Getenv("SENDGRID_FROM_ADDRESS"))
+	to := mail.NewEmail(os.Getenv("SENDGRID_TO_NAME"), toAddress)
 	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
-	client := sendgrid.NewSendClient(sendgridConfig.ApiKey)
+	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
 	response, err := client.Send(message)
 	if err != nil {
 		return err
@@ -56,7 +55,7 @@ func SendMagicLinkEmail(toAddress string) (string, error) {
 			Verify Email
 		</a>
 	`
-	href := config.GetSendgridConfig().MagicLinkUrl + "?verificationCode=" + verificationCode
+	href := os.Getenv("SENDGRID_REDIRECT_URL") + "?verificationCode=" + verificationCode
 	htmlContent = fmt.Sprintf(htmlContent, href)
 	if err := SendEmail(subject, toAddress, "", htmlContent); err != nil {
 		return verificationCode, err
