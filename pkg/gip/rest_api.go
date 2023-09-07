@@ -42,9 +42,9 @@ func SendRegistrationEmail(email, continueUrl string) error {
 		return err
 	}
 	defer res.Body.Close()
-	response, _ := io.ReadAll(res.Body)
+	_, _ = io.ReadAll(res.Body)
 	if res.StatusCode != 200 {
-		return errors.New(string(response))
+		return errors.New("failed to send email")
 	}
 
 	return nil
