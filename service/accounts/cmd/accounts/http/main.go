@@ -19,7 +19,7 @@ func main() {
 		log.Fatal("Error loading .env file in main service")
 	}
 
-	db, err := sql_db.NewConnection(os.Getenv("accounts.db_uri"))
+	db, err := sql_db.NewConnection(os.Getenv("ACCOUNTS_DB_URI"))
 	if err != nil {
 		log.Fatal(err)
 	}

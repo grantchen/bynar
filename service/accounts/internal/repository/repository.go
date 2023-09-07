@@ -6,7 +6,7 @@ import (
 
 // AccountRepository provides a interface on db level for user
 type AccountRepository interface {
-	Signup(email string) error
+	CheckUserExists(email string) error
 	CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry string) error
 }
 

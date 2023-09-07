@@ -10,7 +10,7 @@ import (
 
 // Signup is a service method which check the account is exist
 func (s *accountServiceHandler) Signup(email string) error {
-	err := s.ar.Signup(email)
+	err := s.ar.CheckUserExists(email)
 	if err != nil {
 		return err
 	}

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+
+	"github.com/joho/godotenv"
 
 	general_posting_setup_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/external/handler/http"
 	organizations_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/external/handler/service"
 	payments_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/external/handler/http"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
@@ -21,6 +26,8 @@ import (
 	sales_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/external/handler/http"
 	transfers_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/external/handler/http"
 	usergroups_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/external/handler/http"
+
+	account_http_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/http_handler"
 )
 
 type HandlerMapping struct {
@@ -51,6 +58,33 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
+
+	err = godotenv.Load(".env")
+	if err != nil {
+		log.Fatal("Error loading .env file in main service")
+	}
+
+	accountDB, err := sql_db.NewConnection(os.Getenv("accounts.db_uri"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	authProvider, err := gip.NewGIPClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+	paymentProvider, err := checkout.NewPaymentClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	accountHandler := account_http_handler.NewHTTPHandler(accountDB, authProvider, paymentProvider)
+
+	// Signup endpoints
+	http.HandleFunc("/signup", accountHandler.Signup)
+	http.HandleFunc("/confirm-email", accountHandler.ConfirmEmail)
+	http.HandleFunc("/verify-card", accountHandler.VerifyCard)
+	http.HandleFunc("/create-user", accountHandler.CreateUser)
 
 	lsHandlerMapping := make([]*HandlerMapping, 0)
 	lsHandlerMapping = append(lsHandlerMapping,
