@@ -32,8 +32,8 @@ type CreateUserRequest struct {
 	OrganisationCountry string `json:"organisationCountry" valid:""`
 	IsAgreementSigned   bool   `json:"isAgreementSigned" valid:""`
 	Token               string `json:"token" valid:""`
-	Code                string `json:"code" valid:""`
-	Sign                string `json:"sign" valid:""`
+	Timestamp           string `json:"timestamp" valid:""`
+	Signature           string `json:"signature" valid:""`
 	CustomerID          string `json:"customerID" valid:""`
 	SourceID            string `json:"sourceID" valid:""`
 }

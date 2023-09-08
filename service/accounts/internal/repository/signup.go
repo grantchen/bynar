@@ -3,7 +3,11 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"os"
+	"strings"
 
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
@@ -18,26 +22,26 @@ func (r *accountRepositoryHandler) CheckUserExists(email string) error {
 	return nil
 }
 
-func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, vat, country, uid string, accountID int) (int, error) {
+func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, vat, country, uid string, accountID int) (int, string, error) {
 	var organizationID int
+	organizationUUID := uuid.New().String()
 	err := tx.QueryRow(`SELECT id FROM organizations where vat_number=?;`, vat).Scan(&organizationID)
-	if err == nil {
-		return organizationID, nil
+	if err != nil && err != sql.ErrNoRows {
+		return 0, "", err
 	}
-	if err != sql.ErrNoRows {
-		return 0, err
+	if err == sql.ErrNoRows {
+		// Insert organization info to db
+		res, err := tx.Exec(
+			`INSERT INTO organizations (description, vat_number, country, organization_uuid, status, verified) VALUES (?, ?, ?, ?, ?, ?);`,
+			description, vat, country, organizationUUID, 1, 1,
+		)
+		if err != nil {
+			tx.Rollback()
+			return 0, "", err
+		}
+		newOrganizationID, _ := res.LastInsertId()
+		organizationID = int(newOrganizationID)
 	}
-	// Insert organization info to db
-	res, err := tx.Exec(
-		`INSERT INTO organizations (description, vat_number, country, organization_uuid, status, verified) VALUES (?, ?, ?, ?, ?, ?);`,
-		description, vat, country, uuid.New().String(), 1, 1,
-	)
-	if err != nil {
-		tx.Rollback()
-		return 0, err
-	}
-	newOrganizationID, _ := res.LastInsertId()
-	organizationID = int(newOrganizationID)
 	// Add relationship between the account and organization
 	_, err = tx.Exec(
 		`INSERT INTO oraginzation_accounts (organization_id, organization_user_uid, organization_user_id, oraginzation_main_account) VALUES (?, ?, ?, ?)`,
@@ -45,38 +49,47 @@ func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, v
 	)
 	if err != nil {
 		tx.Rollback()
-		return 0, err
+		return 0, "", err
 	}
-	return organizationID, nil
+	return organizationID, organizationUUID, nil
 }
 
-func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region string, organizationID int) error {
+func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region string, organizationID int) (string, error) {
 	// Check if is allowed to insert
-	var tanantID int
+	var tenantID int
 	var organizations int
 	var organizationsAllowed int
-	err := tx.QueryRow("SELECT id, organizations, organizations_allowed FROM tenants WHERE region = ?", region).Scan(&tanantID, &organizations, &organizationsAllowed)
+	var tenantUUID string
+	err := tx.QueryRow("SELECT id, organizations, organizations_allowed, tenant_uuid FROM tenants WHERE region = ?", region).Scan(&tenantID, &organizations, &organizationsAllowed, &tenantUUID)
 	if err != nil || organizations >= organizationsAllowed {
 		logrus.Error("create tenant error: ", err)
-		return errors.New("not allowed to insert tenants")
+		return "", errors.New("not allowed to insert tenants")
 	}
 	_, err = tx.Exec(
 		`INSERT INTO tenants_management (organization_id, tenant_id, status, suspended) VALUES (?, ?, ?, ?)`,
-		organizationID, tanantID, 1, 0,
+		organizationID, tenantID, 1, 0,
 	)
 	if err != nil {
 		tx.Rollback()
-		return err
+		return "", err
 	}
 	_, err = tx.Exec(
 		`UPDATE tenants SET organizations = ? WHERE id = ?`,
-		organizations+1, tanantID,
+		organizations+1, tenantID,
 	)
 	if err != nil {
 		tx.Rollback()
-		return err
+		return "", err
 	}
-	return nil
+	_, err = tx.Exec(
+		`UPDATE organizations SET tenant_id = ? WHERE id = ?`,
+		tenantID, organizationID,
+	)
+	if err != nil {
+		tx.Rollback()
+		return "", err
+	}
+	return tenantUUID, nil
 }
 
 func (r *accountRepositoryHandler) CreateCard(tx *sql.Tx, customerID, sourceID string, userID int) error {
@@ -115,7 +128,7 @@ func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, add
 		return err
 	}
 	userID, _ := res.LastInsertId()
-	organizationID, err := r.CreateOrganization(tx, organizationName, vat, organisationCountry, uid, int(userID))
+	organizationID, organizationUUID, err := r.CreateOrganization(tx, organizationName, vat, organisationCountry, uid, int(userID))
 	if err != nil {
 		logrus.Errorf("CreateUser: error: %v", err)
 		return err
@@ -125,10 +138,38 @@ func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, add
 		logrus.Errorf("CreateUser: error: %v", err)
 		return err
 	}
-	err = r.CreateTenantManagement(tx, state, organizationID)
+	tenantUUID, err := r.CreateTenantManagement(tx, state, organizationID)
 	if err != nil {
 		logrus.Errorf("CreateUser: error: %v", err)
 		return err
 	}
-	return tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+	return r.CreateEnvironment(tenantUUID, organizationUUID)
+}
+
+// CreateEnvironment create a new schema in db
+func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUID string) error {
+	connStr := os.Getenv(tenantUUID)
+	if strings.Contains(connStr, "?") {
+		connStr += "&multiStatements=true"
+	} else {
+		connStr += "?multiStatements=true"
+	}
+	db, err := sql.Open("mysql", connStr)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`", organizationUUID))
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(fmt.Sprintf("USE `%s`", organizationUUID))
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(model.SQL_TEMPLATE)
+	return err
 }

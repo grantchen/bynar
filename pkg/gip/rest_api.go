@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"os"
@@ -41,8 +42,9 @@ func SendRegistrationEmail(email, continueUrl string) error {
 		return err
 	}
 	defer res.Body.Close()
-	_, _ = io.ReadAll(res.Body)
+	resData, _ := io.ReadAll(res.Body)
 	if res.StatusCode != 200 {
+		logrus.Error("Send email error: ", string(resData))
 		return errors.New("failed to send email")
 	}
 
