@@ -18,11 +18,10 @@ func (s *accountServiceHandler) SignIn(email, oobCode string) (idToken string, e
 	if err != nil || account == nil {
 		return "", fmt.Errorf("SignIn: %s no user selected", email)
 	}
-	err = gip.VerificationEmail(account.Uid, oobCode)
+	err = gip.SignInWithEmailLink(email, oobCode)
 	if err != nil {
 		return "", fmt.Errorf("SignIn: verification oobCode err: %+v", err)
 	}
-
 	claims, err := convertSignInToClaims(account)
 	if err != nil {
 		return "", err
