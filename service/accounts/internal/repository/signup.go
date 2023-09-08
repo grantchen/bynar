@@ -7,9 +7,10 @@ import (
 	"os"
 	"strings"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 )
 
 // CheckUserExists check is email exist in db
@@ -17,7 +18,7 @@ func (r *accountRepositoryHandler) CheckUserExists(email string) error {
 	var id int
 	err := r.db.QueryRow("SELECT id FROM accounts WHERE email = ? AND status=1;", email).Scan(&id)
 	if err == nil && id != 0 {
-		return errors.New("username already exist")
+		return errors.New("email already exist")
 	}
 	return nil
 }
