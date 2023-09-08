@@ -75,7 +75,7 @@ func (s *accountServiceHandler) CreateUser(email, code, sign, token, fullName, c
 		return "", err
 	}
 	// revalidate email
-	err = gip.VerificationEmail(code)
+	err = gip.VerificationEmail("", code)
 	if err != nil {
 		return "", err
 	}

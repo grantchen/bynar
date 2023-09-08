@@ -9,7 +9,7 @@ import (
 type AccountRepository interface {
 	CheckUserExists(email string) error
 	CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID string) error
-	SelectAccount(email string) (*model.SignIn, error)
+	SelectSignInColumns(email string) (*model.SignIn, error)
 }
 
 type accountRepositoryHandler struct {

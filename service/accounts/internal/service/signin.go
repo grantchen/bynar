@@ -2,32 +2,30 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"os"
 )
 
 // SignIn is a service method which handles the logic of user login
 func (s *accountServiceHandler) SignIn(email, oobCode string) (idToken string, err error) {
-	if err := s.VerifyEmail(email); err != nil {
+	if err = s.VerifyEmail(email); err != nil {
 		return "", err
 	}
-	err = gip.VerificationEmail(oobCode)
-	if err != nil {
-		return "", fmt.Errorf("SignIn: verification oobCode err: %+v", err)
-	}
-	account, err := s.ar.SelectAccount(email)
+	account, err := s.ar.SelectSignInColumns(email)
 	if err != nil || account == nil {
 		return "", fmt.Errorf("SignIn: %s no user selected", email)
 	}
+	err = gip.VerificationEmail(account.Uid, oobCode)
+	if err != nil {
+		return "", fmt.Errorf("SignIn: verification oobCode err: %+v", err)
+	}
 
-	claims := map[string]interface{}{
-		"uid":                  account.Uid,
-		"organization_account": true,
-		"organization_user_id": account.OrganizationUserId,
-		"organization_status":  account.OrganizationStatus,
-		"tenant_uuid":          account.TenantUuid,
-		"organization_uuid":    account.OrganizationUuid,
+	claims, err := convertSignInToClaims(account)
+	if err != nil {
+		return "", err
 	}
 	token, err := s.authProvider.SignIn(context.Background(), account.Uid, claims)
 	if err != nil {
@@ -35,6 +33,20 @@ func (s *accountServiceHandler) SignIn(email, oobCode string) (idToken string, e
 	}
 	return token, nil
 
+}
+
+// covert signIn struct to claims map
+func convertSignInToClaims(signIn *model.SignIn) (map[string]interface{}, error) {
+	data, err := json.Marshal(&signIn)
+	if err != nil {
+		return nil, fmt.Errorf("convertSignInToClaims: marshal singin to []byte err: %+v", err)
+	}
+	claims := map[string]interface{}{}
+	err = json.Unmarshal(data, &claims)
+	if err != nil {
+		return nil, fmt.Errorf("convertSignInToClaims: unmarshal []byte to claims map err: %+v", err)
+	}
+	return claims, nil
 }
 
 // SendSignInEmail send google identify platform with oobCode for sign in

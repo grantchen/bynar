@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"time"
 )
 
 // Send registration email
@@ -51,11 +50,17 @@ func SendRegistrationEmail(email, continueUrl string) error {
 }
 
 // Verification email, invalid for type 'EMAIL SIGNIN'
-func VerificationEmail(oobCode string) error {
+func VerificationEmail(localId, oobCode string) error {
+	oAuthClient, err := newOAuth2Client(context.Background())
+	if err != nil {
+		return err
+	}
+
 	url := "https://identitytoolkit.googleapis.com/v1/accounts:update?key=%s"
 	url = fmt.Sprintf(url, os.Getenv(ENVGoogleAPIKey))
 	data := map[string]interface{}{
 		"oobCode": oobCode,
+		"localId": localId,
 	}
 	jsonByte, _ := json.Marshal(data)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonByte))
@@ -63,11 +68,8 @@ func VerificationEmail(oobCode string) error {
 		return err
 	}
 	defer req.Body.Close()
-
-	client := &http.Client{
-		Timeout: 20 * time.Second,
-	}
-	res, err := client.Do(req)
+	httpClient, err := oAuthClient.newHttpClient(context.Background())
+	res, err := httpClient.Do(req)
 	if err != nil {
 		return err
 	}
