@@ -68,17 +68,17 @@ func (s *accountServiceHandler) VerifyCard(token, email, name string) (string, s
 }
 
 // CreateUser is a service method which handles the logic of new user registration
-func (s *accountServiceHandler) CreateUser(email, code, sign, token, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID string) (string, error) {
+func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID string) (string, error) {
 	// recheck user exist
 	err := s.ar.CheckUserExists(email)
 	if err != nil {
 		return "", err
 	}
 	// revalidate email
-	err = gip.VerificationEmail("", code)
-	if err != nil {
-		return "", err
-	}
+	// err = gip.VerificationEmail(signature)
+	// if err != nil {
+	// 	return "", err
+	// }
 	// create user in gip
 	ok, err := s.authProvider.IsUserExists(context.TODO(), email)
 	if err != nil && !errors.Is(err, gip.ErrUserNotFound) {
