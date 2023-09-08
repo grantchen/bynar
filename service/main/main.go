@@ -86,6 +86,10 @@ func main() {
 	http.Handle("/verify-card", render.CorsMiddleware(http.HandlerFunc(accountHandler.VerifyCard)))
 	http.Handle("/create-user", render.CorsMiddleware(http.HandlerFunc(accountHandler.CreateUser)))
 
+	// Signin endpoints
+	http.Handle("/signin-email", render.CorsMiddleware(http.HandlerFunc(accountHandler.SendSignInEmail)))
+	http.Handle("/signin", render.CorsMiddleware(http.HandlerFunc(accountHandler.SignIn)))
+
 	lsHandlerMapping := make([]*HandlerMapping, 0)
 	lsHandlerMapping = append(lsHandlerMapping,
 		&HandlerMapping{handler: sales_handler.NewHTTPHandler(appConfig, db),
