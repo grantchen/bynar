@@ -115,6 +115,7 @@ func (h *AccountHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 	idToke, err := h.as.SignIn(req.Email, req.OobCode)
 	if err != nil {
 		render.Error(w, err.Error())
+		return
 	}
 	render.Ok(w, model.SignInResponse{IdToke: idToke})
 }
@@ -133,6 +134,7 @@ func (h *AccountHandler) SendSignInEmail(w http.ResponseWriter, r *http.Request)
 	err := h.as.SendSignInEmail(req.Email)
 	if err != nil {
 		render.Error(w, err.Error())
+		return
 	}
 	render.Ok(w, nil)
 }
