@@ -1,3 +1,6 @@
+Friday, 2023/09/08
+- Complete environment creation when user created. (done).
+
 Thursday, 2023/09/07
 - Use a custom verification process when registering. The hmac-sha1 algorithm is used (done).
 - Complete signup, confirm-email, verify-card, create-user handlers (done).
