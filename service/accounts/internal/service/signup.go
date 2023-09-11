@@ -112,5 +112,19 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 		return uid, errors.New("gip update user failed")
 	}
 	// create user in db
-	return uid, s.ar.CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID)
+	err = s.ar.CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID)
+	if err != nil {
+		logrus.Error("create user error: ", err.Error())
+		return uid, errors.New("create user failed")
+	}
+	account, err := s.ar.SelectSignInColumns(email)
+	if err != nil {
+		logrus.Error("select signin columns error: ", err.Error())
+		return uid, errors.New("select signin columns failed")
+	}
+	idToken, err := s.authProvider.SignIn(context.Background(), uid, map[string]interface{}{
+		"uid": account.Uid, "organization_uuid": account.OrganizationUuid, "organization_user_id": account.OrganizationUserId,
+		"organization_status": account.OrganizationStatus, "tenant_uuid": account.TenantUuid,
+		"organization_account": account.OrganizationMainAccount})
+	return idToken, err
 }
