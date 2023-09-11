@@ -43,6 +43,7 @@ type SignInRequest struct {
 	OobCode string `json:"oobCode" valid:""`
 }
 
+// SendSignInEmailRequest user send sign in email return struct
 type SendSignInEmailRequest struct {
 	Email string `json:"email" valid:""`
 }

@@ -13,6 +13,7 @@ type CreateUserResponse struct {
 	Token string `json:"token"`
 }
 
+// SignInResponse sign in api return struct
 type SignInResponse struct {
 	IdToke string `json:"idToke"`
 }
