@@ -35,6 +35,7 @@ type gipClient struct {
 	apiKey string
 }
 
+// NewGIPClient creates a new instance of the AuthProvider.
 func NewGIPClient() (AuthProvider, error) {
 	opt := option.WithCredentialsFile(os.Getenv(ENVGoogleApplicationCredentials))
 	app, err := firebase.NewApp(context.Background(), nil, opt)
@@ -238,6 +239,7 @@ func (g gipClient) VerifyIDTokenAndCheckRevoked(ctx context.Context, idToken str
 	return token.Claims, nil
 }
 
+// signInWithCustomTokenForTenant signs in using a custom token and tenant ID.
 func (g gipClient) signInWithCustomTokenForTenant(token string, tenantID string) (string, error) {
 	payload := map[string]interface{}{
 		"token":             token,
@@ -265,6 +267,7 @@ func (g gipClient) signInWithCustomTokenForTenant(token string, tenantID string)
 	return respBody.IDToken, err
 }
 
+// signInWithCustomToken signs in using a custom token.
 func (g gipClient) signInWithCustomToken(token string) (string, error) {
 	return g.signInWithCustomTokenForTenant(token, "")
 }
@@ -279,6 +282,7 @@ func (g gipClient) customTokenWithClaims(ctx context.Context, uid string, devCla
 	return client.CustomTokenWithClaims(ctx, uid, devClaims)
 }
 
+// postRequest sends a POST request to the specified URL with the specified request body.
 func (g gipClient) postRequest(url string, req []byte) ([]byte, error) {
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(req))
 	if err != nil {
