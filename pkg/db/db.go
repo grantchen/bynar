@@ -12,10 +12,11 @@ var db *sql.DB
 // NewConnection - creates db connection and does ping for checking.
 // Keep in mind that's reusing the same connection.
 func NewConnection(connString string) (*sql.DB, error) {
+	// to fix init account db and bynar db, so remove the code bellow
 	// connection already exist so return it
-	if db != nil {
-		return db, nil
-	}
+	// if db != nil {
+	// 	return db, nil
+	// }
 
 	return InitializeConnection(connString)
 }
