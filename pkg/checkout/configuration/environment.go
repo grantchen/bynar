@@ -11,6 +11,7 @@ import (
 	"os"
 )
 
+// Environment checkout env interface
 type Environment interface {
 	BaseUri() string
 	AuthorizationUri() string
@@ -18,6 +19,7 @@ type Environment interface {
 	IsSandbox() bool
 }
 
+// CheckoutEnv checkout env config
 type CheckoutEnv struct {
 	baseUri          string
 	authorizationUri string
@@ -25,22 +27,27 @@ type CheckoutEnv struct {
 	isSandbox        bool
 }
 
+// BaseUri return checkout base uri
 func (e *CheckoutEnv) BaseUri() string {
 	return e.baseUri
 }
 
+// AuthorizationUri return checkout authorization api uri
 func (e *CheckoutEnv) AuthorizationUri() string {
 	return e.authorizationUri
 }
 
+// PaymentsUri return checkout payments api uri
 func (e *CheckoutEnv) PaymentsUri() string {
 	return e.paymentsUri
 }
 
+// IsSandbox return current env is sandbox test
 func (e *CheckoutEnv) IsSandbox() bool {
 	return e.isSandbox
 }
 
+// NewEnvironment create checkout env
 func NewEnvironment(
 	baseUri string,
 	authorizationUri string,

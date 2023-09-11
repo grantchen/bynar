@@ -8,6 +8,7 @@ package checkout
 
 import "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/models"
 
+// PaymentClient checkout api interface
 type PaymentClient interface {
 	GenerateAuthToken(scope string) (models.AccessTokenResponse, error)
 	ValidateCard(userDetails *models.ValidateCardRequest) (models.ValidateCard, error)

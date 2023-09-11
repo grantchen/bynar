@@ -6,6 +6,7 @@
 
 package configuration
 
+// checkout oauth scopes constant
 const (
 	Vault                       = "vault"
 	VaultInstruments            = "vault:instruments"

@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
+	"github.com/joho/godotenv"
 	"log"
 	"net/http"
 
@@ -29,9 +31,13 @@ func main() {
 	// if err != nil {
 	// 	log.Panic(err)
 	// }
-
-	connString := "root:123456@tcp(localhost:3306)/bynar"
-	connAccountString := "root:123456@tcp(localhost:3306)/accounts_manager"
+	err := godotenv.Load("../main/.env")
+	if err != nil {
+		log.Fatal("Error loading .env file in main service")
+	}
+	appConfig := config.NewLocalConfig()
+	connString := appConfig.GetAccountManagementConnection()
+	connAccountString := appConfig.GetAccountManagementConnection()
 	// connString := "root:Munrfe2020@tcp(bynar-cet.ccwuyxj7ucnd.eu-central-1.rds.amazonaws.com:3306)/bynar"
 	db, err := sql_db.NewConnection(connString)
 

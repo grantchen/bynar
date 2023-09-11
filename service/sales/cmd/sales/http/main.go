@@ -1,16 +1,16 @@
 package main
 
 import (
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
+	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	"github.com/joho/godotenv"
 	"log"
 	"net/http"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/internal/service"
 )
@@ -22,19 +22,21 @@ var (
 )
 
 func main() {
-	secretmanager, err := utils.GetSecretManager()
+	//secretmanager, err := utils.GetSecretManager()
+	//if err != nil {
+	//	log.Panic(err)
+	//}
+	//
+	//appConfig := config.NewAWSSecretsManagerConfig(secretmanager)
+	//connString := appConfig.GetDBConnection()
+	//db, err := sql_db.NewConnection(connString)
+	err := godotenv.Load("../main/.env")
 	if err != nil {
-		log.Panic(err)
+		log.Fatal("Error loading .env file in main service")
 	}
-
-	appConfig := config.NewAWSSecretsManagerConfig(secretmanager)
+	appConfig := config.NewLocalConfig()
 	connString := appConfig.GetDBConnection()
 	db, err := sql_db.NewConnection(connString)
-
-	if err != nil {
-		log.Panic(err)
-	}
-
 	gridRowRep := treegrid.NewGridRepository(db, "sales",
 		"sale_lines",
 		repository.SaleFieldNames,

@@ -23,6 +23,7 @@ import (
 	"strings"
 )
 
+// checkout payment client struct
 type paymentClient struct {
 	clientID            string
 	clientSecret        string

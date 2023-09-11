@@ -6,6 +6,7 @@
 
 package constant
 
+// checkout .env file config key
 const (
 	ENVCheckoutClientId         = "checkout.client_id"
 	ENVCheckoutSandBox          = "checkout.sandbox"

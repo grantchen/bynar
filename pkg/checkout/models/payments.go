@@ -39,6 +39,7 @@ type ValidateCard struct {
 	Links           Links      `json:"_links"`
 }
 
+// Balances validate card balances response
 type Balances struct {
 	TotalAuthorized    int `json:"total_authorized"`
 	TotalVoided        int `json:"total_voided"`
@@ -49,11 +50,13 @@ type Balances struct {
 	AvailableToRefund  int `json:"available_to_refund"`
 }
 
+// Risk validate card risk response
 type Risk struct {
 	Flagged bool    `json:"flagged"`
 	Score   float64 `json:"score"`
 }
 
+// Source validate card source response
 type Source struct {
 	ID                      string `json:"id"`
 	Type                    string `json:"type"`
@@ -74,16 +77,19 @@ type Source struct {
 	PaymentAccountReference string `json:"payment_account_reference"`
 }
 
+// Phone validate card pone response
 type Phone struct {
 	Number string `json:"number"`
 }
 
+// Customer validate card customer response
 type Customer struct {
 	ID    string `json:"id"`
 	Email string `json:"email"`
 	Name  string `json:"name"`
 }
 
+// Processing validate card processing response
 type Processing struct {
 	AcquirerTransactionID    string `json:"acquirer_transaction_id"`
 	RetrievalReferenceNumber string `json:"retrieval_reference_number"`
@@ -92,15 +98,18 @@ type Processing struct {
 	Aft                      bool   `json:"aft"`
 }
 
+// Links validate card links response
 type Links struct {
 	Self    Link `json:"self"`
 	Actions Link `json:"actions"`
 }
 
+// Link validate card link response
 type Link struct {
 	Href string `json:"href"`
 }
 
+// CardValidationPayload validate card request struct
 type CardValidationPayload struct {
 	Source              TokenSource `json:"source"`
 	Currency            string      `json:"currency"`
@@ -108,11 +117,13 @@ type CardValidationPayload struct {
 	ProcessingChannelID string      `json:"processing_channel_id"`
 }
 
+// TokenSource validate card request struct
 type TokenSource struct {
 	Type  string `json:"type"`
 	Token string `json:"token"`
 }
 
+// NewCustomer validate card request struct
 type NewCustomer struct {
 	Email string `json:"email"`
 	Name  string `json:"name"`
