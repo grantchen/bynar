@@ -6,10 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"os"
+
+	"github.com/sirupsen/logrus"
 )
 
 // SendRegistrationEmail Send registration email
@@ -46,39 +47,6 @@ func SendRegistrationEmail(email, continueUrl string) error {
 	if res.StatusCode != 200 {
 		logrus.Error("Send email error: ", string(resData))
 		return errors.New("failed to send email")
-	}
-
-	return nil
-}
-
-// VerificationEmail Verification email, invalid for type 'EMAIL SIGNIN'
-func VerificationEmail(localId, oobCode string) error {
-	oAuthClient, err := newOAuth2Client(context.Background())
-	if err != nil {
-		return err
-	}
-
-	url := "https://identitytoolkit.googleapis.com/v1/accounts:update?key=%s"
-	url = fmt.Sprintf(url, os.Getenv(ENVGoogleAPIKey))
-	data := map[string]interface{}{
-		"oobCode": oobCode,
-		"localId": localId,
-	}
-	jsonByte, _ := json.Marshal(data)
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonByte))
-	if err != nil {
-		return err
-	}
-	defer req.Body.Close()
-	httpClient, err := oAuthClient.newHttpClient(context.Background())
-	res, err := httpClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-	response, _ := io.ReadAll(res.Body)
-	if res.StatusCode != 200 {
-		return errors.New(string(response))
 	}
 
 	return nil

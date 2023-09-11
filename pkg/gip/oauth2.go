@@ -25,6 +25,7 @@ type oauth2Client struct {
 	opts      []option.ClientOption // option for a Google API client
 }
 
+// newOAuth2Client creates a new instance of the OAuth2 client.
 func newOAuth2Client(ctx context.Context, opts ...option.ClientOption) (*oauth2Client, error) {
 	o := []option.ClientOption{
 		option.WithScopes(firebaseScopes...),
@@ -47,6 +48,7 @@ func (c *oauth2Client) newHttpClient(ctx context.Context) (*http.Client, error) 
 	return httpClient, nil
 }
 
+// getProjectID returns the project ID associated with the client from client options.
 func getProjectID(ctx context.Context, opts ...option.ClientOption) string {
 	creds, _ := transport.Creds(ctx, opts...)
 	if creds != nil && creds.ProjectID != "" {

@@ -23,9 +23,11 @@ func (r *accountRepositoryHandler) CheckUserExists(email string) error {
 	return nil
 }
 
+// CreateOrganization create the organization when creating user
 func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, vat, country, uid string, accountID int) (int, string, error) {
 	var organizationID int
 	organizationUUID := uuid.New().String()
+	// check if the organization exists
 	err := tx.QueryRow(`SELECT id FROM organizations where vat_number=?;`, vat).Scan(&organizationID)
 	if err != nil && err != sql.ErrNoRows {
 		return 0, "", err
@@ -55,17 +57,20 @@ func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, v
 	return organizationID, organizationUUID, nil
 }
 
+// CreateTenantManagement create the tanant managemant when creating user
 func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region string, organizationID int) (string, error) {
 	// Check if is allowed to insert
 	var tenantID int
 	var organizations int
 	var organizationsAllowed int
 	var tenantUUID string
+	// check the tanant exists
 	err := tx.QueryRow("SELECT id, organizations, organizations_allowed, tenant_uuid FROM tenants WHERE region = ?", region).Scan(&tenantID, &organizations, &organizationsAllowed, &tenantUUID)
 	if err != nil || organizations >= organizationsAllowed {
 		logrus.Error("create tenant error: ", err)
 		return "", errors.New("not allowed to insert tenants")
 	}
+	// insert managemant
 	_, err = tx.Exec(
 		`INSERT INTO tenants_management (organization_id, tenant_id, status, suspended) VALUES (?, ?, ?, ?)`,
 		organizationID, tenantID, 1, 0,
@@ -74,6 +79,7 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region str
 		tx.Rollback()
 		return "", err
 	}
+	// update the organizations count in tanants
 	_, err = tx.Exec(
 		`UPDATE tenants SET organizations = ? WHERE id = ?`,
 		organizations+1, tenantID,
@@ -82,6 +88,7 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region str
 		tx.Rollback()
 		return "", err
 	}
+	// update the tenant_id in organization
 	_, err = tx.Exec(
 		`UPDATE organizations SET tenant_id = ? WHERE id = ?`,
 		tenantID, organizationID,
@@ -95,6 +102,7 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region str
 
 func (r *accountRepositoryHandler) CreateCard(tx *sql.Tx, customerID, sourceID string, userID int) error {
 	var count int
+	// check the card is default
 	err := tx.QueryRow(`SELECT COUNT(*) FROM accounts_cards WHERE user_id = ?`, userID).Scan(&count)
 	if err != nil {
 		return err
@@ -103,6 +111,7 @@ func (r *accountRepositoryHandler) CreateCard(tx *sql.Tx, customerID, sourceID s
 	if count > 0 {
 		isDefault = 0
 	}
+	// insert account card info
 	_, err = tx.Exec(
 		`INSERT INTO accounts_cards (user_payment_gateway_id, user_id, status, is_default, source_id, account_id) VALUES (?, ?, ?, ?, ?, ?)`,
 		customerID, userID, 1, isDefault, sourceID, userID,
@@ -120,6 +129,7 @@ func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, add
 	if err != nil {
 		return err
 	}
+	// insert user base info
 	res, err := tx.Exec(
 		`INSERT INTO accounts (email, full_name, address, address_2, phone, city, postal_code, country, state, status, uid, org_id, verified) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
 		email, fullName, addressLine, addressLine2, phoneNumber, city, postalCode, country, state, 1, uid, nil, 1,
@@ -148,12 +158,24 @@ func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, add
 	if err != nil {
 		return err
 	}
-	return r.CreateEnvironment(tenantUUID, organizationUUID)
+	// create environment
+	return r.CreateEnvironment(tenantUUID, organizationUUID, int(userID))
+}
+
+func (r *accountRepositoryHandler) SetUserStatusToZero(userID int) {
+	if _, err := r.db.Exec(`UPDATE accounts SET status=? WHERE id=?`, 0, userID); err != nil {
+		logrus.Error("create environment failed, update account status to 0 error: ", err.Error())
+	}
 }
 
 // CreateEnvironment create a new schema in db
-func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUID string) error {
+func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUID string, userID int) error {
+	//get tanant mysql connstr from environment
 	connStr := os.Getenv(tenantUUID)
+	if len(connStr) == 0 {
+		r.SetUserStatusToZero(userID)
+		return errors.New("the tenant mysql connstr is not set")
+	}
 	if strings.Contains(connStr, "?") {
 		connStr += "&multiStatements=true"
 	} else {
@@ -161,16 +183,25 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 	}
 	db, err := sql.Open("mysql", connStr)
 	if err != nil {
+		r.SetUserStatusToZero(userID)
 		return err
 	}
+	// create database
 	_, err = db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`", organizationUUID))
 	if err != nil {
+		r.SetUserStatusToZero(userID)
 		return err
 	}
 	_, err = db.Exec(fmt.Sprintf("USE `%s`", organizationUUID))
 	if err != nil {
+		r.SetUserStatusToZero(userID)
 		return err
 	}
+	// create tables
 	_, err = db.Exec(model.SQL_TEMPLATE)
-	return err
+	if err != nil {
+		r.SetUserStatusToZero(userID)
+		return err
+	}
+	return nil
 }

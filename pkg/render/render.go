@@ -8,6 +8,7 @@ import (
 	"reflect"
 )
 
+// CorsMiddleware solve the CORS problem
 func CorsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "OPTIONS" {
@@ -18,6 +19,7 @@ func CorsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// DecodeJSON decode and validate the json request
 func DecodeJSON(r io.Reader, v interface{}) error {
 	data, err := io.ReadAll(r)
 	if err != nil {
@@ -44,6 +46,7 @@ func DecodeJSON(r io.Reader, v interface{}) error {
 	return err
 }
 
+// Ok success response
 func Ok(w http.ResponseWriter, v interface{}) {
 	if v == nil {
 		v = struct {
@@ -53,6 +56,7 @@ func Ok(w http.ResponseWriter, v interface{}) {
 	renderJSON(w, v)
 }
 
+// Error failure response
 func Error(w http.ResponseWriter, msg string) {
 	data, err := json.Marshal(struct {
 		Error string `json:"error"`
