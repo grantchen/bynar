@@ -6,6 +6,7 @@
 
 package model
 
+// SignIn generate token columns in database when user sign in
 type SignIn struct {
 	Uid                     string `json:"uid"`
 	OrganizationUuid        string `json:"organization_uuid"`

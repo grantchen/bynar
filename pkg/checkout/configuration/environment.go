@@ -13,9 +13,13 @@ import (
 
 // Environment checkout env interface
 type Environment interface {
+	// BaseUri checkout base url
 	BaseUri() string
+	// AuthorizationUri checkout connect token url
 	AuthorizationUri() string
+	// PaymentsUri checkout payments url
 	PaymentsUri() string
+	// IsSandbox checkout sandbox or not
 	IsSandbox() bool
 }
 
