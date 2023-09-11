@@ -3,6 +3,7 @@ package render
 import (
 	"encoding/json"
 	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
 	"io"
 	"net/http"
 	"reflect"
@@ -13,6 +14,15 @@ func CorsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "OPTIONS" {
 			Ok(w, nil)
+			return
+		}
+		// Verify if the token is correct
+		code, msg := middleware.VerifyIdToken(r)
+		if http.StatusOK != code {
+			if "" == msg {
+				msg = http.StatusText(code)
+			}
+			http.Error(w, msg, code)
 			return
 		}
 		next.ServeHTTP(w, r)

@@ -61,7 +61,7 @@ func (s *accountServiceHandler) SendSignInEmail(email string) error {
 		logrus.Errorf("SendSignInEmail: verify email error: %+v", err)
 		return errors.New("email is not signed up")
 	}
-	if err := gip.SendRegistrationEmail(email, os.Getenv("SIGNIN_REDIRECT_URL")); err != nil {
+	if err := gip.SendRegistrationEmail(email, fmt.Sprintf("%s?email=%s", os.Getenv("SIGNIN_REDIRECT_URL"), email)); err != nil {
 		logrus.Errorf("SendSignInEmail: send registration email error: %+v", err)
 		return errors.New("email sending failed")
 	}
