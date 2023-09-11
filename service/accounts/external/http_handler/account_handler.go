@@ -21,6 +21,7 @@ func NewHTTPHandler(db *sql.DB, authProvider gip.AuthProvider, paymentProvider c
 	return &AccountHandler{as}
 }
 
+// Signup endpoint use gip to send email
 func (h *AccountHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		render.MethodNotAllowed(w)
@@ -38,6 +39,7 @@ func (h *AccountHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	render.Ok(w, nil)
 }
 
+// ConfirmEmail endpoint
 func (h *AccountHandler) ConfirmEmail(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		render.MethodNotAllowed(w)
@@ -56,6 +58,7 @@ func (h *AccountHandler) ConfirmEmail(w http.ResponseWriter, r *http.Request) {
 	render.Ok(w, model.ConfirmEmailResponse{AccountID: id})
 }
 
+// VerifyCard endpoint
 func (h *AccountHandler) VerifyCard(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		render.MethodNotAllowed(w)
@@ -74,6 +77,7 @@ func (h *AccountHandler) VerifyCard(w http.ResponseWriter, r *http.Request) {
 	render.Ok(w, &model.VerifyCardResponse{CustomerID: customerID, SourceID: sourceID})
 }
 
+// CreateUser endpoint
 func (h *AccountHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		render.MethodNotAllowed(w)

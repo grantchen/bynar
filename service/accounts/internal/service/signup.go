@@ -60,6 +60,7 @@ func (s *accountServiceHandler) ConfirmEmail(email, timestamp, signature string)
 
 // VerifyCard is a service method which verify card of new account
 func (s *accountServiceHandler) VerifyCard(token, email, name string) (string, string, error) {
+	// Use checkout.com service to validate card
 	resp, err := s.paymentProvider.ValidateCard(&models.ValidateCardRequest{Token: token, Email: email, Name: name})
 	if err != nil {
 		return "", "", err
@@ -79,17 +80,19 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 	// if err != nil {
 	// 	return "", err
 	// }
-	// create user in gip
+	// check user exists in gip
 	ok, err := s.authProvider.IsUserExists(context.TODO(), email)
 	if err != nil && !errors.Is(err, gip.ErrUserNotFound) {
 		return "", err
 	}
 	if ok || errors.Is(err, gip.ErrUserNotFound) {
+		// If user exists in gip. delete it
 		err = s.authProvider.DeleteUserByEmail(context.TODO(), email)
 		if err != nil && !errors.Is(err, gip.ErrUserNotFound) {
 			return "", err
 		}
 	}
+	// create use in gip
 	uid, err := s.authProvider.CreateUser(context.TODO(), email, fullName, phoneNumber)
 	if err != nil {
 		return uid, err
@@ -97,6 +100,7 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 	customClaims := map[string]interface{}{
 		"country": organisationCountry,
 	}
+	// update custom user info in gip
 	err = s.authProvider.UpdateUser(context.TODO(), uid, map[string]interface{}{"customClaims": customClaims})
 	if err != nil {
 		return uid, err
