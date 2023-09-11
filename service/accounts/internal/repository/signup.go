@@ -159,13 +159,23 @@ func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, add
 		return err
 	}
 	// create environment
-	return r.CreateEnvironment(tenantUUID, organizationUUID)
+	return r.CreateEnvironment(tenantUUID, organizationUUID, int(userID))
+}
+
+func (r *accountRepositoryHandler) SetUserStatusToZero(userID int) {
+	if _, err := r.db.Exec(`UPDATE accounts SET status=? WHERE id=?`, 0, userID); err != nil {
+		logrus.Error("create environment failed, update account status to 0 error: ", err.Error())
+	}
 }
 
 // CreateEnvironment create a new schema in db
-func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUID string) error {
+func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUID string, userID int) error {
 	//get tanant mysql connstr from environment
 	connStr := os.Getenv(tenantUUID)
+	if len(connStr) == 0 {
+		r.SetUserStatusToZero(userID)
+		return errors.New("the tenant mysql connstr is not set")
+	}
 	if strings.Contains(connStr, "?") {
 		connStr += "&multiStatements=true"
 	} else {
@@ -173,18 +183,25 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 	}
 	db, err := sql.Open("mysql", connStr)
 	if err != nil {
+		r.SetUserStatusToZero(userID)
 		return err
 	}
 	// create database
 	_, err = db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`", organizationUUID))
 	if err != nil {
+		r.SetUserStatusToZero(userID)
 		return err
 	}
 	_, err = db.Exec(fmt.Sprintf("USE `%s`", organizationUUID))
 	if err != nil {
+		r.SetUserStatusToZero(userID)
 		return err
 	}
 	// create tables
 	_, err = db.Exec(model.SQL_TEMPLATE)
-	return err
+	if err != nil {
+		r.SetUserStatusToZero(userID)
+		return err
+	}
+	return nil
 }
