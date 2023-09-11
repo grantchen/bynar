@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<Grid>
+   <Cfg id='users' Size='Low' SuppressCfg='1'  ShowDeleted='1'/>
+   <Cfg Validate='All,Added,Focus,Edit,Changed,Text' ValidateMessageTime='2500' ValidateMessage="Ju lutemi plotësoni të dhënat e nevojshme tek qelizat me ngjyrë të kuqe!"/>
+   <Cfg SearchCells='1' SearchAction='Select' SearchHidden='1'/>
+   <Cfg Paging="3" ColPaging="2" PageLengthDiv="2" FastPages="100" PageLength="100"  AllPages='1' RemoveUnusedPages='3' />
+   <Cfg ChildPaging="3" ChildPageLength="25" ChildPageDiff="-25"/>
+   <Cfg ChildParts="2" ChildPartLength="1" ChildPartMin="1"/>
+   <Cfg MaxHeight='1'/>
+   <Cfg CopyPasteTree ='3'/>
+   <Cfg Alternate='2'/>   
+   <Cfg AutoCalendar='1'/> 
+   <Cfg SelectingCells='1' />
+   <Cfg ConstHeight='1'/>
+   <Cfg SearchNotFound='1' />
+   <Cfg ExportType='Expanded,Outline'/>
+   <Cfg CalculateSelected='1'/> 
+   <Cfg PrintVarHeight='2'/>
+   <Cfg Undo='1'/>
+   <Cfg SuppressMessage='1'/>
+   <Cfg NumberId='1' IdChars='0123456789'/> 
+   <Cfg PrintPagePrefix="&lt;center class='%9' style='width:%7px'>First example printed page %3 from %6&lt;/center>"/>
+   <Cfg PrintPagePostfix="&lt;center class='%9' style='width:%7px'>Page %1 horizontally from %4 , page %2 vertically from %5&lt;/center>"/>
+   <Cfg Language='EN'/>
+   <Colors Alternate="rgb(251,251,251,1)"/>
+   <Actions OnDel="ClearValue"/>
+   <Actions OnMouseOverEditable="Grid.MouseCursor('url(aero_prec.cur),default')"/>
+   <Pager Width="100" Visible='0'/>
+    <Panel Adding='1' Delete='1' Select='1' />
+
+   <Def>   
+      <D 
+         Name='Node' 
+         Parent='#Body' CDef='Data' Sorted='1' AcceptDef='Data' Spanned='1' Calculated='1' Expanded='1' CanFilter='1' 
+         item_id='Parent' item_idType='Text' item_idSpan="7" item_idCanEdit="0"  item_idAlign="Center" 
+
+      />
+
+      <D 
+         Name='Data' 
+         CDef='' AcceptDef='Data' 
+         Calculated='1' Spanned='1' Expanded='1' FormulaSuggest="6" A0="A0 centered &amp; scrolled"
+         document_id='Child' document_idSpan='9' document_idAlign="Center" document_idType='Text'  document_idCanEdit="0"
+         project_id='Child' project_idSpan='24' project_idAlign="Center" project_idType='Text'  project_idCanEdit="0"
+  
+      
+      />
+   </Def>
+
+
+   <Cols>
+      <C Name='email'  Width='150' Type='Text' CanEdit='1' VarHeight='1'   CaseSensitive='0' />
+      <C Name='full_name' Width='150' Type='Text' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='phone' Width='150' Type='Text' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='language_preference' Width='150' Type='Text' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='theme' Width='150' Type='Text' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='policy_id' Width='150' Type='Text' CanEdit='1'  CaseSensitive='0' VarHeight='1' />
+      <C Name='status' Width='150' Type='bool' CaseSensitive='0' CanEdit='1'   VarHeight='1'/>
+
+   </Cols>
+
+    <Root CDef='Node' AcceptDef='Node'/>
+
+    <Solid>     
+
+      <Group Space='1' Calculated='1' Panel='1' Custom='1' id='Group' CanFocus='0' NoUpload="0" CanGroup='1'/>
+      
+   </Solid>
+
+
+   <Head>
+      <Filter 
+         id='Filter' Calculated='1' CaseSensitive='0' 
+
+      />
+   </Head>
+
+     
+
+</Grid>
