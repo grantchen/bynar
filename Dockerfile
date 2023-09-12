@@ -31,7 +31,7 @@ RUN go build -v -o bynar_server
 # COPY service/main/bynar_server /bynar_server
 EXPOSE 8080
 # # Run the web service on container startup.
-CMD ["/bynar_server"]
+CMD ["/service/main/bynar_server"]
 
 # [END run_helloworld_dockerfile]
 # [END cloudrun_helloworld_dockerfile]
