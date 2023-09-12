@@ -78,14 +78,14 @@ func Error(w http.ResponseWriter, msg string) {
 	w.Header().Add("Content-Type", "application/json; charset=utf-8")
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 	w.Header().Add("Access-Control-Allow-Methods", "GET, POST")
-	w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Add("Access-Control-Allow-Headers", "*")
 	http.Error(w, string(data), http.StatusInternalServerError)
 }
 
 func MethodNotAllowed(w http.ResponseWriter) {
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 	w.Header().Add("Access-Control-Allow-Methods", "GET, POST")
-	w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Add("Access-Control-Allow-Headers", "*")
 	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 }
 
@@ -98,6 +98,6 @@ func renderJSON(w http.ResponseWriter, v interface{}) {
 	w.Header().Add("Content-Type", "application/json; charset=utf-8")
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 	w.Header().Add("Access-Control-Allow-Methods", "GET, POST")
-	w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Add("Access-Control-Allow-Headers", "*")
 	w.Write(data)
 }
