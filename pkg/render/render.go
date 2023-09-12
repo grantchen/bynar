@@ -1,7 +1,6 @@
 package render
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
