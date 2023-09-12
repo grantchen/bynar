@@ -93,7 +93,7 @@ func VerifyIdToken(r *http.Request) (int, string) {
 		return http.StatusInternalServerError, ""
 	}
 	var idTokenClaims = IdTokenClaims{}
-	err = json.Unmarshal(claimsBytes, idTokenClaims)
+	err = json.Unmarshal(claimsBytes, &idTokenClaims)
 	if err != nil {
 		logrus.Errorf("verifyIdToken: Unmarshal claims error: %v", err)
 		return http.StatusInternalServerError, ""
@@ -113,7 +113,7 @@ func GetIdTokenClaimsFromHttpRequestContext(r *http.Request) (*IdTokenClaims, er
 			return nil, errors.New("")
 		}
 		var idTokenClaims = IdTokenClaims{}
-		err = json.Unmarshal(claimsBytes, idTokenClaims)
+		err = json.Unmarshal(claimsBytes, &idTokenClaims)
 		if err != nil {
 			logrus.Errorf("GetIdTokenClaimsFromHttpRequestContext: Unmarshal claims error: %v", err)
 			return nil, errors.New("")
