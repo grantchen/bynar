@@ -1,12 +1,14 @@
 package render
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
 	"io"
 	"net/http"
 	"reflect"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
 )
 
 // CorsMiddleware solve the CORS problem

@@ -1,6 +1,7 @@
 package http_handler
 
 import (
+	"context"
 	"database/sql"
 	"net/http"
 
@@ -20,7 +21,7 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 
 	// uploadHandler := &http_handler.UploadHandler{ModuleID: ModuleID, AccountID: AccountID}
 	handler := &handler.HTTPTreeGridHandler{
-		CallbackUploadDataFunc: func(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
+		CallbackUploadDataFunc: func(ctx context.Context, req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 			conn := sql_db.Conn()
 			// because need create each conn string per req
 			uploadSvc, err := factory.NewUploadService(conn, ModuleID, AccountID)
