@@ -65,42 +65,42 @@ func getIdTokenFromHeader(r *http.Request) (error, string) {
 }
 
 // VerifyIdToken Verify idToken int http error code
-func VerifyIdToken(r *http.Request) (int, string) {
+func VerifyIdToken(r *http.Request) (int, string, *http.Request) {
 	if utils.IsStringArrayInclude(skipIdTokenAuthEndEndpoints, r.RequestURI) {
-		return http.StatusOK, ""
+		return http.StatusOK, "", r
 	}
 	err, idToken := getIdTokenFromHeader(r)
 	if err != nil {
 		logrus.Errorf("get idToken from request error: %+v", err)
-		return http.StatusBadRequest, ""
+		return http.StatusBadRequest, "", r
 	}
 	client, err := gip.NewGIPClient()
 	if err != nil {
 		logrus.Errorf("verifyIdToken: new GIPClient error: %v", err)
-		return http.StatusInternalServerError, ""
+		return http.StatusInternalServerError, "", r
 	}
 	claims, err := client.VerifyIDToken(context.Background(), idToken)
 	if err != nil {
 		logrus.Errorf("verifyIdToken: gip verify idToken error: %v", err)
 		if err == gip.ErrIDTokenInvalid {
-			return http.StatusUnauthorized, ""
+			return http.StatusUnauthorized, "", r
 		}
-		return http.StatusInternalServerError, ""
+		return http.StatusInternalServerError, "", r
 	}
 	claimsBytes, err := json.Marshal(claims)
 	if err != nil {
 		logrus.Errorf("verifyIdToken: Marshal claims error: %v", err)
-		return http.StatusInternalServerError, ""
+		return http.StatusInternalServerError, "", r
 	}
 	var idTokenClaims = IdTokenClaims{}
 	err = json.Unmarshal(claimsBytes, &idTokenClaims)
 	if err != nil {
 		logrus.Errorf("verifyIdToken: Unmarshal claims error: %v", err)
-		return http.StatusInternalServerError, ""
+		return http.StatusInternalServerError, "", r
 	}
 	// set current_user to request
-	r.WithContext(context.WithValue(r.Context(), "id_token", idTokenClaims))
-	return http.StatusOK, ""
+	ctx := context.WithValue(context.Background(), "id_token", idTokenClaims)
+	return http.StatusOK, "", r.WithContext(ctx)
 }
 
 // GetIdTokenClaimsFromHttpRequestContext get idToken claims from request context

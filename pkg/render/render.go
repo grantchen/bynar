@@ -17,7 +17,7 @@ func CorsMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		// Verify if the token is correct
-		code, msg := middleware.VerifyIdToken(r)
+		code, msg, newRequest := middleware.VerifyIdToken(r)
 		if http.StatusOK != code {
 			if "" == msg {
 				msg = http.StatusText(code)
@@ -25,7 +25,7 @@ func CorsMiddleware(next http.Handler) http.Handler {
 			http.Error(w, msg, code)
 			return
 		}
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, newRequest)
 	})
 }
 
