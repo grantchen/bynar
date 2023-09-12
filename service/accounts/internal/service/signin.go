@@ -83,3 +83,12 @@ func (s *accountServiceHandler) VerifyEmail(email string) error {
 	}
 	return nil
 }
+
+// GetUserByUid after signin get user info
+func (s *accountServiceHandler) GetUserByUid(uid string) (*model.GetUserResponse, error) {
+	user, err := s.ar.SelectUserByUid(uid)
+	if err != nil {
+		return nil, errors.New("user not fund")
+	}
+	return user, nil
+}

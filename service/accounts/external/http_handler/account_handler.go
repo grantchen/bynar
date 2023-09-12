@@ -2,6 +2,7 @@ package http_handler
 
 import (
 	"database/sql"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
 	"net/http"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
@@ -141,4 +142,23 @@ func (h *AccountHandler) SendSignInEmail(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	render.Ok(w, nil)
+}
+
+// User get user info when user sign_in
+func (h *AccountHandler) User(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		render.MethodNotAllowed(w)
+		return
+	}
+	idTokenClaims, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
+	if err != nil {
+		render.Error(w, err.Error())
+		return
+	}
+	userResponse, err := h.as.GetUserByUid(idTokenClaims.Uid)
+	if err != nil {
+		render.Error(w, err.Error())
+		return
+	}
+	render.Ok(w, userResponse)
 }

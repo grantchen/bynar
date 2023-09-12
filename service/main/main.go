@@ -89,6 +89,8 @@ func main() {
 	// Signin endpoints
 	http.Handle("/signin-email", render.CorsMiddleware(http.HandlerFunc(accountHandler.SendSignInEmail)))
 	http.Handle("/signin", render.CorsMiddleware(http.HandlerFunc(accountHandler.SignIn)))
+	// user endpoints
+	http.Handle("/user", render.CorsMiddleware(http.HandlerFunc(accountHandler.User)))
 
 	lsHandlerMapping := make([]*HandlerMapping, 0)
 	lsHandlerMapping = append(lsHandlerMapping,

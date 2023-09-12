@@ -11,6 +11,8 @@ type AccountRepository interface {
 	CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID string) error
 	// SelectSignInColumns select columns to generate token when user sign in
 	SelectSignInColumns(email string) (*model.SignIn, error)
+	// SelectUserByUid select user by uid
+	SelectUserByUid(uid string) (*model.GetUserResponse, error)
 }
 
 type accountRepositoryHandler struct {

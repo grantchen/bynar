@@ -2,6 +2,7 @@ package service
 
 import (
 	"database/sql"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
@@ -19,6 +20,7 @@ type AccountService interface {
 	// SendSignInEmail send sign in email of Google identify platform
 	SendSignInEmail(email string) error
 	VerifyEmail(email string) error
+	GetUserByUid(uid string) (*model.GetUserResponse, error)
 }
 
 type accountServiceHandler struct {

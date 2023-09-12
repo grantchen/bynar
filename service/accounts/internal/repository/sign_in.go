@@ -25,7 +25,7 @@ func (r *accountRepositoryHandler) SelectSignInColumns(email string) (*model.Sig
 		join oraginzation_accounts oa on a.id = oa.organization_user_id
 		join organizations os on oa.organization_id=os.id
 		join tenants t on os.tenant_id = t.id
-		where a.email = ? and a.status = true and a.verified = true`
+		where a.email = ? and a.status = true and a.verified = true `
 	var signIn = model.SignIn{}
 	err := r.db.QueryRow(querySql, email).Scan(&signIn.Uid,
 		&signIn.OrganizationUserId, &signIn.OrganizationMainAccount,
@@ -35,4 +35,16 @@ func (r *accountRepositoryHandler) SelectSignInColumns(email string) (*model.Sig
 		return nil, fmt.Errorf("query row: [%w]", err)
 	}
 	return &signIn, nil
+}
+
+// SelectUserByUid select accounts by uid
+func (r *accountRepositoryHandler) SelectUserByUid(uid string) (*model.GetUserResponse, error) {
+	var querySql = `select a.email,a.full_name from accounts a where a.uid = ? limit 1`
+	var user = model.GetUserResponse{}
+	err := r.db.QueryRow(querySql, uid).Scan(
+		&user.Email, &user.FullName)
+	if err != nil {
+		return nil, fmt.Errorf("query row: [%w]", err)
+	}
+	return &user, nil
 }

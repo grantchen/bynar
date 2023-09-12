@@ -17,3 +17,11 @@ type CreateUserResponse struct {
 type SignInResponse struct {
 	IdToke string `json:"idToke"`
 }
+
+// GetUserResponse get user api return struct
+type GetUserResponse struct {
+	LanguagePreference string `json:"languagePreference"`
+	Email              string `json:"email"`
+	FullName           string `json:"fullName"`
+	//todo add other column
+}

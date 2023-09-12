@@ -8,6 +8,7 @@ package middleware
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
@@ -15,6 +16,32 @@ import (
 	"net/http"
 	"strings"
 )
+
+// IdTokenClaims idToken decode struct
+type IdTokenClaims struct {
+	Name                string `json:"name"`
+	OrganizationAccount bool   `json:"organization_account"`
+	OrganizationStatus  bool   `json:"organization_status"`
+	OrganizationUserId  string `json:"organization_user_id"`
+	OrganizationUuid    string `json:"organization_uuid"`
+	TenantUuid          string `json:"tenant_uuid"`
+	Uid                 string `json:"uid"`
+	Iss                 string `json:"iss"`
+	Aud                 string `json:"aud"`
+	AuthTime            int    `json:"auth_time"`
+	UserId              string `json:"user_id"`
+	Sub                 string `json:"sub"`
+	Iat                 int    `json:"iat"`
+	Exp                 int    `json:"exp"`
+	Email               string `json:"email"`
+	EmailVerified       bool   `json:"email_verified"`
+	Firebase            struct {
+		Identities struct {
+			Email []string `json:"email"`
+		} `json:"identities"`
+		SignInProvider string `json:"sign_in_provider"`
+	} `json:"firebase"`
+}
 
 // endpoints skip idToken auth
 var skipIdTokenAuthEndEndpoints = []string{"/signin-email", "/signin", "/confirm-email", "/signup", "/verify-card", "/create-user"}
@@ -52,13 +79,45 @@ func VerifyIdToken(r *http.Request) (int, string) {
 		logrus.Errorf("verifyIdToken: new GIPClient error: %v", err)
 		return http.StatusInternalServerError, ""
 	}
-	_, err = client.VerifyIDToken(context.Background(), idToken)
+	claims, err := client.VerifyIDToken(context.Background(), idToken)
 	if err != nil {
+		logrus.Errorf("verifyIdToken: gip verify idToken error: %v", err)
 		if err == gip.ErrIDTokenInvalid {
 			return http.StatusUnauthorized, ""
 		}
 		return http.StatusInternalServerError, ""
 	}
-	//todo set current_user to request
+	claimsBytes, err := json.Marshal(claims)
+	if err != nil {
+		logrus.Errorf("verifyIdToken: Marshal claims error: %v", err)
+		return http.StatusInternalServerError, ""
+	}
+	var idTokenClaims = IdTokenClaims{}
+	err = json.Unmarshal(claimsBytes, idTokenClaims)
+	if err != nil {
+		logrus.Errorf("verifyIdToken: Unmarshal claims error: %v", err)
+		return http.StatusInternalServerError, ""
+	}
+	// set current_user to request
+	r.WithContext(context.WithValue(r.Context(), "id_token", idTokenClaims))
 	return http.StatusOK, ""
+}
+
+// GetIdTokenClaimsFromHttpRequestContext get idToken claims from request context
+func GetIdTokenClaimsFromHttpRequestContext(r *http.Request) (*IdTokenClaims, error) {
+	idToken := r.Context().Value("id_token")
+	if idToken != nil {
+		claimsBytes, err := json.Marshal(idToken)
+		if err != nil {
+			logrus.Errorf("GetIdTokenClaimsFromHttpRequestContext: Marshal claims error: %v", err)
+			return nil, errors.New("")
+		}
+		var idTokenClaims = IdTokenClaims{}
+		err = json.Unmarshal(claimsBytes, idTokenClaims)
+		if err != nil {
+			logrus.Errorf("GetIdTokenClaimsFromHttpRequestContext: Unmarshal claims error: %v", err)
+			return nil, errors.New("")
+		}
+	}
+	return nil, errors.New("no id_token fond in request context")
 }
