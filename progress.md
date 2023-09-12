@@ -1,3 +1,6 @@
+Tuesday, 2023/09/12
+- User treegrid endpoints in accounts service.
+
 Friday, 2023/09/08
 - Complete environment creation when user created. (done).
 

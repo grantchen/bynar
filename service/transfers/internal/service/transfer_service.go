@@ -30,12 +30,12 @@ type transferService struct {
 }
 
 // GetTransfersPageData implements TransferService
-func (t *transferService) GetTransfersPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
+func (t *transferService) GetTransfersPageData(ctx context.Context, tr *treegrid.Treegrid) ([]map[string]string, error) {
 	return t.transferRepository.GetTransfersPageData(tr)
 }
 
 // GetPagesCount implements TransferService
-func (t *transferService) GetPagesCount(tr *treegrid.Treegrid) (float64, error) {
+func (t *transferService) GetPagesCount(ctx context.Context, tr *treegrid.Treegrid) (float64, error) {
 	rowsCount, _ := t.transferRepository.GetTransferCount(tr)
 
 	return math.Ceil(float64(rowsCount) / float64(pageSize)), nil
@@ -56,7 +56,7 @@ func NewTransferService(db *sql.DB, userRepository repository.UserRepository,
 	}
 }
 
-func (t *transferService) HandleUpload(req *treegrid.PostRequest, accountID int) (*treegrid.PostResponse, error) {
+func (t *transferService) HandleUpload(ctx context.Context, req *treegrid.PostRequest, accountID int) (*treegrid.PostResponse, error) {
 	trList, err := treegrid.ParseRequestUpload2(req)
 	if err != nil {
 		return nil, fmt.Errorf("parse requst: [%w]", err)

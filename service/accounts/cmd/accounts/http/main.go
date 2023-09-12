@@ -49,6 +49,13 @@ func main() {
 	// user endpoints
 	http.Handle("/user", render.CorsMiddleware(http.HandlerFunc(handler.User)))
 
+	// TreeGrid handler endpoints
+	tgHandler := http_handler.NewUserHTTPHandler()
+
+	http.Handle("/upload", render.CorsMiddleware(http.HandlerFunc(tgHandler.HTTPHandleUpload)))
+	http.Handle("/data", render.CorsMiddleware(http.HandlerFunc(tgHandler.HTTPHandleGetPageCount)))
+	http.Handle("/page", render.CorsMiddleware(http.HandlerFunc(tgHandler.HTTPHandleGetPageData)))
+
 	log.Println("start server at 8080!")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

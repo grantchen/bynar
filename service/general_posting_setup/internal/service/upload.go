@@ -31,7 +31,7 @@ func NewUploadService(db *sql.DB,
 }
 
 // Handle implements UploadService
-func (u *uploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
+func (u *uploadService) Handle(ctx context.Context, req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	resp := &treegrid.PostResponse{}
 	// Create new transaction
 	grList, err := treegrid.ParseRequestUploadSingleRow(req)
