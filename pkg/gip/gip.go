@@ -295,3 +295,12 @@ func (g gipClient) postRequest(url string, req []byte) ([]byte, error) {
 	}
 	return io.ReadAll(resp.Body)
 }
+
+// SetCustomUserClaims sets additional claims on an existing user account.
+func (g gipClient) SetCustomUserClaims(ctx context.Context, uid string, customClaims map[string]interface{}) error {
+	client, err := g.app.Auth(ctx)
+	if err != nil {
+		return err
+	}
+	return client.SetCustomUserClaims(ctx, uid, customClaims)
+}

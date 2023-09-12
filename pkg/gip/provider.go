@@ -24,4 +24,6 @@ type AuthProvider interface {
 	// VerifyIDTokenAndCheckRevoked verifies the provided ID token, and additionally checks that the
 	// token has not been revoked or disabled.
 	VerifyIDTokenAndCheckRevoked(ctx context.Context, idToken string) (claims map[string]interface{}, err error)
+	//SetCustomUserClaims sets additional claims on an existing user account.
+	SetCustomUserClaims(ctx context.Context, uid string, customClaims map[string]interface{}) error
 }

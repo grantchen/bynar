@@ -61,7 +61,22 @@ func (s *accountServiceHandler) SendSignInEmail(email string) error {
 		logrus.Errorf("SendSignInEmail: verify email error: %+v", err)
 		return errors.New("email is not signed up")
 	}
-	if err := gip.SendRegistrationEmail(email, fmt.Sprintf("%s?email=%s", os.Getenv("SIGNIN_REDIRECT_URL"), email)); err != nil {
+	account, err := s.ar.SelectSignInColumns(email)
+	if err != nil || account == nil {
+		logrus.Errorf("SendSignInEmail: %s no user selected", email)
+		return errors.New("user no fund")
+	}
+	claims, err := convertSignInToClaims(account)
+	if err != nil {
+		logrus.Errorf("SendSignInEmail: convert sign in claims err: %+v", err)
+		return errors.New("email sending failed")
+	}
+	err = s.authProvider.SetCustomUserClaims(context.Background(), account.Uid, claims)
+	if err != nil {
+		logrus.Errorf("SendSignInEmail: set custom user claims err: %+v", err)
+		return errors.New("email sending failed")
+	}
+	if err = gip.SendRegistrationEmail(email, fmt.Sprintf("%s?email=%s", os.Getenv("SIGNIN_REDIRECT_URL"), email)); err != nil {
 		logrus.Errorf("SendSignInEmail: send registration email error: %+v", err)
 		return errors.New("email sending failed")
 	}
