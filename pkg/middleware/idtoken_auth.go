@@ -107,17 +107,8 @@ func VerifyIdToken(r *http.Request) (int, string, *http.Request) {
 func GetIdTokenClaimsFromHttpRequestContext(r *http.Request) (*IdTokenClaims, error) {
 	idToken := r.Context().Value("id_token")
 	if idToken != nil {
-		claimsBytes, err := json.Marshal(idToken)
-		if err != nil {
-			logrus.Errorf("GetIdTokenClaimsFromHttpRequestContext: Marshal claims error: %v", err)
-			return nil, errors.New("")
-		}
-		var idTokenClaims = IdTokenClaims{}
-		err = json.Unmarshal(claimsBytes, &idTokenClaims)
-		if err != nil {
-			logrus.Errorf("GetIdTokenClaimsFromHttpRequestContext: Unmarshal claims error: %v", err)
-			return nil, errors.New("")
-		}
+		claims := idToken.(IdTokenClaims)
+		return &claims, nil
 	}
 	return nil, errors.New("no id_token fond in request context")
 }
