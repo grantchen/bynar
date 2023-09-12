@@ -1,0 +1,74 @@
+/**
+    @author: dongjs
+    @date: 2023/9/12
+    @description:
+**/
+
+package gcs
+
+import (
+	"cloud.google.com/go/storage"
+	"context"
+	"errors"
+	"github.com/sirupsen/logrus"
+	"io"
+	"os"
+)
+
+// gcsClient is the interface for the CloudStorageProvider.
+type gcsClient struct {
+	client *storage.Client
+	bucket string
+}
+
+// NewGCSClient creates a new instance of the CloudStorageProvider.
+// need to close by user
+func NewGCSClient() (CloudStorageProvider, error) {
+	client, err := storage.NewClient(context.Background())
+	if err != nil {
+		return nil, errors.New("NewGCSClient: NewClient error: " + err.Error())
+	}
+	return &gcsClient{
+		client: client,
+		bucket: os.Getenv("GOOGLE_CLOUD_STORAG_BUCKET"),
+	}, nil
+}
+
+// DeleteFiles delete filePath(fileName) begin with filePathPrefix in google cloud storage
+func (g gcsClient) DeleteFiles(filePathPrefix string) error {
+	bucketHandle := g.client.Bucket(g.bucket)
+	objects := bucketHandle.Objects(context.Background(), &storage.Query{Prefix: filePathPrefix})
+	if objects != nil {
+		if next, err := objects.Next(); err == nil && next != nil {
+			err = bucketHandle.Object(next.Name).Delete(context.Background())
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// UploadFile upload file to google cloud storage
+func (g gcsClient) UploadFile(filePath string, reader io.Reader) (string, error) {
+	bucketHandle := g.client.Bucket(g.bucket)
+	objectHandle := bucketHandle.Object(filePath)
+	wc := objectHandle.NewWriter(context.Background())
+	if _, err := io.Copy(wc, reader); err != nil {
+		logrus.Errorf("UploadFileToGCS: copy err: %+v", err)
+		return "", err
+	}
+	if err := wc.Close(); err != nil {
+		return "", err
+	}
+	url, err := bucketHandle.SignedURL(filePath, &storage.SignedURLOptions{})
+	if err != nil {
+		return "", err
+	}
+	return url, nil
+}
+
+// StorageClient get storageClient
+func (g gcsClient) StorageClient() *storage.Client {
+	return g.client
+}

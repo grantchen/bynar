@@ -2,7 +2,9 @@ package http_handler
 
 import (
 	"database/sql"
+	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
+	"mime/multipart"
 	"net/http"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
@@ -161,4 +163,54 @@ func (h *AccountHandler) User(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	render.Ok(w, userResponse)
+}
+
+// UploadProfilePhoto upload profile_photo
+func (h *AccountHandler) UploadProfilePhoto(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		render.MethodNotAllowed(w)
+		return
+	}
+	type UploadFile struct {
+		// todo test
+		File *multipart.Reader `form:"file" binding:"required"`
+	}
+	var req UploadFile
+	if err := render.DecodeJSON(r.Body, &req); err != nil {
+		render.Error(w, err.Error())
+		return
+	}
+	idTokenClaims, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
+	if err != nil {
+		render.Error(w, err.Error())
+		return
+	}
+	//todo query user_id and organization_id
+	fmt.Println(idTokenClaims)
+	url, err := h.as.UploadFileToGCS(0, 0, req.File)
+	if err != nil {
+		render.Error(w, err.Error())
+		return
+	}
+	render.Ok(w, url)
+}
+
+func (h *AccountHandler) DeleteProfileImageHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		render.MethodNotAllowed(w)
+		return
+	}
+	idTokenClaims, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
+	if err != nil {
+		render.Error(w, err.Error())
+		return
+	}
+	//todo query user_id and organization_id
+	fmt.Println(idTokenClaims)
+	err = h.as.DeleteFileFromGCS(0, 0)
+	if err != nil {
+		render.Error(w, err.Error())
+		return
+	}
+	render.Ok(w, nil)
 }

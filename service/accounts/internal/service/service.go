@@ -3,6 +3,7 @@ package service
 import (
 	"database/sql"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
+	"mime/multipart"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
@@ -21,6 +22,10 @@ type AccountService interface {
 	SendSignInEmail(email string) error
 	VerifyEmail(email string) error
 	GetUserByUid(uid string) (*model.GetUserResponse, error)
+	// UploadFileToGCS upload user's profile picture to google cloud storage
+	UploadFileToGCS(accountID, orgID int, multipartReader *multipart.Reader) (string, error)
+	// DeleteFileFromGCS delete user's profile picture from google cloud storage
+	DeleteFileFromGCS(accountID, orgID int) error
 }
 
 type accountServiceHandler struct {
