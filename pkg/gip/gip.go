@@ -37,7 +37,7 @@ type gipClient struct {
 
 // NewGIPClient creates a new instance of the AuthProvider.
 func NewGIPClient() (AuthProvider, error) {
-	opt := option.WithCredentialsFile(os.Getenv(ENVGoogleApplicationCredentials))
+	opt := option.WithCredentialsJSON([]byte(os.Getenv(ENVGoogleApplicationCredentials)))
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
 		return nil, errors.New("error initializing gip app: " + err.Error())
@@ -174,7 +174,7 @@ func (g gipClient) DeleteUserByEmail(ctx context.Context, email string) error {
 
 // SignIn signs in the user by the given UID.
 func (g gipClient) SignIn(ctx context.Context, uid string, devClaims map[string]interface{}) (idToken string, err error) {
-	token, err := g.customTokenWithClaims(ctx, uid, devClaims)
+	token, err := g.CustomTokenWithClaims(ctx, uid, devClaims)
 	if err != nil {
 		return "", fmt.Errorf("error creating custom token with claims: %v", err)
 	}
@@ -217,6 +217,13 @@ func (g gipClient) VerifyIDToken(ctx context.Context, idToken string) (claims ma
 		return nil, fmt.Errorf("error verifying id token: %v", err)
 	}
 
+	token.Claims["auth_time"] = token.AuthTime
+	token.Claims["iss"] = token.Issuer
+	token.Claims["aud"] = token.Audience
+	token.Claims["exp"] = token.Expires
+	token.Claims["iat"] = token.IssuedAt
+	token.Claims["sub"] = token.Subject
+	token.Claims["uid"] = token.UID
 	return token.Claims, nil
 }
 
@@ -236,6 +243,13 @@ func (g gipClient) VerifyIDTokenAndCheckRevoked(ctx context.Context, idToken str
 		return nil, fmt.Errorf("error verifying id token and check revoked: %v", err)
 	}
 
+	token.Claims["auth_time"] = token.AuthTime
+	token.Claims["iss"] = token.Issuer
+	token.Claims["aud"] = token.Audience
+	token.Claims["exp"] = token.Expires
+	token.Claims["iat"] = token.IssuedAt
+	token.Claims["sub"] = token.Subject
+	token.Claims["uid"] = token.UID
 	return token.Claims, nil
 }
 
@@ -272,8 +286,8 @@ func (g gipClient) signInWithCustomToken(token string) (string, error) {
 	return g.signInWithCustomTokenForTenant(token, "")
 }
 
-// creates a signed custom authentication token with the specified user ID.
-func (g gipClient) customTokenWithClaims(ctx context.Context, uid string, devClaims map[string]interface{}) (string, error) {
+// CustomTokenWithClaims creates a signed custom authentication token with the specified user ID.
+func (g gipClient) CustomTokenWithClaims(ctx context.Context, uid string, devClaims map[string]interface{}) (string, error) {
 	client, err := g.app.Auth(ctx)
 	if err != nil {
 		return "", err

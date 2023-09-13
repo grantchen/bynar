@@ -48,7 +48,7 @@ func main() {
 
 	err := godotenv.Load(".env")
 	if err != nil {
-		log.Fatal("Error loading .env file in main service")
+		fmt.Printf("Error loading .env file in main service")
 	}
 
 	secretmanager, err := utils.GetSecretManager()
@@ -101,6 +101,12 @@ func main() {
 	// user profile picture endpoint
 	http.Handle("/upload", render.CorsMiddleware(http.HandlerFunc(accountHandler.UploadProfilePhoto)))
 	http.Handle("/profile-image", render.CorsMiddleware(http.HandlerFunc(accountHandler.DeleteProfileImageHandler)))
+
+	tgHandler := account_http_handler.NewUserHTTPHandler()
+
+	http.Handle("/apprunnerurl/accounts/upload", render.CorsMiddleware(http.HandlerFunc(tgHandler.HTTPHandleUpload)))
+	http.Handle("/apprunnerurl/accounts/data", render.CorsMiddleware(http.HandlerFunc(tgHandler.HTTPHandleGetPageCount)))
+	http.Handle("/apprunnerurl/accounts/page", render.CorsMiddleware(http.HandlerFunc(tgHandler.HTTPHandleGetPageData)))
 
 	lsHandlerMapping := make([]*HandlerMapping, 0)
 	lsHandlerMapping = append(lsHandlerMapping,

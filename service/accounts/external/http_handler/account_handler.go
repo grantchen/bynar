@@ -99,12 +99,12 @@ func (h *AccountHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	if phoneNumber[0] != '+' {
 		phoneNumber = "+" + phoneNumber
 	}
-	idToken, err := h.as.CreateUser(req.Username, req.Timestamp, req.Signature, req.Token, req.FullName, req.Country, req.AddressLine, req.AddressLine2, req.City, req.PostalCode, req.State, phoneNumber, req.OrganizationName, req.VAT, req.OrganisationCountry, req.CustomerID, req.SourceID)
+	customToken, err := h.as.CreateUser(req.Username, req.Timestamp, req.Signature, req.Token, req.FullName, req.Country, req.AddressLine, req.AddressLine2, req.City, req.PostalCode, req.State, phoneNumber, req.OrganizationName, req.VAT, req.OrganisationCountry, req.CustomerID, req.SourceID)
 	if err != nil {
 		render.Error(w, err.Error())
 		return
 	}
-	render.Ok(w, model.CreateUserResponse{Token: idToken})
+	render.Ok(w, model.CreateUserResponse{Token: customToken})
 }
 
 // SignIn user sign in api
