@@ -47,7 +47,7 @@ func main() {
 
 	err := godotenv.Load(".env")
 	if err != nil {
-		log.Fatal("Error loading .env file in main service")
+		fmt.Printf("Error loading .env file in main service")
 	}
 
 	secretmanager, err := utils.GetSecretManager()
