@@ -2,9 +2,8 @@ package http_handler
 
 import (
 	"database/sql"
-	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
-	"mime/multipart"
 	"net/http"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
@@ -19,8 +18,8 @@ type AccountHandler struct {
 	as service.AccountService
 }
 
-func NewHTTPHandler(db *sql.DB, authProvider gip.AuthProvider, paymentProvider checkout.PaymentClient) *AccountHandler {
-	as := service.NewAccountService(db, authProvider, paymentProvider)
+func NewHTTPHandler(db *sql.DB, authProvider gip.AuthProvider, paymentProvider checkout.PaymentClient, cloudStorageProvider gcs.CloudStorageProvider) *AccountHandler {
+	as := service.NewAccountService(db, authProvider, paymentProvider, cloudStorageProvider)
 	return &AccountHandler{as}
 }
 
@@ -167,27 +166,21 @@ func (h *AccountHandler) User(w http.ResponseWriter, r *http.Request) {
 
 // UploadProfilePhoto upload profile_photo
 func (h *AccountHandler) UploadProfilePhoto(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
+	if r.Method != http.MethodPost {
 		render.MethodNotAllowed(w)
 		return
 	}
-	type UploadFile struct {
-		// todo test
-		File *multipart.Reader `form:"file" binding:"required"`
-	}
-	var req UploadFile
-	if err := render.DecodeJSON(r.Body, &req); err != nil {
-		render.Error(w, err.Error())
-		return
-	}
+
 	idTokenClaims, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
 		render.Error(w, err.Error())
 		return
 	}
-	//todo query user_id and organization_id
-	fmt.Println(idTokenClaims)
-	url, err := h.as.UploadFileToGCS(0, 0, req.File)
+	reader, err := r.MultipartReader()
+	if err != nil || reader == nil {
+		render.Error(w, err.Error())
+	}
+	url, err := h.as.UploadFileToGCS(idTokenClaims.TenantUuid, idTokenClaims.OrganizationUuid, idTokenClaims.Email, reader)
 	if err != nil {
 		render.Error(w, err.Error())
 		return
@@ -195,6 +188,7 @@ func (h *AccountHandler) UploadProfilePhoto(w http.ResponseWriter, r *http.Reque
 	render.Ok(w, url)
 }
 
+// DeleteProfileImageHandler delete user's profile_picture from google cloud storage
 func (h *AccountHandler) DeleteProfileImageHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		render.MethodNotAllowed(w)
@@ -205,9 +199,9 @@ func (h *AccountHandler) DeleteProfileImageHandler(w http.ResponseWriter, r *htt
 		render.Error(w, err.Error())
 		return
 	}
-	//todo query user_id and organization_id
-	fmt.Println(idTokenClaims)
-	err = h.as.DeleteFileFromGCS(0, 0)
+
+	err = h.as.DeleteFileFromGCS(idTokenClaims.TenantUuid, idTokenClaims.OrganizationUuid, idTokenClaims.Email)
+
 	if err != nil {
 		render.Error(w, err.Error())
 		return

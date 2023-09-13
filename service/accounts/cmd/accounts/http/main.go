@@ -1,6 +1,7 @@
 package main
 
 import (
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
 	"log"
 	"net/http"
 
@@ -34,8 +35,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	handler := http_handler.NewHTTPHandler(db, authProvider, paymentProvider)
+	gcsProvider, err := gcs.NewGCSClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+	handler := http_handler.NewHTTPHandler(db, authProvider, paymentProvider, gcsProvider)
 
 	// Signup endpoints
 	http.Handle("/signup", render.CorsMiddleware(http.HandlerFunc(handler.Signup)))
@@ -48,7 +52,9 @@ func main() {
 	http.Handle("/signin", render.CorsMiddleware(http.HandlerFunc(handler.SignIn)))
 	// user endpoints
 	http.Handle("/user", render.CorsMiddleware(http.HandlerFunc(handler.User)))
-
+	// user profile picture endpoint
+	http.Handle("/upload", render.CorsMiddleware(http.HandlerFunc(handler.UploadProfilePhoto)))
+	http.Handle("/profile-image", render.CorsMiddleware(http.HandlerFunc(handler.DeleteProfileImageHandler)))
 	// TreeGrid handler endpoints
 	tgHandler := http_handler.NewUserHTTPHandler()
 

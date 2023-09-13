@@ -13,6 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"io"
 	"os"
+	"time"
 )
 
 // gcsClient is the interface for the CloudStorageProvider.
@@ -37,7 +38,7 @@ func NewGCSClient() (CloudStorageProvider, error) {
 // DeleteFiles delete filePath(fileName) begin with filePathPrefix in google cloud storage
 func (g gcsClient) DeleteFiles(filePathPrefix string) error {
 	bucketHandle := g.client.Bucket(g.bucket)
-	objects := bucketHandle.Objects(context.Background(), &storage.Query{Prefix: filePathPrefix})
+	objects := bucketHandle.Objects(context.Background(), &storage.Query{Prefix: filePathPrefix, Delimiter: "/"})
 	if objects != nil {
 		if next, err := objects.Next(); err == nil && next != nil {
 			err = bucketHandle.Object(next.Name).Delete(context.Background())
@@ -61,14 +62,25 @@ func (g gcsClient) UploadFile(filePath string, reader io.Reader) (string, error)
 	if err := wc.Close(); err != nil {
 		return "", err
 	}
-	url, err := bucketHandle.SignedURL(filePath, &storage.SignedURLOptions{})
-	if err != nil {
-		return "", err
-	}
-	return url, nil
+	return g.SignedURL(filePath)
 }
 
 // StorageClient get storageClient
 func (g gcsClient) StorageClient() *storage.Client {
 	return g.client
+}
+
+// SignedURL Signed URLs allow anyone to access to a restricted resource for a limited time
+func (g gcsClient) SignedURL(filePath string) (string, error) {
+	opts := &storage.SignedURLOptions{
+		Scheme:  storage.SigningSchemeV4,
+		Method:  "GET",
+		Expires: time.Now().Add(7 * 24 * time.Hour),
+	}
+	bucketHandle := g.client.Bucket(g.bucket)
+	url, err := bucketHandle.SignedURL(filePath, opts)
+	if err != nil {
+		return "", err
+	}
+	return url, nil
 }

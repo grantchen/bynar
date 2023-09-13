@@ -18,4 +18,6 @@ type CloudStorageProvider interface {
 	UploadFile(filePath string, reader io.Reader) (string, error)
 	// StorageClient get storageClient
 	StorageClient() *storage.Client
+	// SignedURL returns a URL for the specified object. Signed URLs allow anyone to access to a restricted resource for a limited time
+	SignedURL(filePath string) (string, error)
 }

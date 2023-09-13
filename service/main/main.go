@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
 	"log"
 	"net/http"
 	"os"
@@ -79,7 +80,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	accountHandler := account_http_handler.NewHTTPHandler(accountDB, authProvider, paymentProvider)
+	cloudStorageProvider, err := gcs.NewGCSClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	accountHandler := account_http_handler.NewHTTPHandler(accountDB, authProvider, paymentProvider, cloudStorageProvider)
 
 	// Signup endpoints
 	http.Handle("/signup", render.CorsMiddleware(http.HandlerFunc(accountHandler.Signup)))
@@ -92,6 +98,9 @@ func main() {
 	http.Handle("/signin", render.CorsMiddleware(http.HandlerFunc(accountHandler.SignIn)))
 	// user endpoints
 	http.Handle("/user", render.CorsMiddleware(http.HandlerFunc(accountHandler.User)))
+	// user profile picture endpoint
+	http.Handle("/upload", render.CorsMiddleware(http.HandlerFunc(accountHandler.UploadProfilePhoto)))
+	http.Handle("/profile-image", render.CorsMiddleware(http.HandlerFunc(accountHandler.DeleteProfileImageHandler)))
 
 	lsHandlerMapping := make([]*HandlerMapping, 0)
 	lsHandlerMapping = append(lsHandlerMapping,

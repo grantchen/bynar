@@ -19,6 +19,7 @@ require (
 	cloud.google.com/go/storage v1.32.0 // indirect
 	firebase.google.com/go/v4 v4.12.0 // indirect
 	github.com/MicahParks/keyfunc v1.9.0 // indirect
+	github.com/aws/aws-lambda-go v1.40.0 // indirect
 	github.com/aws/aws-sdk-go v1.44.237 // indirect
 	github.com/aws/aws-secretsmanager-caching-go v1.1.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect

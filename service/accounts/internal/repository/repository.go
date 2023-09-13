@@ -13,8 +13,8 @@ type AccountRepository interface {
 	SelectSignInColumns(email string) (*model.SignIn, error)
 	// SelectUserByUid select user by uid
 	SelectUserByUid(uid string) (*model.GetUserResponse, error)
-	// UpdateProfilePhotoOfUsers update profile_photo column in users
-	UpdateProfilePhotoOfUsers(accountID int, profilePhoto string) error
+	// GetOrganizationDetail get organization detail
+	GetOrganizationDetail(organizationUuid string) (*model.Organization, error)
 }
 
 type accountRepositoryHandler struct {

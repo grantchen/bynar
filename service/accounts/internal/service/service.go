@@ -3,6 +3,7 @@ package service
 import (
 	"database/sql"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
 	"mime/multipart"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/repository"
@@ -23,19 +24,22 @@ type AccountService interface {
 	VerifyEmail(email string) error
 	GetUserByUid(uid string) (*model.GetUserResponse, error)
 	// UploadFileToGCS upload user's profile picture to google cloud storage
-	UploadFileToGCS(accountID, orgID int, multipartReader *multipart.Reader) (string, error)
+	UploadFileToGCS(tenantId, organizationUuid, email string, multipartReader *multipart.Reader) (string, error)
 	// DeleteFileFromGCS delete user's profile picture from google cloud storage
-	DeleteFileFromGCS(accountID, orgID int) error
+	DeleteFileFromGCS(tenantId, organizationUuid, email string) error
+	// UpdateProfilePhotoOfUsers update profile_photo column in users
+	UpdateProfilePhotoOfUsers(tenantUuid, organizationUuid string, accountID int, profilePhoto string) error
 }
 
 type accountServiceHandler struct {
-	ar              repository.AccountRepository
-	authProvider    gip.AuthProvider
-	paymentProvider checkout.PaymentClient
+	ar                   repository.AccountRepository
+	authProvider         gip.AuthProvider
+	paymentProvider      checkout.PaymentClient
+	cloudStorageProvider gcs.CloudStorageProvider
 }
 
 // NewAccountService initiates the account service object
-func NewAccountService(db *sql.DB, authProvider gip.AuthProvider, paymentProvider checkout.PaymentClient) AccountService {
+func NewAccountService(db *sql.DB, authProvider gip.AuthProvider, paymentProvider checkout.PaymentClient, cloudStorageProvider gcs.CloudStorageProvider) AccountService {
 	ar := repository.NewAccountRepository(db)
-	return &accountServiceHandler{ar, authProvider, paymentProvider}
+	return &accountServiceHandler{ar, authProvider, paymentProvider, cloudStorageProvider}
 }
