@@ -217,6 +217,13 @@ func (g gipClient) VerifyIDToken(ctx context.Context, idToken string) (claims ma
 		return nil, fmt.Errorf("error verifying id token: %v", err)
 	}
 
+	token.Claims["auth_time"] = token.AuthTime
+	token.Claims["iss"] = token.Issuer
+	token.Claims["aud"] = token.Audience
+	token.Claims["exp"] = token.Expires
+	token.Claims["iat"] = token.IssuedAt
+	token.Claims["sub"] = token.Subject
+	token.Claims["uid"] = token.UID
 	return token.Claims, nil
 }
 
@@ -236,6 +243,13 @@ func (g gipClient) VerifyIDTokenAndCheckRevoked(ctx context.Context, idToken str
 		return nil, fmt.Errorf("error verifying id token and check revoked: %v", err)
 	}
 
+	token.Claims["auth_time"] = token.AuthTime
+	token.Claims["iss"] = token.Issuer
+	token.Claims["aud"] = token.Audience
+	token.Claims["exp"] = token.Expires
+	token.Claims["iat"] = token.IssuedAt
+	token.Claims["sub"] = token.Subject
+	token.Claims["uid"] = token.UID
 	return token.Claims, nil
 }
 
