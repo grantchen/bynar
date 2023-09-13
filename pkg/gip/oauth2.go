@@ -29,13 +29,13 @@ type oauth2Client struct {
 func newOAuth2Client(ctx context.Context, opts ...option.ClientOption) (*oauth2Client, error) {
 	o := []option.ClientOption{
 		option.WithScopes(firebaseScopes...),
-		option.WithCredentialsFile(os.Getenv(ENVGoogleApplicationCredentials)),
+		option.WithCredentialsJSON([]byte(os.Getenv(ENVGoogleApplicationCredentials))),
 	}
 	o = append(o, opts...)
 
 	return &oauth2Client{
 		opts:      o,
-		projectID: getProjectID(ctx),
+		projectID: getProjectID(ctx, o...),
 	}, nil
 }
 

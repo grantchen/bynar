@@ -37,7 +37,7 @@ type gipClient struct {
 
 // NewGIPClient creates a new instance of the AuthProvider.
 func NewGIPClient() (AuthProvider, error) {
-	opt := option.WithCredentialsFile(os.Getenv(ENVGoogleApplicationCredentials))
+	opt := option.WithCredentialsJSON([]byte(os.Getenv(ENVGoogleApplicationCredentials)))
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
 		return nil, errors.New("error initializing gip app: " + err.Error())
