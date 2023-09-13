@@ -34,7 +34,14 @@ func (s *UserService) store(ctx context.Context) (*Store, error) {
 	if !ok {
 		return nil, errors.New("no claims in context")
 	}
-	connStr := os.Getenv(claims.TenantUuid) + claims.OrganizationUuid
+	if len(os.Getenv(claims.TenantUuid)) == 0 {
+		return nil, errors.New("no mysql conn environment of " + claims.TenantUuid)
+	}
+	envs := strings.Split(os.Getenv(claims.TenantUuid), "/")
+	connStr := envs[0] + "/" + claims.OrganizationUuid
+	if len(envs) > 1 {
+		connStr += envs[1]
+	}
 	conn, ok := s.repos.Load(connStr)
 	store := &Store{}
 	var err error
@@ -107,7 +114,7 @@ func (s *UserService) handle(store *Store, gr treegrid.GridRow) error {
 	}
 	defer tx.Rollback()
 
-	fieldsValidating := []string{"code"}
+	fieldsValidating := []string{"email"}
 
 	// add addition here
 	switch gr.GetActionType() {
