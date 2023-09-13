@@ -99,7 +99,7 @@ func main() {
 	// user endpoints
 	http.Handle("/user", render.CorsMiddleware(http.HandlerFunc(accountHandler.User)))
 	// user profile picture endpoint
-	http.Handle("/upload", render.CorsMiddleware(http.HandlerFunc(accountHandler.UploadProfilePhoto)))
+	http.Handle("/upload/profile-image", render.CorsMiddleware(http.HandlerFunc(accountHandler.UploadProfilePhoto)))
 	http.Handle("/profile-image", render.CorsMiddleware(http.HandlerFunc(accountHandler.DeleteProfileImageHandler)))
 
 	tgHandler := account_http_handler.NewUserHTTPHandler()
