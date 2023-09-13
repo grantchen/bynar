@@ -93,6 +93,12 @@ func main() {
 	// user endpoints
 	http.Handle("/user", render.CorsMiddleware(http.HandlerFunc(accountHandler.User)))
 
+	tgHandler := account_http_handler.NewUserHTTPHandler()
+
+	http.Handle("/apprunnerurl/accounts/upload", render.CorsMiddleware(http.HandlerFunc(tgHandler.HTTPHandleUpload)))
+	http.Handle("/apprunnerurl/accounts/data", render.CorsMiddleware(http.HandlerFunc(tgHandler.HTTPHandleGetPageCount)))
+	http.Handle("/apprunnerurl/accounts/page", render.CorsMiddleware(http.HandlerFunc(tgHandler.HTTPHandleGetPageData)))
+
 	lsHandlerMapping := make([]*HandlerMapping, 0)
 	lsHandlerMapping = append(lsHandlerMapping,
 		&HandlerMapping{handler: sales_handler.NewHTTPHandler(appConfig, db),

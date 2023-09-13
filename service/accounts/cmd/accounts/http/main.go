@@ -52,9 +52,9 @@ func main() {
 	// TreeGrid handler endpoints
 	tgHandler := http_handler.NewUserHTTPHandler()
 
-	http.Handle("/upload", render.CorsMiddleware(http.HandlerFunc(tgHandler.HTTPHandleUpload)))
-	http.Handle("/data", render.CorsMiddleware(http.HandlerFunc(tgHandler.HTTPHandleGetPageCount)))
-	http.Handle("/page", render.CorsMiddleware(http.HandlerFunc(tgHandler.HTTPHandleGetPageData)))
+	http.Handle("/apprunnerurl/accounts/upload", render.CorsMiddleware(http.HandlerFunc(tgHandler.HTTPHandleUpload)))
+	http.Handle("/apprunnerurl/accounts/data", render.CorsMiddleware(http.HandlerFunc(tgHandler.HTTPHandleGetPageCount)))
+	http.Handle("/apprunnerurl/accounts/page", render.CorsMiddleware(http.HandlerFunc(tgHandler.HTTPHandleGetPageData)))
 
 	log.Println("start server at 8080!")
 	log.Fatal(http.ListenAndServe(":8080", nil))
