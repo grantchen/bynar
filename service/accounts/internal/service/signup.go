@@ -101,7 +101,7 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 	uid, err := s.authProvider.CreateUser(context.TODO(), email, fullName, phoneNumber)
 	if err != nil {
 		logrus.Error("gip CreateUser error: ", err.Error())
-		return uid, errors.New("gip create user failed")
+		return "", errors.New("gip create user failed")
 	}
 	customClaims := map[string]interface{}{
 		"country": organisationCountry,
@@ -110,18 +110,19 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 	err = s.authProvider.UpdateUser(context.TODO(), uid, map[string]interface{}{"customClaims": customClaims})
 	if err != nil {
 		logrus.Error("gip UpdateUser error: ", err.Error())
-		return uid, errors.New("gip update user failed")
+		return "", errors.New("gip update user failed")
 	}
 	// create user in db
 	err = s.ar.CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID)
 	if err != nil {
 		logrus.Error("create user error: ", err.Error())
-		return uid, errors.New("create user failed")
+		return "", errors.New("create user failed")
 	}
+	// return idToken after created
 	account, err := s.ar.SelectSignInColumns(email)
 	if err != nil {
 		logrus.Error("select signin columns error: ", err.Error())
-		return uid, errors.New("select signin columns failed")
+		return "", errors.New("select signin columns failed")
 	}
 	customToken, err := s.authProvider.CustomTokenWithClaims(context.Background(), uid, map[string]interface{}{
 		"uid": account.Uid, "organization_uuid": account.OrganizationUuid, "organization_user_id": account.OrganizationUserId,
