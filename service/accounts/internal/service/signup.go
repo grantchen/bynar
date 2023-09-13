@@ -8,8 +8,9 @@ import (
 	"strconv"
 	"time"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"github.com/sirupsen/logrus"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/models"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
@@ -122,9 +123,9 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 		logrus.Error("select signin columns error: ", err.Error())
 		return uid, errors.New("select signin columns failed")
 	}
-	idToken, err := s.authProvider.SignIn(context.Background(), uid, map[string]interface{}{
+	customToken, err := s.authProvider.CustomTokenWithClaims(context.Background(), uid, map[string]interface{}{
 		"uid": account.Uid, "organization_uuid": account.OrganizationUuid, "organization_user_id": account.OrganizationUserId,
 		"organization_status": account.OrganizationStatus, "tenant_uuid": account.TenantUuid,
 		"organization_account": account.OrganizationMainAccount})
-	return idToken, err
+	return customToken, err
 }

@@ -174,7 +174,7 @@ func (g gipClient) DeleteUserByEmail(ctx context.Context, email string) error {
 
 // SignIn signs in the user by the given UID.
 func (g gipClient) SignIn(ctx context.Context, uid string, devClaims map[string]interface{}) (idToken string, err error) {
-	token, err := g.customTokenWithClaims(ctx, uid, devClaims)
+	token, err := g.CustomTokenWithClaims(ctx, uid, devClaims)
 	if err != nil {
 		return "", fmt.Errorf("error creating custom token with claims: %v", err)
 	}
@@ -286,8 +286,8 @@ func (g gipClient) signInWithCustomToken(token string) (string, error) {
 	return g.signInWithCustomTokenForTenant(token, "")
 }
 
-// creates a signed custom authentication token with the specified user ID.
-func (g gipClient) customTokenWithClaims(ctx context.Context, uid string, devClaims map[string]interface{}) (string, error) {
+// CustomTokenWithClaims creates a signed custom authentication token with the specified user ID.
+func (g gipClient) CustomTokenWithClaims(ctx context.Context, uid string, devClaims map[string]interface{}) (string, error) {
 	client, err := g.app.Auth(ctx)
 	if err != nil {
 		return "", err
