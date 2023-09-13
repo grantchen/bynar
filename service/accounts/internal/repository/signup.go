@@ -186,8 +186,14 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 		r.SetUserStatusToZero(userID)
 		return err
 	}
+	var name string
+	err = db.QueryRow(`SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '` + organizationUUID + `'`).Scan(&name)
+	if err == nil {
+		logrus.Info(organizationUUID, " schema exists")
+		return nil
+	}
 	// create database
-	_, err = db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`", organizationUUID))
+	_, err = db.Exec(fmt.Sprintf("CREATE DATABASE `%s`", organizationUUID))
 	if err != nil {
 		r.SetUserStatusToZero(userID)
 		return err
