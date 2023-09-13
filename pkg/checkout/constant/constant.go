@@ -8,8 +8,8 @@ package constant
 
 // checkout .env file config key
 const (
-	ENVCheckoutClientId         = "checkout.client_id"
-	ENVCheckoutSandBox          = "checkout.sandbox"
-	ENVCheckoutClientSecret     = "checkout.client_secret"
-	ENVCheckoutProcessChannelId = "checkout.process_channel_id"
+	ENVCheckoutClientId         = "CHECKOUT_CLIENT_ID"
+	ENVCheckoutSandBox          = "CHECKOUT_SANDBOX"
+	ENVCheckoutClientSecret     = "CHECKOUT_CLIENT_SECRET"
+	ENVCheckoutProcessChannelId = "CHECKOUT_PROCESS_CHANNEL_ID"
 )
