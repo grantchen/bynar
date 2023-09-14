@@ -30,7 +30,8 @@ func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, v
 	// check if the organization exists
 	err := tx.QueryRow(`SELECT id FROM organizations where vat_number=?;`, vat).Scan(&organizationID)
 	if err != nil && err != sql.ErrNoRows {
-		return 0, "", err
+		logrus.Error("select organization error ", err.Error())
+		return 0, "", fmt.Errorf("organization if vat_number=%s not exist", vat)
 	}
 	if err == sql.ErrNoRows {
 		// Insert organization info to db
@@ -40,7 +41,8 @@ func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, v
 		)
 		if err != nil {
 			tx.Rollback()
-			return 0, "", err
+			logrus.Error("insert organization error ", err.Error())
+			return 0, "", errors.New("insert organization failed")
 		}
 		newOrganizationID, _ := res.LastInsertId()
 		organizationID = int(newOrganizationID)
@@ -52,7 +54,8 @@ func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, v
 	)
 	if err != nil {
 		tx.Rollback()
-		return 0, "", err
+		logrus.Error("insert organization_accounts error ", err.Error())
+		return 0, "", errors.New("insert organization_accounts failed")
 	}
 	return organizationID, organizationUUID, nil
 }
@@ -77,7 +80,8 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region str
 	)
 	if err != nil {
 		tx.Rollback()
-		return "", err
+		logrus.Error("insert tenants_management error ", err.Error())
+		return "", errors.New("insert tenants_management failed")
 	}
 	// update the organizations count in tanants
 	_, err = tx.Exec(
@@ -86,7 +90,8 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region str
 	)
 	if err != nil {
 		tx.Rollback()
-		return "", err
+		logrus.Error("update tenants error ", err.Error())
+		return "", errors.New("update tenants failed")
 	}
 	// update the tenant_id in organization
 	_, err = tx.Exec(
@@ -95,7 +100,8 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region str
 	)
 	if err != nil {
 		tx.Rollback()
-		return "", err
+		logrus.Error("update organizations error ", err.Error())
+		return "", errors.New("update organizations failed")
 	}
 	return tenantUUID, nil
 }
@@ -105,7 +111,8 @@ func (r *accountRepositoryHandler) CreateCard(tx *sql.Tx, customerID, sourceID s
 	// check the card is default
 	err := tx.QueryRow(`SELECT COUNT(*) FROM accounts_cards WHERE user_id = ?`, userID).Scan(&count)
 	if err != nil {
-		return err
+		logrus.Error("select cards error ", err.Error())
+		return errors.New("select cards failed")
 	}
 	isDefault := 1
 	if count > 0 {
@@ -118,7 +125,8 @@ func (r *accountRepositoryHandler) CreateCard(tx *sql.Tx, customerID, sourceID s
 	)
 	if err != nil {
 		tx.Rollback()
-		return err
+		logrus.Error("insert cards error ", err.Error())
+		return errors.New("insert cards failed")
 	}
 	return nil
 }
@@ -136,7 +144,7 @@ func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, add
 	)
 	if err != nil {
 		logrus.Errorf("CreateUser: error: %v", err)
-		return err
+		return errors.New("insert user failed")
 	}
 	userID, _ := res.LastInsertId()
 	organizationID, organizationUUID, err := r.CreateOrganization(tx, organizationName, vat, organisationCountry, uid, int(userID))
@@ -184,7 +192,7 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 	db, err := sql.Open("mysql", connStr)
 	if err != nil {
 		r.SetUserStatusToZero(userID)
-		return err
+		return errors.New("open mysql failed")
 	}
 	var name string
 	err = db.QueryRow(`SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '` + organizationUUID + `'`).Scan(&name)
@@ -196,18 +204,18 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 	_, err = db.Exec(fmt.Sprintf("CREATE DATABASE `%s`", organizationUUID))
 	if err != nil {
 		r.SetUserStatusToZero(userID)
-		return err
+		return errors.New("create database failed")
 	}
 	_, err = db.Exec(fmt.Sprintf("USE `%s`", organizationUUID))
 	if err != nil {
 		r.SetUserStatusToZero(userID)
-		return err
+		return errors.New("use database failed")
 	}
 	// create tables
 	_, err = db.Exec(model.SQL_TEMPLATE)
 	if err != nil {
 		r.SetUserStatusToZero(userID)
-		return err
+		return errors.New("create tables failed")
 	}
 	return nil
 }
