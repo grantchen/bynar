@@ -70,8 +70,8 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region str
 	// check the tanant exists
 	err := tx.QueryRow("SELECT id, organizations, organizations_allowed, tenant_uuid FROM tenants WHERE region = ?", region).Scan(&tenantID, &organizations, &organizationsAllowed, &tenantUUID)
 	if err != nil || organizations >= organizationsAllowed {
-		logrus.Error("create tenant error: ", err)
-		return "", errors.New("not allowed to insert tenants")
+		logrus.Error("select tenant error: ", err)
+		return "", errors.New("tenants not exist or organizations are full")
 	}
 	// insert managemant
 	_, err = tx.Exec(
@@ -167,7 +167,7 @@ func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, add
 		return err
 	}
 	// create environment
-	return r.CreateEnvironment(tenantUUID, organizationUUID, int(userID))
+	return r.CreateEnvironment(tenantUUID, organizationUUID, int(userID), email, fullName, phoneNumber)
 }
 
 func (r *accountRepositoryHandler) SetUserStatusToZero(userID int) {
@@ -177,7 +177,7 @@ func (r *accountRepositoryHandler) SetUserStatusToZero(userID int) {
 }
 
 // CreateEnvironment create a new schema in db
-func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUID string, userID int) error {
+func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUID string, userID int, email, fullName, phoneNumber string) error {
 	//get tanant mysql connstr from environment
 	connStr := os.Getenv(tenantUUID)
 	if len(connStr) == 0 {
@@ -198,24 +198,36 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 	err = db.QueryRow(`SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '` + organizationUUID + `'`).Scan(&name)
 	if err == nil {
 		logrus.Info(organizationUUID, " schema exists")
-		return nil
 	}
-	// create database
-	_, err = db.Exec(fmt.Sprintf("CREATE DATABASE `%s`", organizationUUID))
-	if err != nil {
-		r.SetUserStatusToZero(userID)
-		return errors.New("create database failed")
+	if name == "" {
+		// create database
+		_, err = db.Exec(fmt.Sprintf("CREATE DATABASE `%s`", organizationUUID))
+		if err != nil {
+			r.SetUserStatusToZero(userID)
+			return errors.New("create database failed")
+		}
 	}
 	_, err = db.Exec(fmt.Sprintf("USE `%s`", organizationUUID))
 	if err != nil {
 		r.SetUserStatusToZero(userID)
 		return errors.New("use database failed")
 	}
-	// create tables
-	_, err = db.Exec(model.SQL_TEMPLATE)
+	if name == "" {
+		// create tables
+		_, err = db.Exec(model.SQL_TEMPLATE)
+		if err != nil {
+			r.SetUserStatusToZero(userID)
+			return errors.New("create tables failed")
+		}
+	}
+	// create user
+	_, err = db.Exec(
+		`INSERT INTO users (email, full_name, phone, status, policy_id) VALUES (?,?,?,?,?)`,
+		email, fullName, phoneNumber, 1, 1,
+	)
 	if err != nil {
-		r.SetUserStatusToZero(userID)
-		return errors.New("create tables failed")
+		logrus.Error("insert user error ", err.Error())
+		return errors.New("insert users failed")
 	}
 	return nil
 }
