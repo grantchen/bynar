@@ -2,37 +2,34 @@ package service
 
 import (
 	"database/sql"
-	"strconv"
+	"errors"
+	"os"
+	"strings"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/aws/scope"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/aws/secretsmanager"
-	sql_connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 )
 
 type accountManagerRepository struct {
 	db                       *sql.DB
 	accountManagerRepository repository.AccountManagerRepository
-	secretmanager            secretsmanager.SecretsManager
 }
 
 func NewAccountManagerService(
 	db *sql.DB,
 	accaccountManagerRepository repository.AccountManagerRepository,
-	secretmanager secretsmanager.SecretsManager,
 ) AccountManagerService {
 	return &accountManagerRepository{
 		db:                       db,
 		accountManagerRepository: accaccountManagerRepository,
-		secretmanager:            secretmanager,
 	}
 }
 
 // CheckPermission implements AccountManagerService
-func (a *accountManagerRepository) CheckPermission(requestScope *scope.RequestScope) (*repository.PermissionInfo, bool, error) {
+func (a *accountManagerRepository) CheckPermission(claims *middleware.IdTokenClaims) (*repository.PermissionInfo, bool, error) {
 
-	permission, ok, err := a.accountManagerRepository.CheckPermission(requestScope.AccountID, requestScope.OrganizationID)
+	// TODO:
+	permission, ok, err := a.accountManagerRepository.CheckPermission(0, 0)
 
 	if !ok || err != nil {
 		return permission, false, err
@@ -44,22 +41,16 @@ func (a *accountManagerRepository) CheckPermission(requestScope *scope.RequestSc
 }
 
 // GetNewStringConnection implements AccountManagerService
-func (a *accountManagerRepository) GetNewStringConnection(token string, permission *repository.PermissionInfo) (string, error) {
-	value, err := a.secretmanager.GetString(permission.SecretName)
-
-	if err != nil {
-		logger.Debug(err)
-		return "", err
-
+func (a *accountManagerRepository) GetNewStringConnection(tenantUuid, organizationUuid string, permission *repository.PermissionInfo) (string, error) {
+	if len(os.Getenv(tenantUuid)) == 0 {
+		return "", errors.New("no mysql conn environment of " + tenantUuid)
 	}
-	connectionString := sql_connection.JSON2DatabaseConnection(value)
-
-	if permission.Enterprise == 1 {
-		return connectionString, nil
+	envs := strings.Split(os.Getenv(tenantUuid), "/")
+	connStr := envs[0] + "/" + organizationUuid
+	if len(envs) > 1 {
+		connStr += envs[1]
 	}
-
-	connectionString = sql_connection.ChangeDatabaseConnectionSchema(connectionString, strconv.Itoa(permission.OrganizationId))
-	return connectionString, nil
+	return connStr, nil
 }
 
 // GetRole implements AccountManagerService

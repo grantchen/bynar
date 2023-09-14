@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -11,15 +10,9 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 )
 
 func main() {
-	secretmanager, err := utils.GetSecretManager()
-	if err != nil {
-		fmt.Printf("error: %v", err)
-		log.Panic(err)
-	}
 
 	connAccountString := "root:123456@tcp(localhost:3306)/accounts_management"
 	dbAccount, err := sql_db.NewConnection(connAccountString)
@@ -29,7 +22,7 @@ func main() {
 	}
 
 	accountRepository := pkg_repository.NewAccountManagerRepository(dbAccount)
-	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, secretmanager)
+	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository)
 
 	connectionPool := connection.NewPool()
 	defer func() {

@@ -4,15 +4,17 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/aws/scope"
 	sql_connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/render"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
@@ -226,21 +228,21 @@ func getModuleFromPath(r *http.Request) *ModulePath {
 func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		modulePath := getModuleFromPath(r)
-		token := "<<Extract token from req here>>"
 
 		defaultResponse := &treegrid.PostResponse{}
 		defaultResponse.Changes = make([]map[string]interface{}, 0)
-		requestScope, err := scope.ResolveFromToken(token)
 
-		// hard code to test
-		requestScope.OrganizationID = 1
-		requestScope.AccountID = 2
-		if err != nil {
-			writeErrorResponse(w, defaultResponse, err)
+		code, msg, claims := middleware.VerifyIdToken(r)
+		if http.StatusOK != code {
+			if "" == msg {
+				msg = http.StatusText(code)
+			}
+			writeErrorResponse(w, defaultResponse, errors.New(msg))
 			return
 		}
+
 		logger.Debug("check permission")
-		permission, ok, err := h.AccountManagerService.CheckPermission(&requestScope)
+		permission, ok, err := h.AccountManagerService.CheckPermission(claims)
 
 		if err != nil {
 			log.Println("Err", err)
@@ -253,8 +255,8 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 			return
 		}
 
-		// check role
-		roles, err := h.AccountManagerService.GetRole(requestScope.AccountID)
+		// check role TODO:
+		roles, err := h.AccountManagerService.GetRole(0)
 
 		if err != nil {
 			log.Println("Err", err)
@@ -282,7 +284,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 			writeErrorResponse(w, defaultResponse, fmt.Errorf("not found module data in policies: [%s]", modulePath.module+"_data"))
 			return
 		}
-		accID = requestScope.AccountID
+		accID = 0
 
 		// user can access all module
 		if moduleDataVal == 1 {
@@ -296,7 +298,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 
 		var connString string
 
-		connString, _ = h.AccountManagerService.GetNewStringConnection(token, permission)
+		connString, _ = h.AccountManagerService.GetNewStringConnection(claims.TenantUuid, claims.OrganizationUuid, permission)
 		if permission.Enterprise == 0 {
 			connString = sql_connection.ChangeDatabaseConnectionSchema(connString, strconv.Itoa(permission.TMOrganizationId))
 		}
@@ -331,8 +333,8 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) HandleHTTPReqWithAuthenMWAndDefaultPa
 	}
 
 	logger.Debug(h.PathPrefix + "/" + UploadPathString)
-	http.Handle(h.PathPrefix+"/"+UploadPathString, h.authenMW(http.HandlerFunc(h.HTTPHandleUpload)))
-	http.Handle(h.PathPrefix+"/"+PageCountPathString, h.authenMW(http.HandlerFunc(h.HTTPHandleGetPageCount)))
-	http.Handle(h.PathPrefix+"/"+PageDataPathString, h.authenMW(http.HandlerFunc(h.HTTPHandleGetPageData)))
+	http.Handle(h.PathPrefix+"/"+UploadPathString, render.CorsMiddleware(h.authenMW(http.HandlerFunc(h.HTTPHandleUpload))))
+	http.Handle(h.PathPrefix+"/"+PageCountPathString, render.CorsMiddleware(h.authenMW(http.HandlerFunc(h.HTTPHandleGetPageCount))))
+	http.Handle(h.PathPrefix+"/"+PageDataPathString, render.CorsMiddleware(h.authenMW(http.HandlerFunc(h.HTTPHandleGetPageData))))
 
 }

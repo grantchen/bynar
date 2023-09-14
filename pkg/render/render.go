@@ -1,6 +1,7 @@
 package render
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -18,7 +19,7 @@ func CorsMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		// Verify if the token is correct
-		code, msg, newRequestWithUser := middleware.VerifyIdToken(r)
+		code, msg, claims := middleware.VerifyIdToken(r)
 		if http.StatusOK != code {
 			if "" == msg {
 				msg = http.StatusText(code)
@@ -26,7 +27,8 @@ func CorsMiddleware(next http.Handler) http.Handler {
 			http.Error(w, msg, code)
 			return
 		}
-		next.ServeHTTP(w, newRequestWithUser)
+		ctx := context.WithValue(r.Context(), "id_token", *claims)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 

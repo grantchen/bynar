@@ -29,7 +29,7 @@ func main() {
 	}
 
 	accountRepository := pkg_repository.NewAccountManagerRepository(dbAccount)
-	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, nil)
+	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository)
 
 	connectionPool := connection.NewPool()
 	defer func() {

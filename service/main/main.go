@@ -23,13 +23,13 @@ import (
 	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	procurements_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/procurements/external/handler/http"
 	sales_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/external/handler/http"
 	transfers_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/external/handler/http"
 	usergroups_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/external/handler/http"
 
-	account_http_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/http_handler"
+	accounts_http_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/http"
+	accounts_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/service"
 )
 
 type HandlerMapping struct {
@@ -49,12 +49,6 @@ func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
 		fmt.Printf("Error loading .env file in main service")
-	}
-
-	secretmanager, err := utils.GetSecretManager()
-	if err != nil {
-		fmt.Printf("error: %v", err)
-		log.Panic(err)
 	}
 
 	appConfig := config.NewLocalConfig()
@@ -85,7 +79,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	accountHandler := account_http_handler.NewHTTPHandler(accountDB, authProvider, paymentProvider, cloudStorageProvider)
+	accountHandler := accounts_http_handler.NewHTTPHandler(accountDB, authProvider, paymentProvider, cloudStorageProvider)
 
 	// Signup endpoints
 	http.Handle("/signup", render.CorsMiddleware(http.HandlerFunc(accountHandler.Signup)))
@@ -101,12 +95,6 @@ func main() {
 	// user profile picture endpoint
 	http.Handle("/upload", render.CorsMiddleware(http.HandlerFunc(accountHandler.UploadProfilePhoto)))
 	http.Handle("/profile-image", render.CorsMiddleware(http.HandlerFunc(accountHandler.DeleteProfileImage)))
-
-	tgHandler := account_http_handler.NewUserHTTPHandler()
-
-	http.Handle("/apprunnerurl/accounts/upload", render.CorsMiddleware(http.HandlerFunc(tgHandler.HTTPHandleUpload)))
-	http.Handle("/apprunnerurl/accounts/data", render.CorsMiddleware(http.HandlerFunc(tgHandler.HTTPHandleGetPageCount)))
-	http.Handle("/apprunnerurl/accounts/page", render.CorsMiddleware(http.HandlerFunc(tgHandler.HTTPHandleGetPageData)))
 
 	lsHandlerMapping := make([]*HandlerMapping, 0)
 	lsHandlerMapping = append(lsHandlerMapping,
@@ -155,7 +143,7 @@ func main() {
 		log.Panic(err)
 	}
 	accountRepository := pkg_repository.NewAccountManagerRepository(dbAccount)
-	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, secretmanager)
+	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository)
 
 	lsHandlerMappingWithPermission := make([]*HandlerMappingWithPermission, 0)
 	lsHandlerMappingWithPermission = append(lsHandlerMappingWithPermission,
@@ -170,6 +158,15 @@ func main() {
 		}
 		handler.HandleHTTPReqWithAuthenMWAndDefaultPath()
 	}
+
+	// accounts treegrid endpoints
+	handler := &handler.HTTPTreeGridHandlerWithDynamicDB{
+		AccountManagerService:  accountService,
+		TreeGridServiceFactory: accounts_service.NewTreeGridServiceFactory(),
+		ConnectionPool:         connectionPool,
+		PathPrefix:             prefix + "/accounts",
+	}
+	handler.HandleHTTPReqWithAuthenMWAndDefaultPath()
 
 	log.Println("start server at 8080!")
 	port := os.Getenv("PORT")

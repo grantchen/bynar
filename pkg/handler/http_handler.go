@@ -51,7 +51,7 @@ func (h *HTTPTreeGridHandler) HTTPHandleGetPageCount(w http.ResponseWriter, r *h
 		log.Println(err)
 	}
 
-	allPages, _ := h.CallbackGetPageCountFunc(r.Context(), treegr)
+	allPages, _ := h.CallbackGetPageCountFunc(treegr)
 
 	response, err := json.Marshal((map[string]interface{}{
 		"Body": []string{`#@@@` + fmt.Sprintf("%v", allPages)},
@@ -84,7 +84,7 @@ func (h *HTTPTreeGridHandler) HTTPHandleGetPageData(w http.ResponseWriter, r *ht
 
 	var response = make([]map[string]string, 0, 100)
 
-	response, _ = h.CallbackGetPageDataFunc(r.Context(), trGrid)
+	response, _ = h.CallbackGetPageDataFunc(trGrid)
 
 	addData := [][]map[string]string{}
 	addData = append(addData, response)
@@ -124,7 +124,7 @@ func (h *HTTPTreeGridHandler) HTTPHandleUpload(w http.ResponseWriter, r *http.Re
 
 	// b, _ := json.Marshal(postData)
 	// logger.Debug("postData: ", string(b), "form data: ", r.Form.Get("Data"))
-	resp, err := h.CallbackUploadDataFunc(r.Context(), postData)
+	resp, err := h.CallbackUploadDataFunc(postData)
 
 	if err != nil {
 		writeErrorResponse(w, resp, err)
@@ -152,7 +152,7 @@ func (h *HTTPTreeGridHandler) HTTPHandleCell(w http.ResponseWriter, r *http.Requ
 		log.Println(err)
 	}
 
-	resp, err := h.CallBackGetCellDataFunc(r.Context(), trGrid)
+	resp, err := h.CallBackGetCellDataFunc(trGrid)
 	if err != nil {
 		writeErrorResponse(w, resp, err)
 

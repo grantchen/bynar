@@ -1,7 +1,6 @@
 package http_handler
 
 import (
-	"context"
 	"database/sql"
 	"net/http"
 
@@ -37,8 +36,8 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 	handler := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,
 		CallbackGetPageDataFunc: generalPostingSetupService.GetPageData,
-		CallbackGetPageCountFunc: func(ctx context.Context, tr *treegrid.Treegrid) (float64, error) {
-			count, err := generalPostingSetupService.GetPageCount(ctx, tr)
+		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) (float64, error) {
+			count, err := generalPostingSetupService.GetPageCount(tr)
 			return float64(count), err
 		},
 	}

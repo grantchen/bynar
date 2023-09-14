@@ -1,8 +1,6 @@
 package service
 
 import (
-	"context"
-
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
@@ -17,11 +15,11 @@ func NewGeneralPostingSetupService(generalPostingSetupSimpleRepository treegrid.
 }
 
 // GetPageCount implements GeneralPostingSetupService
-func (g *generalPostingSetupService) GetPageCount(ctx context.Context, tr *treegrid.Treegrid) (int64, error) {
+func (g *generalPostingSetupService) GetPageCount(tr *treegrid.Treegrid) (int64, error) {
 	return g.generalPostingSetupSimpleRepository.GetPageCount(tr)
 }
 
 // GetPageData implements GeneralPostingSetupService
-func (g *generalPostingSetupService) GetPageData(ctx context.Context, tr *treegrid.Treegrid) ([]map[string]string, error) {
+func (g *generalPostingSetupService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
 	return g.generalPostingSetupSimpleRepository.GetPageData(tr)
 }
