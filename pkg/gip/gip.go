@@ -22,8 +22,8 @@ const (
 )
 
 const (
-	ENVGoogleApplicationCredentials = "GOOGLE_APPLICATION_CREDENTIALS"
-	ENVGoogleAPIKey                 = "GOOGLE_API_KEY"
+	ENVGoogleApplicationCredentialsJSON = "GOOGLE_APPLICATION_CREDENTIALS_JSON"
+	ENVGoogleAPIKey                     = "GOOGLE_API_KEY"
 )
 
 var ErrUserNotFound = errors.New("user not found")
@@ -37,7 +37,7 @@ type gipClient struct {
 
 // NewGIPClient creates a new instance of the AuthProvider.
 func NewGIPClient() (AuthProvider, error) {
-	opt := option.WithCredentialsJSON([]byte(os.Getenv(ENVGoogleApplicationCredentials)))
+	opt := option.WithCredentialsJSON([]byte(os.Getenv(ENVGoogleApplicationCredentialsJSON)))
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
 		return nil, errors.New("error initializing gip app: " + err.Error())

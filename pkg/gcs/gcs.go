@@ -7,14 +7,15 @@
 package gcs
 
 import (
-	"cloud.google.com/go/storage"
 	"context"
 	"errors"
-	"github.com/sirupsen/logrus"
-	"google.golang.org/api/option"
 	"io"
 	"os"
 	"time"
+
+	"cloud.google.com/go/storage"
+	"github.com/sirupsen/logrus"
+	"google.golang.org/api/option"
 )
 
 // gcsClient is the interface for the CloudStorageProvider.
@@ -26,7 +27,7 @@ type gcsClient struct {
 // NewGCSClient creates a new instance of the CloudStorageProvider.
 // need to close by user
 func NewGCSClient() (CloudStorageProvider, error) {
-	opt := option.WithCredentialsJSON([]byte(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")))
+	opt := option.WithCredentialsJSON([]byte(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")))
 	client, err := storage.NewClient(context.Background(), opt)
 	if err != nil {
 		return nil, errors.New("NewGCSClient: NewClient error: " + err.Error())
