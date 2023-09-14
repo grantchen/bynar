@@ -33,7 +33,7 @@ func NewGCSClient() (CloudStorageProvider, error) {
 	}
 	return &gcsClient{
 		client: client,
-		bucket: os.Getenv("GOOGLE_CLOUD_STORAG_BUCKET"),
+		bucket: os.Getenv("GOOGLE_CLOUD_STORAGE_BUCKET"),
 	}, nil
 }
 
