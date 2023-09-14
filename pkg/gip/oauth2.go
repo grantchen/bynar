@@ -29,7 +29,7 @@ type oauth2Client struct {
 func newOAuth2Client(ctx context.Context, opts ...option.ClientOption) (*oauth2Client, error) {
 	o := []option.ClientOption{
 		option.WithScopes(firebaseScopes...),
-		option.WithCredentialsJSON([]byte(os.Getenv(ENVGoogleApplicationCredentials))),
+		option.WithCredentialsJSON([]byte(os.Getenv(ENVGoogleApplicationCredentialsJSON))),
 	}
 	o = append(o, opts...)
 
