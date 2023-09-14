@@ -8,13 +8,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 
-	sql_connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/render"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
@@ -242,18 +241,20 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		}
 
 		logger.Debug("check permission")
-		permission, ok, err := h.AccountManagerService.CheckPermission(claims)
+		permission := &repository.PermissionInfo{}
+		// TODO:
+		// permission, ok, err := h.AccountManagerService.CheckPermission(claims)
 
-		if err != nil {
-			log.Println("Err", err)
-			writeErrorResponse(w, defaultResponse, err)
-			return
-		}
+		// if err != nil {
+		// 	log.Println("Err", err)
+		// 	writeErrorResponse(w, defaultResponse, err)
+		// 	return
+		// }
 
-		if !ok {
-			writeErrorResponse(w, defaultResponse, err)
-			return
-		}
+		// if !ok {
+		// 	writeErrorResponse(w, defaultResponse, err)
+		// 	return
+		// }
 
 		// check role TODO:
 		roles, err := h.AccountManagerService.GetRole(0)
@@ -299,9 +300,9 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		var connString string
 
 		connString, _ = h.AccountManagerService.GetNewStringConnection(claims.TenantUuid, claims.OrganizationUuid, permission)
-		if permission.Enterprise == 0 {
-			connString = sql_connection.ChangeDatabaseConnectionSchema(connString, strconv.Itoa(permission.TMOrganizationId))
-		}
+		// if permission.Enterprise == 0 {
+		// 	connString = sql_connection.ChangeDatabaseConnectionSchema(connString, strconv.Itoa(permission.TMOrganizationId))
+		// }
 		//hardcode to test
 		// connString = "root:123456@tcp(localhost:3306)/bynar"
 
