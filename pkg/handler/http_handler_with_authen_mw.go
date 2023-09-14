@@ -226,7 +226,6 @@ func getModuleFromPath(r *http.Request) *ModulePath {
 
 func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// modulePath := getModuleFromPath(r)
 
 		defaultResponse := &treegrid.PostResponse{}
 		defaultResponse.Changes = make([]map[string]interface{}, 0)
@@ -313,6 +312,21 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 			writeErrorResponse(w, defaultResponse, err)
 			return
 		}
+
+		// TODO: policy
+		// modulePath := getModuleFromPath(r)
+		// var val int
+		// err = db.QueryRow(fmt.Sprintf("SELECT policies.%s FROM users LEFT JOIN policies ON policies.id = users.policy_id WHERE users.email = ?", modulePath.module), claims.Email).Scan(&val)
+		// if err != nil {
+		// 	log.Println("Err get policy", err)
+		// 	writeErrorResponse(w, defaultResponse, err)
+		// 	return
+		// }
+		// if val != 1 {
+		// 	writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
+		// 	return
+		// }
+
 		reqContext := &ReqContext{
 			connectionString: connString,
 			db:               db,

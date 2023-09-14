@@ -116,7 +116,7 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 	err = s.ar.CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID)
 	if err != nil {
 		logrus.Error("create user error: ", err.Error())
-		return "", errors.New("create user failed")
+		return "", err
 	}
 	// return idToken after created
 	account, err := s.ar.SelectSignInColumns(email)
