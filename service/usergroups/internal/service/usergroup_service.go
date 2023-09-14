@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"database/sql"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
@@ -13,7 +12,7 @@ type userGroupService struct {
 }
 
 // GetCellSuggestion implements UserGroupService
-func (u *userGroupService) GetCellSuggestion(ctx context.Context, tr *treegrid.Treegrid) (*treegrid.PostResponse, error) {
+func (u *userGroupService) GetCellSuggestion(tr *treegrid.Treegrid) (*treegrid.PostResponse, error) {
 	data, err := u.gridRowDataRepositoryWithChild.GetChildSuggestion(tr)
 
 	resp := &treegrid.PostResponse{}
@@ -32,12 +31,12 @@ func (u *userGroupService) GetCellSuggestion(ctx context.Context, tr *treegrid.T
 }
 
 // GetTransferCount implements UserGroupsService
-func (u *userGroupService) GetPageCount(ctx context.Context, tr *treegrid.Treegrid) (int64, error) {
+func (u *userGroupService) GetPageCount(tr *treegrid.Treegrid) (int64, error) {
 	return u.gridRowDataRepositoryWithChild.GetPageCount(tr)
 }
 
 // GetTransfersPageData implements UserGroupsService
-func (u *userGroupService) GetPageData(ctx context.Context, tr *treegrid.Treegrid) ([]map[string]string, error) {
+func (u *userGroupService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
 	return u.gridRowDataRepositoryWithChild.GetPageData(tr)
 }
 

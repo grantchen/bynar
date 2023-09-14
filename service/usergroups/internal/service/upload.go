@@ -30,7 +30,7 @@ func NewUploadService(db *sql.DB,
 	}
 }
 
-func (u *UploadService) Handle(ctx context.Context, req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
+func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	resp := &treegrid.PostResponse{}
 	// Create new transaction
 	b, _ := json.Marshal(req)

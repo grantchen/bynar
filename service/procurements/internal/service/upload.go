@@ -42,7 +42,7 @@ func NewService(conn *sql.DB,
 }
 
 // Handle
-func (s *UploadService) Handle(ctx context.Context, req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
+func (s *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	resp := &treegrid.PostResponse{}
 
 	trList, err := treegrid.ParseRequestUpload(req, s.gridRowRepository)

@@ -91,7 +91,7 @@ func (l *LambdaTreeGridHandler) getPageData(ctx context.Context, request events.
 
 	var response = make([]map[string]string, 0, 100)
 
-	response, err = l.CallbackGetPageDataFunc(ctx, trGrid)
+	response, err = l.CallbackGetPageDataFunc(trGrid)
 	if err != nil {
 		log.Println("err", err)
 	}
@@ -145,7 +145,7 @@ func (l *LambdaTreeGridHandler) getPageCount(ctx context.Context, request events
 		log.Fatalln(err)
 	}
 
-	allPages, _ := l.CallbackGetPageCountFunc(ctx, trGrid)
+	allPages, _ := l.CallbackGetPageCountFunc(trGrid)
 
 	// set this to allow Ajax requests from other origins
 	headers := map[string]string{
@@ -272,7 +272,7 @@ func (l *LambdaTreeGridHandler) getCellData(ctx context.Context, request events.
 		log.Fatalln(err)
 	}
 
-	response, err := l.CallBackGetCellDataFunc(ctx, trGrid)
+	response, err := l.CallBackGetCellDataFunc(trGrid)
 	if err != nil {
 		log.Println("err", err)
 	}

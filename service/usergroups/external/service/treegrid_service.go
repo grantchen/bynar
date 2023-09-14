@@ -70,17 +70,17 @@ func (*treegridService) GetCellData(ctx context.Context, req *treegrid.Treegrid)
 }
 
 // GetPageCount implements treegrid.TreeGridService
-func (s *treegridService) GetPageCount(ctx context.Context, tr *treegrid.Treegrid) (float64, error) {
+func (s *treegridService) GetPageCount(tr *treegrid.Treegrid) (float64, error) {
 	count, err := s.userGroupService.GetPageCount(tr)
 	return float64(count), err
 }
 
 // GetPageData implements treegrid.TreeGridService
-func (s *treegridService) GetPageData(ctx context.Context, tr *treegrid.Treegrid) ([]map[string]string, error) {
+func (s *treegridService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
 	return s.userGroupService.GetPageData(tr)
 }
 
 // Upload implements treegrid.TreeGridService
-func (s *treegridService) Upload(ctx context.Context, req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
+func (s *treegridService) Upload(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	return s.uploadService.Handle(req)
 }

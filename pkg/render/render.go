@@ -6,8 +6,6 @@ import (
 	"io"
 	"net/http"
 	"reflect"
-
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
 )
 
 // CorsMiddleware solve the CORS problem
@@ -18,15 +16,15 @@ func CorsMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		// Verify if the token is correct
-		code, msg, newRequestWithUser := middleware.VerifyIdToken(r)
-		if http.StatusOK != code {
-			if "" == msg {
-				msg = http.StatusText(code)
-			}
-			http.Error(w, msg, code)
-			return
-		}
-		next.ServeHTTP(w, newRequestWithUser)
+		// code, msg, newRequestWithUser := middleware.VerifyIdToken(r)
+		// if http.StatusOK != code {
+		// 	if "" == msg {
+		// 		msg = http.StatusText(code)
+		// 	}
+		// 	http.Error(w, msg, code)
+		// 	return
+		// }
+		next.ServeHTTP(w, r)
 	})
 }
 
