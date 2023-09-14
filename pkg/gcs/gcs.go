@@ -73,9 +73,9 @@ func (g gcsClient) StorageClient() *storage.Client {
 // SignedURL Signed URLs allow anyone to access to a restricted resource for a limited time
 func (g gcsClient) SignedURL(filePath string) (string, error) {
 	opts := &storage.SignedURLOptions{
-		Scheme:  storage.SigningSchemeV4,
+		Scheme:  storage.SigningSchemeDefault,
 		Method:  "GET",
-		Expires: time.Now().Add(7 * 24 * time.Hour),
+		Expires: time.Now().Add(100 * 12 * 30 * 24 * time.Hour),
 	}
 	bucketHandle := g.client.Bucket(g.bucket)
 	url, err := bucketHandle.SignedURL(filePath, opts)

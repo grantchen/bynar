@@ -53,7 +53,7 @@ func main() {
 	// user endpoints
 	http.Handle("/user", render.CorsMiddleware(http.HandlerFunc(handler.User)))
 	// user profile picture endpoint
-	http.Handle("/upload/profile-image", render.CorsMiddleware(http.HandlerFunc(handler.UploadProfilePhoto)))
+	http.Handle("/upload", render.CorsMiddleware(http.HandlerFunc(handler.UploadProfilePhoto)))
 	http.Handle("/profile-image", render.CorsMiddleware(http.HandlerFunc(handler.DeleteProfileImage)))
 	// TreeGrid handler endpoints
 	tgHandler := http_handler.NewUserHTTPHandler()

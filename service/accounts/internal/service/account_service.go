@@ -31,7 +31,7 @@ func (s *accountServiceHandler) UploadFileToGCS(tenantId, organizationUuid, emai
 	defer part.Close()
 	logrus.Infof("Uploaded File: %+v\n", part.FileName())
 	ext := path.Ext(part.FileName())
-	if !utils.IsStringArrayInclude(profilePictureType, strings.ToLower(ext)) {
+	if !utils.IsStringArrayInclude(profilePictureType, strings.ToLower(strings.Split(ext, ".")[1])) {
 		return "", errors.New("profile picture type is not png or jpg")
 	}
 	organization, err := s.ar.GetOrganizationDetail(organizationUuid)
