@@ -19,7 +19,7 @@ import (
 	"strings"
 )
 
-var profilePictureType = []string{"png", "jpg"}
+var profilePictureType = []string{"png", "jpg", "jpeg"}
 
 // UploadFileToGCS upload user's profile picture to gcs
 func (s *accountServiceHandler) UploadFileToGCS(tenantId, organizationUuid, email string, body *multipart.Reader) (string, error) {

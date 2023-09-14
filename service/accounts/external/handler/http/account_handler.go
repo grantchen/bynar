@@ -202,7 +202,7 @@ func (h *AccountHandler) UploadProfilePhoto(w http.ResponseWriter, r *http.Reque
 
 // DeleteProfileImage delete user's profile_picture from google cloud storage
 func (h *AccountHandler) DeleteProfileImage(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPut {
+	if r.Method != http.MethodDelete {
 		render.MethodNotAllowed(w)
 		return
 	}

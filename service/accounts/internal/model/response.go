@@ -23,5 +23,6 @@ type GetUserResponse struct {
 	LanguagePreference string `json:"languagePreference"`
 	Email              string `json:"email"`
 	FullName           string `json:"fullName"`
+	ProfileUrl         string `json:"profileUrl"`
 	//todo add other column
 }
