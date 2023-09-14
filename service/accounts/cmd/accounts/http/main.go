@@ -78,8 +78,8 @@ func main() {
 	// user endpoints
 	http.Handle("/user", render.CorsMiddleware(http.HandlerFunc(httpHandler.User)))
 	// user profile picture endpoint
-	http.Handle("/upload/profile-image", render.CorsMiddleware(http.HandlerFunc(httpHandler.UploadProfilePhoto)))
-	http.Handle("/profile-image", render.CorsMiddleware(http.HandlerFunc(httpHandler.DeleteProfileImageHandler)))
+	http.Handle("/upload", render.CorsMiddleware(http.HandlerFunc(httpHandler.UploadProfilePhoto)))
+	http.Handle("/profile-image", render.CorsMiddleware(http.HandlerFunc(httpHandler.DeleteProfileImage)))
 
 	// accounts treegrid endpoints
 	dbhandler := &handler.HTTPTreeGridHandlerWithDynamicDB{
