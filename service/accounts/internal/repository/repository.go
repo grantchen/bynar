@@ -15,6 +15,8 @@ type AccountRepository interface {
 	SelectUserByUid(uid string) (*model.GetUserResponse, error)
 	// GetOrganizationDetail get organization detail
 	GetOrganizationDetail(organizationUuid string) (*model.Organization, error)
+	// GetUserAccountDetail get accounts detail by uid provided
+	GetUserAccountDetail(email string) (*model.Account, error)
 }
 
 type accountRepositoryHandler struct {

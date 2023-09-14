@@ -39,9 +39,9 @@ func (s *accountServiceHandler) UploadFileToGCS(tenantId, organizationUuid, emai
 		logrus.Errorf("UploadFileToGCS: GetOrganizationDetail err: %+v", err)
 		return "", errors.New("organization not found")
 	}
-	user, err := s.GetUserDetail(tenantId, organizationUuid, email)
+	user, err := s.ar.GetUserAccountDetail(email)
 	if err != nil || organization == nil {
-		logrus.Errorf("UploadFileToGCS: GetUserDetail err: %+v", err)
+		logrus.Errorf("UploadFileToGCS: GetUserAccountDetail err: %+v", err)
 		return "", errors.New("user not found")
 	}
 	filePath := fmt.Sprintf("%v/profile_picture/%v%v", organization.ID, user.ID, ext)
@@ -57,7 +57,7 @@ func (s *accountServiceHandler) UploadFileToGCS(tenantId, organizationUuid, emai
 		return "", errors.New("upload file error")
 	}
 	// update database profile_photo column in table users
-	if err = s.UpdateProfilePhotoOfUsers(tenantId, organizationUuid, user.ID, url); err != nil {
+	if err = s.UpdateProfilePhotoOfUsers(tenantId, organizationUuid, email, url); err != nil {
 		logrus.Errorf("UploadFileToGCS: UpdateProfilePhotoOfUsers err: %+v", err)
 		return "", errors.New("upload file error")
 	}
@@ -71,9 +71,9 @@ func (s *accountServiceHandler) DeleteFileFromGCS(tenantId, organizationUuid, em
 		logrus.Errorf("DeleteFileFromGCS: GetOrganizationDetail err: %+v", err)
 		return errors.New("organization not found")
 	}
-	user, err := s.GetUserDetail(tenantId, organizationUuid, email)
+	user, err := s.ar.GetUserAccountDetail(email)
 	if err != nil || organization == nil {
-		logrus.Errorf("DeleteFileFromGCS: GetUserDetail err: %+v", err)
+		logrus.Errorf("DeleteFileFromGCS: GetUserAccountDetail err: %+v", err)
 		return errors.New("user not found")
 	}
 	filePathPrefix := fmt.Sprintf("%v/profile_picture/%v", organization.ID, user.ID)
@@ -83,7 +83,7 @@ func (s *accountServiceHandler) DeleteFileFromGCS(tenantId, organizationUuid, em
 		return errors.New("delete file fail")
 	}
 	// update database profile_photo column in table users
-	if err = s.UpdateProfilePhotoOfUsers(tenantId, organizationUuid, user.ID, ""); err != nil {
+	if err = s.UpdateProfilePhotoOfUsers(tenantId, organizationUuid, email, ""); err != nil {
 		logrus.Errorf("DeleteFileFromGCS: UpdateProfilePhotoOfUsers err: %+v", err)
 		return errors.New("delete file fail")
 	}
@@ -111,7 +111,7 @@ func (s *accountServiceHandler) GetUserDetail(tenantUuid, organizationUuid, emai
 }
 
 // UpdateProfilePhotoOfUsers update column profile_photo in table users of organization_schema(uuid)
-func (s *accountServiceHandler) UpdateProfilePhotoOfUsers(tenantUuid, organizationUuid string, accountID int, profilePhoto string) error {
+func (s *accountServiceHandler) UpdateProfilePhotoOfUsers(tenantUuid, organizationUuid string, email string, profilePhoto string) error {
 	connStr := os.Getenv(tenantUuid) + organizationUuid
 	db, err := sql_db.InitializeConnection(connStr)
 	logrus.Info("init db ", connStr)
@@ -120,7 +120,7 @@ func (s *accountServiceHandler) UpdateProfilePhotoOfUsers(tenantUuid, organizati
 		return err
 	}
 	defer db.Close()
-	if _, err = db.Exec(`UPDATE users SET profile_photo = ? WHERE id = ?`, profilePhoto, accountID); err != nil {
+	if _, err = db.Exec(`UPDATE users SET profile_photo = ? WHERE email = ?`, profilePhoto, email); err != nil {
 		return err
 	}
 	return nil

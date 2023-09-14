@@ -28,7 +28,7 @@ type AccountService interface {
 	// DeleteFileFromGCS delete user's profile picture from google cloud storage
 	DeleteFileFromGCS(tenantId, organizationUuid, email string) error
 	// UpdateProfilePhotoOfUsers update profile_photo column in users
-	UpdateProfilePhotoOfUsers(tenantUuid, organizationUuid string, accountID int, profilePhoto string) error
+	UpdateProfilePhotoOfUsers(tenantUuid, organizationUuid string, email string, profilePhoto string) error
 }
 
 type accountServiceHandler struct {

@@ -26,3 +26,19 @@ func (r *accountRepositoryHandler) GetOrganizationDetail(organizationUuid string
 	}
 	return &organization, nil
 }
+
+// GetUserAccountDetail get accounts detail by uid provided
+func (r *accountRepositoryHandler) GetUserAccountDetail(email string) (*model.Account, error) {
+	var querySql = `
+		select a.id,a.email,a.full_name,a.address,a.address_2,a.phone,a.city,a.postal_code,a.country,a.state,a.stauts,a.uid,a.org_id,a.verified 
+		from accounts a where email = ? and status = ? and verified = ? limit 1`
+	var account = model.Account{}
+	err := r.db.QueryRow(querySql, email, true, true).Scan(&account.ID,
+		&account.Email, &account.Address, &account.Address2, &account.Phone,
+		&account.City, &account.PostalCode, &account.Country, &account.State,
+		&account.Status, &account.UID, &account.Verified)
+	if err != nil {
+		return nil, fmt.Errorf("query row: [%w]", err)
+	}
+	return &account, nil
+}

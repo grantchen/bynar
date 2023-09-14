@@ -188,8 +188,8 @@ func (h *AccountHandler) UploadProfilePhoto(w http.ResponseWriter, r *http.Reque
 	render.Ok(w, url)
 }
 
-// DeleteProfileImageHandler delete user's profile_picture from google cloud storage
-func (h *AccountHandler) DeleteProfileImageHandler(w http.ResponseWriter, r *http.Request) {
+// DeleteProfileImage delete user's profile_picture from google cloud storage
+func (h *AccountHandler) DeleteProfileImage(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		render.MethodNotAllowed(w)
 		return
