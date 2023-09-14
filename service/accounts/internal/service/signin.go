@@ -3,39 +3,33 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
-	"github.com/sirupsen/logrus"
 	"os"
 )
 
 // SignIn is a service method which handles the logic of user login
 func (s *accountServiceHandler) SignIn(email, oobCode string) (idToken string, err error) {
 	if err = s.VerifyEmail(email); err != nil {
-		logrus.Errorf("SignIn: verify email error: %+v", err)
-		return "", fmt.Errorf("email is not signed up")
+		return "", errors.NewUnknownError("email is not signed up").WithInternal().WithCause(err)
 	}
 	account, err := s.ar.SelectSignInColumns(email)
 	if err != nil || account == nil {
-		logrus.Errorf("SignIn: %s no user selected", email)
-		return "", fmt.Errorf("sign in failed")
+		return "", errors.NewUnknownError("sign in failed").WithInternal().WithCause(err)
 	}
 	err = gip.SignInWithEmailLink(email, oobCode)
 	if err != nil {
-		logrus.Errorf("SignIn: verification oobCode err: %+v", err)
-		return "", fmt.Errorf("sign in failed")
+		return "", errors.NewUnknownError("sign in failed").WithInternal().WithCause(err)
 	}
 	claims, err := convertSignInToClaims(account)
 	if err != nil {
-		logrus.Errorf("SignIn: convert sign in claims err: %+v", err)
-		return "", fmt.Errorf("sign in failed")
+		return "", errors.NewUnknownError("sign in failed").WithInternal().WithCause(err)
 	}
 	token, err := s.authProvider.SignIn(context.Background(), account.Uid, claims)
 	if err != nil {
-		logrus.Errorf("SignIn: %s generate idtoke err: %+v", email, err)
-		return "", fmt.Errorf("sign in failed")
+		return "", errors.NewUnknownError("sign in failed").WithInternal().WithCause(err)
 	}
 	return token, nil
 
@@ -45,12 +39,12 @@ func (s *accountServiceHandler) SignIn(email, oobCode string) (idToken string, e
 func convertSignInToClaims(signIn *model.SignIn) (map[string]interface{}, error) {
 	data, err := json.Marshal(&signIn)
 	if err != nil {
-		return nil, fmt.Errorf("convertSignInToClaims: marshal singin to []byte err: %+v", err)
+		return nil, err
 	}
 	claims := map[string]interface{}{}
 	err = json.Unmarshal(data, &claims)
 	if err != nil {
-		return nil, fmt.Errorf("convertSignInToClaims: unmarshal []byte to claims map err: %+v", err)
+		return nil, err
 	}
 	return claims, nil
 }
@@ -58,27 +52,22 @@ func convertSignInToClaims(signIn *model.SignIn) (map[string]interface{}, error)
 // SendSignInEmail send google identify platform with oobCode for sign in
 func (s *accountServiceHandler) SendSignInEmail(email string) error {
 	if err := s.VerifyEmail(email); err != nil {
-		logrus.Errorf("SendSignInEmail: verify email error: %+v", err)
-		return errors.New("email is not signed up")
+		return errors.NewUnknownError("email is not signed up").WithInternal().WithCause(err)
 	}
 	account, err := s.ar.SelectSignInColumns(email)
 	if err != nil || account == nil {
-		logrus.Errorf("SendSignInEmail: %s no user selected", email)
-		return errors.New("user no fund")
+		return errors.NewUnknownError("user no fund").WithInternal().WithCause(err)
 	}
 	claims, err := convertSignInToClaims(account)
 	if err != nil {
-		logrus.Errorf("SendSignInEmail: convert sign in claims err: %+v", err)
-		return errors.New("email sending failed")
+		return errors.NewUnknownError("email sending failed").WithInternal().WithCause(err)
 	}
 	err = s.authProvider.SetCustomUserClaims(context.Background(), account.Uid, claims)
 	if err != nil {
-		logrus.Errorf("SendSignInEmail: set custom user claims err: %+v", err)
-		return errors.New("email sending failed")
+		return errors.NewUnknownError("email sending failed").WithInternal().WithCause(err)
 	}
 	if err = gip.SendRegistrationEmail(email, fmt.Sprintf("%s?email=%s", os.Getenv("SIGNIN_REDIRECT_URL"), email)); err != nil {
-		logrus.Errorf("SendSignInEmail: send registration email error: %+v", err)
-		return errors.New("email sending failed")
+		return errors.NewUnknownError("email sending failed").WithInternal().WithCause(err)
 	}
 	return nil
 }
@@ -103,7 +92,7 @@ func (s *accountServiceHandler) VerifyEmail(email string) error {
 func (s *accountServiceHandler) GetUserByUid(uid string) (*model.GetUserResponse, error) {
 	user, err := s.ar.SelectUserByUid(uid)
 	if err != nil {
-		return nil, errors.New("user not fund")
+		return nil, err
 	}
 	return user, nil
 }

@@ -3,6 +3,7 @@ package http_handler
 import (
 	"database/sql"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
 	"net/http"
 
@@ -115,11 +116,13 @@ func (h *AccountHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 	}
 	var req model.SignInRequest
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
+		handler.LogInternalError(err)
 		render.Error(w, err.Error())
 		return
 	}
 	idToke, err := h.as.SignIn(req.Email, req.OobCode)
 	if err != nil {
+		handler.LogInternalError(err)
 		render.Error(w, err.Error())
 		return
 	}
@@ -134,11 +137,13 @@ func (h *AccountHandler) SendSignInEmail(w http.ResponseWriter, r *http.Request)
 	}
 	var req model.SendSignInEmailRequest
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
+		handler.LogInternalError(err)
 		render.Error(w, err.Error())
 		return
 	}
 	err := h.as.SendSignInEmail(req.Email)
 	if err != nil {
+		handler.LogInternalError(err)
 		render.Error(w, err.Error())
 		return
 	}
@@ -153,11 +158,13 @@ func (h *AccountHandler) User(w http.ResponseWriter, r *http.Request) {
 	}
 	idTokenClaims, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
+		handler.LogInternalError(err)
 		render.Error(w, err.Error())
 		return
 	}
 	userResponse, err := h.as.GetUserByUid(idTokenClaims.Uid)
 	if err != nil {
+		handler.LogInternalError(err)
 		render.Error(w, err.Error())
 		return
 	}
@@ -173,17 +180,22 @@ func (h *AccountHandler) UploadProfilePhoto(w http.ResponseWriter, r *http.Reque
 
 	idTokenClaims, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
+		handler.LogInternalError(err)
 		render.Error(w, err.Error())
 		return
 	}
 	reader, err := r.MultipartReader()
 	if err != nil || reader == nil {
+		handler.LogInternalError(err)
 		render.Error(w, err.Error())
+		return
 	}
 	url, err := h.as.UploadFileToGCS(idTokenClaims.TenantUuid, idTokenClaims.OrganizationUuid, idTokenClaims.Email, reader)
 	if err != nil {
+		handler.LogInternalError(err)
 		render.Error(w, err.Error())
 		return
+
 	}
 	render.Ok(w, url)
 }
@@ -196,6 +208,7 @@ func (h *AccountHandler) DeleteProfileImage(w http.ResponseWriter, r *http.Reque
 	}
 	idTokenClaims, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
+		handler.LogInternalError(err)
 		render.Error(w, err.Error())
 		return
 	}
@@ -203,6 +216,7 @@ func (h *AccountHandler) DeleteProfileImage(w http.ResponseWriter, r *http.Reque
 	err = h.as.DeleteFileFromGCS(idTokenClaims.TenantUuid, idTokenClaims.OrganizationUuid, idTokenClaims.Email)
 
 	if err != nil {
+		handler.LogInternalError(err)
 		render.Error(w, err.Error())
 		return
 	}

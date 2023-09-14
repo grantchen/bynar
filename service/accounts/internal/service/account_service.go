@@ -7,10 +7,10 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"github.com/sirupsen/logrus"
 	"mime/multipart"
@@ -25,41 +25,38 @@ var profilePictureType = []string{"png", "jpg"}
 func (s *accountServiceHandler) UploadFileToGCS(tenantId, organizationUuid, email string, body *multipart.Reader) (string, error) {
 	part, err := body.NextPart()
 	if err != nil {
-		logrus.Errorf("UploadFileToGCS: NextPart err: %+v", err)
-		return "", errors.New("upload file read error")
+		return "", errors.NewUnknownError("file read error").WithInternal().WithCause(err)
 	}
 	defer part.Close()
-	logrus.Infof("Uploaded File: %+v\n", part.FileName())
+
 	ext := path.Ext(part.FileName())
+	// check file type is jpg or png
 	if !utils.IsStringArrayInclude(profilePictureType, strings.ToLower(strings.Split(ext, ".")[1])) {
-		return "", errors.New("profile picture type is not png or jpg")
+		return "", errors.NewUnknownError("profile picture type is not png or jpg")
 	}
 	organization, err := s.ar.GetOrganizationDetail(organizationUuid)
 	if err != nil || organization == nil {
-		logrus.Errorf("UploadFileToGCS: GetOrganizationDetail err: %+v", err)
-		return "", errors.New("organization not found")
+		return "", errors.NewUnknownError("organization not found").WithInternal().WithCause(err)
 	}
 	user, err := s.ar.GetUserAccountDetail(email)
 	if err != nil || organization == nil {
-		logrus.Errorf("UploadFileToGCS: GetUserAccountDetail err: %+v", err)
-		return "", errors.New("user not found")
+		return "", errors.NewUnknownError("user not found").WithInternal().WithCause(err)
 	}
 	filePath := fmt.Sprintf("%v/profile_picture/%v%v", organization.ID, user.ID, ext)
 	filePathPrefix := fmt.Sprintf("%v/profile_picture/%v", organization.ID, user.ID)
 
+	//delete existing file from Google cloud storage
 	if err = s.cloudStorageProvider.DeleteFiles(filePathPrefix); err != nil {
-		logrus.Errorf("UploadFileToGCS: DeleteFiles err: %+v", err)
-		return "", errors.New("upload file error")
+		return "", errors.NewUnknownError("upload file error").WithInternal().WithCause(err)
 	}
+	// upload profile picture to Google cloud storage
 	url, err := s.cloudStorageProvider.UploadFile(filePath, part)
 	if err != nil {
-		logrus.Errorf("UploadFileToGCS: SignedURL err: %+v", err)
-		return "", errors.New("upload file error")
+		return "", errors.NewUnknownError("upload file error").WithInternal().WithCause(err)
 	}
 	// update database profile_photo column in table users
 	if err = s.UpdateProfilePhotoOfUsers(tenantId, organizationUuid, email, url); err != nil {
-		logrus.Errorf("UploadFileToGCS: UpdateProfilePhotoOfUsers err: %+v", err)
-		return "", errors.New("upload file error")
+		return "", errors.NewUnknownError("upload file error").WithInternal().WithCause(err)
 	}
 	return url, nil
 }
@@ -68,24 +65,20 @@ func (s *accountServiceHandler) UploadFileToGCS(tenantId, organizationUuid, emai
 func (s *accountServiceHandler) DeleteFileFromGCS(tenantId, organizationUuid, email string) error {
 	organization, err := s.ar.GetOrganizationDetail(organizationUuid)
 	if err != nil || organization == nil {
-		logrus.Errorf("DeleteFileFromGCS: GetOrganizationDetail err: %+v", err)
-		return errors.New("organization not found")
+		return errors.NewUnknownError("organization not found").WithInternal().WithCause(err)
 	}
 	user, err := s.ar.GetUserAccountDetail(email)
 	if err != nil || organization == nil {
-		logrus.Errorf("DeleteFileFromGCS: GetUserAccountDetail err: %+v", err)
-		return errors.New("user not found")
+		return errors.NewUnknownError("user not found").WithInternal().WithCause(err)
 	}
 	filePathPrefix := fmt.Sprintf("%v/profile_picture/%v", organization.ID, user.ID)
 	err = s.cloudStorageProvider.DeleteFiles(filePathPrefix)
 	if err != nil {
-		logrus.Errorf("DeleteFileFromGCS: DeleteFiles err: %+v", err)
-		return errors.New("delete file fail")
+		return errors.NewUnknownError("delete file fail").WithInternal().WithCause(err)
 	}
 	// update database profile_photo column in table users
 	if err = s.UpdateProfilePhotoOfUsers(tenantId, organizationUuid, email, ""); err != nil {
-		logrus.Errorf("DeleteFileFromGCS: UpdateProfilePhotoOfUsers err: %+v", err)
-		return errors.New("delete file fail")
+		return errors.NewUnknownError("delete file fail").WithInternal().WithCause(err)
 	}
 	return nil
 }
@@ -94,9 +87,7 @@ func (s *accountServiceHandler) DeleteFileFromGCS(tenantId, organizationUuid, em
 func (s *accountServiceHandler) GetUserDetail(tenantUuid, organizationUuid, email string) (*model.User, error) {
 	connStr := os.Getenv(tenantUuid) + organizationUuid
 	db, err := sql_db.InitializeConnection(connStr)
-	logrus.Info("init db ", connStr)
 	if err != nil {
-		logrus.Errorf("GetUserDetail: init db connection url: %s error:%+v", connStr, err)
 		return nil, err
 	}
 	defer db.Close()
@@ -116,7 +107,6 @@ func (s *accountServiceHandler) UpdateProfilePhotoOfUsers(tenantUuid, organizati
 	db, err := sql_db.InitializeConnection(connStr)
 	logrus.Info("init db ", connStr)
 	if err != nil {
-		logrus.Errorf("UpdateProfilePhotoOfUsers: init db connection url: %s error:%+v", connStr, err)
 		return err
 	}
 	defer db.Close()
