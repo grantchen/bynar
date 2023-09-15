@@ -147,26 +147,19 @@ func main() {
 
 	lsHandlerMappingWithPermission := make([]*HandlerMappingWithPermission, 0)
 	lsHandlerMappingWithPermission = append(lsHandlerMappingWithPermission,
-		&HandlerMappingWithPermission{factoryFunc: organizations_service.NewTreeGridServiceFactory(), prefixPath: "/organizations"})
+		&HandlerMappingWithPermission{factoryFunc: organizations_service.NewTreeGridServiceFactory(), prefixPath: "/organizations"},
+		&HandlerMappingWithPermission{factoryFunc: accounts_service.NewTreeGridServiceFactory(), prefixPath: "/user_list"},
+	)
 
 	for _, handlerMappingWithPermission := range lsHandlerMappingWithPermission {
 		handler := &handler.HTTPTreeGridHandlerWithDynamicDB{
 			AccountManagerService:  accountService,
 			TreeGridServiceFactory: handlerMappingWithPermission.factoryFunc,
 			ConnectionPool:         connectionPool,
-			PathPrefix:             prefix + "/organizations",
+			PathPrefix:             prefix + handlerMappingWithPermission.prefixPath,
 		}
 		handler.HandleHTTPReqWithAuthenMWAndDefaultPath()
 	}
-
-	// accounts treegrid endpoints
-	handler := &handler.HTTPTreeGridHandlerWithDynamicDB{
-		AccountManagerService:  accountService,
-		TreeGridServiceFactory: accounts_service.NewTreeGridServiceFactory(),
-		ConnectionPool:         connectionPool,
-		PathPrefix:             prefix + "/accounts",
-	}
-	handler.HandleHTTPReqWithAuthenMWAndDefaultPath()
 
 	log.Println("start server at 8080!")
 	port := os.Getenv("PORT")

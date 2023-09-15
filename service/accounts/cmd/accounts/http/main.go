@@ -86,7 +86,7 @@ func main() {
 		AccountManagerService:  accountService,
 		TreeGridServiceFactory: service.NewTreeGridServiceFactory(),
 		ConnectionPool:         connectionPool,
-		PathPrefix:             prefix + "/accounts",
+		PathPrefix:             prefix + "/user_list",
 	}
 	dbhandler.HandleHTTPReqWithAuthenMWAndDefaultPath()
 
