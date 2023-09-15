@@ -20,9 +20,18 @@ type SignInResponse struct {
 
 // GetUserResponse get user api return struct
 type GetUserResponse struct {
+	ID           int    `db:"id" json:"id"`
+	Email        string `db:"email" json:"email"`
+	FullName     string `json:"fullName"`
+	Country      string `db:"country" json:"country"`
+	AddressLine  string `db:"address" json:"addressLine"`
+	AddressLine2 string `db:"address_2" json:"addressLine2"`
+	City         string `db:"city" json:"city"`
+	PostalCode   string `db:"postal_code" json:"postalCode"`
+	State        string `db:"state" json:"state"`
+	PhoneNumber  string `db:"phone" json:"phoneNumber"`
+
 	LanguagePreference string `json:"languagePreference"`
-	Email              string `json:"email"`
-	FullName           string `json:"fullName"`
-	ProfileUrl         string `json:"profileUrl"`
-	//todo add other column
+	ProfileURL         string `json:"profileURL"`
+	PolicyID           int    `json:"policyId"`
 }

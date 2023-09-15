@@ -91,10 +91,10 @@ func main() {
 	http.Handle("/signin-email", render.CorsMiddleware(http.HandlerFunc(accountHandler.SendSignInEmail)))
 	http.Handle("/signin", render.CorsMiddleware(http.HandlerFunc(accountHandler.SignIn)))
 	// user endpoints
-	http.Handle("/user", render.CorsMiddleware(http.HandlerFunc(accountHandler.User)))
+	http.Handle("/user", render.CorsMiddleware(handler.VerifyIdToken(http.HandlerFunc(accountHandler.User))))
 	// user profile picture endpoint
-	http.Handle("/upload", render.CorsMiddleware(http.HandlerFunc(accountHandler.UploadProfilePhoto)))
-	http.Handle("/profile-image", render.CorsMiddleware(http.HandlerFunc(accountHandler.DeleteProfileImage)))
+	http.Handle("/upload", render.CorsMiddleware(handler.VerifyIdToken(http.HandlerFunc(accountHandler.UploadProfilePhoto))))
+	http.Handle("/profile-image", render.CorsMiddleware(handler.VerifyIdToken(http.HandlerFunc(accountHandler.DeleteProfileImage))))
 
 	lsHandlerMapping := make([]*HandlerMapping, 0)
 	lsHandlerMapping = append(lsHandlerMapping,
@@ -147,26 +147,19 @@ func main() {
 
 	lsHandlerMappingWithPermission := make([]*HandlerMappingWithPermission, 0)
 	lsHandlerMappingWithPermission = append(lsHandlerMappingWithPermission,
-		&HandlerMappingWithPermission{factoryFunc: organizations_service.NewTreeGridServiceFactory(), prefixPath: "/organizations"})
+		&HandlerMappingWithPermission{factoryFunc: organizations_service.NewTreeGridServiceFactory(), prefixPath: "/organizations"},
+		&HandlerMappingWithPermission{factoryFunc: accounts_service.NewTreeGridServiceFactory(), prefixPath: "/user_list"},
+	)
 
 	for _, handlerMappingWithPermission := range lsHandlerMappingWithPermission {
 		handler := &handler.HTTPTreeGridHandlerWithDynamicDB{
 			AccountManagerService:  accountService,
 			TreeGridServiceFactory: handlerMappingWithPermission.factoryFunc,
 			ConnectionPool:         connectionPool,
-			PathPrefix:             prefix + "/organizations",
+			PathPrefix:             prefix + handlerMappingWithPermission.prefixPath,
 		}
 		handler.HandleHTTPReqWithAuthenMWAndDefaultPath()
 	}
-
-	// accounts treegrid endpoints
-	handler := &handler.HTTPTreeGridHandlerWithDynamicDB{
-		AccountManagerService:  accountService,
-		TreeGridServiceFactory: accounts_service.NewTreeGridServiceFactory(),
-		ConnectionPool:         connectionPool,
-		PathPrefix:             prefix + "/accounts",
-	}
-	handler.HandleHTTPReqWithAuthenMWAndDefaultPath()
 
 	log.Println("start server at 8080!")
 	port := os.Getenv("PORT")

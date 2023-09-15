@@ -76,17 +76,17 @@ func main() {
 	http.Handle("/signin-email", render.CorsMiddleware(http.HandlerFunc(httpHandler.SendSignInEmail)))
 	http.Handle("/signin", render.CorsMiddleware(http.HandlerFunc(httpHandler.SignIn)))
 	// user endpoints
-	http.Handle("/user", render.CorsMiddleware(http.HandlerFunc(httpHandler.User)))
+	http.Handle("/user", render.CorsMiddleware(handler.VerifyIdToken(http.HandlerFunc(httpHandler.User))))
 	// user profile picture endpoint
-	http.Handle("/upload", render.CorsMiddleware(http.HandlerFunc(httpHandler.UploadProfilePhoto)))
-	http.Handle("/profile-image", render.CorsMiddleware(http.HandlerFunc(httpHandler.DeleteProfileImage)))
+	http.Handle("/upload", render.CorsMiddleware(handler.VerifyIdToken(http.HandlerFunc(httpHandler.UploadProfilePhoto))))
+	http.Handle("/profile-image", render.CorsMiddleware(handler.VerifyIdToken(http.HandlerFunc(httpHandler.DeleteProfileImage))))
 
 	// accounts treegrid endpoints
 	dbhandler := &handler.HTTPTreeGridHandlerWithDynamicDB{
 		AccountManagerService:  accountService,
 		TreeGridServiceFactory: service.NewTreeGridServiceFactory(),
 		ConnectionPool:         connectionPool,
-		PathPrefix:             prefix + "/accounts",
+		PathPrefix:             prefix + "/user_list",
 	}
 	dbhandler.HandleHTTPReqWithAuthenMWAndDefaultPath()
 

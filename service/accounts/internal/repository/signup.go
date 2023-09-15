@@ -71,7 +71,7 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region str
 	err := tx.QueryRow("SELECT id, organizations, organizations_allowed, tenant_uuid FROM tenants WHERE region = ?", region).Scan(&tenantID, &organizations, &organizationsAllowed, &tenantUUID)
 	if err != nil || organizations >= organizationsAllowed {
 		logrus.Error("select tenant error: ", err)
-		return "", errors.New("tenants not exist or organizations are full")
+		return "", fmt.Errorf("tenants of region %s not exist or organizations are full", region)
 	}
 	// insert managemant
 	_, err = tx.Exec(

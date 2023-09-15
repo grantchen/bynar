@@ -1,10 +1,8 @@
 package render
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
 	"io"
 	"net/http"
 	"reflect"
@@ -17,21 +15,7 @@ func CorsMiddleware(next http.Handler) http.Handler {
 			Ok(w, nil)
 			return
 		}
-		// Verify if the token is correct
-		code, msg, claims := middleware.VerifyIdToken(r)
-		if http.StatusOK != code {
-			if "" == msg {
-				msg = http.StatusText(code)
-			}
-			http.Error(w, msg, code)
-			return
-		}
-		ctx := r.Context()
-		if claims != nil {
-			ctx = context.WithValue(ctx, "id_token", *claims)
-		}
-
-		next.ServeHTTP(w, r.WithContext(ctx))
+		next.ServeHTTP(w, r)
 	})
 }
 
@@ -103,7 +87,7 @@ func renderJSON(w http.ResponseWriter, v interface{}) {
 	}
 	w.Header().Add("Content-Type", "application/json; charset=utf-8")
 	w.Header().Add("Access-Control-Allow-Origin", "*")
-	w.Header().Add("Access-Control-Allow-Methods", "GET, POST")
+	w.Header().Add("Access-Control-Allow-Methods", "GET, POST, DELETE")
 	w.Header().Add("Access-Control-Allow-Headers", "*")
 	w.Write(data)
 }

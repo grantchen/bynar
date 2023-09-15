@@ -14,7 +14,8 @@ import (
 // GetOrganizationDetail query organization from database by organizationUuid
 func (r *accountRepositoryHandler) GetOrganizationDetail(organizationUuid string) (*model.Organization, error) {
 	var querySql = `
-		select a.id,a.description,a.vat_number,a.country,a.data_sovereignty,a.organization_uuid,a.tenant_id,a.status,a.verified 
+		select a.id,coalesce(a.description,''),coalesce(a.vat_number,''),coalesce(a.country,''),
+		       coalesce(a.data_sovereignty,''),coalesce(a.organization_uuid,''),a.tenant_id,a.status,a.verified 
 		from organizations a where a.organization_uuid = ? limit 1`
 	var organization = model.Organization{}
 	err := r.db.QueryRow(querySql, organizationUuid).Scan(&organization.ID,
@@ -30,7 +31,7 @@ func (r *accountRepositoryHandler) GetOrganizationDetail(organizationUuid string
 // GetUserAccountDetail get accounts detail by uid provided
 func (r *accountRepositoryHandler) GetUserAccountDetail(email string) (*model.Account, error) {
 	var querySql = `
-		select a.id,a.email,a.full_name,a.address,a.address_2,a.phone,a.city,a.postal_code,a.country,a.state,a.status,a.uid,a.org_id,a.verified 
+		select a.id,a.email,a.full_name,a.address,coalesce(a.address_2,''),a.phone,a.city,a.postal_code,a.country,a.state,a.status,a.uid,a.org_id,a.verified 
 		from accounts a where email = ? and status = ? and verified = ? limit 1`
 	var account = model.Account{}
 	err := r.db.QueryRow(querySql, email, true, true).Scan(&account.ID,
