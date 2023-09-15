@@ -91,10 +91,10 @@ func main() {
 	http.Handle("/signin-email", render.CorsMiddleware(http.HandlerFunc(accountHandler.SendSignInEmail)))
 	http.Handle("/signin", render.CorsMiddleware(http.HandlerFunc(accountHandler.SignIn)))
 	// user endpoints
-	http.Handle("/user", render.CorsMiddleware(http.HandlerFunc(accountHandler.User)))
+	http.Handle("/user", render.CorsMiddleware(handler.VerifyIdToken(http.HandlerFunc(accountHandler.User))))
 	// user profile picture endpoint
-	http.Handle("/upload", render.CorsMiddleware(http.HandlerFunc(accountHandler.UploadProfilePhoto)))
-	http.Handle("/profile-image", render.CorsMiddleware(http.HandlerFunc(accountHandler.DeleteProfileImage)))
+	http.Handle("/upload", render.CorsMiddleware(handler.VerifyIdToken(http.HandlerFunc(accountHandler.UploadProfilePhoto))))
+	http.Handle("/profile-image", render.CorsMiddleware(handler.VerifyIdToken(http.HandlerFunc(accountHandler.DeleteProfileImage))))
 
 	lsHandlerMapping := make([]*HandlerMapping, 0)
 	lsHandlerMapping = append(lsHandlerMapping,
