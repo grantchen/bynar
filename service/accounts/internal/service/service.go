@@ -22,13 +22,13 @@ type AccountService interface {
 	// SendSignInEmail send sign in email of Google identify platform
 	SendSignInEmail(email string) error
 	VerifyEmail(email string) error
-	GetUserDetails(tenantId, organizationUuid, email string) (*model.GetUserResponse, error)
+	GetUserDetails(db *sql.DB, email string) (*model.GetUserResponse, error)
 	// UploadFileToGCS upload user's profile picture to google cloud storage
-	UploadFileToGCS(tenantId, organizationUuid, email string, multipartReader *multipart.Reader) (string, error)
+	UploadFileToGCS(db *sql.DB, organizationUuid, email string, multipartReader *multipart.Reader) (string, error)
 	// DeleteFileFromGCS delete user's profile picture from google cloud storage
-	DeleteFileFromGCS(tenantId, organizationUuid, email string) error
+	DeleteFileFromGCS(db *sql.DB, organizationUuid, email string) error
 	// UpdateProfilePhotoOfUsers update profile_photo column in users
-	UpdateProfilePhotoOfUsers(tenantUuid, organizationUuid string, email string, profilePhoto string) error
+	UpdateProfilePhotoOfUsers(db *sql.DB, email string, profilePhoto string) error
 }
 
 type accountServiceHandler struct {

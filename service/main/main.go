@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
 	"log"
 	"net/http"
@@ -15,7 +16,6 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
-	connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
@@ -42,6 +42,11 @@ type HandlerMappingWithPermission struct {
 	prefixPath  string
 }
 
+type HandlerMappingWithDynamicDB struct {
+	Path        string
+	RequestFunc func(w http.ResponseWriter, r *http.Request)
+}
+
 const prefix = "/apprunnerurl"
 
 func main() {
@@ -52,6 +57,13 @@ func main() {
 	}
 
 	appConfig := config.NewLocalConfig()
+
+	connectionPool := connection.NewPool()
+	defer func() {
+		if closeErr := connectionPool.Close(); closeErr != nil {
+			log.Println(closeErr)
+		}
+	}()
 
 	connString := appConfig.GetDBConnection()
 	db, err := sql_db.NewConnection(connString)
@@ -91,10 +103,21 @@ func main() {
 	http.Handle("/signin-email", render.CorsMiddleware(http.HandlerFunc(accountHandler.SendSignInEmail)))
 	http.Handle("/signin", render.CorsMiddleware(http.HandlerFunc(accountHandler.SignIn)))
 	// user endpoints
-	http.Handle("/user", render.CorsMiddleware(handler.VerifyIdToken(http.HandlerFunc(accountHandler.User))))
-	// user profile picture endpoint
-	http.Handle("/upload", render.CorsMiddleware(handler.VerifyIdToken(http.HandlerFunc(accountHandler.UploadProfilePhoto))))
-	http.Handle("/profile-image", render.CorsMiddleware(handler.VerifyIdToken(http.HandlerFunc(accountHandler.DeleteProfileImage))))
+
+	lsHandlerMappingWithDynamicDB := make([]*HandlerMappingWithDynamicDB, 0)
+	lsHandlerMappingWithDynamicDB = append(lsHandlerMappingWithDynamicDB,
+		&HandlerMappingWithDynamicDB{Path: "/user", RequestFunc: accountHandler.User},
+		&HandlerMappingWithDynamicDB{Path: "/upload", RequestFunc: accountHandler.UploadProfilePhoto},
+		&HandlerMappingWithDynamicDB{Path: "/profile-image", RequestFunc: accountHandler.DeleteProfileImage},
+	)
+	for _, handlerMappingWithPermission := range lsHandlerMappingWithDynamicDB {
+		handler := &handler.HTTPHandlerWithDynamicDB{
+			ConnectionPool: connectionPool,
+			Path:           handlerMappingWithPermission.Path,
+			RequestFunc:    handlerMappingWithPermission.RequestFunc,
+		}
+		handler.HandleHTTPReqWithDynamicDB()
+	}
 
 	lsHandlerMapping := make([]*HandlerMapping, 0)
 	lsHandlerMapping = append(lsHandlerMapping,
@@ -131,12 +154,6 @@ func main() {
 	accountManagementConnectionString := appConfig.GetAccountManagementConnection()
 	logger.Debug("connection string account: ", accountManagementConnectionString)
 
-	connectionPool := connection.NewPool()
-	defer func() {
-		if closeErr := connectionPool.Close(); closeErr != nil {
-			log.Println(closeErr)
-		}
-	}()
 	dbAccount, err := connectionPool.Get(accountManagementConnectionString)
 
 	if err != nil {
