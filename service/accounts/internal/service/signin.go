@@ -105,7 +105,6 @@ func (s *accountServiceHandler) GetUserDetails(tenantId, organizationUuid, email
 		PostalCode:   account.PostalCode.String,
 		State:        account.State.String,
 		PhoneNumber:  account.Phone.String,
-		Status:       true,
 	}
 	user, err := s.GetUserDetail(tenantId, organizationUuid, email)
 	if err != nil {
