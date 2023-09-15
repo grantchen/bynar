@@ -7,6 +7,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
@@ -113,5 +114,28 @@ func (s *accountServiceHandler) UpdateProfilePhotoOfUsers(tenantUuid, organizati
 	if _, err = db.Exec(`UPDATE users SET profile_photo = ? WHERE email = ?`, profilePhoto, email); err != nil {
 		return err
 	}
+	return nil
+}
+
+// Update user language preference
+func (s *accountServiceHandler) UpdateUserLanguagePreference(tenantId, organizationUuid, email, languagePreference string) error {
+	// Update the language_preference field in the users table
+	if err := s.ar.UpdateUserLanguagePreference(email, languagePreference); err != nil {
+		return err
+	}
+
+	account, err := s.ar.SelectSignInColumns(email)
+	if err != nil || account == nil {
+		return err
+	}
+	claims, err := convertSignInToClaims(account)
+	if err != nil {
+		return err
+	}
+	err = s.authProvider.SetCustomUserClaims(context.Background(), account.Uid, claims)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

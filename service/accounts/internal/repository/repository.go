@@ -17,6 +17,8 @@ type AccountRepository interface {
 	GetOrganizationDetail(organizationUuid string) (*model.Organization, error)
 	// GetUserAccountDetail get accounts detail by uid provided
 	GetUserAccountDetail(email string) (*model.Account, error)
+	// Update user language preference
+	UpdateUserLanguagePreference(email, languagePreference string) error
 }
 
 type accountRepositoryHandler struct {

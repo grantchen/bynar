@@ -42,3 +42,12 @@ func (r *accountRepositoryHandler) GetUserAccountDetail(email string) (*model.Ac
 	}
 	return &account, nil
 }
+
+// Update user language preference
+func (r *accountRepositoryHandler) UpdateUserLanguagePreference(email, languagePreference string) error {
+	var querySql = `update users set language_preference = ? where email = ?`
+	if _, err := r.db.Exec(querySql, languagePreference, email); err != nil {
+		return err
+	}
+	return nil
+}

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
+	i18n "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
 	"net/http"
 
@@ -181,19 +182,19 @@ func (h *AccountHandler) UploadProfilePhoto(w http.ResponseWriter, r *http.Reque
 	idTokenClaims, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, err.Error())
+		render.Error(w, i18n.Localize(r, "error"))
 		return
 	}
 	reader, err := r.MultipartReader()
 	if err != nil || reader == nil {
 		handler.LogInternalError(err)
-		render.Error(w, err.Error())
+		render.Error(w, i18n.Localize(r, "error"))
 		return
 	}
 	url, err := h.as.UploadFileToGCS(idTokenClaims.TenantUuid, idTokenClaims.OrganizationUuid, idTokenClaims.Email, reader)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, err.Error())
+		render.Error(w, i18n.Localize(r, "error"))
 		return
 
 	}
@@ -217,8 +218,36 @@ func (h *AccountHandler) DeleteProfileImage(w http.ResponseWriter, r *http.Reque
 
 	if err != nil {
 		handler.LogInternalError(err)
+		render.Error(w, i18n.Localize(r, "error"))
+		return
+	}
+	render.Ok(w, nil)
+}
+
+// Update user language preference
+func (h *AccountHandler) UpdateUserLanguagePreference(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		render.MethodNotAllowed(w)
+		return
+	}
+	var req model.UpdateLanguagePreferenceRequest
+	if err := render.DecodeJSON(r.Body, &req); err != nil {
 		render.Error(w, err.Error())
 		return
 	}
+
+	idTokenClaims, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
+	if err != nil {
+		handler.LogInternalError(err)
+		render.Error(w, i18n.Localize(r, "error"))
+		return
+	}
+	err = h.as.UpdateUserLanguagePreference(idTokenClaims.TenantUuid, idTokenClaims.OrganizationUuid, idTokenClaims.Email, req.LanguagePreference)
+	if err != nil {
+		handler.LogInternalError(err)
+		render.Error(w, i18n.Localize(r, "error"))
+		return
+	}
+
 	render.Ok(w, nil)
 }
