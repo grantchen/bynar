@@ -162,7 +162,7 @@ func (h *AccountHandler) User(w http.ResponseWriter, r *http.Request) {
 		render.Error(w, err.Error())
 		return
 	}
-	userResponse, err := h.as.GetUserByUid(idTokenClaims.Uid)
+	userResponse, err := h.as.GetUserDetails(idTokenClaims.TenantUuid, idTokenClaims.OrganizationUuid, idTokenClaims.Email)
 	if err != nil {
 		handler.LogInternalError(err)
 		render.Error(w, err.Error())

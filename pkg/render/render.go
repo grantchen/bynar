@@ -103,7 +103,7 @@ func renderJSON(w http.ResponseWriter, v interface{}) {
 	}
 	w.Header().Add("Content-Type", "application/json; charset=utf-8")
 	w.Header().Add("Access-Control-Allow-Origin", "*")
-	w.Header().Add("Access-Control-Allow-Methods", "GET, POST")
+	w.Header().Add("Access-Control-Allow-Methods", "GET, POST, DELETE")
 	w.Header().Add("Access-Control-Allow-Headers", "*")
 	w.Write(data)
 }

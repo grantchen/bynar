@@ -85,16 +85,34 @@ func (s *accountServiceHandler) DeleteFileFromGCS(tenantId, organizationUuid, em
 
 // GetUserDetail get user details from organization_schema(uuid)
 func (s *accountServiceHandler) GetUserDetail(tenantUuid, organizationUuid, email string) (*model.User, error) {
-	connStr := os.Getenv(tenantUuid) + organizationUuid
+	if len(os.Getenv(tenantUuid)) == 0 {
+		return nil, errors.NewUnknownError("no mysql conn environment of " + tenantUuid)
+	}
+	envs := strings.Split(os.Getenv(tenantUuid), "/")
+	connStr := envs[0] + "/" + organizationUuid
+	if len(envs) > 1 {
+		connStr += envs[1]
+	}
 	db, err := sql_db.InitializeConnection(connStr)
 	if err != nil {
 		return nil, err
 	}
 	defer db.Close()
-	var querySql = `select a.id,a.eamil,a.full_name,a.phone,a.status,a.language_preference,a.policy_id,a.theme from users a where a.eamil = ? limit 1`
+	var querySql = `select a.id,
+       a.email,
+       coalesce(a.full_name,''),
+       coalesce(a.phone,''),
+       a.status,
+       coalesce(a.language_preference,''),
+       coalesce(a.policy_id,0),
+       coalesce(a.theme,''),
+       coalesce(a.profile_photo,'')
+		from users a 
+		where a.email = ? and status = ? limit 1`
 	var user = model.User{}
-	err = db.QueryRow(querySql, email).Scan(
-		&user.ID, &user.Email, &user.FullName, &user.Phone, &user.Status, &user.LanguagePreference, &user.PolicyId, &user.Theme)
+	err = db.QueryRow(querySql, email, true).Scan(
+		&user.ID, &user.Email, &user.FullName, &user.Phone, &user.Status,
+		&user.LanguagePreference, &user.PolicyId, &user.Theme, &user.ProfilePhoto)
 	if err != nil {
 		return nil, fmt.Errorf("query row: [%w]", err)
 	}
@@ -103,7 +121,14 @@ func (s *accountServiceHandler) GetUserDetail(tenantUuid, organizationUuid, emai
 
 // UpdateProfilePhotoOfUsers update column profile_photo in table users of organization_schema(uuid)
 func (s *accountServiceHandler) UpdateProfilePhotoOfUsers(tenantUuid, organizationUuid string, email string, profilePhoto string) error {
-	connStr := os.Getenv(tenantUuid) + organizationUuid
+	if len(os.Getenv(tenantUuid)) == 0 {
+		return errors.NewUnknownError("no mysql conn environment of " + tenantUuid)
+	}
+	envs := strings.Split(os.Getenv(tenantUuid), "/")
+	connStr := envs[0] + "/" + organizationUuid
+	if len(envs) > 1 {
+		connStr += envs[1]
+	}
 	db, err := sql_db.InitializeConnection(connStr)
 	logrus.Info("init db ", connStr)
 	if err != nil {

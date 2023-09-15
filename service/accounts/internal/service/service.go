@@ -22,7 +22,7 @@ type AccountService interface {
 	// SendSignInEmail send sign in email of Google identify platform
 	SendSignInEmail(email string) error
 	VerifyEmail(email string) error
-	GetUserByUid(uid string) (*model.GetUserResponse, error)
+	GetUserDetails(tenantId, organizationUuid, email string) (*model.GetUserResponse, error)
 	// UploadFileToGCS upload user's profile picture to google cloud storage
 	UploadFileToGCS(tenantId, organizationUuid, email string, multipartReader *multipart.Reader) (string, error)
 	// DeleteFileFromGCS delete user's profile picture from google cloud storage

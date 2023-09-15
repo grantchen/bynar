@@ -88,11 +88,31 @@ func (s *accountServiceHandler) VerifyEmail(email string) error {
 	return nil
 }
 
-// GetUserByUid after signin get user info
-func (s *accountServiceHandler) GetUserByUid(uid string) (*model.GetUserResponse, error) {
-	user, err := s.ar.SelectUserByUid(uid)
+// GetUserDetails after signing get user info
+func (s *accountServiceHandler) GetUserDetails(tenantId, organizationUuid, email string) (*model.GetUserResponse, error) {
+	account, err := s.ar.GetUserAccountDetail(email)
 	if err != nil {
-		return nil, err
+		return nil, errors.NewUnknownError("account not found").WithInternal().WithCause(err)
 	}
-	return user, nil
+	var userResponse = model.GetUserResponse{
+		ID:           account.ID,
+		Email:        account.Email.String,
+		FullName:     account.FullName.String,
+		Country:      account.Country.String,
+		AddressLine:  account.Address.String,
+		AddressLine2: account.Address2.String,
+		City:         account.City.String,
+		PostalCode:   account.PostalCode.String,
+		State:        account.State.String,
+		PhoneNumber:  account.Phone.String,
+		Status:       true,
+	}
+	user, err := s.GetUserDetail(tenantId, organizationUuid, email)
+	if err != nil {
+		return nil, errors.NewUnknownError("user not found").WithInternal().WithCause(err)
+	}
+	userResponse.LanguagePreference = user.LanguagePreference
+	userResponse.ProfileURL = user.ProfilePhoto
+	userResponse.PolicyID = user.PolicyId
+	return &userResponse, nil
 }

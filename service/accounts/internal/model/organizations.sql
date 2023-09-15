@@ -5423,6 +5423,7 @@ CREATE TABLE `users` (
   `language_preference` varchar(255) DEFAULT 'en',
   `policy_id` int(11) DEFAULT NULL,
   `theme` varchar(255) DEFAULT NULL,
+  `profile_photo` varchar(1000) DEFAULT NULL,
   PRIMARY KEY (`id`) /*T![clustered_index] CLUSTERED */
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
