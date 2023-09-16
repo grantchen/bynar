@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -40,14 +39,11 @@ func init() {
 	}
 }
 
-// Localise the text based on the language passed from the front end
-func Localize(r *http.Request, key string, args ...interface{}) string {
-	language := r.Header.Get("x-language")
-
-	// If the language is empty, the original text is returned
-	// Compatible with scenarios that do not require i18n
+// Localise the text based on the language
+func Localize(language, key string, args ...interface{}) string {
+	// If the language is empty, English is used by default
 	if language == "" {
-		return key
+		language = "en"
 	}
 
 	// If it is an unsupported language, the empty text is returned
