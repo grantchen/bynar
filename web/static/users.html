@@ -1,12 +1,17 @@
-<script src="../Grid/GridE.js"> </script>
+<script src="../Grid/GridE.js"></script>
 
 <div class="ExampleBorder">
     <div class="ExampleMain" style="width:100%;height:100%;">
-        <bdo Debug='info' Layout_Url="users.xml" Data_Url='http://localhost:8080/apprunnerurl/user_list/data'
-            Data_Header_Authorization="Bearer " Data_Format='Json'
-            Page_Url='http://localhost:8080/apprunnerurl/user_list/page' Page_Format='Json'
-            Upload_Url='http://localhost:8080/apprunnerurl/user_list/upload' Upload_Format='Json'
-            Cell_Script="LoadMyData('http://localhost:8080/apprunnerurl/user_list/cell',Data,Func);" Cell_Format="Json">
+        <bdo Debug='info'
+             Layout_Url="users.xml"
+             Data_Url='http://localhost:8080/apprunnerurl/user_list/data'
+             Data_Header_Authorization="Bearer xxx"
+             Data_Format='Json'
+             Page_Url='http://localhost:8080/apprunnerurl/user_list/page' Page_Format='Json'
+             Upload_Url='http://localhost:8080/apprunnerurl/user_list/upload' Upload_Format='Json'
+             Upload_Header_Authorization="Bearer xxx"
+             Data_Format='Json'
+        >
 
         </bdo>
     </div>

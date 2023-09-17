@@ -106,7 +106,6 @@ func (s *accountServiceHandler) GetUserDetails(db *sql.DB, email string) (*model
 		PostalCode:   account.PostalCode.String,
 		State:        account.State.String,
 		PhoneNumber:  account.Phone.String,
-		Status:       true,
 	}
 	user, err := s.GetUserDetail(db, email)
 	if err != nil {
