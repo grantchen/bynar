@@ -102,8 +102,8 @@ func main() {
 	// Signin endpoints
 	http.Handle("/signin-email", render.CorsMiddleware(http.HandlerFunc(accountHandler.SendSignInEmail)))
 	http.Handle("/signin", render.CorsMiddleware(http.HandlerFunc(accountHandler.SignIn)))
-	// user endpoints
 
+	// user endpoints
 	lsHandlerMappingWithDynamicDB := make([]*HandlerMappingWithDynamicDB, 0)
 	lsHandlerMappingWithDynamicDB = append(lsHandlerMappingWithDynamicDB,
 		&HandlerMappingWithDynamicDB{Path: "/user", RequestFunc: accountHandler.User},

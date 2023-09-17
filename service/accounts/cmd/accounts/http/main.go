@@ -21,6 +21,11 @@ import (
 
 const prefix = "/apprunnerurl"
 
+type HandlerMappingWithDynamicDB struct {
+	Path        string
+	RequestFunc func(w http.ResponseWriter, r *http.Request)
+}
+
 // use for test only this module without permission
 func main() {
 	err := godotenv.Load("../main/.env")
@@ -75,11 +80,22 @@ func main() {
 	// Signin endpoints
 	http.Handle("/signin-email", render.CorsMiddleware(http.HandlerFunc(httpHandler.SendSignInEmail)))
 	http.Handle("/signin", render.CorsMiddleware(http.HandlerFunc(httpHandler.SignIn)))
+
 	// user endpoints
-	http.Handle("/user", render.CorsMiddleware(handler.VerifyIdToken(http.HandlerFunc(httpHandler.User))))
-	// user profile picture endpoint
-	http.Handle("/upload", render.CorsMiddleware(handler.VerifyIdToken(http.HandlerFunc(httpHandler.UploadProfilePhoto))))
-	http.Handle("/profile-image", render.CorsMiddleware(handler.VerifyIdToken(http.HandlerFunc(httpHandler.DeleteProfileImage))))
+	lsHandlerMappingWithDynamicDB := make([]*HandlerMappingWithDynamicDB, 0)
+	lsHandlerMappingWithDynamicDB = append(lsHandlerMappingWithDynamicDB,
+		&HandlerMappingWithDynamicDB{Path: "/user", RequestFunc: httpHandler.User},
+		&HandlerMappingWithDynamicDB{Path: "/upload", RequestFunc: httpHandler.UploadProfilePhoto},
+		&HandlerMappingWithDynamicDB{Path: "/profile-image", RequestFunc: httpHandler.DeleteProfileImage},
+	)
+	for _, handlerMappingWithPermission := range lsHandlerMappingWithDynamicDB {
+		handler := &handler.HTTPHandlerWithDynamicDB{
+			ConnectionPool: connectionPool,
+			Path:           handlerMappingWithPermission.Path,
+			RequestFunc:    handlerMappingWithPermission.RequestFunc,
+		}
+		handler.HandleHTTPReqWithDynamicDB()
+	}
 
 	// accounts treegrid endpoints
 	dbhandler := &handler.HTTPTreeGridHandlerWithDynamicDB{
