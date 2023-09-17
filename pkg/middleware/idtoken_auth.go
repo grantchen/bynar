@@ -8,6 +8,7 @@ package middleware
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
@@ -48,6 +49,14 @@ var skipIdTokenAuthEndEndpoints = []string{"/signin-email", "/signin", "/confirm
 
 // http request header auth key
 const httpAuthorizationHeader = "Authorization"
+
+type TokenAndDyDynamicDBContext struct {
+	ConnectionString string
+	DynamicDB        *sql.DB
+	Claims           *IdTokenClaims
+}
+
+const IdTokenAndDynamicDBRequestContextKey string = "idTokenAndDynamicDB"
 
 // get idToken from header of request
 func getIdTokenFromHeader(r *http.Request) (error, string) {
@@ -103,11 +112,11 @@ func VerifyIdToken(r *http.Request) (int, string, *IdTokenClaims) {
 }
 
 // GetIdTokenClaimsFromHttpRequestContext get idToken claims from request context
-func GetIdTokenClaimsFromHttpRequestContext(r *http.Request) (*IdTokenClaims, error) {
-	idToken := r.Context().Value("id_token")
-	if idToken != nil {
-		claims := idToken.(IdTokenClaims)
-		return &claims, nil
+func GetIdTokenClaimsFromHttpRequestContext(r *http.Request) (*TokenAndDyDynamicDBContext, error) {
+	tokenAndDyDynamicDBContext := r.Context().Value(IdTokenAndDynamicDBRequestContextKey)
+	if tokenAndDyDynamicDBContext != nil {
+		tokenAndDbContext := tokenAndDyDynamicDBContext.(*TokenAndDyDynamicDBContext)
+		return tokenAndDbContext, nil
 	}
 	return nil, errors.New("no id_token fond in request context")
 }

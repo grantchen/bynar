@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
@@ -89,7 +90,7 @@ func (s *accountServiceHandler) VerifyEmail(email string) error {
 }
 
 // GetUserDetails after signing get user info
-func (s *accountServiceHandler) GetUserDetails(tenantId, organizationUuid, email string) (*model.GetUserResponse, error) {
+func (s *accountServiceHandler) GetUserDetails(db *sql.DB, email string) (*model.GetUserResponse, error) {
 	account, err := s.ar.GetUserAccountDetail(email)
 	if err != nil {
 		return nil, errors.NewUnknownError("account not found").WithInternal().WithCause(err)
@@ -106,7 +107,7 @@ func (s *accountServiceHandler) GetUserDetails(tenantId, organizationUuid, email
 		State:        account.State.String,
 		PhoneNumber:  account.Phone.String,
 	}
-	user, err := s.GetUserDetail(tenantId, organizationUuid, email)
+	user, err := s.GetUserDetail(db, email)
 	if err != nil {
 		return nil, errors.NewUnknownError("user not found").WithInternal().WithCause(err)
 	}
