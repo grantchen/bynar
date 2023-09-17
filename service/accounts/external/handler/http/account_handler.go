@@ -230,7 +230,7 @@ func (h *AccountHandler) UpdateUserLanguagePreference(w http.ResponseWriter, r *
 		render.MethodNotAllowed(w)
 		return
 	}
-	var req model.UpdateLanguagePreferenceRequest
+	var req model.UpdateUserLanguagePreferenceRequest
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
 		render.Error(w, err.Error())
 		return

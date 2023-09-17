@@ -120,6 +120,7 @@ func (s *accountServiceHandler) UpdateUserLanguagePreference(db *sql.DB, email, 
 		return err
 	}
 
+	// Set custom user claims
 	account, err := s.ar.SelectSignInColumns(email)
 	if err != nil || account == nil {
 		return err

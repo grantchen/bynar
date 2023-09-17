@@ -48,6 +48,6 @@ type SendSignInEmailRequest struct {
 	Email string `json:"email" valid:""`
 }
 
-type UpdateLanguagePreferenceRequest struct {
+type UpdateUserLanguagePreferenceRequest struct {
 	LanguagePreference string `json:"languagePreference" valid:""`
 }
