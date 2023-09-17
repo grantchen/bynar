@@ -11,31 +11,29 @@ import (
 	"errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/render"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"strings"
 )
 
+// HTTPHandlerWithDynamicDB set idToken and DynamicDB to context
 type HTTPHandlerWithDynamicDB struct {
 	Path           string
 	ConnectionPool ConnectionResolver
 	RequestFunc    func(w http.ResponseWriter, r *http.Request)
 }
 
+// HandleHTTPReqWithDynamicDB handle http request that needs check idToken and DynamicDB
 func (h *HTTPHandlerWithDynamicDB) HandleHTTPReqWithDynamicDB() {
 
 	http.Handle(h.Path, render.CorsMiddleware(h.verifyIdTokenAndInitDynamicDB(http.HandlerFunc(h.RequestFunc))))
 
 }
 
+// verify idToken correct and create dynamic db connection
 func (h *HTTPHandlerWithDynamicDB) verifyIdTokenAndInitDynamicDB(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		defaultResponse := &treegrid.PostResponse{}
-		defaultResponse.Changes = make([]map[string]interface{}, 0)
-
 		code, msg, claims := middleware.VerifyIdToken(r)
 		if http.StatusOK != code {
 			if "" == msg {
@@ -71,6 +69,7 @@ func (h *HTTPHandlerWithDynamicDB) verifyIdTokenAndInitDynamicDB(next http.Handl
 	})
 }
 
+// get dynamic db connection url
 func (h *HTTPHandlerWithDynamicDB) getDynamicDBConnection(tenantUuid, organizationUuid string) (string, error) {
 	if len(os.Getenv(tenantUuid)) == 0 {
 		return "", errors.New("no mysql conn environment of " + tenantUuid)
