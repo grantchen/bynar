@@ -49,5 +49,5 @@ type SendSignInEmailRequest struct {
 }
 
 type UpdateLanguagePreferenceRequest struct {
-	LanguagePreference string `json:"language_preference" valid:""`
+	LanguagePreference string `json:"languagePreference" valid:""`
 }

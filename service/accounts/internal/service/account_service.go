@@ -7,8 +7,8 @@
 package service
 
 import (
-	"database/sql"
 	"context"
+	"database/sql"
 	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
@@ -114,9 +114,9 @@ func (s *accountServiceHandler) UpdateProfilePhotoOfUsers(db *sql.DB, email stri
 }
 
 // Update user language preference
-func (s *accountServiceHandler) UpdateUserLanguagePreference(tenantId, organizationUuid, email, languagePreference string) error {
+func (s *accountServiceHandler) UpdateUserLanguagePreference(db *sql.DB, email, languagePreference string) error {
 	// Update the language_preference field in the users table
-	if err := s.ar.UpdateUserLanguagePreference(email, languagePreference); err != nil {
+	if err := s.ar.UpdateUserLanguagePreference(db, email, languagePreference); err != nil {
 		return err
 	}
 

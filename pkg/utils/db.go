@@ -3,6 +3,7 @@ package utils
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
@@ -125,4 +126,16 @@ func ReplaceColumnValueInQuery(orignal_query string, col_name string, col_value 
 		updated_query = strings.Replace(orignal_query, sub_string, col_value, 1)
 	}
 	return updated_query
+}
+
+// TODO
+// Generate organization connection
+func GenerateOrganizationConnection(tenantUuid, organizationUuid string) string {
+	envs := strings.Split(os.Getenv(tenantUuid), "/")
+	connStr := envs[0] + "/" + organizationUuid
+	if len(envs) > 1 {
+		connStr += envs[1]
+	}
+
+	return connStr
 }

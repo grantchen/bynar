@@ -9,33 +9,34 @@ import (
 	"strings"
 )
 
-var localesMap = map[string]map[string]string{}
+var locales = map[string]map[string]string{}
 
 // When you need to add a new language, just upload the configuration file for the new language in the locales folder
 func init() {
 	// Read the configuration data in the i18n locales folder
-	locales, err := os.ReadDir("../../pkg/i18n/locales")
+	directoryPath := "../../pkg/i18n/locales"
+	files, err := os.ReadDir(directoryPath)
 	if err != nil {
 		logrus.Errorf("i18n, error: %v", err)
 		return
 	}
-	for _, locale := range locales {
-		fileName := locale.Name()
-		localeByte, err := os.ReadFile("../../pkg/i18n/locales/" + fileName)
+	for _, file := range files {
+		fileName := file.Name()
+		fileByte, err := os.ReadFile(directoryPath + "/" + fileName)
 		if err != nil {
 			logrus.Errorf("i18n, error: %v", err)
 			return
 		}
 
-		localeMap := map[string]string{}
-		if err = json.Unmarshal(localeByte, &localeMap); err != nil {
+		locale := map[string]string{}
+		if err = json.Unmarshal(fileByte, &locale); err != nil {
 			logrus.Errorf("i18n, error: %v", err)
 			return
 		}
 
 		// Get language name
 		language := strings.TrimSuffix(filepath.Base(fileName), filepath.Ext(fileName))
-		localesMap[language] = localeMap
+		locales[language] = locale
 	}
 }
 
@@ -47,14 +48,14 @@ func Localize(language, key string, args ...interface{}) string {
 	}
 
 	// If it is an unsupported language, the empty text is returned
-	localeMap, ok := localesMap[language]
+	locale, ok := locales[language]
 	if !ok {
 		logrus.Errorf("The language is not found: %s", language)
 		return ""
 	}
 
 	// If no matching text is found, the empty text is returned
-	msg, ok := localeMap[key]
+	msg, ok := locale[key]
 	if !ok {
 		logrus.Errorf("The key is not found: %s", key)
 		return ""

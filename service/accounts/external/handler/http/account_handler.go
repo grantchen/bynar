@@ -182,19 +182,19 @@ func (h *AccountHandler) UploadProfilePhoto(w http.ResponseWriter, r *http.Reque
 	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(r, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.LanguagePreference, "error"))
 		return
 	}
 	reader, err := r.MultipartReader()
 	if err != nil || reader == nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(r, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.LanguagePreference, "error"))
 		return
 	}
 	url, err := h.as.UploadFileToGCS(reqContext.DynamicDB, reqContext.Claims.OrganizationUuid, reqContext.Claims.Email, reader)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(r, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.LanguagePreference, "error"))
 		return
 
 	}
@@ -218,7 +218,7 @@ func (h *AccountHandler) DeleteProfileImage(w http.ResponseWriter, r *http.Reque
 
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(r, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.LanguagePreference, "error"))
 		return
 	}
 	render.Ok(w, nil)
@@ -236,16 +236,16 @@ func (h *AccountHandler) UpdateUserLanguagePreference(w http.ResponseWriter, r *
 		return
 	}
 
-	idTokenClaims, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
+	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(r, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.LanguagePreference, "error"))
 		return
 	}
-	err = h.as.UpdateUserLanguagePreference(idTokenClaims.TenantUuid, idTokenClaims.OrganizationUuid, idTokenClaims.Email, req.LanguagePreference)
+	err = h.as.UpdateUserLanguagePreference(reqContext.DynamicDB, reqContext.Claims.Email, req.LanguagePreference)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(r, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.LanguagePreference, "error"))
 		return
 	}
 
