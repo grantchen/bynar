@@ -156,13 +156,13 @@ func (h *AccountHandler) User(w http.ResponseWriter, r *http.Request) {
 		render.MethodNotAllowed(w)
 		return
 	}
-	idTokenClaims, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
+	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
 		handler.LogInternalError(err)
 		render.Error(w, err.Error())
 		return
 	}
-	userResponse, err := h.as.GetUserDetails(idTokenClaims.TenantUuid, idTokenClaims.OrganizationUuid, idTokenClaims.Email)
+	userResponse, err := h.as.GetUserDetails(reqContext.DynamicDB, reqContext.Claims.Email)
 	if err != nil {
 		handler.LogInternalError(err)
 		render.Error(w, err.Error())
@@ -178,7 +178,7 @@ func (h *AccountHandler) UploadProfilePhoto(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	idTokenClaims, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
+	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
 		handler.LogInternalError(err)
 		render.Error(w, err.Error())
@@ -190,7 +190,7 @@ func (h *AccountHandler) UploadProfilePhoto(w http.ResponseWriter, r *http.Reque
 		render.Error(w, err.Error())
 		return
 	}
-	url, err := h.as.UploadFileToGCS(idTokenClaims.TenantUuid, idTokenClaims.OrganizationUuid, idTokenClaims.Email, reader)
+	url, err := h.as.UploadFileToGCS(reqContext.DynamicDB, reqContext.Claims.OrganizationUuid, reqContext.Claims.Email, reader)
 	if err != nil {
 		handler.LogInternalError(err)
 		render.Error(w, err.Error())
@@ -206,14 +206,14 @@ func (h *AccountHandler) DeleteProfileImage(w http.ResponseWriter, r *http.Reque
 		render.MethodNotAllowed(w)
 		return
 	}
-	idTokenClaims, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
+	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
 		handler.LogInternalError(err)
 		render.Error(w, err.Error())
 		return
 	}
 
-	err = h.as.DeleteFileFromGCS(idTokenClaims.TenantUuid, idTokenClaims.OrganizationUuid, idTokenClaims.Email)
+	err = h.as.DeleteFileFromGCS(reqContext.DynamicDB, reqContext.Claims.OrganizationUuid, reqContext.Claims.Email)
 
 	if err != nil {
 		handler.LogInternalError(err)
