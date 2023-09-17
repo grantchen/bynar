@@ -9,6 +9,9 @@ package repository
 import (
 	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
+	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 )
 
 // SelectSignInColumns query accounts,organization_accounts,organizations,tenants columns to generate idToken of
@@ -34,5 +37,17 @@ func (r *accountRepositoryHandler) SelectSignInColumns(email string) (*model.Sig
 	if err != nil {
 		return nil, fmt.Errorf("query row: [%w]", err)
 	}
+
+	// Query 'users' table
+	db, err := sql_db.InitializeConnection(utils.GenerateOrganizationConnection(signIn.TenantUuid, signIn.OrganizationUuid))
+	if err != nil {
+		return nil, errors.NewUnknownError("query user language preference fail").WithInternal().WithCause(err)
+	}
+	defer db.Close()
+	querySql = `select language_preference from users where email = ?`
+	if err = db.QueryRow(querySql, email).Scan(&signIn.LanguagePreference); err != nil {
+		return nil, errors.NewUnknownError("query user language preference fail").WithInternal().WithCause(err)
+	}
+
 	return &signIn, nil
 }

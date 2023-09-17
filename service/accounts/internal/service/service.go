@@ -29,6 +29,8 @@ type AccountService interface {
 	DeleteFileFromGCS(db *sql.DB, organizationUuid, email string) error
 	// UpdateProfilePhotoOfUsers update profile_photo column in users
 	UpdateProfilePhotoOfUsers(db *sql.DB, email string, profilePhoto string) error
+	// Update user language preference
+	UpdateUserLanguagePreference(db *sql.DB, email, languagePreference string) error
 }
 
 type accountServiceHandler struct {

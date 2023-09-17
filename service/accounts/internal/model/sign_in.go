@@ -14,4 +14,5 @@ type SignIn struct {
 	OrganizationStatus      bool   `json:"organization_status"`
 	TenantUuid              string `json:"tenant_uuid"`
 	OrganizationMainAccount bool   `json:"organization_account"`
+	LanguagePreference      string `json:"language_preference"`
 }

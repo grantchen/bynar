@@ -7,8 +7,10 @@
 package repository
 
 import (
+	"database/sql"
 	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 )
 
 // GetOrganizationDetail query organization from database by organizationUuid
@@ -42,4 +44,14 @@ func (r *accountRepositoryHandler) GetUserAccountDetail(email string) (*model.Ac
 		return nil, fmt.Errorf("query row: [%w]", err)
 	}
 	return &account, nil
+}
+
+// Update user language preference
+func (r *accountRepositoryHandler) UpdateUserLanguagePreference(db *sql.DB, email, languagePreference string) error {
+	var querySql = `update users set language_preference = ? where email = ?`
+	if _, err := db.Exec(querySql, languagePreference, email); err != nil {
+		return errors.NewUnknownError("update user language preference fail").WithInternal().WithCause(err)
+	}
+
+	return nil
 }
