@@ -127,6 +127,6 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 	customToken, err := s.authProvider.CustomTokenWithClaims(context.Background(), uid, map[string]interface{}{
 		"uid": account.Uid, "organization_uuid": account.OrganizationUuid, "organization_user_id": account.OrganizationUserId,
 		"organization_status": account.OrganizationStatus, "tenant_uuid": account.TenantUuid,
-		"organization_account": account.OrganizationMainAccount})
+		"organization_account": account.OrganizationAccount})
 	return customToken, err
 }
