@@ -36,6 +36,8 @@ type IdTokenClaims struct {
 	Exp                 int    `json:"exp"`
 	Email               string `json:"email"`
 	EmailVerified       bool   `json:"email_verified"`
+	TenantStatus        bool   `json:"tenant_status"`
+	TenantSuspended     bool   `json:"tenant_suspended"`
 	Firebase            struct {
 		Identities struct {
 			Email []string `json:"email"`

@@ -238,8 +238,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 			writeErrorResponse(w, defaultResponse, errors.New(msg))
 			return
 		}
-		// TODO: tenant_status == 0 and tenant_suspended == 1
-		if !claims.OrganizationStatus {
+		if !claims.OrganizationStatus || !claims.TenantStatus || claims.TenantSuspended {
 			writeErrorResponse(w, defaultResponse, errors.New("no permission"))
 			return
 		}
@@ -339,7 +338,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		reqContext := &ReqContext{
 			connectionString: connString,
 			db:               db,
-			AccountID:        0, // TODO: claims.OrganizationUserId,
+			AccountID:        claims.OrganizationUserId,
 			PermissionInfo: &treegrid.PermissionInfo{
 				IsAccessAll: true,
 			},

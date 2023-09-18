@@ -31,7 +31,6 @@ func NewAccountManagerService(
 
 // CheckPermission implements AccountManagerService
 func (a *accountManagerRepository) CheckPermission(claims *middleware.IdTokenClaims) (*repository.PermissionInfo, bool, error) {
-	// a.authProvider.
 
 	// TODO:
 	permission, ok, err := a.accountManagerRepository.CheckPermission(0, 0)
