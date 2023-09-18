@@ -14,14 +14,14 @@ import (
 )
 
 // CreateOrganization create the organization when creating user
-func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, vat, country, uid string, accountID int) (int, string, error) {
+func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, vat, country, uid string, accountID int) (int, string, int, error) {
 	var organizationID int
 	organizationUUID := uuid.New().String()
 	// check if the organization exists
 	err := tx.QueryRow(`SELECT id, organization_uuid FROM organizations where vat_number=?;`, vat).Scan(&organizationID, &organizationUUID)
 	if err != nil && err != sql.ErrNoRows {
 		logrus.Error("select organization error ", err.Error())
-		return 0, "", fmt.Errorf("organization if vat_number=%s not exist", vat)
+		return 0, "", 0, fmt.Errorf("organization if vat_number=%s not exist", vat)
 	}
 	if err == sql.ErrNoRows {
 		// Insert organization info to db
@@ -32,22 +32,23 @@ func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, v
 		if err != nil {
 			tx.Rollback()
 			logrus.Error("insert organization error ", err.Error())
-			return 0, "", errors.New("insert organization failed")
+			return 0, "", 0, errors.New("insert organization failed")
 		}
 		newOrganizationID, _ := res.LastInsertId()
 		organizationID = int(newOrganizationID)
 	}
 	// Add relationship between the account and organization
-	_, err = tx.Exec(
+	res, err := tx.Exec(
 		`INSERT INTO oraginzation_accounts (organization_id, organization_user_uid, organization_user_id, oraginzation_main_account) VALUES (?, ?, ?, ?)`,
 		organizationID, uid, accountID, 1,
 	)
 	if err != nil {
 		tx.Rollback()
 		logrus.Error("insert organization_accounts error ", err.Error())
-		return 0, "", errors.New("insert organization_accounts failed")
+		return 0, "", 0, errors.New("insert organization_accounts failed")
 	}
-	return organizationID, organizationUUID, nil
+	organizationManagentID, _ := res.LastInsertId()
+	return organizationID, organizationUUID, int(organizationManagentID), nil
 }
 
 // CreateTenantManagement create the tanant managemant when creating user
@@ -156,7 +157,7 @@ func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, add
 		return 0, errors.New("insert user failed")
 	}
 	userID, _ := res.LastInsertId()
-	organizationID, organizationUUID, err := r.CreateOrganization(tx, organizationName, vat, organisationCountry, uid, int(userID))
+	organizationID, organizationUUID, organizationManagentID, err := r.CreateOrganization(tx, organizationName, vat, organisationCountry, uid, int(userID))
 	if err != nil {
 		logrus.Errorf("CreateUser: error: %v", err)
 		return 0, err
@@ -176,7 +177,12 @@ func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, add
 		return 0, err
 	}
 	// create environment
-	return 1, r.CreateEnvironment(tenantUUID, organizationUUID, tenantManagentID, int(userID), email, fullName, phoneNumber)
+	id, err := r.CreateEnvironment(tenantUUID, organizationUUID, tenantManagentID, int(userID), email, fullName, phoneNumber)
+	if err != nil {
+		return 1, err
+	}
+	_, err = r.db.Exec(`UPDATE oraginzation_accounts SET organization_user_id = ? WHERE id = ?`, id, organizationManagentID)
+	return 1, err
 }
 
 func (r *accountRepositoryHandler) SetStatusToZeroIfEnvFailed(userID, tenantManagentID int) {
@@ -189,12 +195,12 @@ func (r *accountRepositoryHandler) SetStatusToZeroIfEnvFailed(userID, tenantMana
 }
 
 // CreateEnvironment create a new schema in db
-func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUID string, tenantManagentID, userID int, email, fullName, phoneNumber string) error {
+func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUID string, tenantManagentID, userID int, email, fullName, phoneNumber string) (int, error) {
 	//get tanant mysql connstr from environment
 	connStr := os.Getenv(tenantUUID)
 	if len(connStr) == 0 {
 		r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
-		return errors.New("the tenant mysql connstr is not set")
+		return 0, errors.New("the tenant mysql connstr is not set")
 	}
 	if strings.Contains(connStr, "?") {
 		connStr += "&multiStatements=true"
@@ -204,7 +210,7 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 	db, err := sql.Open("mysql", connStr)
 	if err != nil {
 		r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
-		return errors.New("open mysql failed")
+		return 0, errors.New("open mysql failed")
 	}
 	var name string
 	err = db.QueryRow(`SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '` + organizationUUID + `'`).Scan(&name)
@@ -216,30 +222,31 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 		_, err = db.Exec(fmt.Sprintf("CREATE DATABASE `%s`", organizationUUID))
 		if err != nil {
 			r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
-			return errors.New("create database failed")
+			return 0, errors.New("create database failed")
 		}
 	}
 	_, err = db.Exec(fmt.Sprintf("USE `%s`", organizationUUID))
 	if err != nil {
 		r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
-		return errors.New("use database failed")
+		return 0, errors.New("use database failed")
 	}
 	if name == "" {
 		// create tables
 		_, err = db.Exec(model.SQL_TEMPLATE)
 		if err != nil {
 			r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
-			return errors.New("create tables failed")
+			return 0, errors.New("create tables failed")
 		}
 	}
 	// create user
-	_, err = db.Exec(
+	res, err := db.Exec(
 		`INSERT INTO users (email, full_name, phone, status, language_preference, policy_id, theme) VALUES (?,?,?,?,?,?,?)`,
 		email, fullName, phoneNumber, 1, "en", 1, "system",
 	)
 	if err != nil {
 		logrus.Error("insert user error ", err.Error())
-		return errors.New("insert users failed")
+		return 0, errors.New("insert users failed")
 	}
-	return nil
+	id, _ := res.LastInsertId()
+	return int(id), nil
 }
