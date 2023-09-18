@@ -251,3 +251,31 @@ func (h *AccountHandler) UpdateUserLanguagePreference(w http.ResponseWriter, r *
 
 	render.Ok(w, nil)
 }
+
+// Update user theme preference
+func (h *AccountHandler) UpdateUserThemePreference(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		render.MethodNotAllowed(w)
+		return
+	}
+	var req model.UpdateUserThemePreferenceRequest
+	if err := render.DecodeJSON(r.Body, &req); err != nil {
+		render.Error(w, err.Error())
+		return
+	}
+
+	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
+	if err != nil {
+		handler.LogInternalError(err)
+		render.Error(w, i18n.Localize(reqContext.Claims.LanguagePreference, "error"))
+		return
+	}
+	err = h.as.UpdateUserThemePreference(reqContext.DynamicDB, reqContext.Claims.Email, req.ThemePreference)
+	if err != nil {
+		handler.LogInternalError(err)
+		render.Error(w, i18n.Localize(reqContext.Claims.LanguagePreference, "error"))
+		return
+	}
+
+	render.Ok(w, nil)
+}

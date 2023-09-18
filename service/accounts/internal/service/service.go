@@ -31,6 +31,8 @@ type AccountService interface {
 	UpdateProfilePhotoOfUsers(db *sql.DB, email string, profilePhoto string) error
 	// Update user language preference
 	UpdateUserLanguagePreference(db *sql.DB, email, languagePreference string) error
+	// Update user theme preference
+	UpdateUserThemePreference(db *sql.DB, email, themePreference string) error
 }
 
 type accountServiceHandler struct {

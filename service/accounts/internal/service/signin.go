@@ -112,6 +112,7 @@ func (s *accountServiceHandler) GetUserDetails(db *sql.DB, email string) (*model
 		return nil, errors.NewUnknownError("user not found").WithInternal().WithCause(err)
 	}
 	userResponse.LanguagePreference = user.LanguagePreference
+	userResponse.ThemePreference = user.Theme
 	userResponse.ProfileURL = user.ProfilePhoto
 	userResponse.PolicyID = user.PolicyId
 	return &userResponse, nil

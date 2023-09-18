@@ -110,6 +110,7 @@ func main() {
 		&HandlerMappingWithDynamicDB{Path: "/upload", RequestFunc: accountHandler.UploadProfilePhoto},
 		&HandlerMappingWithDynamicDB{Path: "/profile-image", RequestFunc: accountHandler.DeleteProfileImage},
 		&HandlerMappingWithDynamicDB{Path: "/update-user-language-preference", RequestFunc: accountHandler.UpdateUserLanguagePreference},
+		&HandlerMappingWithDynamicDB{Path: "/update-user-theme-preference", RequestFunc: accountHandler.UpdateUserThemePreference},
 	)
 	for _, handlerMappingWithPermission := range lsHandlerMappingWithDynamicDB {
 		handler := &handler.HTTPHandlerWithDynamicDB{
