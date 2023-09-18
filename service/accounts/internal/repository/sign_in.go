@@ -49,7 +49,7 @@ func (r *accountRepositoryHandler) SelectSignInColumns(email string) (*model.Sig
 		return nil, errors.NewUnknownError("query user language preference fail").WithInternal().WithCause(err)
 	}
 	defer db.Close()
-	querySql = `select coalesce(language_preference,'') from users where email = ? and status = ?`
+	querySql = `select coalesce(language_preference,''),coalesce(theme,'') from users where email = ? and status = ?`
 	if err = db.QueryRow(querySql, email, true).Scan(&signIn.Language, &signIn.Theme); err != nil {
 		return nil, errors.NewUnknownError("query user language preference fail").WithInternal().WithCause(err)
 	}
