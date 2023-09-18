@@ -1,10 +1,12 @@
 package main
 
 import (
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
-	"github.com/joho/godotenv"
 	"log"
 	"net/http"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
+	"github.com/joho/godotenv"
 
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
@@ -81,8 +83,13 @@ func main() {
 
 	uploadService := service.NewUploadService(db, grUserGroupDataUploadRepositoryWithChild, grUserRepository)
 
+	authProvider, err := gip.NewGIPClient()
+	if err != nil {
+		log.Panic(err)
+	}
+
 	accountRepository := pkg_repository.NewAccountManagerRepository(dbAccount)
-	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository)
+	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, authProvider)
 
 	handler := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,

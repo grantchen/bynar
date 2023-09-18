@@ -161,7 +161,7 @@ func main() {
 		log.Panic(err)
 	}
 	accountRepository := pkg_repository.NewAccountManagerRepository(dbAccount)
-	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository)
+	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, authProvider)
 
 	lsHandlerMappingWithPermission := make([]*HandlerMappingWithPermission, 0)
 	lsHandlerMappingWithPermission = append(lsHandlerMappingWithPermission,

@@ -7,8 +7,7 @@ import (
 
 // AccountRepository provides a interface on db level for user
 type AccountRepository interface {
-	CheckUserExists(email string) error
-	CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID string) error
+	CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID string) (int, error)
 	// SelectSignInColumns select columns to generate token when user sign in
 	SelectSignInColumns(email string) (*model.SignIn, error)
 	// GetOrganizationDetail get organization detail

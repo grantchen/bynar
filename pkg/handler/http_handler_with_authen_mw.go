@@ -232,10 +232,15 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 
 		code, msg, claims := middleware.VerifyIdToken(r)
 		if http.StatusOK != code {
-			if "" == msg {
+			if msg == "" {
 				msg = http.StatusText(code)
 			}
 			writeErrorResponse(w, defaultResponse, errors.New(msg))
+			return
+		}
+		// TODO: tenant_status == 0 and tenant_suspended == 1
+		if !claims.OrganizationStatus {
+			writeErrorResponse(w, defaultResponse, errors.New("no permission"))
 			return
 		}
 
@@ -299,17 +304,20 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		var connString string
 
 		connString, _ = h.AccountManagerService.GetNewStringConnection(claims.TenantUuid, claims.OrganizationUuid, permission)
-		// if permission.Enterprise == 0 {
-		// 	connString = sql_connection.ChangeDatabaseConnectionSchema(connString, strconv.Itoa(permission.TMOrganizationId))
-		// }
 		//hardcode to test
-		// connString = "root:123456@tcp(localhost:3306)/bynar"
+		// connString = "root:123456@tcp(localhost:3306)/172c1ecd-fd74-40a2-8717-1cc9a5e18880"
 
 		db, err := h.ConnectionPool.Get(connString)
 
 		if err != nil {
 			log.Println("Err get connection db", err)
 			writeErrorResponse(w, defaultResponse, err)
+			return
+		}
+		var status int
+		db.QueryRow(`SELECT status FROM users WHERE email = ?`, claims.Email).Scan(&status)
+		if status == 0 {
+			writeErrorResponse(w, defaultResponse, errors.New("user is disabled"))
 			return
 		}
 
@@ -331,7 +339,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		reqContext := &ReqContext{
 			connectionString: connString,
 			db:               db,
-			AccountID:        0,
+			AccountID:        0, // TODO: claims.OrganizationUserId,
 			PermissionInfo: &treegrid.PermissionInfo{
 				IsAccessAll: true,
 			},

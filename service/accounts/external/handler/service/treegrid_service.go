@@ -3,9 +3,13 @@ package service
 import (
 	"context"
 	"database/sql"
+	"log"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/service"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
+	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
@@ -21,7 +25,19 @@ func newTreeGridService(db *sql.DB, accountID int) treegrid.TreeGridService {
 
 	simpleOrganizationRepository := treegrid.NewSimpleGridRowRepository(db, "users", repository.UserFieldNames,
 		100)
-	userService := service.NewUserService(db, simpleOrganizationRepository)
+
+	authProvider, err := gip.NewGIPClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+	appConfig := config.NewLocalConfig()
+	accountDB, err := sql_db.NewConnection(appConfig.GetAccountManagementConnection())
+	if err != nil {
+		log.Fatal(err)
+	}
+	var oid int
+	accountDB.QueryRow("SELECT organizations.id FROM organizations LEFT JOIN organization_accounts ON organization_accounts.organization_id = organizations.id WHERE organization_accounts.organization_user_id = ?", accountID).Scan(&oid)
+	userService := service.NewUserService(db, accountDB, oid, authProvider, simpleOrganizationRepository)
 
 	return &treegridService{
 		db:          db,

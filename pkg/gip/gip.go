@@ -128,6 +128,53 @@ func (g gipClient) UpdateUser(ctx context.Context, uid string, params map[string
 	return nil
 }
 
+// UpdateUserByEmail updates an existing user account with the specified properties.
+func (g gipClient) UpdateUserByEmail(ctx context.Context, email string, params map[string]interface{}) error {
+	client, err := g.app.Auth(ctx)
+	if err != nil {
+		return fmt.Errorf("error getting Auth client: %v", err)
+	}
+
+	u, err := client.GetUserByEmail(ctx, email)
+	if err != nil {
+		if auth.IsUserNotFound(err) {
+			return ErrUserNotFound
+		}
+		return fmt.Errorf("error getting user by email %s: %v", email, err)
+	}
+
+	updateParams := &auth.UserToUpdate{}
+	if email, ok := params["email"].(string); ok {
+		updateParams.Email(email)
+	}
+
+	if displayName, ok := params["displayName"].(string); ok {
+		updateParams.DisplayName(displayName)
+	}
+
+	if phoneNumber, ok := params["phoneNumber"].(string); ok {
+		updateParams.PhoneNumber(phoneNumber)
+	}
+
+	if disableUser, ok := params["disableUser"].(bool); ok {
+		updateParams.Disabled(disableUser)
+	}
+
+	if customClaims, ok := params["customClaims"].(map[string]interface{}); ok {
+		updateParams.CustomClaims(customClaims)
+	}
+
+	_, err = client.UpdateUser(ctx, u.UID, updateParams)
+	if err != nil {
+		if auth.IsUserNotFound(err) {
+			return ErrUserNotFound
+		}
+		return fmt.Errorf("error updating user: %v", err)
+	}
+
+	return nil
+}
+
 // DeleteUser deletes the user by the given UID.
 func (g gipClient) DeleteUser(ctx context.Context, uid string) error {
 	client, err := g.app.Auth(ctx)

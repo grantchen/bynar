@@ -13,16 +13,6 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 )
 
-// CheckUserExists check is email exist in db
-func (r *accountRepositoryHandler) CheckUserExists(email string) error {
-	var id int
-	err := r.db.QueryRow("SELECT id FROM accounts WHERE email = ? AND status=1;", email).Scan(&id)
-	if err == nil && id != 0 {
-		return errors.New("email already exist")
-	}
-	return nil
-}
-
 // CreateOrganization create the organization when creating user
 func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, vat, country, uid string, accountID int) (int, string, error) {
 	var organizationID int
@@ -61,28 +51,47 @@ func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, v
 }
 
 // CreateTenantManagement create the tanant managemant when creating user
-func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region string, organizationID int) (string, error) {
+func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region string, organizationID int) (string, int, error) {
 	// Check if is allowed to insert
 	var tenantID int
 	var organizations int
 	var organizationsAllowed int
 	var tenantUUID string
+	var status bool
 	// check the tanant exists
-	err := tx.QueryRow("SELECT id, organizations, organizations_allowed, tenant_uuid FROM tenants WHERE region = ?", region).Scan(&tenantID, &organizations, &organizationsAllowed, &tenantUUID)
-	if err != nil || organizations >= organizationsAllowed {
-		logrus.Error("select tenant error: ", err)
-		return "", fmt.Errorf("tenants of region %s not exist or organizations are full", region)
-	}
-	// insert managemant
-	_, err = tx.Exec(
-		`INSERT INTO tenants_management (organization_id, tenant_id, status, suspended) VALUES (?, ?, ?, ?)`,
-		organizationID, tenantID, 1, 0,
-	)
+	err := tx.QueryRow("SELECT id, organizations, organizations_allowed, tenant_uuid, status FROM tenants WHERE region = ?", region).Scan(&tenantID, &organizations, &organizationsAllowed, &tenantUUID, &status)
 	if err != nil {
-		tx.Rollback()
-		logrus.Error("insert tenants_management error ", err.Error())
-		return "", errors.New("insert tenants_management failed")
+		logrus.Error("select tenant error: ", err)
+		return "", 0, fmt.Errorf("tenants of region %s not exist", region)
 	}
+	if !status {
+		return "", 0, fmt.Errorf("tenant %s cannot be selected ", region)
+	}
+	if organizations >= organizationsAllowed {
+		return "", 0, fmt.Errorf("tenant %s is full", region)
+	}
+
+	var tenantManagentID int
+	err = tx.QueryRow("SELECT id FROM tenants_management WHERE organization_id = ? AND tenant_id = ?", organizationID, tenantID).Scan(&tenantManagentID)
+	if err != nil {
+		logrus.Error("select tenants_management error: ", err)
+		return "", 0, errors.New("tenants_management count error")
+	}
+	if tenantManagentID == 0 {
+		// insert managemant
+		res, err := tx.Exec(
+			`INSERT INTO tenants_management (organization_id, tenant_id, status, suspended) VALUES (?, ?, ?, ?)`,
+			organizationID, tenantID, 1, 0,
+		)
+		if err != nil {
+			tx.Rollback()
+			logrus.Error("insert tenants_management error ", err.Error())
+			return "", 0, errors.New("insert tenants_management failed")
+		}
+		newTenantManagentID, _ := res.LastInsertId()
+		tenantManagentID = int(newTenantManagentID)
+	}
+
 	// update the organizations count in tanants
 	_, err = tx.Exec(
 		`UPDATE tenants SET organizations = ? WHERE id = ?`,
@@ -91,7 +100,7 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region str
 	if err != nil {
 		tx.Rollback()
 		logrus.Error("update tenants error ", err.Error())
-		return "", errors.New("update tenants failed")
+		return "", 0, errors.New("update tenants failed")
 	}
 	// update the tenant_id in organization
 	_, err = tx.Exec(
@@ -101,9 +110,9 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region str
 	if err != nil {
 		tx.Rollback()
 		logrus.Error("update organizations error ", err.Error())
-		return "", errors.New("update organizations failed")
+		return "", 0, errors.New("update organizations failed")
 	}
-	return tenantUUID, nil
+	return tenantUUID, int(tenantManagentID), nil
 }
 
 func (r *accountRepositoryHandler) CreateCard(tx *sql.Tx, customerID, sourceID string, userID int) error {
@@ -132,10 +141,10 @@ func (r *accountRepositoryHandler) CreateCard(tx *sql.Tx, customerID, sourceID s
 }
 
 // CreateUser create a new account in db
-func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID string) error {
+func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID string) (int, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
-		return err
+		return 0, err
 	}
 	// insert user base info
 	res, err := tx.Exec(
@@ -144,44 +153,47 @@ func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, add
 	)
 	if err != nil {
 		logrus.Errorf("CreateUser: error: %v", err)
-		return errors.New("insert user failed")
+		return 0, errors.New("insert user failed")
 	}
 	userID, _ := res.LastInsertId()
 	organizationID, organizationUUID, err := r.CreateOrganization(tx, organizationName, vat, organisationCountry, uid, int(userID))
 	if err != nil {
 		logrus.Errorf("CreateUser: error: %v", err)
-		return err
+		return 0, err
 	}
 	err = r.CreateCard(tx, customerID, sourceID, int(userID))
 	if err != nil {
 		logrus.Errorf("CreateUser: error: %v", err)
-		return err
+		return 0, err
 	}
-	tenantUUID, err := r.CreateTenantManagement(tx, state, organizationID)
+	tenantUUID, tenantManagentID, err := r.CreateTenantManagement(tx, country, organizationID)
 	if err != nil {
 		logrus.Errorf("CreateUser: error: %v", err)
-		return err
+		return 0, err
 	}
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return 0, err
 	}
 	// create environment
-	return r.CreateEnvironment(tenantUUID, organizationUUID, int(userID), email, fullName, phoneNumber)
+	return 1, r.CreateEnvironment(tenantUUID, organizationUUID, tenantManagentID, int(userID), email, fullName, phoneNumber)
 }
 
-func (r *accountRepositoryHandler) SetUserStatusToZero(userID int) {
+func (r *accountRepositoryHandler) SetStatusToZeroIfEnvFailed(userID, tenantManagentID int) {
 	if _, err := r.db.Exec(`UPDATE accounts SET status=? WHERE id=?`, 0, userID); err != nil {
 		logrus.Error("create environment failed, update account status to 0 error: ", err.Error())
+	}
+	if _, err := r.db.Exec(`UPDATE tenants_management SET status=? WHERE id=?`, 0, tenantManagentID); err != nil {
+		logrus.Error("create environment failed, update tenants_management status to 0 error: ", err.Error())
 	}
 }
 
 // CreateEnvironment create a new schema in db
-func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUID string, userID int, email, fullName, phoneNumber string) error {
+func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUID string, tenantManagentID, userID int, email, fullName, phoneNumber string) error {
 	//get tanant mysql connstr from environment
 	connStr := os.Getenv(tenantUUID)
 	if len(connStr) == 0 {
-		r.SetUserStatusToZero(userID)
+		r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
 		return errors.New("the tenant mysql connstr is not set")
 	}
 	if strings.Contains(connStr, "?") {
@@ -191,7 +203,7 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 	}
 	db, err := sql.Open("mysql", connStr)
 	if err != nil {
-		r.SetUserStatusToZero(userID)
+		r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
 		return errors.New("open mysql failed")
 	}
 	var name string
@@ -203,20 +215,20 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 		// create database
 		_, err = db.Exec(fmt.Sprintf("CREATE DATABASE `%s`", organizationUUID))
 		if err != nil {
-			r.SetUserStatusToZero(userID)
+			r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
 			return errors.New("create database failed")
 		}
 	}
 	_, err = db.Exec(fmt.Sprintf("USE `%s`", organizationUUID))
 	if err != nil {
-		r.SetUserStatusToZero(userID)
+		r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
 		return errors.New("use database failed")
 	}
 	if name == "" {
 		// create tables
 		_, err = db.Exec(model.SQL_TEMPLATE)
 		if err != nil {
-			r.SetUserStatusToZero(userID)
+			r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
 			return errors.New("create tables failed")
 		}
 	}

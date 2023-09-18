@@ -7,17 +7,21 @@ import (
 	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/repository"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"github.com/sirupsen/logrus"
 )
 
 type UserService struct {
 	db                           *sql.DB
+	accountDB                    *sql.DB
+	organizationID               int
+	authProvider                 gip.AuthProvider
 	simpleOrganizationRepository treegrid.SimpleGridRowRepository
 }
 
-func NewUserService(db *sql.DB, simpleOrganizationService treegrid.SimpleGridRowRepository) *UserService {
-	return &UserService{db, simpleOrganizationService}
+func NewUserService(db *sql.DB, accountDB *sql.DB, organizationID int, authProvider gip.AuthProvider, simpleOrganizationService treegrid.SimpleGridRowRepository) *UserService {
+	return &UserService{db, accountDB, organizationID, authProvider, simpleOrganizationService}
 }
 
 func (s *UserService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
@@ -73,7 +77,26 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 		if !ok || err1 != nil {
 			return fmt.Errorf("validate duplicate: [%v], field: %s", err1, strings.Join(fieldsValidating, ", "))
 		}
-		err = s.simpleOrganizationRepository.Add(tx, gr)
+		err = func() error {
+			err = s.simpleOrganizationRepository.Add(tx, gr)
+			if err != nil {
+				return err
+			}
+			email, _ := gr.GetValString("email")
+			fullName, _ := gr.GetValString("full_name")
+			phone, _ := gr.GetValString("phone")
+			uid, err := s.authProvider.CreateUser(context.Background(), email, fullName, phone)
+			if err != nil {
+				return err
+			}
+			var userID int
+			err = tx.QueryRow(`SELECT id FROM users WHERE email=?`, email).Scan(&userID)
+			if err != nil {
+				return err
+			}
+			_, err = s.accountDB.Exec(`INSERT INTO organization_accounts (organization_id, organization_user_uid, organization_user_id, oraginzation_main_account) VALUES(?, ?, ?, ?)`, s.organizationID, uid, userID, 0)
+			return err
+		}()
 	case treegrid.GridRowActionChanged:
 		err1 := gr.ValidateOnRequired(repository.UserFieldNames)
 		if err1 != nil {
@@ -83,9 +106,29 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 		if !ok || err1 != nil {
 			return fmt.Errorf("validate duplicate: [%w], field: %s", err1, strings.Join(fieldsValidating, ", "))
 		}
-		err = s.simpleOrganizationRepository.Update(tx, gr)
+		err = func() error {
+			err = s.simpleOrganizationRepository.Update(tx, gr)
+			if err != nil {
+				return err
+			}
+			email, _ := gr.GetValString("email")
+			params := map[string]interface{}{}
+			for _, i := range gr.UpdatedFields() {
+				params[i], _ = gr.GetValString(i)
+			}
+			err = s.authProvider.UpdateUserByEmail(context.Background(), email, params)
+			return err
+		}()
 	case treegrid.GridRowActionDeleted:
-		err = s.simpleOrganizationRepository.Delete(tx, gr)
+		err = func() error {
+			err = s.simpleOrganizationRepository.Delete(tx, gr)
+			if err != nil {
+				return err
+			}
+			email, _ := gr.GetValString("email")
+			err = s.authProvider.DeleteUserByEmail(context.Background(), email)
+			return err
+		}()
 
 	default:
 		return fmt.Errorf("undefined row type: %s", gr.GetActionType())

@@ -75,15 +75,11 @@ func (s *accountServiceHandler) SendSignInEmail(email string) error {
 
 // VerifyEmail check email is stored in db and google identify platform
 func (s *accountServiceHandler) VerifyEmail(email string) error {
-	err := s.ar.CheckUserExists(email)
-	if err == nil {
-		return fmt.Errorf("account with email: %s has not signup", email)
-	}
 	exists, err := s.authProvider.IsUserExists(context.Background(), email)
 	if err != nil {
 		return err
 	}
-	if exists == false {
+	if !exists {
 		return fmt.Errorf("account with email: %s has not signup", email)
 	}
 	return nil

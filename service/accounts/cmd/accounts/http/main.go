@@ -48,8 +48,6 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-	accountRepository := pkg_repository.NewAccountManagerRepository(dbAccount)
-	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository)
 
 	// db, err := sql_db.NewConnection(appConfig.GetAccountManagementConnection())
 	// if err != nil {
@@ -68,6 +66,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	accountRepository := pkg_repository.NewAccountManagerRepository(dbAccount)
+	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, authProvider)
 
 	httpHandler := http_handler.NewHTTPHandler(dbAccount, authProvider, paymentProvider, gcsProvider)
 

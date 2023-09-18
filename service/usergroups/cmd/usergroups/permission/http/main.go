@@ -1,10 +1,12 @@
 package main
 
 import (
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
-	"github.com/joho/godotenv"
 	"log"
 	"net/http"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
+	"github.com/joho/godotenv"
 
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
@@ -28,8 +30,13 @@ func main() {
 		log.Panic(err)
 	}
 
+	authProvider, err := gip.NewGIPClient()
+	if err != nil {
+		log.Panic(err)
+	}
+
 	accountRepository := pkg_repository.NewAccountManagerRepository(dbAccount)
-	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository)
+	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, authProvider)
 
 	connectionPool := connection.NewPool()
 	defer func() {
