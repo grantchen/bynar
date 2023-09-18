@@ -142,37 +142,7 @@ func (g gipClient) UpdateUserByEmail(ctx context.Context, email string, params m
 		}
 		return fmt.Errorf("error getting user by email %s: %v", email, err)
 	}
-
-	updateParams := &auth.UserToUpdate{}
-	if email, ok := params["email"].(string); ok {
-		updateParams.Email(email)
-	}
-
-	if displayName, ok := params["displayName"].(string); ok {
-		updateParams.DisplayName(displayName)
-	}
-
-	if phoneNumber, ok := params["phoneNumber"].(string); ok {
-		updateParams.PhoneNumber(phoneNumber)
-	}
-
-	if disableUser, ok := params["disableUser"].(bool); ok {
-		updateParams.Disabled(disableUser)
-	}
-
-	if customClaims, ok := params["customClaims"].(map[string]interface{}); ok {
-		updateParams.CustomClaims(customClaims)
-	}
-
-	_, err = client.UpdateUser(ctx, u.UID, updateParams)
-	if err != nil {
-		if auth.IsUserNotFound(err) {
-			return ErrUserNotFound
-		}
-		return fmt.Errorf("error updating user: %v", err)
-	}
-
-	return nil
+	return g.UpdateUser(ctx, u.UID, params)
 }
 
 // DeleteUser deletes the user by the given UID.
