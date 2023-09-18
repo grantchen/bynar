@@ -55,3 +55,13 @@ func (r *accountRepositoryHandler) UpdateUserLanguagePreference(db *sql.DB, emai
 
 	return nil
 }
+
+// Update user theme preference
+func (r *accountRepositoryHandler) UpdateUserThemePreference(db *sql.DB, email, themePreference string) error {
+	var querySql = `update users set theme = ? where email = ?`
+	if _, err := db.Exec(querySql, themePreference, email); err != nil {
+		return errors.NewUnknownError("update user theme preference fail").WithInternal().WithCause(err)
+	}
+
+	return nil
+}

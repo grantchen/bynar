@@ -32,6 +32,7 @@ type GetUserResponse struct {
 	PhoneNumber  string `db:"phone" json:"phoneNumber"`
 
 	LanguagePreference string `json:"languagePreference"`
+	ThemePreference    string `json:"themePreference"`
 	ProfileURL         string `json:"profileURL"`
 	PolicyID           int    `json:"policyId"`
 }

@@ -223,7 +223,7 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 	// create user
 	_, err = db.Exec(
 		`INSERT INTO users (email, full_name, phone, status, language_preference, policy_id, theme) VALUES (?,?,?,?,?,?,?)`,
-		email, fullName, phoneNumber, 1, "en", 1, "system",
+		email, fullName, phoneNumber, 1, "en", 1, "light",
 	)
 	if err != nil {
 		logrus.Error("insert user error ", err.Error())
