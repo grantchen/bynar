@@ -182,19 +182,19 @@ func (h *AccountHandler) UploadProfilePhoto(w http.ResponseWriter, r *http.Reque
 	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.LanguagePreference, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
 		return
 	}
 	reader, err := r.MultipartReader()
 	if err != nil || reader == nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.LanguagePreference, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
 		return
 	}
 	url, err := h.as.UploadFileToGCS(reqContext.DynamicDB, reqContext.Claims.OrganizationUuid, reqContext.Claims.Email, reader)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.LanguagePreference, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
 		return
 
 	}
@@ -218,7 +218,7 @@ func (h *AccountHandler) DeleteProfileImage(w http.ResponseWriter, r *http.Reque
 
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.LanguagePreference, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
 		return
 	}
 	render.Ok(w, nil)
@@ -239,13 +239,13 @@ func (h *AccountHandler) UpdateUserLanguagePreference(w http.ResponseWriter, r *
 	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.LanguagePreference, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
 		return
 	}
 	err = h.as.UpdateUserLanguagePreference(reqContext.DynamicDB, reqContext.Claims.Email, req.LanguagePreference)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.LanguagePreference, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
 		return
 	}
 
@@ -267,13 +267,13 @@ func (h *AccountHandler) UpdateUserThemePreference(w http.ResponseWriter, r *htt
 	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.LanguagePreference, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
 		return
 	}
 	err = h.as.UpdateUserThemePreference(reqContext.DynamicDB, reqContext.Claims.Email, req.ThemePreference)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.LanguagePreference, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
 		return
 	}
 
