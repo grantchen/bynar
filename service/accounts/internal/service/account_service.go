@@ -136,3 +136,13 @@ func (s *accountServiceHandler) UpdateUserLanguagePreference(db *sql.DB, email, 
 
 	return nil
 }
+
+// Update user theme preference
+func (s *accountServiceHandler) UpdateUserThemePreference(db *sql.DB, email, themePreference string) error {
+	// Update the theme field in the users table
+	if err := s.ar.UpdateUserThemePreference(db, email, themePreference); err != nil {
+		return err
+	}
+
+	return nil
+}

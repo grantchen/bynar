@@ -23,7 +23,7 @@ type IdTokenClaims struct {
 	Name                string `json:"name"`
 	OrganizationAccount bool   `json:"organization_account"`
 	OrganizationStatus  bool   `json:"organization_status"`
-	OrganizationUserId  string `json:"organization_user_id"`
+	OrganizationUserId  int    `json:"organization_user_id"`
 	OrganizationUuid    string `json:"organization_uuid"`
 	TenantUuid          string `json:"tenant_uuid"`
 	Uid                 string `json:"uid"`
