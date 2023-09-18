@@ -49,7 +49,7 @@ func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, v
 	}
 	// Add relationship between the account and organization
 	_, err = tx.Exec(
-		`INSERT INTO oraginzation_accounts (organization_id, organization_user_uid, organization_user_id, oraginzation_main_account) VALUES (?, ?, ?, ?)`,
+		`INSERT INTO organization_accounts (organization_id, organization_user_uid, organization_user_id, oraginzation_main_account) VALUES (?, ?, ?, ?)`,
 		organizationID, uid, accountID, 1,
 	)
 	if err != nil {

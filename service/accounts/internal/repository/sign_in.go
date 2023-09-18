@@ -25,7 +25,7 @@ func (r *accountRepositoryHandler) SelectSignInColumns(email string) (*model.Sig
 		       os.organization_uuid,
 		       t.tenant_uuid
 		from accounts a 
-		join oraginzation_accounts oa on a.id = oa.organization_user_id
+		join organization_accounts oa on a.id = oa.organization_user_id
 		join organizations os on oa.organization_id=os.id
 		join tenants t on os.tenant_id = t.id
 		where a.email = ? and a.status = ? and a.verified = ? `
