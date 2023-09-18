@@ -42,11 +42,6 @@ type HandlerMappingWithPermission struct {
 	prefixPath  string
 }
 
-type HandlerMappingWithDynamicDB struct {
-	Path        string
-	RequestFunc func(w http.ResponseWriter, r *http.Request)
-}
-
 const prefix = "/apprunnerurl"
 
 func main() {
@@ -104,22 +99,11 @@ func main() {
 	http.Handle("/signin", render.CorsMiddleware(http.HandlerFunc(accountHandler.SignIn)))
 
 	// user endpoints
-	lsHandlerMappingWithDynamicDB := make([]*HandlerMappingWithDynamicDB, 0)
-	lsHandlerMappingWithDynamicDB = append(lsHandlerMappingWithDynamicDB,
-		&HandlerMappingWithDynamicDB{Path: "/user", RequestFunc: accountHandler.User},
-		&HandlerMappingWithDynamicDB{Path: "/upload", RequestFunc: accountHandler.UploadProfilePhoto},
-		&HandlerMappingWithDynamicDB{Path: "/profile-image", RequestFunc: accountHandler.DeleteProfileImage},
-		&HandlerMappingWithDynamicDB{Path: "/update-user-language-preference", RequestFunc: accountHandler.UpdateUserLanguagePreference},
-		&HandlerMappingWithDynamicDB{Path: "/update-user-theme-preference", RequestFunc: accountHandler.UpdateUserThemePreference},
-	)
-	for _, handlerMappingWithPermission := range lsHandlerMappingWithDynamicDB {
-		handler := &handler.HTTPHandlerWithDynamicDB{
-			ConnectionPool: connectionPool,
-			Path:           handlerMappingWithPermission.Path,
-			RequestFunc:    handlerMappingWithPermission.RequestFunc,
-		}
-		handler.HandleHTTPReqWithDynamicDB()
-	}
+	http.Handle("/user", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.User))))
+	http.Handle("/upload", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.UploadProfilePhoto))))
+	http.Handle("/profile-image", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.DeleteProfileImage))))
+	http.Handle("/update-user-language-preference", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.UpdateUserLanguagePreference))))
+	&HandlerMappingWithDynamicDB{Path: "/update-user-theme-preference", RequestFunc: accountHandler.UpdateUserThemePreference},{Path: "/update-user-theme-preference", RequestFunc: accountHandler.UpdateUserThemePreference},
 
 	lsHandlerMapping := make([]*HandlerMapping, 0)
 	lsHandlerMapping = append(lsHandlerMapping,

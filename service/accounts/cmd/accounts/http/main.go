@@ -21,11 +21,6 @@ import (
 
 const prefix = "/apprunnerurl"
 
-type HandlerMappingWithDynamicDB struct {
-	Path        string
-	RequestFunc func(w http.ResponseWriter, r *http.Request)
-}
-
 // use for test only this module without permission
 func main() {
 	err := godotenv.Load("../main/.env")
@@ -82,22 +77,11 @@ func main() {
 	http.Handle("/signin", render.CorsMiddleware(http.HandlerFunc(httpHandler.SignIn)))
 
 	// user endpoints
-	lsHandlerMappingWithDynamicDB := make([]*HandlerMappingWithDynamicDB, 0)
-	lsHandlerMappingWithDynamicDB = append(lsHandlerMappingWithDynamicDB,
-		&HandlerMappingWithDynamicDB{Path: "/user", RequestFunc: httpHandler.User},
-		&HandlerMappingWithDynamicDB{Path: "/upload", RequestFunc: httpHandler.UploadProfilePhoto},
-		&HandlerMappingWithDynamicDB{Path: "/profile-image", RequestFunc: httpHandler.DeleteProfileImage},
-		&HandlerMappingWithDynamicDB{Path: "/update-user-language-preference", RequestFunc: httpHandler.UpdateUserLanguagePreference},
-		&HandlerMappingWithDynamicDB{Path: "/update-user-theme-preference", RequestFunc: httpHandler.UpdateUserThemePreference},
-	)
-	for _, handlerMappingWithPermission := range lsHandlerMappingWithDynamicDB {
-		handler := &handler.HTTPHandlerWithDynamicDB{
-			ConnectionPool: connectionPool,
-			Path:           handlerMappingWithPermission.Path,
-			RequestFunc:    handlerMappingWithPermission.RequestFunc,
-		}
-		handler.HandleHTTPReqWithDynamicDB()
-	}
+	http.Handle("/user", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(httpHandler.User))))
+	http.Handle("/upload", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(httpHandler.UploadProfilePhoto))))
+	http.Handle("/profile-image", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(httpHandler.DeleteProfileImage))))
+	http.Handle("/update-user-language-preference", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(httpHandler.UpdateUserLanguagePreference))))
+	&HandlerMappingWithDynamicDB{Path: "/update-user-theme-preference", RequestFunc: httpHandler.UpdateUserThemePreference},
 
 	// accounts treegrid endpoints
 	dbhandler := &handler.HTTPTreeGridHandlerWithDynamicDB{
