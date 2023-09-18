@@ -18,9 +18,12 @@ import (
 
 // Signup is a service method which check the account is exist
 func (s *accountServiceHandler) Signup(email string) error {
-	err := s.ar.CheckUserExists(email)
+	exists, err := s.authProvider.IsUserExists(context.Background(), email)
 	if err != nil {
 		return err
+	}
+	if exists {
+		return fmt.Errorf("email %s has already exist", email)
 	}
 
 	// Since unregistered users cannot verify oobcode in google identify platform, we decided to customize the verification
@@ -74,9 +77,12 @@ func (s *accountServiceHandler) VerifyCard(token, email, name string) (string, s
 // CreateUser is a service method which handles the logic of new user registration
 func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID string) (string, error) {
 	// recheck user exist
-	err := s.ar.CheckUserExists(email)
+	exist, err := s.authProvider.IsUserExists(context.Background(), email)
 	if err != nil {
 		return "", err
+	}
+	if exist {
+		return "", fmt.Errorf("email %s has already exist", email)
 	}
 	// revalidate email
 	// err = gip.VerificationEmail(signature)
@@ -105,6 +111,7 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 	}
 	customClaims := map[string]interface{}{
 		"country": organisationCountry,
+		"status":  1,
 	}
 	// update custom user info in gip
 	err = s.authProvider.UpdateUser(context.TODO(), uid, map[string]interface{}{"customClaims": customClaims})
@@ -113,9 +120,12 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 		return "", errors.New("gip update user failed")
 	}
 	// create user in db
-	err = s.ar.CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID)
+	code, err := s.ar.CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID)
 	if err != nil {
 		logrus.Error("create user error: ", err.Error())
+		if code == 0 {
+			s.authProvider.DeleteUserByEmail(context.Background(), email)
+		}
 		return "", err
 	}
 	// return idToken after created

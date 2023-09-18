@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 )
@@ -13,15 +14,18 @@ import (
 type accountManagerRepository struct {
 	db                       *sql.DB
 	accountManagerRepository repository.AccountManagerRepository
+	authProvider             gip.AuthProvider
 }
 
 func NewAccountManagerService(
 	db *sql.DB,
 	accaccountManagerRepository repository.AccountManagerRepository,
+	authProvider gip.AuthProvider,
 ) AccountManagerService {
 	return &accountManagerRepository{
 		db:                       db,
 		accountManagerRepository: accaccountManagerRepository,
+		authProvider:             authProvider,
 	}
 }
 

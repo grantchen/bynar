@@ -128,6 +128,23 @@ func (g gipClient) UpdateUser(ctx context.Context, uid string, params map[string
 	return nil
 }
 
+// UpdateUserByEmail updates an existing user account with the specified properties.
+func (g gipClient) UpdateUserByEmail(ctx context.Context, email string, params map[string]interface{}) error {
+	client, err := g.app.Auth(ctx)
+	if err != nil {
+		return fmt.Errorf("error getting Auth client: %v", err)
+	}
+
+	u, err := client.GetUserByEmail(ctx, email)
+	if err != nil {
+		if auth.IsUserNotFound(err) {
+			return ErrUserNotFound
+		}
+		return fmt.Errorf("error getting user by email %s: %v", email, err)
+	}
+	return g.UpdateUser(ctx, u.UID, params)
+}
+
 // DeleteUser deletes the user by the given UID.
 func (g gipClient) DeleteUser(ctx context.Context, uid string) error {
 	client, err := g.app.Auth(ctx)

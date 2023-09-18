@@ -11,6 +11,8 @@ type AuthProvider interface {
 	CreateUser(ctx context.Context, email, displayName, phoneNumber string) (uid string, err error)
 	// UpdateUser updates an existing user account with the specified properties.
 	UpdateUser(ctx context.Context, uid string, params map[string]interface{}) error
+	// UpdateUserByEmail updates an existing user account with the specified properties.
+	UpdateUserByEmail(ctx context.Context, email string, params map[string]interface{}) error
 	// DeleteUser deletes the user by the given UID.
 	DeleteUser(ctx context.Context, uid string) error
 	// DeleteUserByEmail deletes the user by the given email.

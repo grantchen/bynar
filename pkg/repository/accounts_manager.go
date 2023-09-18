@@ -69,7 +69,7 @@ func (a *accountManagerRepository) CheckPermission(accountID int, organizationID
 func (a *accountManagerRepository) CheckRole(accountID int) (map[string]int, error) {
 	query :=
 		`
-	SELECT policies.* FROM policies 
+	SELECT policies.* FROM policies
 	INNER JOIN accounts ON accounts.policy_id = policies.id
 	WHERE accounts.id = ?
 	`

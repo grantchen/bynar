@@ -79,7 +79,7 @@ func (s *accountServiceHandler) VerifyEmail(email string) error {
 	if err != nil {
 		return err
 	}
-	if exists == false {
+	if !exists {
 		return fmt.Errorf("account with email: %s has not signup", email)
 	}
 	return nil
