@@ -57,7 +57,7 @@ func (s *accountServiceHandler) SendSignInEmail(email string) error {
 	}
 	account, err := s.ar.SelectSignInColumns(email)
 	if err != nil || account == nil {
-		return errors.NewUnknownError("user no fund").WithInternal().WithCause(err)
+		return errors.NewUnknownError("no user found").WithInternal().WithCause(err)
 	}
 	claims, err := convertSignInToClaims(account)
 	if err != nil {
