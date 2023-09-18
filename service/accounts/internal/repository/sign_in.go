@@ -29,7 +29,6 @@ func (r *accountRepositoryHandler) SelectSignInColumns(email string) (*model.Sig
                tm.suspended as tenant_suspended
 		from accounts a 
 		join organization_accounts oa on a.uid = oa.organization_user_uid
-		join organization_accounts oa on a.id = oa.organization_user_id
 		join organizations os on oa.organization_id=os.id
 		join tenants t on os.tenant_id = t.id
         join tenants_management tm on tm.organization_id = os.id and tm.tenant_id = t.id
