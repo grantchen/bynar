@@ -123,11 +123,18 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 				return err
 			}
 			params := map[string]interface{}{}
+			customClaims := map[string]interface{}{}
 			for _, i := range gr.UpdatedFields() {
 				if i != "reqID" {
-					params[GIP_KEYS[i]], _ = gr.GetValString(i)
+					key, ok := GIP_KEYS[i]
+					if ok {
+						params[key], _ = gr.GetValString(i)
+					} else {
+						customClaims[i], _ = gr.GetValString(i)
+					}
 				}
 			}
+			params["customClaims"] = customClaims
 			err = s.authProvider.UpdateUserByEmail(context.Background(), email, params)
 			return err
 		}()
