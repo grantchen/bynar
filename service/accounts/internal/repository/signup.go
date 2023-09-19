@@ -75,10 +75,6 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region str
 	var tenantManagentID int
 	err = tx.QueryRow("SELECT id FROM tenants_management WHERE organization_id = ? AND tenant_id = ?", organizationID, tenantID).Scan(&tenantManagentID)
 	if err != nil {
-		logrus.Error("select tenants_management error: ", err)
-		return "", 0, errors.New("tenants_management count error")
-	}
-	if tenantManagentID == 0 {
 		// insert managemant
 		res, err := tx.Exec(
 			`INSERT INTO tenants_management (organization_id, tenant_id, status, suspended) VALUES (?, ?, ?, ?)`,
