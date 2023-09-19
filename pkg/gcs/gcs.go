@@ -12,7 +12,6 @@ import (
 	"io"
 	"os"
 	"time"
-	"fmt"
 
 	"cloud.google.com/go/storage"
 	"github.com/sirupsen/logrus"
@@ -28,8 +27,6 @@ type gcsClient struct {
 // NewGCSClient creates a new instance of the CloudStorageProvider.
 // need to close by user
 func NewGCSClient() (CloudStorageProvider, error) {
-	fmt.Printf("GOOGLE_APPLICATION_CREDENTIALS_JSON:" + os.Getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON"))
-	fmt.Printf(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON"))
 	opt := option.WithCredentialsJSON([]byte(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")))
 	client, err := storage.NewClient(context.Background(), opt)
 	if err != nil {
