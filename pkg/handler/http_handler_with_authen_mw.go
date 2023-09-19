@@ -23,8 +23,8 @@ type ConnectionResolver interface {
 }
 
 const UploadPathString = "upload"
-const PageCountPathString = "page"
-const PageDataPathString = "data"
+const PageCountPathString = "data"
+const PageDataPathString = "page"
 
 type HTTPTreeGridHandlerWithDynamicDB struct {
 	PathPrefix             string
