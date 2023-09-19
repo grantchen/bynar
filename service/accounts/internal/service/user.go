@@ -12,6 +12,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var GIP_KEYS = map[string]string{
+	"full_name": "displayName",
+	"phone":     "phoneNumber",
+}
+
 type UserService struct {
 	db                           *sql.DB
 	accountDB                    *sql.DB
@@ -111,22 +116,34 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 			if err != nil {
 				return err
 			}
-			email, _ := gr.GetValString("email")
+			id, _ := gr.GetValInt("id")
+			var email string
+			err = tx.QueryRow(`SELECT email FROM users WHERE id=?`, id).Scan(&email)
+			if err != nil {
+				return err
+			}
 			params := map[string]interface{}{}
 			for _, i := range gr.UpdatedFields() {
-				params[i], _ = gr.GetValString(i)
+				if i != "reqID" {
+					params[GIP_KEYS[i]], _ = gr.GetValString(i)
+				}
 			}
 			err = s.authProvider.UpdateUserByEmail(context.Background(), email, params)
 			return err
 		}()
 	case treegrid.GridRowActionDeleted:
 		err = func() error {
-			err = s.simpleOrganizationRepository.Delete(tx, gr)
+			id, _ := gr.GetValInt("id")
+			var email string
+			err = tx.QueryRow(`SELECT email FROM users WHERE id=?`, id).Scan(&email)
 			if err != nil {
 				return err
 			}
-			email, _ := gr.GetValString("email")
 			err = s.authProvider.DeleteUserByEmail(context.Background(), email)
+			if err != nil {
+				return err
+			}
+			err = s.simpleOrganizationRepository.Delete(tx, gr)
 			return err
 		}()
 
