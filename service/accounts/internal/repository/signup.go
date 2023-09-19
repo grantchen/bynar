@@ -39,7 +39,7 @@ func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, v
 	}
 	// Add relationship between the account and organization
 	res, err := tx.Exec(
-		`INSERT INTO oraginzation_accounts (organization_id, organization_user_uid, organization_user_id, oraginzation_main_account) VALUES (?, ?, ?, ?)`,
+		`INSERT INTO organization_accounts (organization_id, organization_user_uid, organization_user_id, oraginzation_main_account) VALUES (?, ?, ?, ?)`,
 		organizationID, uid, accountID, 1,
 	)
 	if err != nil {
@@ -181,7 +181,7 @@ func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, add
 	if err != nil {
 		return 1, err
 	}
-	_, err = r.db.Exec(`UPDATE oraginzation_accounts SET organization_user_id = ? WHERE id = ?`, id, organizationManagentID)
+	_, err = r.db.Exec(`UPDATE organization_accounts SET organization_user_id = ? WHERE id = ?`, id, organizationManagentID)
 	return 1, err
 }
 
