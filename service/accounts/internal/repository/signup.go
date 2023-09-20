@@ -18,17 +18,22 @@ func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, v
 	var organizationID int
 	organizationUUID := uuid.New().String()
 	// check if the organization exists
-	err := tx.QueryRow(`SELECT id, organization_uuid FROM organizations where vat_number=?;`, vat).Scan(&organizationID, &organizationUUID)
+	stmt, err := tx.Prepare(`SELECT id, organization_uuid FROM organizations where vat_number=?`)
+	if err != nil {
+		return 0, "", 0, err
+	}
+	err = stmt.QueryRow(vat).Scan(&organizationID, &organizationUUID)
 	if err != nil && err != sql.ErrNoRows {
 		logrus.Error("select organization error ", err.Error())
 		return 0, "", 0, fmt.Errorf("organization if vat_number=%s not exist", vat)
 	}
 	if err == sql.ErrNoRows {
 		// Insert organization info to db
-		res, err := tx.Exec(
-			`INSERT INTO organizations (description, vat_number, country, organization_uuid, status, verified) VALUES (?, ?, ?, ?, ?, ?);`,
-			description, vat, country, organizationUUID, 1, 1,
-		)
+		stmt, err := tx.Prepare(`INSERT INTO organizations (description, vat_number, country, organization_uuid, status, verified) VALUES (?, ?, ?, ?, ?, ?)`)
+		if err != nil {
+			return 0, "", 0, err
+		}
+		res, err := stmt.Exec(description, vat, country, organizationUUID, 1, 1)
 		if err != nil {
 			tx.Rollback()
 			logrus.Error("insert organization error ", err.Error())
@@ -38,10 +43,11 @@ func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, v
 		organizationID = int(newOrganizationID)
 	}
 	// Add relationship between the account and organization
-	res, err := tx.Exec(
-		`INSERT INTO organization_accounts (organization_id, organization_user_uid, organization_user_id, oraginzation_main_account) VALUES (?, ?, ?, ?)`,
-		organizationID, uid, accountID, 1,
-	)
+	stmt, err = tx.Prepare(`INSERT INTO organization_accounts (organization_id, organization_user_uid, organization_user_id, oraginzation_main_account) VALUES (?, ?, ?, ?)`)
+	if err != nil {
+		return 0, "", 0, err
+	}
+	res, err := stmt.Exec(organizationID, uid, accountID, 1)
 	if err != nil {
 		tx.Rollback()
 		logrus.Error("insert organization_accounts error ", err.Error())
@@ -60,7 +66,11 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region str
 	var tenantUUID string
 	var status bool
 	// check the tanant exists
-	err := tx.QueryRow("SELECT id, organizations, organizations_allowed, tenant_uuid, status FROM tenants WHERE region = ?", region).Scan(&tenantID, &organizations, &organizationsAllowed, &tenantUUID, &status)
+	stmt, err := tx.Prepare("SELECT id, organizations, organizations_allowed, tenant_uuid, status FROM tenants WHERE region = ?")
+	if err != nil {
+		return "", 0, err
+	}
+	err = stmt.QueryRow(region).Scan(&tenantID, &organizations, &organizationsAllowed, &tenantUUID, &status)
 	if err != nil {
 		logrus.Error("select tenant error: ", err)
 		return "", 0, fmt.Errorf("tenants of region %s not exist", region)
@@ -73,17 +83,22 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region str
 	}
 
 	var tenantManagentID int
-	err = tx.QueryRow("SELECT id FROM tenants_management WHERE organization_id = ? AND tenant_id = ?", organizationID, tenantID).Scan(&tenantManagentID)
+	stmt, err = tx.Prepare("SELECT id FROM tenants_management WHERE organization_id = ? AND tenant_id = ?")
+	if err != nil {
+		return "", 0, err
+	}
+	err = stmt.QueryRow(organizationID, tenantID).Scan(&tenantManagentID)
 	if err != nil && err != sql.ErrNoRows {
 		logrus.Error("select tenants_management error ", err.Error())
 		return "", 0, errors.New("select tenants_management failed")
 	}
 	if err == sql.ErrNoRows {
 		// insert managemant
-		res, err := tx.Exec(
-			`INSERT INTO tenants_management (organization_id, tenant_id, status, suspended) VALUES (?, ?, ?, ?)`,
-			organizationID, tenantID, 1, 0,
-		)
+		stmt, err = tx.Prepare(`INSERT INTO tenants_management (organization_id, tenant_id, status, suspended) VALUES (?, ?, ?, ?)`)
+		if err != nil {
+			return "", 0, err
+		}
+		res, err := stmt.Exec(organizationID, tenantID, 1, 0)
 		if err != nil {
 			tx.Rollback()
 			logrus.Error("insert tenants_management error ", err.Error())
@@ -94,20 +109,22 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region str
 	}
 
 	// update the organizations count in tanants
-	_, err = tx.Exec(
-		`UPDATE tenants SET organizations = ? WHERE id = ?`,
-		organizations+1, tenantID,
-	)
+	stmt, err = tx.Prepare(`UPDATE tenants SET organizations = ? WHERE id = ?`)
+	if err != nil {
+		return "", 0, err
+	}
+	_, err = stmt.Exec(organizations+1, tenantID)
 	if err != nil {
 		tx.Rollback()
 		logrus.Error("update tenants error ", err.Error())
 		return "", 0, errors.New("update tenants failed")
 	}
 	// update the tenant_id in organization
-	_, err = tx.Exec(
-		`UPDATE organizations SET tenant_id = ? WHERE id = ?`,
-		tenantID, organizationID,
-	)
+	stmt, err = tx.Prepare(`UPDATE organizations SET tenant_id = ? WHERE id = ?`)
+	if err != nil {
+		return "", 0, err
+	}
+	_, err = stmt.Exec(tenantID, organizationID)
 	if err != nil {
 		tx.Rollback()
 		logrus.Error("update organizations error ", err.Error())
@@ -119,7 +136,11 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region str
 func (r *accountRepositoryHandler) CreateCard(tx *sql.Tx, customerID, sourceID string, userID int) error {
 	var count int
 	// check the card is default
-	err := tx.QueryRow(`SELECT COUNT(*) FROM accounts_cards WHERE user_id = ?`, userID).Scan(&count)
+	stmt, err := tx.Prepare(`SELECT COUNT(*) FROM accounts_cards WHERE user_id = ?`)
+	if err != nil {
+		return err
+	}
+	err = stmt.QueryRow(userID).Scan(&count)
 	if err != nil {
 		logrus.Error("select cards error ", err.Error())
 		return errors.New("select cards failed")
@@ -129,10 +150,11 @@ func (r *accountRepositoryHandler) CreateCard(tx *sql.Tx, customerID, sourceID s
 		isDefault = 0
 	}
 	// insert account card info
-	_, err = tx.Exec(
-		`INSERT INTO accounts_cards (user_payment_gateway_id, user_id, status, is_default, source_id, account_id) VALUES (?, ?, ?, ?, ?, ?)`,
-		customerID, userID, 1, isDefault, sourceID, userID,
-	)
+	stmt, err = tx.Prepare(`INSERT INTO accounts_cards (user_payment_gateway_id, user_id, status, is_default, source_id, account_id) VALUES (?, ?, ?, ?, ?, ?)`)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(customerID, userID, 1, isDefault, sourceID, userID)
 	if err != nil {
 		tx.Rollback()
 		logrus.Error("insert cards error ", err.Error())
@@ -148,10 +170,11 @@ func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, add
 		return 0, err
 	}
 	// insert user base info
-	res, err := tx.Exec(
-		`INSERT INTO accounts (email, full_name, address, address_2, phone, city, postal_code, country, state, status, uid, org_id, verified) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-		email, fullName, addressLine, addressLine2, phoneNumber, city, postalCode, country, state, 1, uid, nil, 1,
-	)
+	stmt, err := tx.Prepare(`INSERT INTO accounts (email, full_name, address, address_2, phone, city, postal_code, country, state, status, uid, org_id, verified) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+	if err != nil {
+		return 0, err
+	}
+	res, err := stmt.Exec(email, fullName, addressLine, addressLine2, phoneNumber, city, postalCode, country, state, 1, uid, nil, 1)
 	if err != nil {
 		logrus.Errorf("CreateUser: error: %v", err)
 		return 0, errors.New("insert user failed")
@@ -181,15 +204,29 @@ func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, add
 	if err != nil {
 		return 1, err
 	}
-	_, err = r.db.Exec(`UPDATE organization_accounts SET organization_user_id = ? WHERE id = ?`, id, organizationManagentID)
+	stmt, err = r.db.Prepare(`UPDATE organization_accounts SET organization_user_id = ? WHERE id = ?`)
+	if err != nil {
+		return 1, err
+	}
+	_, err = stmt.Exec(id, organizationManagentID)
 	return 1, err
 }
 
 func (r *accountRepositoryHandler) SetStatusToZeroIfEnvFailed(userID, tenantManagentID int) {
-	if _, err := r.db.Exec(`UPDATE accounts SET status=? WHERE id=?`, 0, userID); err != nil {
+	stmt, err := r.db.Prepare(`UPDATE accounts SET status=? WHERE id=?`)
+	if err != nil {
+		logrus.Error(err)
+		return
+	}
+	if _, err := stmt.Exec(0, userID); err != nil {
 		logrus.Error("create environment failed, update account status to 0 error: ", err.Error())
 	}
-	if _, err := r.db.Exec(`UPDATE tenants_management SET status=? WHERE id=?`, 0, tenantManagentID); err != nil {
+	stmt, err = r.db.Prepare(`UPDATE tenants_management SET status=? WHERE id=?`)
+	if err != nil {
+		logrus.Error(err)
+		return
+	}
+	if _, err := stmt.Exec(0, tenantManagentID); err != nil {
 		logrus.Error("create environment failed, update tenants_management status to 0 error: ", err.Error())
 	}
 }
@@ -213,36 +250,58 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 		return 0, errors.New("open mysql failed")
 	}
 	var name string
-	err = db.QueryRow(`SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '` + organizationUUID + `'`).Scan(&name)
+	stmt, err := db.Prepare(`SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '` + organizationUUID + `'`)
+	if err != nil {
+		logrus.Error(err)
+		return 0, err
+	}
+	err = stmt.QueryRow().Scan(&name)
 	if err == nil {
 		logrus.Info(organizationUUID, " schema exists")
 	}
 	if name == "" {
 		// create database
-		_, err = db.Exec(fmt.Sprintf("CREATE DATABASE `%s`", organizationUUID))
+		stmt, err := db.Prepare(fmt.Sprintf("CREATE DATABASE `%s`", organizationUUID))
+		if err != nil {
+			logrus.Error(err)
+			return 0, err
+		}
+		_, err = stmt.Exec()
 		if err != nil {
 			r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
 			return 0, errors.New("create database failed")
 		}
 	}
-	_, err = db.Exec(fmt.Sprintf("USE `%s`", organizationUUID))
+	stmt, err = db.Prepare(fmt.Sprintf("USE `%s`", organizationUUID))
+	if err != nil {
+		logrus.Error(err)
+		return 0, err
+	}
+	_, err = stmt.Exec()
 	if err != nil {
 		r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
 		return 0, errors.New("use database failed")
 	}
 	if name == "" {
 		// create tables
-		_, err = db.Exec(model.SQL_TEMPLATE)
+		stmt, err = db.Prepare(model.SQL_TEMPLATE)
+		if err != nil {
+			logrus.Error(err)
+			return 0, err
+		}
+		_, err = stmt.Exec()
 		if err != nil {
 			r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
 			return 0, errors.New("create tables failed")
 		}
 	}
 	// create user
-	res, err := db.Exec(
-		`INSERT INTO users (email, full_name, phone, status, language_preference, policy_id, theme) VALUES (?,?,?,?,?,?,?)`,
-		email, fullName, phoneNumber, 1, "en", 1, "light",
-	)
+	stmt, err = db.Prepare(`INSERT INTO users (email, full_name, phone, status, language_preference, policy_id, theme) VALUES (?,?,?,?,?,?,?)`)
+	if err != nil {
+		logrus.Error(err)
+		return 0, err
+	}
+	res, err := stmt.Exec(email, fullName, phoneNumber, 1, "en", 1, "light")
 	if err != nil {
 		logrus.Error("insert user error ", err.Error())
 		return 0, errors.New("insert users failed")

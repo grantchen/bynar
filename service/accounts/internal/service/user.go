@@ -12,6 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// db to gip key
 var GIP_KEYS = map[string]string{
 	"full_name": "displayName",
 	"phone":     "phoneNumber",
@@ -29,6 +30,7 @@ func NewUserService(db *sql.DB, accountDB *sql.DB, organizationID int, authProvi
 	return &UserService{db, accountDB, organizationID, authProvider, simpleOrganizationService}
 }
 
+// Handle implements treegrid.TreeGridService
 func (s *UserService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	resp := &treegrid.PostResponse{}
 	// Create new transaction
@@ -52,11 +54,13 @@ func (s *UserService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse,
 	return resp, nil
 }
 
+// GetPageCount implements treegrid.TreeGridService
 func (s *UserService) GetPageCount(tr *treegrid.Treegrid) (float64, error) {
 	count, err := s.simpleOrganizationRepository.GetPageCount(tr)
 	return float64(count), err
 }
 
+// GetPageData implements treegrid.TreeGridService
 func (s *UserService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
 
 	return s.simpleOrganizationRepository.GetPageData(tr)
@@ -87,6 +91,7 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 			if err != nil {
 				return err
 			}
+			// create user in gip
 			email, _ := gr.GetValString("email")
 			fullName, _ := gr.GetValString("full_name")
 			phone, _ := gr.GetValString("phone")
@@ -95,11 +100,20 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 				return err
 			}
 			var userID int
-			err = tx.QueryRow(`SELECT id FROM users WHERE email=?`, email).Scan(&userID)
+			stmt, err := tx.Prepare("SELECT id FROM users WHERE email=?")
 			if err != nil {
 				return err
 			}
-			_, err = s.accountDB.Exec(`INSERT INTO organization_accounts (organization_id, organization_user_uid, organization_user_id, oraginzation_main_account) VALUES(?, ?, ?, ?)`, s.organizationID, uid, userID, 0)
+			err = stmt.QueryRow(email).Scan(&userID)
+			if err != nil {
+				return err
+			}
+			// insert into organization_accounts
+			stmt, err = s.accountDB.Prepare(`INSERT INTO organization_accounts (organization_id, organization_user_uid, organization_user_id, oraginzation_main_account) VALUES(?, ?, ?, ?)`)
+			if err != nil {
+				return err
+			}
+			_, err = stmt.Exec(s.organizationID, uid, userID, 0)
 			return err
 		}()
 	case treegrid.GridRowActionChanged:
@@ -118,10 +132,15 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 			}
 			id, _ := gr.GetValInt("id")
 			var email string
-			err = tx.QueryRow(`SELECT email FROM users WHERE id=?`, id).Scan(&email)
+			stmt, err := tx.Prepare(`SELECT email FROM users WHERE id=?`)
 			if err != nil {
 				return err
 			}
+			err = stmt.QueryRow(id).Scan(&email)
+			if err != nil {
+				return err
+			}
+			// update user claims in gip
 			params := map[string]interface{}{}
 			customClaims := map[string]interface{}{}
 			for _, i := range gr.UpdatedFields() {
@@ -142,10 +161,15 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 		err = func() error {
 			id, _ := gr.GetValInt("id")
 			var email string
-			err = tx.QueryRow(`SELECT email FROM users WHERE id=?`, id).Scan(&email)
+			stmt, err := tx.Prepare(`SELECT email FROM users WHERE id=?`)
 			if err != nil {
 				return err
 			}
+			err = stmt.QueryRow(id).Scan(&email)
+			if err != nil {
+				return err
+			}
+			// delete user in gip
 			err = s.authProvider.DeleteUserByEmail(context.Background(), email)
 			if err != nil {
 				return err
