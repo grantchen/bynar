@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// letterRunes is the set of runes used to generate a random string.
 var letterRunes = []rune("1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 // RandString generates a random string of length n.

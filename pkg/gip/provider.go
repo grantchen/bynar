@@ -4,6 +4,7 @@ import (
 	"context"
 )
 
+// AuthProvider is an interface for the authentication provider.
 type AuthProvider interface {
 	// IsUserExists checks if the user with the specified email exists.
 	IsUserExists(ctx context.Context, email string) (bool, error)

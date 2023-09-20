@@ -18,6 +18,7 @@ import (
 )
 
 const (
+	// verifying custom token url of google identify platform
 	verifyCustomTokenURL = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyCustomToken?key=%s"
 )
 
