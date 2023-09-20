@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 )
 
@@ -34,7 +33,12 @@ func (r *accountRepositoryHandler) SelectSignInColumns(email string) (*model.Sig
         join tenants_management tm on tm.organization_id = os.id and tm.tenant_id = t.id
 		where a.email = ? and a.status = ? and a.verified = ? `
 	var signIn = model.SignIn{}
-	err := r.db.QueryRow(querySql, email, true, true).Scan(&signIn.Uid,
+	prepare, err := r.db.Prepare(querySql)
+	if err != nil {
+		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, querySql)
+	}
+	defer prepare.Close()
+	err = prepare.QueryRow(email, true, true).Scan(&signIn.Uid,
 		&signIn.OrganizationUserId, &signIn.OrganizationAccount,
 		&signIn.OrganizationStatus, &signIn.OrganizationVerified, &signIn.OrganizationUuid,
 		&signIn.TenantUuid, &signIn.TenantStatus, &signIn.TenantSuspended)
@@ -45,12 +49,17 @@ func (r *accountRepositoryHandler) SelectSignInColumns(email string) (*model.Sig
 	// Query 'users' table
 	db, err := sql_db.InitializeConnection(utils.GenerateOrganizationConnection(signIn.TenantUuid, signIn.OrganizationUuid))
 	if err != nil {
-		return nil, errors.NewUnknownError("query user language preference fail").WithInternal().WithCause(err)
+		return nil, err
 	}
 	defer db.Close()
 	querySql = `select coalesce(language_preference,''),coalesce(theme,'') from users where email = ? and status = ?`
-	if err = db.QueryRow(querySql, email, true).Scan(&signIn.Language, &signIn.Theme); err != nil {
-		return nil, errors.NewUnknownError("query user language preference fail").WithInternal().WithCause(err)
+	stmt, err := db.Prepare(querySql)
+	if err != nil {
+		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, querySql)
+	}
+	defer stmt.Close()
+	if err = stmt.QueryRow(email, true).Scan(&signIn.Language, &signIn.Theme); err != nil {
+		return nil, fmt.Errorf("query row: [%w]", err)
 	}
 
 	return &signIn, nil

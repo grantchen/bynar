@@ -27,8 +27,6 @@ type AccountService interface {
 	UploadFileToGCS(db *sql.DB, organizationUuid, email string, multipartReader *multipart.Reader) (string, error)
 	// DeleteFileFromGCS delete user's profile picture from google cloud storage
 	DeleteFileFromGCS(db *sql.DB, organizationUuid, email string) error
-	// UpdateProfilePhotoOfUsers update profile_photo column in users
-	UpdateProfilePhotoOfUsers(db *sql.DB, email string, profilePhoto string) error
 	// Update user language preference
 	UpdateUserLanguagePreference(db *sql.DB, email, languagePreference string) error
 	// Update user theme preference

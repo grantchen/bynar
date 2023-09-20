@@ -10,7 +10,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"mime/multipart"
@@ -54,7 +53,7 @@ func (s *accountServiceHandler) UploadFileToGCS(db *sql.DB, organizationUuid, em
 		return "", errors.NewUnknownError("upload file error").WithInternal().WithCause(err)
 	}
 	// update database profile_photo column in table users
-	if err = s.UpdateProfilePhotoOfUsers(db, email, url); err != nil {
+	if err = s.ar.UpdateProfilePhotoOfUsers(db, email, url); err != nil {
 		return "", errors.NewUnknownError("upload file error").WithInternal().WithCause(err)
 	}
 	return url, nil
@@ -76,39 +75,8 @@ func (s *accountServiceHandler) DeleteFileFromGCS(db *sql.DB, organizationUuid, 
 		return errors.NewUnknownError("delete file fail").WithInternal().WithCause(err)
 	}
 	// update database profile_photo column in table users
-	if err = s.UpdateProfilePhotoOfUsers(db, email, ""); err != nil {
+	if err = s.ar.UpdateProfilePhotoOfUsers(db, email, ""); err != nil {
 		return errors.NewUnknownError("delete file fail").WithInternal().WithCause(err)
-	}
-	return nil
-}
-
-// GetUserDetail get user details from organization_schema(uuid)
-func (s *accountServiceHandler) GetUserDetail(db *sql.DB, email string) (*model.User, error) {
-	var querySql = `select a.id,
-       a.email,
-       coalesce(a.full_name,''),
-       coalesce(a.phone,''),
-       a.status,
-       coalesce(a.language_preference,''),
-       coalesce(a.policy_id,0),
-       coalesce(a.theme,''),
-       coalesce(a.profile_photo,'')
-		from users a 
-		where a.email = ? and status = ? limit 1`
-	var user = model.User{}
-	err := db.QueryRow(querySql, email, true).Scan(
-		&user.ID, &user.Email, &user.FullName, &user.Phone, &user.Status,
-		&user.LanguagePreference, &user.PolicyId, &user.Theme, &user.ProfilePhoto)
-	if err != nil {
-		return nil, fmt.Errorf("query row: [%w]", err)
-	}
-	return &user, nil
-}
-
-// UpdateProfilePhotoOfUsers update column profile_photo in table users of organization_schema(uuid)
-func (s *accountServiceHandler) UpdateProfilePhotoOfUsers(db *sql.DB, email string, profilePhoto string) error {
-	if _, err := db.Exec(`UPDATE users SET profile_photo = ? WHERE email = ?`, profilePhoto, email); err != nil {
-		return err
 	}
 	return nil
 }

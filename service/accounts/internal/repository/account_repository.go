@@ -20,7 +20,12 @@ func (r *accountRepositoryHandler) GetOrganizationDetail(organizationUuid string
 		       coalesce(a.data_sovereignty,''),coalesce(a.organization_uuid,''),a.tenant_id,a.status,a.verified 
 		from organizations a where a.organization_uuid = ? limit 1`
 	var organization = model.Organization{}
-	err := r.db.QueryRow(querySql, organizationUuid).Scan(&organization.ID,
+	prepare, err := r.db.Prepare(querySql)
+	if err != nil {
+		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, querySql)
+	}
+	defer prepare.Close()
+	err = prepare.QueryRow(organizationUuid).Scan(&organization.ID,
 		&organization.Description, &organization.VatNumber,
 		&organization.Country, &organization.DataSovereignty,
 		&organization.OrganizationUuid, &organization.TenantId, &organization.Status, &organization.Verified)
@@ -36,7 +41,12 @@ func (r *accountRepositoryHandler) GetUserAccountDetail(email string) (*model.Ac
 		select a.id,a.email,a.full_name,a.address,coalesce(a.address_2,''),a.phone,a.city,a.postal_code,a.country,a.state,a.status,a.uid,a.org_id,a.verified 
 		from accounts a where email = ? and status = ? and verified = ? limit 1`
 	var account = model.Account{}
-	err := r.db.QueryRow(querySql, email, true, true).Scan(&account.ID,
+	prepare, err := r.db.Prepare(querySql)
+	if err != nil {
+		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, querySql)
+	}
+	defer prepare.Close()
+	err = prepare.QueryRow(email, true, true).Scan(&account.ID,
 		&account.Email, &account.FullName, &account.Address, &account.Address2, &account.Phone,
 		&account.City, &account.PostalCode, &account.Country, &account.State,
 		&account.Status, &account.UID, &account.OrgID, &account.Verified)
@@ -64,4 +74,46 @@ func (r *accountRepositoryHandler) UpdateUserThemePreference(db *sql.DB, email, 
 	}
 
 	return nil
+}
+
+// UpdateProfilePhotoOfUsers update column profile_photo in table users of organization_schema(uuid)
+func (r *accountRepositoryHandler) UpdateProfilePhotoOfUsers(db *sql.DB, email string, profilePhoto string) error {
+	updateSql := `UPDATE users SET profile_photo = ? WHERE email = ?`
+	prepare, err := db.Prepare(updateSql)
+	if err != nil {
+		return fmt.Errorf("db prepare: [%w], sql string: [%s]", err, updateSql)
+	}
+	defer prepare.Close()
+	if _, err = prepare.Exec(profilePhoto, email); err != nil {
+		return fmt.Errorf("query exec: [%w]", err)
+	}
+	return nil
+}
+
+// GetUserDetail get user details from organization_schema(uuid)
+func (r *accountRepositoryHandler) GetUserDetail(db *sql.DB, email string) (*model.User, error) {
+	var querySql = `select a.id,
+       a.email,
+       coalesce(a.full_name,''),
+       coalesce(a.phone,''),
+       a.status,
+       coalesce(a.language_preference,''),
+       coalesce(a.policy_id,0),
+       coalesce(a.theme,''),
+       coalesce(a.profile_photo,'')
+		from users a 
+		where a.email = ? and status = ? limit 1`
+	var user = model.User{}
+	prepare, err := db.Prepare(querySql)
+	if err != nil {
+		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, querySql)
+	}
+	defer prepare.Close()
+	err = prepare.QueryRow(email, true).Scan(
+		&user.ID, &user.Email, &user.FullName, &user.Phone, &user.Status,
+		&user.LanguagePreference, &user.PolicyId, &user.Theme, &user.ProfilePhoto)
+	if err != nil {
+		return nil, fmt.Errorf("query row: [%w]", err)
+	}
+	return &user, nil
 }

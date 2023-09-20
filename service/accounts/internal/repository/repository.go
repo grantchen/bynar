@@ -18,6 +18,10 @@ type AccountRepository interface {
 	UpdateUserLanguagePreference(db *sql.DB, email, languagePreference string) error
 	// Update user theme preference
 	UpdateUserThemePreference(db *sql.DB, email, themePreference string) error
+	// UpdateProfilePhotoOfUsers update profile_photo column in users
+	UpdateProfilePhotoOfUsers(db *sql.DB, email string, profilePhoto string) error
+	// GetUserDetail get user details from organization_schema(uuid)
+	GetUserDetail(db *sql.DB, email string) (*model.User, error)
 }
 
 type accountRepositoryHandler struct {

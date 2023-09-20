@@ -103,7 +103,7 @@ func (s *accountServiceHandler) GetUserDetails(db *sql.DB, email string) (*model
 		State:        account.State.String,
 		PhoneNumber:  account.Phone.String,
 	}
-	user, err := s.GetUserDetail(db, email)
+	user, err := s.ar.GetUserDetail(db, email)
 	if err != nil {
 		return nil, errors.NewUnknownError("user not found").WithInternal().WithCause(err)
 	}
