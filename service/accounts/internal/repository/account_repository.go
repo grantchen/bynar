@@ -10,7 +10,6 @@ import (
 	"database/sql"
 	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 )
 
 // GetOrganizationDetail query organization from database by organizationUuid
@@ -58,9 +57,14 @@ func (r *accountRepositoryHandler) GetUserAccountDetail(email string) (*model.Ac
 
 // Update user language preference
 func (r *accountRepositoryHandler) UpdateUserLanguagePreference(db *sql.DB, email, languagePreference string) error {
-	var querySql = `update users set language_preference = ? where email = ?`
-	if _, err := db.Exec(querySql, languagePreference, email); err != nil {
-		return errors.NewUnknownError("update user language preference fail").WithInternal().WithCause(err)
+	var updateSql = `update users set language_preference = ? where email = ?`
+	prepare, err := db.Prepare(updateSql)
+	if err != nil {
+		return fmt.Errorf("db prepare: [%w], sql string: [%s]", err, updateSql)
+	}
+	defer prepare.Close()
+	if _, err = prepare.Exec(languagePreference, email); err != nil {
+		return fmt.Errorf("db update exec: [%w]", err)
 	}
 
 	return nil
@@ -68,9 +72,14 @@ func (r *accountRepositoryHandler) UpdateUserLanguagePreference(db *sql.DB, emai
 
 // Update user theme preference
 func (r *accountRepositoryHandler) UpdateUserThemePreference(db *sql.DB, email, themePreference string) error {
-	var querySql = `update users set theme = ? where email = ?`
-	if _, err := db.Exec(querySql, themePreference, email); err != nil {
-		return errors.NewUnknownError("update user theme preference fail").WithInternal().WithCause(err)
+	var updateSql = `update users set theme = ? where email = ?`
+	prepare, err := db.Prepare(updateSql)
+	if err != nil {
+		return fmt.Errorf("db prepare: [%w], sql string: [%s]", err, updateSql)
+	}
+	defer prepare.Close()
+	if _, err = prepare.Exec(themePreference, email); err != nil {
+		return fmt.Errorf("db update exec: [%w]", err)
 	}
 
 	return nil
@@ -85,7 +94,7 @@ func (r *accountRepositoryHandler) UpdateProfilePhotoOfUsers(db *sql.DB, email s
 	}
 	defer prepare.Close()
 	if _, err = prepare.Exec(profilePhoto, email); err != nil {
-		return fmt.Errorf("query exec: [%w]", err)
+		return fmt.Errorf("db update exec: [%w]", err)
 	}
 	return nil
 }

@@ -85,7 +85,7 @@ func (s *accountServiceHandler) DeleteFileFromGCS(db *sql.DB, organizationUuid, 
 func (s *accountServiceHandler) UpdateUserLanguagePreference(db *sql.DB, email, languagePreference string) error {
 	// Update the language_preference field in the users table
 	if err := s.ar.UpdateUserLanguagePreference(db, email, languagePreference); err != nil {
-		return err
+		return errors.NewUnknownError("update user language preference fail").WithInternal().WithCause(err)
 	}
 
 	// Set custom user claims
@@ -109,7 +109,7 @@ func (s *accountServiceHandler) UpdateUserLanguagePreference(db *sql.DB, email, 
 func (s *accountServiceHandler) UpdateUserThemePreference(db *sql.DB, email, themePreference string) error {
 	// Update the theme field in the users table
 	if err := s.ar.UpdateUserThemePreference(db, email, themePreference); err != nil {
-		return err
+		return errors.NewUnknownError("update user theme preference fail").WithInternal().WithCause(err)
 	}
 
 	return nil
