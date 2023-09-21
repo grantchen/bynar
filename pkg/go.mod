@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go v1.44.237
 	github.com/aws/aws-secretsmanager-caching-go v1.1.0
 	github.com/go-sql-driver/mysql v1.7.0
-	github.com/joho/godotenv v1.5.1
+	github.com/joho/godotenv v1.4.0
 	github.com/sendgrid/sendgrid-go v3.13.0+incompatible
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.1

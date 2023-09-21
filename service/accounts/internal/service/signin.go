@@ -5,10 +5,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"os"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
-	"os"
+	"github.com/sirupsen/logrus"
 )
 
 // SignIn is a service method which handles the logic of user login
@@ -124,7 +126,7 @@ func (s *accountServiceHandler) GetUserDetails(db *sql.DB, email string) (*model
 	userResponse.PolicyID = user.PolicyId
 	policy, err := s.ar.GetUserPolicy(db, user.PolicyId)
 	if err != nil {
-		return nil, errors.NewUnknownError("policy not found").WithInternal().WithCause(err)
+		logrus.Error("get policy error", err)
 	}
 	userResponse.Permissions = policy
 	return &userResponse, nil

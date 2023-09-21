@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"database/sql"
-	"log"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/service"
@@ -12,6 +11,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
+	"github.com/sirupsen/logrus"
 )
 
 type treegridService struct {
@@ -28,12 +28,12 @@ func newTreeGridService(db *sql.DB, accountID int) treegrid.TreeGridService {
 
 	authProvider, err := gip.NewGIPClient()
 	if err != nil {
-		log.Fatal(err)
+		logrus.Error(err)
 	}
 	appConfig := config.NewLocalConfig()
 	accountDB, err := sql_db.NewConnection(appConfig.GetAccountManagementConnection())
 	if err != nil {
-		log.Fatal(err)
+		logrus.Error(err)
 	}
 	var oid int
 	accountDB.QueryRow("SELECT organizations.id FROM organizations LEFT JOIN organization_accounts ON organization_accounts.organization_id = organizations.id WHERE organization_accounts.organization_user_id = ?", accountID).Scan(&oid)

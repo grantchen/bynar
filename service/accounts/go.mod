@@ -5,7 +5,7 @@ go 1.19
 require (
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs v0.0.0
 	github.com/google/uuid v1.3.1
-	github.com/joho/godotenv v1.5.1
+	github.com/joho/godotenv v1.4.0
 	github.com/sirupsen/logrus v1.9.3
 )
 
