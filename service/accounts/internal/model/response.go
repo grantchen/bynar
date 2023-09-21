@@ -31,8 +31,9 @@ type GetUserResponse struct {
 	State        string `db:"state" json:"state"`
 	PhoneNumber  string `db:"phone" json:"phoneNumber"`
 
-	LanguagePreference string `json:"languagePreference"`
-	ThemePreference    string `json:"themePreference"`
-	ProfileURL         string `json:"profileURL"`
-	PolicyID           int    `json:"policyId"`
+	LanguagePreference string         `json:"languagePreference"`
+	ThemePreference    string         `json:"themePreference"`
+	ProfileURL         string         `json:"profileURL"`
+	PolicyID           int            `json:"policyId"`
+	Permissions        map[string]int `json:"permissions"`
 }
