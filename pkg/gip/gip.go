@@ -9,13 +9,21 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/auth"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/api/option"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 )
+
+type GipError struct {
+	Error struct {
+		Message string `json:"message"`
+	} `json:"error"`
+}
 
 const (
 	// verifying custom token url of google identify platform
@@ -84,7 +92,11 @@ func (g gipClient) CreateUser(ctx context.Context, email, displayName, phoneNumb
 		Disabled(false)
 	u, err := client.CreateUser(ctx, params)
 	if err != nil {
-		return "", fmt.Errorf("error creating user: %v", err)
+		logrus.Errorf("error creating user: %s", err.Error())
+		strs := strings.Split(err.Error(), "\n")
+		var e GipError
+		json.Unmarshal([]byte(strings.Join(strs[1:], "\n")), &e)
+		return "", errors.New(e.Error.Message)
 	}
 
 	return u.UID, nil
@@ -123,7 +135,11 @@ func (g gipClient) UpdateUser(ctx context.Context, uid string, params map[string
 		if auth.IsUserNotFound(err) {
 			return ErrUserNotFound
 		}
-		return fmt.Errorf("error updating user: %v", err)
+		logrus.Errorf("error updating user: %s", err.Error())
+		strs := strings.Split(err.Error(), "\n")
+		var e GipError
+		json.Unmarshal([]byte(strings.Join(strs[1:], "\n")), &e)
+		return errors.New(e.Error.Message)
 	}
 
 	return nil

@@ -35,22 +35,17 @@ func NewPaymentClient() (PaymentClient, error) {
 	clientId := os.Getenv(constant.ENVCheckoutClientId)
 	if "" == clientId {
 		var errMsg = fmt.Sprintf("no %s variable in .env file or blank", constant.ENVCheckoutClientId)
-		err := errors.New(errMsg)
-		log.Printf("NewPaymentClient: Error in getting environment variable %+v", err)
-		return nil, err
+		return nil, errors.New(errMsg)
 	}
 	clientSecret := os.Getenv(constant.ENVCheckoutClientSecret)
 	if "" == clientSecret {
 		var errMsg = fmt.Sprintf("no %s variable in .env file or blank", constant.ENVCheckoutClientSecret)
-		err := errors.New(errMsg)
-		log.Printf("NewPaymentClient: Error in getting environment variable %+v", err)
-		return nil, err
+		return nil, errors.New(errMsg)
 	}
 	processingChannelID := os.Getenv(constant.ENVCheckoutProcessChannelId)
 	if "" == processingChannelID {
 		var errMsg = fmt.Sprintf("no %s variable in .env file or blank", constant.ENVCheckoutProcessChannelId)
 		err := errors.New(errMsg)
-		log.Printf("NewPaymentClient: Error in getting environment variable %+v", err)
 		return nil, err
 	}
 	return &paymentClient{
@@ -67,7 +62,6 @@ func (p paymentClient) GenerateAuthToken(scope string) (models.AccessTokenRespon
 	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodPost, configuration.CurrentEnv().AuthorizationUri(), payload)
 	if err != nil {
-		log.Printf("GenerateAuthToken: Error in creating new request %v", err)
 		return accessToken, err
 	}
 	encoded := base64.StdEncoding.EncodeToString([]byte(p.clientID + ":" + p.clientSecret))
@@ -76,23 +70,20 @@ func (p paymentClient) GenerateAuthToken(scope string) (models.AccessTokenRespon
 
 	res, err := client.Do(req)
 	if err != nil {
-		log.Printf("GenerateAuthToken: Error in generating access token %+v", err)
 		return accessToken, err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != 200 {
-		var errResp interface{}
+		var errResp models.AccessTokenErrorResponse
 		err = json.NewDecoder(res.Body).Decode(&errResp)
 		if err != nil {
-			log.Printf("GenerateAuthToken: Error in decoding error response %+v", err)
 			return accessToken, err
 		}
 		log.Printf("GenerateAuthToken: Error in validating card %+v", errResp)
-		return accessToken, errors.New("error in generating token")
+		return accessToken, errors.New(errResp.Error)
 	}
 	err = json.NewDecoder(res.Body).Decode(&accessToken)
 	if err != nil {
-		log.Printf("GenerateAuthToken: Error in decoding response %+v", err)
 		return accessToken, err
 	}
 	return accessToken, nil
@@ -116,20 +107,17 @@ func (p paymentClient) ValidateCard(userDetails *models.ValidateCardRequest) (mo
 
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		logrus.Errorf("ValidateAndStoreCard: Error in marshaling payload %+v", err)
 		return resp, err
 	}
 
 	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodPost, configuration.CurrentEnv().PaymentsUri(), bytes.NewReader(payloadBytes))
 	if err != nil {
-		logrus.Errorf("ValidateAndStoreCard: Error in creating new request %v", err)
 		return resp, err
 	}
 
 	authorization, err := p.GenerateAuthToken(configuration.GatewayPayment)
 	if err != nil {
-		logrus.Errorf("ValidateAndStoreCard: Error in generating auth token %v", err)
 		return resp, err
 	}
 	req.Header.Add("Authorization", "Bearer "+authorization.AccessToken)
@@ -137,27 +125,23 @@ func (p paymentClient) ValidateCard(userDetails *models.ValidateCardRequest) (mo
 
 	res, err := client.Do(req)
 	if err != nil {
-		logrus.Errorf("ValidateAndStoreCard: Error in creating 0$ payment %+v", err)
 		return resp, err
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != 201 && res.StatusCode != 202 {
-		var errResp interface{}
+		var errResp models.CheckOutErrorResponse
 		err = json.NewDecoder(res.Body).Decode(&errResp)
 		if err != nil {
-			logrus.Errorf("ValidateAndStoreCard: Error in decoding error response %+v", err)
 			return resp, err
 		}
 		logrus.Errorf("ValidateAndStoreCard: Error in validating card %+v", errResp)
-		return resp, errors.New("error in validating card")
+		return resp, errors.New(strings.Join(errResp.ErrorCodes, ";"))
 	}
 
 	err = json.NewDecoder(res.Body).Decode(&resp)
 	if err != nil {
-		logrus.Errorf("ValidateAndStoreCard: Error in decoding response %+v", err)
 		return resp, err
 	}
-
 	return resp, nil
 }

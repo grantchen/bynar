@@ -128,3 +128,10 @@ type NewCustomer struct {
 	Email string `json:"email"`
 	Name  string `json:"name"`
 }
+
+// CheckOutErrorResponse checkout return error struct
+type CheckOutErrorResponse struct {
+	RequestId  string   `json:"request_id"`
+	ErrorType  string   `json:"error_type"`
+	ErrorCodes []string `json:"error_codes"`
+}

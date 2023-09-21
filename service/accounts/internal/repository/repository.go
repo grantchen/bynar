@@ -7,7 +7,7 @@ import (
 
 // AccountRepository provides a interface on db level for user
 type AccountRepository interface {
-	CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID string) (int, error)
+	CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID, tenantCode string) (int, error)
 	// SelectSignInColumns select columns to generate token when user sign in
 	SelectSignInColumns(email string) (*model.SignIn, error)
 	// GetOrganizationDetail get organization detail
@@ -22,6 +22,8 @@ type AccountRepository interface {
 	UpdateProfilePhotoOfUsers(db *sql.DB, email string, profilePhoto string) error
 	// GetUserDetail get user details from organization_schema(uuid)
 	GetUserDetail(db *sql.DB, email string) (*model.User, error)
+	// GetUserPolicy get user policy from organization_schema(uuid)
+	GetUserPolicy(db *sql.DB, id int) (map[string]int, error)
 }
 
 type accountRepositoryHandler struct {

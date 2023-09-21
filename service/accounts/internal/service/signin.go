@@ -122,5 +122,10 @@ func (s *accountServiceHandler) GetUserDetails(db *sql.DB, email string) (*model
 	userResponse.ThemePreference = user.Theme
 	userResponse.ProfileURL = user.ProfilePhoto
 	userResponse.PolicyID = user.PolicyId
+	policy, err := s.ar.GetUserPolicy(db, user.PolicyId)
+	if err != nil {
+		return nil, errors.NewUnknownError("policy not found").WithInternal().WithCause(err)
+	}
+	userResponse.Permissions = policy
 	return &userResponse, nil
 }

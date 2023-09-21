@@ -14,3 +14,8 @@ type AccessTokenResponse struct {
 	Scope       string `json:"scope"`
 	TokenType   string `json:"token_type"`
 }
+
+// AccessTokenErrorResponse checkout generate access_token api response error struct
+type AccessTokenErrorResponse struct {
+	Error string `json:"error"`
+}
