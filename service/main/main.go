@@ -48,9 +48,8 @@ func main() {
 
 	err := godotenv.Load(".env")
 	if err != nil {
-		fmt.Printf("Error loading .env file in main service")
+		fmt.Println("Error loading .env file in main service ", err)
 	}
-
 	appConfig := config.NewLocalConfig()
 
 	connectionPool := connection.NewPool()
