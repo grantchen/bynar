@@ -16,7 +16,9 @@ func CorsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Body != nil {
 			data, _ := io.ReadAll(r.Body)
-			logrus.Info("request body is ", string(data))
+			if len(data) > 0 {
+				logrus.Info("request body is ", string(data))
+			}
 			r.Body.Close() //  must close
 			r.Body = io.NopCloser(bytes.NewBuffer(data))
 		}
