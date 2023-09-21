@@ -139,7 +139,7 @@ func (h *AccountHandler) SendSignInEmail(w http.ResponseWriter, r *http.Request)
 	}
 	var req model.SendSignInEmailRequest
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
-		handler.LogInternalError(err)
+		handler.LogInternalError(errors.NewUnknownError("decode request fail").WithInternalCause(err))
 		render.Error(w, err.Error())
 		return
 	}

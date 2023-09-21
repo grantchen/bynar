@@ -115,5 +115,5 @@ func GetIdTokenClaimsFromHttpRequestContext(r *http.Request) (*TokenAndDyDynamic
 		tokenAndDbContext := tokenAndDyDynamicDBContext.(*TokenAndDyDynamicDBContext)
 		return tokenAndDbContext, nil
 	}
-	return nil, errors.New("no id_token fond in request context")
+	return nil, errors.New("get id_token fail")
 }
