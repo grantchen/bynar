@@ -9,6 +9,8 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"strings"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 )
@@ -17,7 +19,7 @@ import (
 func (r *accountRepositoryHandler) GetOrganizationDetail(organizationUuid string) (*model.Organization, error) {
 	var querySql = `
 		select a.id,coalesce(a.description,''),coalesce(a.vat_number,''),coalesce(a.country,''),
-		       coalesce(a.data_sovereignty,''),coalesce(a.organization_uuid,''),a.tenant_id,a.status,a.verified 
+		       coalesce(a.data_sovereignty,''),coalesce(a.organization_uuid,''),a.tenant_id,a.status,a.verified
 		from organizations a where a.organization_uuid = ? limit 1`
 	var organization = model.Organization{}
 	prepare, err := r.db.Prepare(querySql)
@@ -38,7 +40,7 @@ func (r *accountRepositoryHandler) GetOrganizationDetail(organizationUuid string
 // GetUserAccountDetail get accounts detail by uid provided
 func (r *accountRepositoryHandler) GetUserAccountDetail(email string) (*model.Account, error) {
 	var querySql = `
-		select a.id,a.email,a.full_name,a.address,coalesce(a.address_2,''),a.phone,a.city,a.postal_code,a.country,a.state,a.status,a.uid,a.org_id,a.verified 
+		select a.id,a.email,a.full_name,a.address,coalesce(a.address_2,''),a.phone,a.city,a.postal_code,a.country,a.state,a.status,a.uid,a.org_id,a.verified
 		from accounts a where email = ? and status = ? and verified = ? limit 1`
 	var account = model.Account{}
 	prepare, err := r.db.Prepare(querySql)
@@ -101,7 +103,7 @@ func (r *accountRepositoryHandler) GetUserDetail(db *sql.DB, email string) (*mod
        coalesce(a.policy_id,0),
        coalesce(a.theme,''),
        coalesce(a.profile_photo,'')
-		from users a 
+		from users a
 		where a.email = ? and status = ? limit 1`
 	var user = model.User{}
 	prepare, err := db.Prepare(querySql)
@@ -116,4 +118,31 @@ func (r *accountRepositoryHandler) GetUserDetail(db *sql.DB, email string) (*mod
 		return nil, fmt.Errorf("query row: [%w]", err)
 	}
 	return &user, nil
+}
+
+// GetUserPolicy get user policy from organization_schema(uuid)
+func (r *accountRepositoryHandler) GetUserPolicy(db *sql.DB, id int) (map[string]int, error) {
+	params := []string{"user_list", "sales"}
+	var querySql = fmt.Sprintf("select %s FROM policies WHERE id=?", strings.Join(params, ","))
+	prepare, err := db.Prepare(querySql)
+	if err != nil {
+		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, querySql)
+	}
+	cols := make([]int, len(params))
+	colsp := make([]interface{}, len(params))
+	for i, _ := range cols {
+		colsp[i] = &cols[i]
+	}
+	defer prepare.Close()
+	err = prepare.QueryRow(id).Scan(colsp...)
+	if err != nil {
+		return nil, fmt.Errorf("query row: [%w]", err)
+	}
+	m := make(map[string]int)
+	for i, name := range params {
+		val := colsp[i].(*int)
+		m[name] = *val
+	}
+
+	return m, nil
 }

@@ -22,6 +22,8 @@ type AccountRepository interface {
 	UpdateProfilePhotoOfUsers(db *sql.DB, email string, profilePhoto string) error
 	// GetUserDetail get user details from organization_schema(uuid)
 	GetUserDetail(db *sql.DB, email string) (*model.User, error)
+	// GetUserPolicy get user policy from organization_schema(uuid)
+	GetUserPolicy(db *sql.DB, id int) (map[string]int, error)
 }
 
 type accountRepositoryHandler struct {
