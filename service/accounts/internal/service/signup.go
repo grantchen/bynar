@@ -75,7 +75,7 @@ func (s *accountServiceHandler) VerifyCard(token, email, name string) (string, s
 }
 
 // CreateUser is a service method which handles the logic of new user registration
-func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID string) (string, error) {
+func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID, tenantCode string) (string, error) {
 	// recheck user exist
 	exist, err := s.authProvider.IsUserExists(context.Background(), email)
 	if err != nil {
@@ -107,7 +107,7 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 	uid, err := s.authProvider.CreateUser(context.TODO(), email, fullName, phoneNumber)
 	if err != nil {
 		logrus.Error("gip CreateUser error: ", err.Error())
-		return "", errors.New("gip create user failed")
+		return "", errors.New("create user failed: " + err.Error())
 	}
 	customClaims := map[string]interface{}{
 		"country": organisationCountry,
@@ -120,7 +120,7 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 		return "", errors.New("gip update user failed")
 	}
 	// create user in db
-	code, err := s.ar.CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID)
+	code, err := s.ar.CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID, tenantCode)
 	if err != nil {
 		logrus.Error("create user error: ", err.Error())
 		if code == 0 {

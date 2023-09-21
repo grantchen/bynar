@@ -58,7 +58,7 @@ func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, v
 }
 
 // CreateTenantManagement create the tanant managemant when creating user
-func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region string, organizationID int) (string, int, error) {
+func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, tenantCode string, organizationID int) (string, int, error) {
 	// Check if is allowed to insert
 	var tenantID int
 	var organizations int
@@ -66,20 +66,20 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, region str
 	var tenantUUID string
 	var status bool
 	// check the tanant exists
-	stmt, err := tx.Prepare("SELECT id, organizations, organizations_allowed, tenant_uuid, status FROM tenants WHERE region = ?")
+	stmt, err := tx.Prepare("SELECT id, organizations, organizations_allowed, tenant_uuid, status FROM tenants WHERE code = ?")
 	if err != nil {
 		return "", 0, err
 	}
-	err = stmt.QueryRow(region).Scan(&tenantID, &organizations, &organizationsAllowed, &tenantUUID, &status)
+	err = stmt.QueryRow(tenantCode).Scan(&tenantID, &organizations, &organizationsAllowed, &tenantUUID, &status)
 	if err != nil {
 		logrus.Error("select tenant error: ", err)
-		return "", 0, fmt.Errorf("tenants of region %s not exist", region)
+		return "", 0, fmt.Errorf("tenants of code %s not exist", tenantCode)
 	}
 	if !status {
-		return "", 0, fmt.Errorf("tenant %s cannot be selected ", region)
+		return "", 0, fmt.Errorf("tenant of code %s cannot be selected ", tenantCode)
 	}
 	if organizations >= organizationsAllowed {
-		return "", 0, fmt.Errorf("tenant %s is full", region)
+		return "", 0, fmt.Errorf("tenant of code %s is full", tenantCode)
 	}
 
 	var tenantManagentID int
@@ -164,7 +164,7 @@ func (r *accountRepositoryHandler) CreateCard(tx *sql.Tx, customerID, sourceID s
 }
 
 // CreateUser create a new account in db
-func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID string) (int, error) {
+func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID, tenantCode string) (int, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return 0, err
@@ -190,7 +190,7 @@ func (r *accountRepositoryHandler) CreateUser(uid, email, fullName, country, add
 		logrus.Errorf("CreateUser: error: %v", err)
 		return 0, err
 	}
-	tenantUUID, tenantManagentID, err := r.CreateTenantManagement(tx, country, organizationID)
+	tenantUUID, tenantManagentID, err := r.CreateTenantManagement(tx, tenantCode, organizationID)
 	if err != nil {
 		logrus.Errorf("CreateUser: error: %v", err)
 		return 0, err

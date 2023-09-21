@@ -16,7 +16,7 @@ type AccountService interface {
 	Signup(email string) error
 	ConfirmEmail(email, timestamp, signature string) (int, error)
 	VerifyCard(token, email, name string) (string, string, error)
-	CreateUser(email, code, sign, token, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID string) (string, error)
+	CreateUser(email, code, sign, token, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID, tenantCode string) (string, error)
 	// SignIn user sign in with Google identify platform oobCode
 	SignIn(email, oobCode string) (string, error)
 	// SendSignInEmail send sign in email of Google identify platform

@@ -1,16 +1,25 @@
 package render
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"reflect"
+
+	"github.com/sirupsen/logrus"
 )
 
 // CorsMiddleware solve the CORS problem
 func CorsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Body != nil {
+			data, _ := io.ReadAll(r.Body)
+			logrus.Info("request body is ", string(data))
+			r.Body.Close() //  must close
+			r.Body = io.NopCloser(bytes.NewBuffer(data))
+		}
 		if r.Method == "OPTIONS" {
 			Ok(w, nil)
 			return
