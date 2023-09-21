@@ -13,6 +13,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/models"
+	errpkg "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 )
 
@@ -69,7 +70,7 @@ func (s *accountServiceHandler) VerifyCard(token, email, name string) (string, s
 	// Use checkout.com service to validate card
 	resp, err := s.paymentProvider.ValidateCard(&models.ValidateCardRequest{Token: token, Email: email, Name: name})
 	if err != nil {
-		return "", "", err
+		return "", "", errpkg.NewUnknownError("varify card failed").WithInternal().WithCause(err)
 	}
 	return resp.Customer.ID, resp.Source.ID, nil
 }
@@ -93,21 +94,21 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 	ok, err := s.authProvider.IsUserExists(context.TODO(), email)
 	if err != nil && !errors.Is(err, gip.ErrUserNotFound) {
 		logrus.Error("gip IsUserExists error: ", err.Error())
-		return "", errors.New("gip check user exists failed")
+		return "", errpkg.NewUnknownError("check user exists failed").WithInternal().WithCause(err)
 	}
 	if ok || errors.Is(err, gip.ErrUserNotFound) {
 		// If user exists in gip. delete it
 		err = s.authProvider.DeleteUserByEmail(context.TODO(), email)
 		if err != nil && !errors.Is(err, gip.ErrUserNotFound) {
 			logrus.Error("gip DeleteUserByEmail error: ", err.Error())
-			return "", errors.New("gip delete user failed")
+			return "", errpkg.NewUnknownError("delete user failed").WithInternal().WithCause(err)
 		}
 	}
 	// create use in gip
 	uid, err := s.authProvider.CreateUser(context.TODO(), email, fullName, phoneNumber)
 	if err != nil {
 		logrus.Error("gip CreateUser error: ", err.Error())
-		return "", errors.New("create user failed: " + err.Error())
+		return "", errpkg.NewUnknownError("create user failed: " + err.Error()).WithInternal().WithCause(err)
 	}
 	customClaims := map[string]interface{}{
 		"country": organisationCountry,
@@ -117,7 +118,7 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 	err = s.authProvider.UpdateUser(context.TODO(), uid, map[string]interface{}{"customClaims": customClaims})
 	if err != nil {
 		logrus.Error("gip UpdateUser error: ", err.Error())
-		return "", errors.New("gip update user failed")
+		return "", errpkg.NewUnknownError("update user failed: " + err.Error()).WithInternal().WithCause(err)
 	}
 	// create user in db
 	code, err := s.ar.CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID, tenantCode)
@@ -126,7 +127,7 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 		if code == 0 {
 			s.authProvider.DeleteUserByEmail(context.Background(), email)
 		}
-		return "", err
+		return "", errpkg.NewUnknownError("create user failed").WithInternal().WithCause(err)
 	}
 	// return idToken after created
 	account, err := s.ar.SelectSignInColumns(email)

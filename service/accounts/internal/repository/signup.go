@@ -25,7 +25,7 @@ func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, v
 	err = stmt.QueryRow(vat).Scan(&organizationID, &organizationUUID)
 	if err != nil && err != sql.ErrNoRows {
 		logrus.Error("select organization error ", err.Error())
-		return 0, "", 0, fmt.Errorf("organization if vat_number=%s not exist", vat)
+		return 0, "", 0, fmt.Errorf("select organization of vat_number=%s error", vat)
 	}
 	if err == sql.ErrNoRows {
 		// Insert organization info to db
