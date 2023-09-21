@@ -1,4 +1,6 @@
 {
   "error": "Quelque chose s’est mal passé. Veuillez réessayer",
-  "permission-denied": "Opération non autorisée"
+  "permission-denied": "Opération non autorisée",
+  "upload-profile-fail": "Échec du téléchargement de l’avatar",
+  "delete-profile-fail": "Échec de la suppression d’avatar"
 }

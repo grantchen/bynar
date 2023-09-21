@@ -182,19 +182,19 @@ func (h *AccountHandler) UploadProfilePhoto(w http.ResponseWriter, r *http.Reque
 	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "upload-profile-fail"))
 		return
 	}
 	reader, err := r.MultipartReader()
 	if err != nil || reader == nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "upload-profile-fail"))
 		return
 	}
 	url, err := h.as.UploadFileToGCS(reqContext.DynamicDB, reqContext.Claims.OrganizationUuid, reqContext.Claims.Email, reader)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "upload-profile-fail"))
 		return
 
 	}

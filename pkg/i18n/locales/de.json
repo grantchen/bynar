@@ -1,4 +1,6 @@
 {
   "error": "Es ist etwas schief gegangen. Komm, noch mal",
-  "permission-denied": "Bolivien nicht autorisierte operationen"
+  "permission-denied": "Bolivien nicht autorisierte operationen",
+  "upload-profile-fail":"Ein falscher hochladen des kopfes ist schiefgegangen",
+  "delete-profile-fail": "Lösch den kopf"
 }

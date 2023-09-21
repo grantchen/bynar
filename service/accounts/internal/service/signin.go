@@ -13,24 +13,28 @@ import (
 
 // SignIn is a service method which handles the logic of user login
 func (s *accountServiceHandler) SignIn(email, oobCode string) (idToken string, err error) {
-	if err = s.VerifyEmail(email); err != nil {
-		return "", errors.NewUnknownError("email is not signed up").WithInternal().WithCause(err)
+	var exists = false
+	if exists, err = s.authProvider.IsUserExists(context.Background(), email); err != nil {
+		return "", errors.NewUnknownError("sign in fail").WithInternalCause(err)
+	}
+	if exists == false {
+		return "", errors.NewUnknownError("sign in fail: email not sign up")
 	}
 	account, err := s.ar.SelectSignInColumns(email)
 	if err != nil || account == nil {
-		return "", errors.NewUnknownError("sign in failed").WithInternal().WithCause(err)
+		return "", errors.NewUnknownError("sign in fail").WithInternalCause(err)
 	}
 	err = gip.SignInWithEmailLink(email, oobCode)
 	if err != nil {
-		return "", errors.NewUnknownError("sign in failed").WithInternal().WithCause(err)
+		return "", errors.NewUnknownError("sign in fail").WithInternalCause(err)
 	}
 	claims, err := convertSignInToClaims(account)
 	if err != nil {
-		return "", errors.NewUnknownError("sign in failed").WithInternal().WithCause(err)
+		return "", errors.NewUnknownError("sign in fail").WithInternalCause(err)
 	}
 	token, err := s.authProvider.SignIn(context.Background(), account.Uid, claims)
 	if err != nil {
-		return "", errors.NewUnknownError("sign in failed").WithInternal().WithCause(err)
+		return "", errors.NewUnknownError("sign in fail").WithInternalCause(err)
 	}
 	return token, nil
 
@@ -52,23 +56,30 @@ func convertSignInToClaims(signIn *model.SignIn) (map[string]interface{}, error)
 
 // SendSignInEmail send google identify platform with oobCode for sign in
 func (s *accountServiceHandler) SendSignInEmail(email string) error {
-	if err := s.VerifyEmail(email); err != nil {
-		return errors.NewUnknownError("email is not signed up").WithInternal().WithCause(err)
+	var (
+		exists       = false
+		err    error = nil
+	)
+	if exists, err = s.authProvider.IsUserExists(context.Background(), email); err != nil {
+		return errors.NewUnknownError("email not signed up").WithInternalCause(err)
+	}
+	if exists == false {
+		return errors.NewUnknownError("email not signed up")
 	}
 	account, err := s.ar.SelectSignInColumns(email)
 	if err != nil || account == nil {
-		return errors.NewUnknownError("no user found").WithInternal().WithCause(err)
+		return errors.NewUnknownError("no user found").WithInternalCause(err)
 	}
 	claims, err := convertSignInToClaims(account)
 	if err != nil {
-		return errors.NewUnknownError("email sending failed").WithInternal().WithCause(err)
+		return errors.NewUnknownError("email send fail").WithInternalCause(err)
 	}
 	err = s.authProvider.SetCustomUserClaims(context.Background(), account.Uid, claims)
 	if err != nil {
-		return errors.NewUnknownError("email sending failed").WithInternal().WithCause(err)
+		return errors.NewUnknownError("email send fail").WithInternalCause(err)
 	}
 	if err = gip.SendRegistrationEmail(email, fmt.Sprintf("%s?email=%s", os.Getenv("SIGNIN_REDIRECT_URL"), email)); err != nil {
-		return errors.NewUnknownError("email sending failed").WithInternal().WithCause(err)
+		return errors.NewUnknownError("email send fail").WithInternalCause(err)
 	}
 	return nil
 }
@@ -89,7 +100,7 @@ func (s *accountServiceHandler) VerifyEmail(email string) error {
 func (s *accountServiceHandler) GetUserDetails(db *sql.DB, email string) (*model.GetUserResponse, error) {
 	account, err := s.ar.GetUserAccountDetail(email)
 	if err != nil {
-		return nil, errors.NewUnknownError("account not found").WithInternal().WithCause(err)
+		return nil, errors.NewUnknownError("account not found").WithInternalCause(err)
 	}
 	var userResponse = model.GetUserResponse{
 		ID:           account.ID,
@@ -105,7 +116,7 @@ func (s *accountServiceHandler) GetUserDetails(db *sql.DB, email string) (*model
 	}
 	user, err := s.ar.GetUserDetail(db, email)
 	if err != nil {
-		return nil, errors.NewUnknownError("user not found").WithInternal().WithCause(err)
+		return nil, errors.NewUnknownError("user not found").WithInternalCause(err)
 	}
 	userResponse.LanguagePreference = user.LanguagePreference
 	userResponse.ThemePreference = user.Theme
