@@ -10,6 +10,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/configuration"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/models"
+	"github.com/joho/godotenv"
 	"log"
 	"os"
 	"testing"
@@ -18,6 +19,10 @@ import (
 var client checkout.PaymentClient
 
 func TestMain(m *testing.M) {
+	err := godotenv.Load("../../../service/main/.env")
+	if err != nil {
+		log.Fatal(err)
+	}
 	newClient, err := checkout.NewPaymentClient()
 	if err != nil {
 		log.Fatalln(err)
