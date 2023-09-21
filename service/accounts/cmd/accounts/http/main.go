@@ -85,13 +85,13 @@ func main() {
 	http.Handle("/update-user-theme-preference", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(httpHandler.UpdateUserThemePreference))))
 
 	// accounts treegrid endpoints
-	dbhandler := &handler.HTTPTreeGridHandlerWithDynamicDB{
+	dbHandler := &handler.HTTPTreeGridHandlerWithDynamicDB{
 		AccountManagerService:  accountService,
 		TreeGridServiceFactory: service.NewTreeGridServiceFactory(),
 		ConnectionPool:         connectionPool,
 		PathPrefix:             prefix + "/user_list",
 	}
-	dbhandler.HandleHTTPReqWithAuthenMWAndDefaultPath()
+	dbHandler.HandleHTTPReqWithAuthenMWAndDefaultPath()
 
 	log.Println("start server at 8080!")
 	log.Fatal(http.ListenAndServe(":8080", nil))

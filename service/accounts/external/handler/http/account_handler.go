@@ -2,6 +2,7 @@ package http_handler
 
 import (
 	"database/sql"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	i18n "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
@@ -159,7 +160,7 @@ func (h *AccountHandler) User(w http.ResponseWriter, r *http.Request) {
 	}
 	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
-		handler.LogInternalError(err)
+		handler.LogInternalError(errors.NewUnknownError("verify token fail").WithInternalCause(err))
 		render.Error(w, err.Error())
 		return
 	}
@@ -210,7 +211,7 @@ func (h *AccountHandler) DeleteProfileImage(w http.ResponseWriter, r *http.Reque
 	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, err.Error())
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "delete-profile-fail"))
 		return
 	}
 
@@ -218,7 +219,7 @@ func (h *AccountHandler) DeleteProfileImage(w http.ResponseWriter, r *http.Reque
 
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "delete-profile-fail"))
 		return
 	}
 	render.Ok(w, nil)

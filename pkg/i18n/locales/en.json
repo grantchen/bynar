@@ -1,6 +1,8 @@
 {
   "error": "Something went wrong. Please try again",
   "permission-denied": "Operation not authorized",
-  "upload-profile-fail": "Upload Profile Photo Fail",
-  "delete-profile-fail": "Delete Profile Photo Fail"
+  "method-no-allowed": "Method not allowed",
+  "upload-profile-fail": "Failed to upload avatar",
+  "delete-profile-fail": "Failed to delete avatar",
+  "send-email-fail": "Failed to send email"
 }

@@ -1,6 +1,8 @@
 {
   "error": "Es ist etwas schief gegangen. Komm, noch mal",
   "permission-denied": "Bolivien nicht autorisierte operationen",
-  "upload-profile-fail":"Ein falscher hochladen des kopfes ist schiefgegangen",
-  "delete-profile-fail": "Lösch den kopf"
+  "upload-profile-fail":"Avatar konnte nicht hochgeladen werden",
+  "delete-profile-fail": "Avatar konnte nicht gelöscht werden",
+  "method-no-allowed": "Methode nicht erlaubt",
+  "send-email-fail": "E-Mail konnte nicht gesendet werden"
 }

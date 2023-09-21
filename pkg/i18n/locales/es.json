@@ -1,6 +1,8 @@
 {
   "error": "Algo salió mal. Por favor intente de nuevo",
   "permission-denied": "Operación no autorizada",
-  "upload-profile-fail": "La subida del avatar falló",
-  "delete-profile-fail": "Eliminar avatar falló"
+  "upload-profile-fail": "No se pudo subir el avatar",
+  "delete-profile-fail": "No se pudo eliminar el avatar",
+  "method-no-allowed": "Método no permitido",
+  "send-email-fail": "Error al enviar el correo electrónico"
 }

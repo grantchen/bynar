@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model/organization_schema"
 )
 
 // AccountRepository provides a interface on db level for user
@@ -21,7 +22,7 @@ type AccountRepository interface {
 	// UpdateProfilePhotoOfUsers update profile_photo column in users
 	UpdateProfilePhotoOfUsers(db *sql.DB, email string, profilePhoto string) error
 	// GetUserDetail get user details from organization_schema(uuid)
-	GetUserDetail(db *sql.DB, email string) (*model.User, error)
+	GetUserDetail(db *sql.DB, email string) (*organization_schema.User, error)
 	// GetUserPolicy get user policy from organization_schema(uuid)
 	GetUserPolicy(db *sql.DB, id int) (map[string]int, error)
 }

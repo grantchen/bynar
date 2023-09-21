@@ -8,10 +8,9 @@ package handler
 
 import (
 	"context"
-	"errors"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"strings"
@@ -20,18 +19,18 @@ import (
 // VerifyIdTokenAndInitDynamicDB verify idToken correct and create dynamic db connection
 func VerifyIdTokenAndInitDynamicDB(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		code, msg, claims := middleware.VerifyIdToken(r)
+		code, claims, err := middleware.VerifyIdToken(r)
+		if err != nil {
+			LogInternalError(errors.NewUnknownError("verify id_token fail").WithInternalCause(err))
+		}
 		if http.StatusOK != code {
-			if "" == msg {
-				msg = http.StatusText(code)
-			}
-			http.Error(w, msg, code)
+			http.Error(w, http.StatusText(code), code)
 			return
 		}
 
 		connString, err := getDynamicDBConnection(claims.TenantUuid, claims.OrganizationUuid)
 		if err != nil {
-			logrus.Errorf("VerifyIdTokenAndInitDynamicDB: getDynamicDBConnection error: %+v", err)
+			LogInternalError(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -39,7 +38,7 @@ func VerifyIdTokenAndInitDynamicDB(next http.Handler) http.Handler {
 		db, err := sql_db.NewConnection(connString)
 
 		if err != nil {
-			logrus.Errorf("VerifyIdTokenAndInitDynamicDB: get connection db error: %+v", err)
+			LogInternalError(errors.NewUnknownError("new dynamic db connection fail").WithInternalCause(err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -58,7 +57,7 @@ func VerifyIdTokenAndInitDynamicDB(next http.Handler) http.Handler {
 // get dynamic db connection url
 func getDynamicDBConnection(tenantUuid, organizationUuid string) (string, error) {
 	if len(os.Getenv(tenantUuid)) == 0 {
-		return "", errors.New("no mysql conn environment of " + tenantUuid)
+		return "", errors.NewUnknownError("no mysql conn environment of " + tenantUuid).WithInternal()
 	}
 	envs := strings.Split(os.Getenv(tenantUuid), "/")
 	connStr := envs[0] + "/" + organizationUuid

@@ -9,6 +9,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model/organization_schema"
 	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
@@ -102,7 +103,7 @@ func (r *accountRepositoryHandler) UpdateProfilePhotoOfUsers(db *sql.DB, email s
 }
 
 // GetUserDetail get user details from organization_schema(uuid)
-func (r *accountRepositoryHandler) GetUserDetail(db *sql.DB, email string) (*model.User, error) {
+func (r *accountRepositoryHandler) GetUserDetail(db *sql.DB, email string) (*organization_schema.User, error) {
 	var querySql = `select a.id,
        a.email,
        coalesce(a.full_name,''),
@@ -114,7 +115,7 @@ func (r *accountRepositoryHandler) GetUserDetail(db *sql.DB, email string) (*mod
        coalesce(a.profile_photo,'')
 		from users a
 		where a.email = ? and status = ? limit 1`
-	var user = model.User{}
+	var user = organization_schema.User{}
 	prepare, err := db.Prepare(querySql)
 	if err != nil {
 		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, querySql)

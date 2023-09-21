@@ -230,12 +230,9 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		defaultResponse := &treegrid.PostResponse{}
 		defaultResponse.Changes = make([]map[string]interface{}, 0)
 
-		code, msg, claims := middleware.VerifyIdToken(r)
+		code, claims, err := middleware.VerifyIdToken(r)
 		if http.StatusOK != code {
-			if msg == "" {
-				msg = http.StatusText(code)
-			}
-			writeErrorResponse(w, defaultResponse, errors.New(msg))
+			writeErrorResponse(w, defaultResponse, errors.New(http.StatusText(code)))
 			return
 		}
 		if !claims.OrganizationStatus || !claims.TenantStatus || claims.TenantSuspended {

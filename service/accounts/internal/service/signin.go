@@ -72,14 +72,14 @@ func (s *accountServiceHandler) SendSignInEmail(email string) error {
 	}
 	claims, err := convertSignInToClaims(account)
 	if err != nil {
-		return errors.NewUnknownError("email send fail").WithInternalCause(err)
+		return errors.NewUnknownError("send email fail").WithInternalCause(err)
 	}
 	err = s.authProvider.SetCustomUserClaims(context.Background(), account.Uid, claims)
 	if err != nil {
-		return errors.NewUnknownError("email send fail").WithInternalCause(err)
+		return errors.NewUnknownError("send email fail").WithInternalCause(err)
 	}
 	if err = gip.SendRegistrationEmail(email, fmt.Sprintf("%s?email=%s", os.Getenv("SIGNIN_REDIRECT_URL"), email)); err != nil {
-		return errors.NewUnknownError("email send fail").WithInternalCause(err)
+		return errors.NewUnknownError("send email fail").WithInternalCause(err)
 	}
 	return nil
 }
