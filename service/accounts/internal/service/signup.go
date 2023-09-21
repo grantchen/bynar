@@ -125,7 +125,10 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 	if err != nil {
 		logrus.Error("create user error: ", err.Error())
 		if code == 0 {
-			s.authProvider.DeleteUserByEmail(context.Background(), email)
+			err = s.authProvider.DeleteUserByEmail(context.Background(), email)
+			if err != nil {
+				logrus.Error("delete user failed: ", err.Error())
+			}
 		}
 		return "", errpkg.NewUnknownError("create user failed").WithInternal().WithCause(err)
 	}

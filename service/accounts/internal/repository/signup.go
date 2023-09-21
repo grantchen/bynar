@@ -16,7 +16,7 @@ import (
 // CreateOrganization create the organization when creating user
 func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, vat, country, uid string, accountID int) (int, string, int, error) {
 	var organizationID int
-	organizationUUID := uuid.New().String()
+	var organizationUUID string
 	// check if the organization exists
 	stmt, err := tx.Prepare(`SELECT id, organization_uuid FROM organizations where vat_number=?`)
 	if err != nil {
@@ -29,6 +29,8 @@ func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, v
 		return 0, "", 0, fmt.Errorf("select organization of vat_number=%s error", vat)
 	}
 	if err == sql.ErrNoRows {
+		organizationUUID = uuid.New().String()
+		logrus.Info("create organization with uuid ", organizationUUID)
 		// Insert organization info to db
 		stmt, err := tx.Prepare(`INSERT INTO organizations (description, vat_number, country, organization_uuid, status, verified) VALUES (?, ?, ?, ?, ?, ?)`)
 		if err != nil {
@@ -265,57 +267,33 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 		return 0, errors.New("open mysql failed")
 	}
 	var name string
-	stmt, err := db.Prepare(`SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '` + organizationUUID + `'`)
-	if err != nil {
-		logrus.Error(err)
-		return 0, err
-	}
-	err = stmt.QueryRow().Scan(&name)
+	err = db.QueryRow(`SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '` + organizationUUID + `'`).Scan(&name)
 	if err == nil {
 		logrus.Info(organizationUUID, " schema exists")
 	}
-	stmt.Close()
 	if name == "" {
 		// create database
-		stmt, err := db.Prepare(fmt.Sprintf("CREATE DATABASE `%s`", organizationUUID))
-		if err != nil {
-			logrus.Error(err)
-			return 0, err
-		}
-		_, err = stmt.Exec()
-		stmt.Close()
+		_, err = db.Exec(fmt.Sprintf("CREATE DATABASE `%s`", organizationUUID))
 		if err != nil {
 			r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
 			return 0, errors.New("create database failed")
 		}
 	}
-	stmt, err = db.Prepare(fmt.Sprintf("USE `%s`", organizationUUID))
-	if err != nil {
-		logrus.Error(err)
-		return 0, err
-	}
-	_, err = stmt.Exec()
-	stmt.Close()
+	_, err = db.Exec(fmt.Sprintf("USE `%s`", organizationUUID))
 	if err != nil {
 		r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
 		return 0, errors.New("use database failed")
 	}
 	if name == "" {
 		// create tables
-		stmt, err = db.Prepare(model.SQL_TEMPLATE)
-		if err != nil {
-			logrus.Error(err)
-			return 0, err
-		}
-		_, err = stmt.Exec()
-		stmt.Close()
+		_, err = db.Exec(model.SQL_TEMPLATE)
 		if err != nil {
 			r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
 			return 0, errors.New("create tables failed")
 		}
 	}
 	// create user
-	stmt, err = db.Prepare(`INSERT INTO users (email, full_name, phone, status, language_preference, policy_id, theme) VALUES (?,?,?,?,?,?,?)`)
+	stmt, err := db.Prepare(`INSERT INTO users (email, full_name, phone, status, language_preference, policy_id, theme) VALUES (?,?,?,?,?,?,?)`)
 	if err != nil {
 		logrus.Error(err)
 		return 0, err
