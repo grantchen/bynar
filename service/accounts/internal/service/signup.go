@@ -70,7 +70,7 @@ func (s *accountServiceHandler) VerifyCard(token, email, name string) (string, s
 	// Use checkout.com service to validate card
 	resp, err := s.paymentProvider.ValidateCard(&models.ValidateCardRequest{Token: token, Email: email, Name: name})
 	if err != nil {
-		return "", "", errpkg.NewUnknownError("verify card failed").WithInternal().WithCause(err)
+		return "", "", errpkg.NewUnknownError(fmt.Sprintf("verify card failed: %s", err.Error())).WithInternal().WithCause(err)
 	}
 	return resp.Customer.ID, resp.Source.ID, nil
 }
