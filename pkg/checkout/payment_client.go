@@ -98,10 +98,10 @@ func (p paymentClient) ValidateCard(userDetails *models.ValidateCardRequest) (mo
 			Token: userDetails.Token,
 		},
 		Currency: "USD",
-		//Customer: models.NewCustomer{
-		//	Email: userDetails.Email,
-		//	Name:  userDetails.Name,
-		//},
+		Customer: models.NewCustomer{
+			Email: userDetails.Email,
+			Name:  userDetails.Name,
+		},
 		ProcessingChannelID: p.processingChannelID,
 	}
 
