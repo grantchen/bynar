@@ -326,13 +326,13 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		err = db.QueryRow(fmt.Sprintf("SELECT policies.%s FROM users LEFT JOIN policies ON policies.id = users.policy_id WHERE users.email = ?", modulePath.module), claims.Email).Scan(&val)
 		if err != nil {
 			log.Println("Err get policy", err)
-			// writeErrorResponse(w, defaultResponse, err)
-			// return
+			writeErrorResponse(w, defaultResponse, err)
+			return
 		}
 		if val != 1 {
 			log.Println("not allowed to get policy " + modulePath.module)
-			// writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
-			// return
+			writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
+			return
 		}
 
 		reqContext := &ReqContext{
