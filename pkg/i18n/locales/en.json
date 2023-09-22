@@ -3,6 +3,5 @@
   "permission-denied": "Operation not authorized",
   "method-no-allowed": "Method not allowed",
   "upload-profile-fail": "Failed to upload avatar",
-  "delete-profile-fail": "Failed to delete avatar",
-  "send-email-fail": "Failed to send email"
+  "delete-profile-fail": "Failed to delete avatar"
 }

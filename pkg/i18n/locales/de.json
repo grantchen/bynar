@@ -3,6 +3,5 @@
   "permission-denied": "Bolivien nicht autorisierte operationen",
   "upload-profile-fail":"Avatar konnte nicht hochgeladen werden",
   "delete-profile-fail": "Avatar konnte nicht gelöscht werden",
-  "method-no-allowed": "Methode nicht erlaubt",
-  "send-email-fail": "E-Mail konnte nicht gesendet werden"
+  "method-no-allowed": "Methode nicht erlaubt"
 }

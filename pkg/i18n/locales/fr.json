@@ -3,6 +3,5 @@
   "permission-denied": "Opération non autorisée",
   "upload-profile-fail": "Échec du téléchargement de l'avatar",
   "delete-profile-fail": "Fehler beim Löschen des Avatars",
-  "method-no-allowed": "Méthode interdite",
-  "send-email-fail": "Échec de l'envoi de l'e-mail"
+  "method-no-allowed": "Méthode interdite"
 }
