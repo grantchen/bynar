@@ -117,6 +117,8 @@ func (s *accountServiceHandler) GetUserDetails(db *sql.DB, uid string, userId in
 	if err != nil {
 		return nil, errors.NewUnknownError("user not found").WithInternalCause(err)
 	}
+	userResponse.Email = user.Email
+	userResponse.FullName = user.FullName
 	userResponse.LanguagePreference = user.LanguagePreference
 	userResponse.ThemePreference = user.Theme
 	userResponse.ProfileURL = user.ProfilePhoto
