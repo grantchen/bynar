@@ -96,6 +96,9 @@ func (g gipClient) CreateUser(ctx context.Context, email, displayName, phoneNumb
 		strs := strings.Split(err.Error(), "\n")
 		var e GipError
 		json.Unmarshal([]byte(strings.Join(strs[1:], "\n")), &e)
+		if len(e.Error.Message) == 0 {
+			e.Error.Message = err.Error()
+		}
 		return "", errors.New(e.Error.Message)
 	}
 
@@ -139,6 +142,9 @@ func (g gipClient) UpdateUser(ctx context.Context, uid string, params map[string
 		strs := strings.Split(err.Error(), "\n")
 		var e GipError
 		json.Unmarshal([]byte(strings.Join(strs[1:], "\n")), &e)
+		if len(e.Error.Message) == 0 {
+			e.Error.Message = err.Error()
+		}
 		return errors.New(e.Error.Message)
 	}
 

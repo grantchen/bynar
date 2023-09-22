@@ -89,15 +89,21 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, tenantCode
 	}
 
 	var tenantManagentID int
-	stmt, err = tx.Prepare("SELECT id FROM tenants_management WHERE organization_id = ? AND tenant_id = ?")
+	var tenantManagentStatus int
+	stmt, err = tx.Prepare("SELECT id, status FROM tenants_management WHERE organization_id = ? AND tenant_id = ?")
 	if err != nil {
 		return "", 0, err
 	}
-	err = stmt.QueryRow(organizationID, tenantID).Scan(&tenantManagentID)
+	err = stmt.QueryRow(organizationID, tenantID).Scan(&tenantManagentID, &tenantManagentStatus)
 	stmt.Close()
 	if err != nil && err != sql.ErrNoRows {
 		logrus.Error("select tenants_management error ", err.Error())
 		return "", 0, errors.New("select tenants_management failed")
+	}
+	if tenantManagentStatus == 0 {
+		_, err = tx.Exec("UPDATE tenants_management SET status = ? WHERE id = ?", 1, tenantManagentID)
+		logrus.Error("update tenants_management status error ", err.Error())
+		return "", 0, errors.New("update tenants_management status failed")
 	}
 	if err == sql.ErrNoRows {
 		// insert managemant
