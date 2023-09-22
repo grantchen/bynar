@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"firebase.google.com/go/v4/auth"
 	"fmt"
 	"os"
 
@@ -59,16 +60,14 @@ func convertSignInToClaims(signIn *model.SignIn) (map[string]interface{}, error)
 // SendSignInEmail send google identify platform with oobCode for sign in
 func (s *accountServiceHandler) SendSignInEmail(email string) error {
 	var (
-		exists       = false
-		err    error = nil
+		userRecord *auth.UserRecord = nil
+		err        error            = nil
 	)
-	if exists, err = s.authProvider.IsUserExists(context.Background(), email); err != nil {
+	if userRecord, err = s.authProvider.GetUserByEmail(context.Background(), email); err != nil || userRecord == nil {
 		return errors.NewUnknownError("email not signed up").WithInternalCause(err)
 	}
-	if exists == false {
-		return errors.NewUnknownError("email not signed up")
-	}
-	account, err := s.ar.SelectSignInColumns(email)
+
+	account, err := s.ar.SelectSignInColumns(userRecord.UserInfo.UID)
 	if err != nil || account == nil {
 		return errors.NewUnknownError("no user found").WithInternalCause(err)
 	}
@@ -99,24 +98,22 @@ func (s *accountServiceHandler) VerifyEmail(email string) error {
 }
 
 // GetUserDetails after signing get user info
-func (s *accountServiceHandler) GetUserDetails(db *sql.DB, email string) (*model.GetUserResponse, error) {
-	account, err := s.ar.GetUserAccountDetail(email)
-	if err != nil {
-		return nil, errors.NewUnknownError("account not found").WithInternalCause(err)
+func (s *accountServiceHandler) GetUserDetails(db *sql.DB, uid string, userId int) (*model.GetUserResponse, error) {
+	account, err := s.ar.GetUserAccountDetail(uid)
+	var userResponse = model.GetUserResponse{}
+	if err == nil && account != nil {
+		userResponse.ID = account.ID
+		userResponse.Email = account.Email.String
+		userResponse.FullName = account.FullName.String
+		userResponse.Country = account.Country.String
+		userResponse.AddressLine = account.Address.String
+		userResponse.AddressLine2 = account.Address2.String
+		userResponse.City = account.City.String
+		userResponse.PostalCode = account.PostalCode.String
+		userResponse.State = account.State.String
+		userResponse.PhoneNumber = account.Phone.String
 	}
-	var userResponse = model.GetUserResponse{
-		ID:           account.ID,
-		Email:        account.Email.String,
-		FullName:     account.FullName.String,
-		Country:      account.Country.String,
-		AddressLine:  account.Address.String,
-		AddressLine2: account.Address2.String,
-		City:         account.City.String,
-		PostalCode:   account.PostalCode.String,
-		State:        account.State.String,
-		PhoneNumber:  account.Phone.String,
-	}
-	user, err := s.ar.GetUserDetail(db, email)
+	user, err := s.ar.GetUserDetail(db, userId)
 	if err != nil {
 		return nil, errors.NewUnknownError("user not found").WithInternalCause(err)
 	}

@@ -10,19 +10,19 @@ import (
 type AccountRepository interface {
 	CreateUser(uid, email, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID, tenantCode string) (int, error)
 	// SelectSignInColumns select columns to generate token when user sign in
-	SelectSignInColumns(email string) (*model.SignIn, error)
+	SelectSignInColumns(uid string) (*model.SignIn, error)
 	// GetOrganizationDetail get organization detail
 	GetOrganizationDetail(organizationUuid string) (*model.Organization, error)
 	// GetUserAccountDetail get accounts detail by uid provided
-	GetUserAccountDetail(email string) (*model.Account, error)
+	GetUserAccountDetail(uid string) (*model.Account, error)
 	// Update user language preference
-	UpdateUserLanguagePreference(db *sql.DB, email, languagePreference string) error
+	UpdateUserLanguagePreference(db *sql.DB, userId int, languagePreference string) error
 	// Update user theme preference
-	UpdateUserThemePreference(db *sql.DB, email, themePreference string) error
+	UpdateUserThemePreference(db *sql.DB, userId int, themePreference string) error
 	// UpdateProfilePhotoOfUsers update profile_photo column in users
-	UpdateProfilePhotoOfUsers(db *sql.DB, email string, profilePhoto string) error
+	UpdateProfilePhotoOfUsers(db *sql.DB, userId int, profilePhoto string) error
 	// GetUserDetail get user details from organization_schema(uuid)
-	GetUserDetail(db *sql.DB, email string) (*organization_schema.User, error)
+	GetUserDetail(db *sql.DB, userId int) (*organization_schema.User, error)
 	// GetUserPolicy get user policy from organization_schema(uuid)
 	GetUserPolicy(db *sql.DB, id int) (map[string]int, error)
 }

@@ -164,7 +164,7 @@ func (h *AccountHandler) User(w http.ResponseWriter, r *http.Request) {
 		render.Error(w, err.Error())
 		return
 	}
-	userResponse, err := h.as.GetUserDetails(reqContext.DynamicDB, reqContext.Claims.Email)
+	userResponse, err := h.as.GetUserDetails(reqContext.DynamicDB, reqContext.Claims.Uid, reqContext.Claims.OrganizationUserId)
 	if err != nil {
 		handler.LogInternalError(err)
 		render.Error(w, err.Error())
@@ -192,7 +192,7 @@ func (h *AccountHandler) UploadProfilePhoto(w http.ResponseWriter, r *http.Reque
 		render.Error(w, i18n.Localize(reqContext.Claims.Language, "upload-profile-fail"))
 		return
 	}
-	url, err := h.as.UploadFileToGCS(reqContext.DynamicDB, reqContext.Claims.OrganizationUuid, reqContext.Claims.Email, reader)
+	url, err := h.as.UploadFileToGCS(reqContext.DynamicDB, reqContext.Claims.OrganizationUuid, reqContext.Claims.OrganizationUserId, reader)
 	if err != nil {
 		handler.LogInternalError(err)
 		render.Error(w, i18n.Localize(reqContext.Claims.Language, "upload-profile-fail"))
@@ -215,7 +215,7 @@ func (h *AccountHandler) DeleteProfileImage(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err = h.as.DeleteFileFromGCS(reqContext.DynamicDB, reqContext.Claims.OrganizationUuid, reqContext.Claims.Email)
+	err = h.as.DeleteFileFromGCS(reqContext.DynamicDB, reqContext.Claims.OrganizationUuid, reqContext.Claims.OrganizationUserId)
 
 	if err != nil {
 		handler.LogInternalError(err)
@@ -243,7 +243,7 @@ func (h *AccountHandler) UpdateUserLanguagePreference(w http.ResponseWriter, r *
 		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
 		return
 	}
-	err = h.as.UpdateUserLanguagePreference(reqContext.DynamicDB, reqContext.Claims.Email, req.LanguagePreference)
+	err = h.as.UpdateUserLanguagePreference(reqContext.DynamicDB, reqContext.Claims.Uid, reqContext.Claims.OrganizationUserId, req.LanguagePreference)
 	if err != nil {
 		handler.LogInternalError(err)
 		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
@@ -271,7 +271,7 @@ func (h *AccountHandler) UpdateUserThemePreference(w http.ResponseWriter, r *htt
 		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
 		return
 	}
-	err = h.as.UpdateUserThemePreference(reqContext.DynamicDB, reqContext.Claims.Email, req.ThemePreference)
+	err = h.as.UpdateUserThemePreference(reqContext.DynamicDB, reqContext.Claims.OrganizationUserId, req.ThemePreference)
 	if err != nil {
 		handler.LogInternalError(err)
 		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))

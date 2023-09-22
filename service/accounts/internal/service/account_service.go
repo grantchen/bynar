@@ -20,7 +20,7 @@ import (
 var profilePictureType = []string{"png", "jpg", "jpeg"}
 
 // UploadFileToGCS upload user's profile picture to gcs
-func (s *accountServiceHandler) UploadFileToGCS(db *sql.DB, organizationUuid, email string, body *multipart.Reader) (string, error) {
+func (s *accountServiceHandler) UploadFileToGCS(db *sql.DB, organizationUuid string, userId int, body *multipart.Reader) (string, error) {
 	part, err := body.NextPart()
 	if err != nil {
 		return "", errors.NewUnknownError("file read fail").WithInternalCause(err)
@@ -36,12 +36,9 @@ func (s *accountServiceHandler) UploadFileToGCS(db *sql.DB, organizationUuid, em
 	if err != nil || organization == nil {
 		return "", errors.NewUnknownError("organization not found").WithInternalCause(err)
 	}
-	user, err := s.ar.GetUserAccountDetail(email)
-	if err != nil || organization == nil {
-		return "", errors.NewUnknownError("user not found").WithInternalCause(err)
-	}
-	filePath := fmt.Sprintf("%v/profile_picture/%v%v", organization.ID, user.ID, ext)
-	filePathPrefix := fmt.Sprintf("%v/profile_picture/%v", organization.ID, user.ID)
+
+	filePath := fmt.Sprintf("%v/profile_picture/%v%v", organization.ID, userId, ext)
+	filePathPrefix := fmt.Sprintf("%v/profile_picture/%v", organization.ID, userId)
 
 	//delete existing file from Google cloud storage
 	if err = s.cloudStorageProvider.DeleteFiles(filePathPrefix); err != nil {
@@ -53,43 +50,40 @@ func (s *accountServiceHandler) UploadFileToGCS(db *sql.DB, organizationUuid, em
 		return "", errors.NewUnknownError("upload file fail").WithInternalCause(err)
 	}
 	// update database profile_photo column in table users
-	if err = s.ar.UpdateProfilePhotoOfUsers(db, email, url); err != nil {
+	if err = s.ar.UpdateProfilePhotoOfUsers(db, userId, url); err != nil {
 		return "", errors.NewUnknownError("upload file fail").WithInternalCause(err)
 	}
 	return url, nil
 }
 
 // DeleteFileFromGCS delete user's profile picture from google cloud storage
-func (s *accountServiceHandler) DeleteFileFromGCS(db *sql.DB, organizationUuid, email string) error {
+func (s *accountServiceHandler) DeleteFileFromGCS(db *sql.DB, organizationUuid string, useId int) error {
 	organization, err := s.ar.GetOrganizationDetail(organizationUuid)
 	if err != nil || organization == nil {
 		return errors.NewUnknownError("organization not found").WithInternalCause(err)
 	}
-	user, err := s.ar.GetUserAccountDetail(email)
-	if err != nil || organization == nil {
-		return errors.NewUnknownError("user not found").WithInternalCause(err)
-	}
-	filePathPrefix := fmt.Sprintf("%v/profile_picture/%v", organization.ID, user.ID)
+
+	filePathPrefix := fmt.Sprintf("%v/profile_picture/%v", organization.ID, useId)
 	err = s.cloudStorageProvider.DeleteFiles(filePathPrefix)
 	if err != nil {
 		return errors.NewUnknownError("delete file fail").WithInternalCause(err)
 	}
 	// update database profile_photo column in table users
-	if err = s.ar.UpdateProfilePhotoOfUsers(db, email, ""); err != nil {
+	if err = s.ar.UpdateProfilePhotoOfUsers(db, useId, ""); err != nil {
 		return errors.NewUnknownError("delete file fail").WithInternalCause(err)
 	}
 	return nil
 }
 
 // Update user language preference
-func (s *accountServiceHandler) UpdateUserLanguagePreference(db *sql.DB, email, languagePreference string) error {
+func (s *accountServiceHandler) UpdateUserLanguagePreference(db *sql.DB, uid string, userId int, languagePreference string) error {
 	// Update the language_preference field in the users table
-	if err := s.ar.UpdateUserLanguagePreference(db, email, languagePreference); err != nil {
+	if err := s.ar.UpdateUserLanguagePreference(db, userId, languagePreference); err != nil {
 		return errors.NewUnknownError("update user language preference fail").WithInternalCause(err)
 	}
 
 	// Set custom user claims
-	account, err := s.ar.SelectSignInColumns(email)
+	account, err := s.ar.SelectSignInColumns(uid)
 	if err != nil || account == nil {
 		return err
 	}
@@ -106,9 +100,9 @@ func (s *accountServiceHandler) UpdateUserLanguagePreference(db *sql.DB, email, 
 }
 
 // Update user theme preference
-func (s *accountServiceHandler) UpdateUserThemePreference(db *sql.DB, email, themePreference string) error {
+func (s *accountServiceHandler) UpdateUserThemePreference(db *sql.DB, userId int, themePreference string) error {
 	// Update the theme field in the users table
-	if err := s.ar.UpdateUserThemePreference(db, email, themePreference); err != nil {
+	if err := s.ar.UpdateUserThemePreference(db, userId, themePreference); err != nil {
 		return errors.NewUnknownError("update user theme preference fail").WithInternalCause(err)
 	}
 
