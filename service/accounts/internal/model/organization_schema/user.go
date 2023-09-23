@@ -4,7 +4,7 @@
     @description:
 **/
 
-package model
+package organization_schema
 
 // User users table of organization_schema(uuid) struct
 type User struct {

@@ -3,6 +3,7 @@ package gip
 import (
 	"context"
 	"errors"
+	"github.com/joho/godotenv"
 	"log"
 	"os"
 	"testing"
@@ -13,6 +14,10 @@ import (
 var client *gipClient
 
 func TestMain(m *testing.M) {
+	err := godotenv.Load("../../service/main/.env")
+	if err != nil {
+		log.Fatalln("Error loading .env file in main service ", err)
+	}
 	provider, err := NewGIPClient()
 	client = provider.(*gipClient)
 	if err != nil {

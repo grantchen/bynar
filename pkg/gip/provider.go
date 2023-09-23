@@ -2,6 +2,7 @@ package gip
 
 import (
 	"context"
+	"firebase.google.com/go/v4/auth"
 )
 
 // AuthProvider is an interface for the authentication provider.
@@ -31,4 +32,6 @@ type AuthProvider interface {
 	CustomTokenWithClaims(ctx context.Context, uid string, devClaims map[string]interface{}) (string, error)
 	//SetCustomUserClaims sets additional claims on an existing user account.
 	SetCustomUserClaims(ctx context.Context, uid string, customClaims map[string]interface{}) error
+	// GetUserByEmail get user info by email from google identify platform
+	GetUserByEmail(ctx context.Context, email string) (*auth.UserRecord, error)
 }

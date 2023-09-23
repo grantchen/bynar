@@ -13,7 +13,6 @@ import (
 	"errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"strings"
 )
@@ -77,41 +76,36 @@ func getIdTokenFromHeader(r *http.Request) (error, string) {
 }
 
 // VerifyIdToken Verify idToken int http error code
-func VerifyIdToken(r *http.Request) (int, string, *IdTokenClaims) {
+func VerifyIdToken(r *http.Request) (int, *IdTokenClaims, error) {
 	if utils.IsStringArrayInclude(skipIdTokenAuthEndEndpoints, r.RequestURI) {
-		return http.StatusOK, "", nil
+		return http.StatusOK, nil, nil
 	}
 	err, idToken := getIdTokenFromHeader(r)
 	if err != nil {
-		logrus.Errorf("get idToken from request error: %+v", err)
-		return http.StatusBadRequest, "", nil
+		return http.StatusBadRequest, nil, err
 	}
 	client, err := gip.NewGIPClient()
 	if err != nil {
-		logrus.Errorf("verifyIdToken: new GIPClient error: %v", err)
-		return http.StatusInternalServerError, "", nil
+		return http.StatusInternalServerError, nil, err
 	}
 	claims, err := client.VerifyIDToken(context.Background(), idToken)
 	if err != nil {
-		logrus.Errorf("verifyIdToken: gip verify idToken error: %v", err)
 		if err == gip.ErrIDTokenInvalid {
-			return http.StatusUnauthorized, "", nil
+			return http.StatusUnauthorized, nil, err
 		}
-		return http.StatusInternalServerError, "", nil
+		return http.StatusInternalServerError, nil, err
 	}
 	claimsBytes, err := json.Marshal(claims)
 	if err != nil {
-		logrus.Errorf("verifyIdToken: Marshal claims error: %v", err)
-		return http.StatusInternalServerError, "", nil
+		return http.StatusInternalServerError, nil, err
 	}
 	var idTokenClaims = IdTokenClaims{}
 	err = json.Unmarshal(claimsBytes, &idTokenClaims)
 	if err != nil {
-		logrus.Errorf("verifyIdToken: Unmarshal claims error: %v", err)
-		return http.StatusInternalServerError, "", nil
+		return http.StatusInternalServerError, nil, err
 	}
 	// set current_user to request
-	return http.StatusOK, "", &idTokenClaims
+	return http.StatusOK, &idTokenClaims, err
 }
 
 // GetIdTokenClaimsFromHttpRequestContext get idToken claims from request context
@@ -121,5 +115,5 @@ func GetIdTokenClaimsFromHttpRequestContext(r *http.Request) (*TokenAndDyDynamic
 		tokenAndDbContext := tokenAndDyDynamicDBContext.(*TokenAndDyDynamicDBContext)
 		return tokenAndDbContext, nil
 	}
-	return nil, errors.New("no id_token fond in request context")
+	return nil, errors.New("get id_token fail")
 }

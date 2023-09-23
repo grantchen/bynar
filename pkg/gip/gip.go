@@ -358,3 +358,18 @@ func (g gipClient) SetCustomUserClaims(ctx context.Context, uid string, customCl
 	}
 	return client.SetCustomUserClaims(ctx, uid, customClaims)
 }
+
+// GetUserByEmail get user info by email from google identify platform
+func (g gipClient) GetUserByEmail(ctx context.Context, email string) (*auth.UserRecord, error) {
+	client, err := g.app.Auth(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error getting Auth client: %v", err)
+	}
+
+	u, err := client.GetUserByEmail(ctx, email)
+	if err != nil {
+		return nil, fmt.Errorf("error getting user by email %s: %v", email, err)
+	}
+
+	return u, nil
+}

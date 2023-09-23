@@ -15,9 +15,9 @@ import (
 
 // SelectSignInColumns query accounts,organization_accounts,organizations,tenants columns to generate idToken of
 // Google identify platform
-func (r *accountRepositoryHandler) SelectSignInColumns(email string) (*model.SignIn, error) {
+func (r *accountRepositoryHandler) SelectSignInColumns(uid string) (*model.SignIn, error) {
 	var querySql = `
-		select a.uid,
+		select oa.organization_user_uid as uid,
 		       oa.organization_user_id,
 		       oa.oraginzation_main_account as organization_main_account,
 		       os.status as organization_status,
@@ -26,19 +26,18 @@ func (r *accountRepositoryHandler) SelectSignInColumns(email string) (*model.Sig
 		       t.tenant_uuid,
                tm.status as tenant_status,
                tm.suspended as tenant_suspended
-		from accounts a 
-		join organization_accounts oa on a.uid = oa.organization_user_uid
+        from organization_accounts oa
 		join organizations os on oa.organization_id=os.id
 		join tenants t on os.tenant_id = t.id
         join tenants_management tm on tm.organization_id = os.id and tm.tenant_id = t.id
-		where a.email = ? and a.status = ? and a.verified = ? `
+		where oa.organization_user_uid = ? `
 	var signIn = model.SignIn{}
 	prepare, err := r.db.Prepare(querySql)
 	if err != nil {
 		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, querySql)
 	}
 	defer prepare.Close()
-	err = prepare.QueryRow(email, true, true).Scan(&signIn.Uid,
+	err = prepare.QueryRow(uid).Scan(&signIn.Uid,
 		&signIn.OrganizationUserId, &signIn.OrganizationAccount,
 		&signIn.OrganizationStatus, &signIn.OrganizationVerified, &signIn.OrganizationUuid,
 		&signIn.TenantUuid, &signIn.TenantStatus, &signIn.TenantSuspended)
@@ -52,13 +51,13 @@ func (r *accountRepositoryHandler) SelectSignInColumns(email string) (*model.Sig
 		return nil, err
 	}
 	defer db.Close()
-	querySql = `select coalesce(language_preference,''),coalesce(theme,'') from users where email = ? and status = ?`
+	querySql = `select coalesce(language_preference,''),coalesce(theme,'') from users where id = ? and status = ?`
 	stmt, err := db.Prepare(querySql)
 	if err != nil {
 		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, querySql)
 	}
 	defer stmt.Close()
-	if err = stmt.QueryRow(email, true).Scan(&signIn.Language, &signIn.Theme); err != nil {
+	if err = stmt.QueryRow(signIn.OrganizationUserId, true).Scan(&signIn.Language, &signIn.Theme); err != nil {
 		return nil, fmt.Errorf("query row: [%w]", err)
 	}
 
