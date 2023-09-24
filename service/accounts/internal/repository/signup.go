@@ -102,8 +102,10 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, tenantCode
 	}
 	if tenantManagentStatus == 0 {
 		_, err = tx.Exec("UPDATE tenants_management SET status = ? WHERE id = ?", 1, tenantManagentID)
-		logrus.Error("update tenants_management status error ", err.Error())
-		return "", 0, errors.New("update tenants_management status failed")
+		if err != nil {
+			logrus.Error("update tenants_management status error ", err.Error())
+			return "", 0, errors.New("update tenants_management status failed")
+		}
 	}
 	if err == sql.ErrNoRows {
 		// insert managemant

@@ -69,7 +69,7 @@ func (s *accountServiceHandler) SendSignInEmail(email string) error {
 
 	account, err := s.ar.SelectSignInColumns(userRecord.UserInfo.UID)
 	if err != nil || account == nil {
-		return errors.NewUnknownError("no user found").WithInternalCause(err)
+		return errors.NewUnknownError("no user found").WithMetadata(map[string]string{"uid": userRecord.UserInfo.UID}).WithInternalCause(err)
 	}
 	claims, err := convertSignInToClaims(account)
 	if err != nil {
