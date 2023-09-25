@@ -35,7 +35,7 @@ func VerifyIdTokenAndInitDynamicDB(next http.Handler) http.Handler {
 			return
 		}
 
-		db, err := sql_db.NewConnection(connString)
+		db, err := sql_db.InitializeConnection(connString)
 
 		if err != nil {
 			LogInternalError(errors.NewUnknownError("new dynamic db connection fail").WithInternalCause(err))
