@@ -121,41 +121,45 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 		if err1 != nil {
 			return err1
 		}
-		ok, err1 := s.simpleOrganizationRepository.ValidateOnIntegrity(gr, fieldsValidating)
-		if !ok || err1 != nil {
-			return fmt.Errorf("validate duplicate: [%w], field: %s", err1, strings.Join(fieldsValidating, ", "))
-		}
 		err = func() error {
-			err = s.simpleOrganizationRepository.Update(tx, gr)
-			if err != nil {
-				return err
-			}
-			id, _ := gr.GetValInt("id")
-			var email string
-			stmt, err := tx.Prepare(`SELECT email FROM users WHERE id=?`)
-			if err != nil {
-				return err
-			}
-			err = stmt.QueryRow(id).Scan(&email)
-			if err != nil {
-				return err
-			}
-			// update user claims in gip
-			params := map[string]interface{}{}
-			customClaims := map[string]interface{}{}
-			for _, i := range gr.UpdatedFields() {
-				if i != "reqID" {
-					key, ok := GIP_KEYS[i]
-					if ok {
-						params[key], _ = gr.GetValString(i)
-					} else {
-						customClaims[i], _ = gr.GetValString(i)
+			id, ok := gr.GetValInt("id")
+			if ok {
+				ok, err1 := s.simpleOrganizationRepository.ValidateOnIntegrity(gr, fieldsValidating)
+				if !ok || err1 != nil {
+					return fmt.Errorf("validate duplicate: [%w], field: %s", err1, strings.Join(fieldsValidating, ", "))
+				}
+				err = s.simpleOrganizationRepository.Update(tx, gr)
+				if err != nil {
+					return err
+				}
+
+				var email string
+				stmt, err := tx.Prepare(`SELECT email FROM users WHERE id=?`)
+				if err != nil {
+					return err
+				}
+				err = stmt.QueryRow(id).Scan(&email)
+				if err != nil {
+					return err
+				}
+				// update user claims in gip
+				params := map[string]interface{}{}
+				customClaims := map[string]interface{}{}
+				for _, i := range gr.UpdatedFields() {
+					if i != "reqID" {
+						key, ok := GIP_KEYS[i]
+						if ok {
+							params[key], _ = gr.GetValString(i)
+						} else {
+							customClaims[i], _ = gr.GetValString(i)
+						}
 					}
 				}
+				params["customClaims"] = customClaims
+				err = s.authProvider.UpdateUserByEmail(context.Background(), email, params)
+				return err
 			}
-			params["customClaims"] = customClaims
-			err = s.authProvider.UpdateUserByEmail(context.Background(), email, params)
-			return err
+			return nil
 		}()
 	case treegrid.GridRowActionDeleted:
 		err = func() error {

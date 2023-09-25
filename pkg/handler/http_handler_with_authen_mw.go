@@ -340,7 +340,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		for _, i := range policy.Services {
 			if i.Name == "*" || i.Name == modulePath.module {
 				for _, j := range i.Permissions {
-					if j == modulePath.pathFeature {
+					if j == "*" || j == modulePath.pathFeature {
 						allowed = true
 						break
 					}
