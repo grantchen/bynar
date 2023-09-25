@@ -29,7 +29,9 @@ import (
 	usergroups_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/external/handler/http"
 
 	accounts_http_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/http"
-	accounts_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/service"
+	accounts_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/external/handler/service"
+
+	invoices_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/external/handler/http"
 )
 
 type HandlerMapping struct {
@@ -105,6 +107,9 @@ func main() {
 	http.Handle("/update-user-theme-preference", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.UpdateUserThemePreference))))
 
 	lsHandlerMapping := make([]*HandlerMapping, 0)
+	lsHandlerMapping = append(lsHandlerMapping,
+		&HandlerMapping{handler: invoices_handler.NewHTTPHandler(appConfig, db),
+			prefixPath: "/invoices"})
 	lsHandlerMapping = append(lsHandlerMapping,
 		&HandlerMapping{handler: sales_handler.NewHTTPHandler(appConfig, db),
 			prefixPath: "/sales"})
