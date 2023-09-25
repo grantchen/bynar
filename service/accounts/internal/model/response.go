@@ -1,5 +1,7 @@
 package model
 
+import "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
+
 type ConfirmEmailResponse struct {
 	AccountID int `json:"accountID"`
 }
@@ -31,9 +33,9 @@ type GetUserResponse struct {
 	State        string `db:"state" json:"state"`
 	PhoneNumber  string `db:"phone" json:"phoneNumber"`
 
-	LanguagePreference string         `json:"languagePreference"`
-	ThemePreference    string         `json:"themePreference"`
-	ProfileURL         string         `json:"profileURL"`
-	PolicyID           int            `json:"policyId"`
-	Permissions        map[string]int `json:"permissions"`
+	LanguagePreference string        `json:"languagePreference"`
+	ThemePreference    string        `json:"themePreference"`
+	ProfileURL         string        `json:"profileURL"`
+	PolicyID           int           `json:"policyId"`
+	Permissions        models.Policy `json:"permissions"`
 }

@@ -9,7 +9,6 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 )
@@ -111,7 +110,8 @@ func (r *accountRepositoryHandler) GetUserDetail(db *sql.DB, email string) (*mod
        coalesce(a.language_preference,''),
        coalesce(a.policy_id,0),
        coalesce(a.theme,''),
-       coalesce(a.profile_photo,'')
+       coalesce(a.profile_photo,''),
+	   coalesce(a.policies,''),
 		from users a
 		where a.email = ? and status = ? limit 1`
 	var user = model.User{}
@@ -122,36 +122,9 @@ func (r *accountRepositoryHandler) GetUserDetail(db *sql.DB, email string) (*mod
 	defer prepare.Close()
 	err = prepare.QueryRow(email, true).Scan(
 		&user.ID, &user.Email, &user.FullName, &user.Phone, &user.Status,
-		&user.LanguagePreference, &user.PolicyId, &user.Theme, &user.ProfilePhoto)
+		&user.LanguagePreference, &user.PolicyId, &user.Theme, &user.ProfilePhoto, &user.Policies)
 	if err != nil {
 		return nil, fmt.Errorf("query row: [%w]", err)
 	}
 	return &user, nil
-}
-
-// GetUserPolicy get user policy from organization_schema(uuid)
-func (r *accountRepositoryHandler) GetUserPolicy(db *sql.DB, id int) (map[string]int, error) {
-	params := []string{"user_list", "sales"}
-	var querySql = fmt.Sprintf("select %s FROM policies WHERE id=?", strings.Join(params, ","))
-	prepare, err := db.Prepare(querySql)
-	if err != nil {
-		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, querySql)
-	}
-	cols := make([]int, len(params))
-	colsp := make([]interface{}, len(params))
-	for i, _ := range cols {
-		colsp[i] = &cols[i]
-	}
-	defer prepare.Close()
-	err = prepare.QueryRow(id).Scan(colsp...)
-	if err != nil {
-		return nil, fmt.Errorf("query row: [%w]", err)
-	}
-	m := make(map[string]int)
-	for i, name := range params {
-		val := colsp[i].(*int)
-		m[name] = *val
-	}
-
-	return m, nil
 }

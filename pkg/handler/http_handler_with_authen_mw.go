@@ -12,6 +12,7 @@ import (
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/render"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
@@ -321,16 +322,33 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		}
 
 		modulePath := getModuleFromPath(r)
-		var val int
-		// TODO: no policy in db at current time
-		err = db.QueryRow(fmt.Sprintf("SELECT policies.%s FROM users LEFT JOIN policies ON policies.id = users.policy_id WHERE users.email = ?", modulePath.module), claims.Email).Scan(&val)
+		var val string
+		err = db.QueryRow("SELECT policies FROM users WHERE users.email = ?", claims.Email).Scan(&val)
 		if err != nil {
 			log.Println("Err get policy", err)
-			writeErrorResponse(w, defaultResponse, err)
+			writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
 			return
 		}
-		if val != 1 {
-			log.Println("not allowed to get policy " + modulePath.module)
+		var policy models.Policy
+		err = json.Unmarshal([]byte(val), &policy)
+		if err != nil {
+			log.Println("Err get policy", err)
+			writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
+			return
+		}
+		allowed := false
+		for _, i := range policy.Services {
+			if i.Name == "*" || i.Name == modulePath.module {
+				for _, j := range i.Permissions {
+					if j == modulePath.pathFeature {
+						allowed = true
+						break
+					}
+				}
+			}
+		}
+		if !allowed {
+			log.Println("not allowed to get policy "+modulePath.module, modulePath.pathFeature)
 			writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
 			return
 		}

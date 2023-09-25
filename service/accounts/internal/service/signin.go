@@ -10,6 +10,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
 	"github.com/sirupsen/logrus"
 )
 
@@ -112,8 +113,8 @@ func (s *accountServiceHandler) GetUserDetails(db *sql.DB, email string) (*model
 	userResponse.LanguagePreference = user.LanguagePreference
 	userResponse.ThemePreference = user.Theme
 	userResponse.ProfileURL = user.ProfilePhoto
-	userResponse.PolicyID = user.PolicyId
-	policy, err := s.ar.GetUserPolicy(db, user.PolicyId)
+	var policy models.Policy
+	err = json.Unmarshal([]byte(user.Policies), &policy)
 	if err != nil {
 		logrus.Error("get policy error", err)
 	}

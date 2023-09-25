@@ -17,4 +17,5 @@ type User struct {
 	PolicyId           int    `db:"policy_id"`
 	Theme              string `db:"theme"`
 	ProfilePhoto       string `db:"profile_photo"`
+	Policies           string `db:"policies"`
 }

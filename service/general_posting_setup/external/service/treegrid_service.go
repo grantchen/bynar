@@ -56,16 +56,16 @@ func (*treegridService) GetCellData(ctx context.Context, req *treegrid.Treegrid)
 
 // GetPageCount implements treegrid.TreeGridService
 func (s *treegridService) GetPageCount(tr *treegrid.Treegrid) (float64, error) {
-	count, err := s.generalPostingSetupService.GetPageCount(context.Background(), tr)
+	count, err := s.generalPostingSetupService.GetPageCount(tr)
 	return float64(count), err
 }
 
 // GetPageData implements treegrid.TreeGridService
 func (s *treegridService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
-	return s.generalPostingSetupService.GetPageData(context.Background(), tr)
+	return s.generalPostingSetupService.GetPageData(tr)
 }
 
 // Upload implements treegrid.TreeGridService
 func (s *treegridService) Upload(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
-	return s.uploadService.Handle(context.Background(), req)
+	return s.uploadService.Handle(req)
 }

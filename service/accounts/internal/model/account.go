@@ -19,4 +19,5 @@ type Account struct {
 	UID        sql.NullString `db:"uid"`
 	OrgID      sql.NullString `db:"org_id"`
 	Verified   sql.NullInt64  `db:"verified"`
+	Policies   sql.NullString `db:"policies"`
 }

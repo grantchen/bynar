@@ -9,4 +9,5 @@ var UserFieldNames = map[string][]string{
 	"language_preference": {"language_preference"},
 	"policy_id":           {"policy_id"},
 	"theme":               {"theme"},
+	"policies":            {"policies"},
 }

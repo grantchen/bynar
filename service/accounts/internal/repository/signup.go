@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
 )
 
 // CreateOrganization create the organization when creating user
@@ -102,8 +104,10 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, tenantCode
 	}
 	if tenantManagentStatus == 0 {
 		_, err = tx.Exec("UPDATE tenants_management SET status = ? WHERE id = ?", 1, tenantManagentID)
-		logrus.Error("update tenants_management status error ", err.Error())
-		return "", 0, errors.New("update tenants_management status failed")
+		if err != nil {
+			logrus.Error("update tenants_management status error ", err.Error())
+			return "", 0, errors.New("update tenants_management status failed")
+		}
 	}
 	if err == sql.ErrNoRows {
 		// insert managemant
@@ -299,12 +303,14 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 		}
 	}
 	// create user
-	stmt, err := db.Prepare(`INSERT INTO users (email, full_name, phone, status, language_preference, policy_id, theme) VALUES (?,?,?,?,?,?,?)`)
+	stmt, err := db.Prepare(`INSERT INTO users (email, full_name, phone, status, language_preference, policies, theme) VALUES (?,?,?,?,?,?,?)`)
 	if err != nil {
 		logrus.Error(err)
 		return 0, err
 	}
-	res, err := stmt.Exec(email, fullName, phoneNumber, 1, "en", 1, "light")
+	policy := models.Policy{Services: []models.ServicePolicy{{Name: "*", Permissions: []string{"*"}}}}
+	data, _ := json.Marshal(&policy)
+	res, err := stmt.Exec(email, fullName, phoneNumber, 1, "en", string(data), "light")
 	stmt.Close()
 	if err != nil {
 		logrus.Error("insert user error ", err.Error())
