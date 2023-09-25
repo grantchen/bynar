@@ -2,8 +2,8 @@ package repository
 
 import (
 	"database/sql"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model/organization_schema"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/model"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/model/organization_schema"
 )
 
 // AccountRepository provides a interface on db level for user

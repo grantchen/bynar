@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/model"
 )
 
 // CreateOrganization create the organization when creating user

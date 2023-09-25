@@ -9,8 +9,8 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
 	"net/http"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/service"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/model"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/service"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"

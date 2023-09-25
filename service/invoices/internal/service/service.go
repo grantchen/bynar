@@ -2,11 +2,11 @@ package service
 
 import (
 	"database/sql"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
 	"mime/multipart"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/repository"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 )

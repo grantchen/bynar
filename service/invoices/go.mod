@@ -1,4 +1,4 @@
-module git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts
+module git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices
 
 go 1.19
 

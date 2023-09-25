@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/repository"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/service"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/repository"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"github.com/sirupsen/logrus"

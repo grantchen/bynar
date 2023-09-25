@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/repository"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"github.com/sirupsen/logrus"

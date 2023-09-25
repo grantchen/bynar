@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/http"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/service"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/external/handler/http"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/external/handler/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"

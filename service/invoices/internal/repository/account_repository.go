@@ -9,10 +9,10 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model/organization_schema"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/model/organization_schema"
 	"strings"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/model"
 )
 
 // GetOrganizationDetail query organization from database by organizationUuid
