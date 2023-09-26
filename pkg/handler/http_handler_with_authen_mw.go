@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -17,6 +19,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
+	"github.com/sirupsen/logrus"
 )
 
 type ConnectionResolver interface {
@@ -63,9 +66,9 @@ const RequestContextKey key = "reqContext"
 
 var PolicyMap = map[string][]string{
 	"list":   {"data", "page"},
-	"add":    {"upload"},
-	"update": {"upload"},
-	"delete": {"upload"},
+	"add":    {"upload:Added"},
+	"update": {"upload:Changed"},
+	"delete": {"upload:Deleted"},
 }
 
 func (h *HTTPTreeGridHandlerWithDynamicDB) getRequestContext(r *http.Request) *ReqContext {
@@ -229,6 +232,19 @@ func getModuleFromPath(r *http.Request) *ModulePath {
 	} else {
 		modulePath.module = splittedPath[0]
 	}
+	data, _ := io.ReadAll(r.Body)
+	logrus.Info("module data", string(data))
+	if modulePath.pathFeature == "upload" {
+		if strings.Contains(string(data), "Added") {
+			modulePath.pathFeature += ":Added"
+		} else if strings.Contains(string(data), "Deleted") {
+			modulePath.pathFeature += ":Deleted"
+		} else if strings.Contains(string(data), "Changed") {
+			modulePath.pathFeature += ":Changed"
+		}
+	}
+	r.Body.Close() //  must close
+	r.Body = io.NopCloser(bytes.NewBuffer(data))
 	return modulePath
 }
 

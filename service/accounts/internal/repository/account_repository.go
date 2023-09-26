@@ -111,7 +111,7 @@ func (r *accountRepositoryHandler) GetUserDetail(db *sql.DB, email string) (*mod
        coalesce(a.policy_id,0),
        coalesce(a.theme,''),
        coalesce(a.profile_photo,''),
-	   coalesce(a.policies,''),
+	   coalesce(a.policies,'')
 		from users a
 		where a.email = ? and status = ? limit 1`
 	var user = model.User{}
