@@ -40,7 +40,7 @@ func (u *UploadService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string,
 }
 
 func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
-	resp := &treegrid.PostResponse{}
+	resp := &treegrid.PostResponse{Changes: []map[string]interface{}{}}
 	// Create new transaction
 	grList, err := treegrid.ParseRequestUploadSingleRow(req)
 	if err != nil {
