@@ -77,3 +77,6 @@ override.tf.json
 
 go.work
 go.work.sum
+
+.env
+.go-version

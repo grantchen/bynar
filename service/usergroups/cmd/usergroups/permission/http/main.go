@@ -1,9 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
+	"github.com/joho/godotenv"
 
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
@@ -11,26 +14,29 @@ import (
 	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/external/service"
 )
 
 func main() {
-	secretmanager, err := utils.GetSecretManager()
+	err := godotenv.Load("../main/.env")
 	if err != nil {
-		fmt.Printf("error: %v", err)
+		log.Fatal("Error loading .env file in main service")
+	}
+	appConfig := config.NewLocalConfig()
+
+	dbAccount, err := sql_db.NewConnection(appConfig.GetAccountManagementConnection())
+
+	if err != nil {
 		log.Panic(err)
 	}
 
-	connAccountString := "root:123456@tcp(localhost:3306)/accounts_management"
-	dbAccount, err := sql_db.NewConnection(connAccountString)
-
+	authProvider, err := gip.NewGIPClient()
 	if err != nil {
 		log.Panic(err)
 	}
 
 	accountRepository := pkg_repository.NewAccountManagerRepository(dbAccount)
-	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, secretmanager)
+	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, authProvider)
 
 	connectionPool := connection.NewPool()
 	defer func() {

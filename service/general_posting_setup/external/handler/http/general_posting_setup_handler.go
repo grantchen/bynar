@@ -2,8 +2,6 @@ package http_handler
 
 import (
 	"database/sql"
-	"net/http"
-
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/internal/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
@@ -41,9 +39,9 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 			return float64(count), err
 		},
 	}
-	http.HandleFunc("/upload", handler.HTTPHandleUpload)
-	http.HandleFunc("/data", handler.HTTPHandleGetPageCount)
-	http.HandleFunc("/page", handler.HTTPHandleGetPageData)
+	//http.HandleFunc("/upload", handler.HTTPHandleUpload)
+	//http.HandleFunc("/data", handler.HTTPHandleGetPageCount)
+	//http.HandleFunc("/page", handler.HTTPHandleGetPageData)
 
 	return handler
 }

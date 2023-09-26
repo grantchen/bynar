@@ -1,16 +1,18 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
+	"github.com/joho/godotenv"
 
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/internal/service"
 )
@@ -29,9 +31,13 @@ func main() {
 	// if err != nil {
 	// 	log.Panic(err)
 	// }
-
-	connString := "root:123456@tcp(localhost:3306)/bynar"
-	connAccountString := "root:123456@tcp(localhost:3306)/accounts_manager"
+	err := godotenv.Load("../main/.env")
+	if err != nil {
+		log.Fatal("Error loading .env file in main service")
+	}
+	appConfig := config.NewLocalConfig()
+	connString := appConfig.GetAccountManagementConnection()
+	connAccountString := appConfig.GetAccountManagementConnection()
 	// connString := "root:Munrfe2020@tcp(bynar-cet.ccwuyxj7ucnd.eu-central-1.rds.amazonaws.com:3306)/bynar"
 	db, err := sql_db.NewConnection(connString)
 
@@ -77,13 +83,13 @@ func main() {
 
 	uploadService := service.NewUploadService(db, grUserGroupDataUploadRepositoryWithChild, grUserRepository)
 
-	secretmanager, err := utils.GetSecretManager()
+	authProvider, err := gip.NewGIPClient()
 	if err != nil {
-		fmt.Printf("error: %v", err)
 		log.Panic(err)
 	}
+
 	accountRepository := pkg_repository.NewAccountManagerRepository(dbAccount)
-	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, secretmanager)
+	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, authProvider)
 
 	handler := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,

@@ -2,25 +2,34 @@ package main
 
 import (
 	"fmt"
+	connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
 	"log"
 	"net/http"
+	"os"
+
+	"github.com/joho/godotenv"
 
 	general_posting_setup_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/external/handler/http"
 	organizations_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/external/handler/service"
 	payments_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/external/handler/http"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
-	connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/render"
 	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	procurements_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/procurements/external/handler/http"
 	sales_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/external/handler/http"
 	transfers_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/external/handler/http"
 	usergroups_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/external/handler/http"
+
+	accounts_http_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/http"
+	accounts_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/service"
 )
 
 type HandlerMapping struct {
@@ -37,20 +46,63 @@ const prefix = "/apprunnerurl"
 
 func main() {
 
-	secretmanager, err := utils.GetSecretManager()
+	err := godotenv.Load(".env")
 	if err != nil {
-		fmt.Printf("error: %v", err)
-		log.Panic(err)
+		fmt.Println("Error loading .env file in main service ", err)
 	}
+	appConfig := config.NewLocalConfig()
 
-	appConfig := config.NewAWSSecretsManagerConfig(secretmanager)
+	connectionPool := connection.NewPool()
+	defer func() {
+		if closeErr := connectionPool.Close(); closeErr != nil {
+			log.Println(closeErr)
+		}
+	}()
 
 	connString := appConfig.GetDBConnection()
-	db, err := sql_db.NewConnection(connString)
+	db, err := sql_db.InitializeConnection(connString)
 
 	if err != nil {
 		log.Panic(err)
 	}
+
+	accountDB, err := sql_db.NewConnection(appConfig.GetAccountManagementConnection())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	authProvider, err := gip.NewGIPClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+	paymentProvider, err := checkout.NewPaymentClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cloudStorageProvider, err := gcs.NewGCSClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	accountHandler := accounts_http_handler.NewHTTPHandler(accountDB, authProvider, paymentProvider, cloudStorageProvider)
+
+	// Signup endpoints
+	http.Handle("/signup", render.CorsMiddleware(http.HandlerFunc(accountHandler.Signup)))
+	http.Handle("/confirm-email", render.CorsMiddleware(http.HandlerFunc(accountHandler.ConfirmEmail)))
+	http.Handle("/verify-card", render.CorsMiddleware(http.HandlerFunc(accountHandler.VerifyCard)))
+	http.Handle("/create-user", render.CorsMiddleware(http.HandlerFunc(accountHandler.CreateUser)))
+
+	// Signin endpoints
+	http.Handle("/signin-email", render.CorsMiddleware(http.HandlerFunc(accountHandler.SendSignInEmail)))
+	http.Handle("/signin", render.CorsMiddleware(http.HandlerFunc(accountHandler.SignIn)))
+
+	// user endpoints
+	http.Handle("/user", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.User))))
+	http.Handle("/upload", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.UploadProfilePhoto))))
+	http.Handle("/profile-image", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.DeleteProfileImage))))
+	http.Handle("/update-user-language-preference", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.UpdateUserLanguagePreference))))
+	http.Handle("/update-user-theme-preference", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.UpdateUserThemePreference))))
 
 	lsHandlerMapping := make([]*HandlerMapping, 0)
 	lsHandlerMapping = append(lsHandlerMapping,
@@ -87,34 +139,34 @@ func main() {
 	accountManagementConnectionString := appConfig.GetAccountManagementConnection()
 	logger.Debug("connection string account: ", accountManagementConnectionString)
 
-	connectionPool := connection.NewPool()
-	defer func() {
-		if closeErr := connectionPool.Close(); closeErr != nil {
-			log.Println(closeErr)
-		}
-	}()
 	dbAccount, err := connectionPool.Get(accountManagementConnectionString)
 
 	if err != nil {
 		log.Panic(err)
 	}
 	accountRepository := pkg_repository.NewAccountManagerRepository(dbAccount)
-	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, secretmanager)
+	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, authProvider)
 
 	lsHandlerMappingWithPermission := make([]*HandlerMappingWithPermission, 0)
 	lsHandlerMappingWithPermission = append(lsHandlerMappingWithPermission,
-		&HandlerMappingWithPermission{factoryFunc: organizations_service.NewTreeGridServiceFactory(), prefixPath: "/organizations"})
+		&HandlerMappingWithPermission{factoryFunc: organizations_service.NewTreeGridServiceFactory(), prefixPath: "/organizations"},
+		&HandlerMappingWithPermission{factoryFunc: accounts_service.NewTreeGridServiceFactory(), prefixPath: "/user_list"},
+	)
 
 	for _, handlerMappingWithPermission := range lsHandlerMappingWithPermission {
 		handler := &handler.HTTPTreeGridHandlerWithDynamicDB{
 			AccountManagerService:  accountService,
 			TreeGridServiceFactory: handlerMappingWithPermission.factoryFunc,
 			ConnectionPool:         connectionPool,
-			PathPrefix:             prefix + "/organizations",
+			PathPrefix:             prefix + handlerMappingWithPermission.prefixPath,
 		}
 		handler.HandleHTTPReqWithAuthenMWAndDefaultPath()
 	}
 
 	log.Println("start server at 8080!")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 }

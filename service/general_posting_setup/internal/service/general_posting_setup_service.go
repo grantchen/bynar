@@ -1,6 +1,8 @@
 package service
 
-import "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
+import (
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
+)
 
 type generalPostingSetupService struct {
 	generalPostingSetupSimpleRepository treegrid.SimpleGridRowRepository

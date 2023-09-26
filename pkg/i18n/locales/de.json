@@ -1,0 +1,7 @@
+{
+  "error": "Es ist etwas schief gegangen. Komm, noch mal",
+  "permission-denied": "Bolivien nicht autorisierte operationen",
+  "upload-profile-fail":"Avatar konnte nicht hochgeladen werden",
+  "delete-profile-fail": "Avatar konnte nicht gelöscht werden",
+  "method-no-allowed": "Methode nicht erlaubt"
+}

@@ -1,3 +1,27 @@
+Tuesday, 2023/09/12
+- User treegrid endpoints in accounts service.
+
+Friday, 2023/09/08
+- Complete environment creation when user created. (done).
+
+Thursday, 2023/09/07
+- Use a custom verification process when registering. The hmac-sha1 algorithm is used (done).
+- Complete signup, confirm-email, verify-card, create-user handlers (done).
+- Write the sendgrid configuration to the configuration file (done).
+- Complete signin-email, signin handlers (done).
+
+Wednesday, 2023/09/06
+- Refactor the gip package and add unit tests (done).
+- Accounts service handler add gip and checkout providers for verify email and card.
+- Refactor the checkout.com generate GenerateAuthToken and ValidateCard api and test successfully.
+- When registering, use the identity platform to send an email containing a link, verification email (oobcode verification fails).
+
+Tuesday, 2023/09/05
+- implement some interfaces of google identity platform.
+- implment some sign up process code
+- add checkout GenerateAccessToken api code
+- add send mail using sendgrid code
+
 Wednesday, 2023/04/28
 - Build a common handlers (http and lambda) for paths: /data /page /cell /upload.
 - Refactor transfer and payment apps using new handlers.
@@ -14,7 +38,7 @@ Sunday, 2023/04/23
   - loop recursive
 
 Thursday, 2023/04/19
-- Refactor transfer service (done). This service now has a better structure:  
+- Refactor transfer service (done). This service now has a better structure:
 	- 3 layers
 	- Some function move to pkgs for reusing in the future.
 
@@ -23,11 +47,11 @@ Wenesday, 2023/04/19
 
 Monday, 2023/04/17
 - Refactor cell_url and simple_curd done (3 layer and use components db from pkgs)
-- 
+-
 Thurday, 2023/04/13
-- Integrating and refactoring cell_url app.  
-	+ using db component from pkgs app   
-- Integrating and refactoring (in progress) simple_curd app.  
-	+ reorganise folder structure  
-	+ reorganise code structure (3 layer: handler, service and repository)  
+- Integrating and refactoring cell_url app.
+	+ using db component from pkgs app
+- Integrating and refactoring (in progress) simple_curd app.
+	+ reorganise folder structure
+	+ reorganise code structure (3 layer: handler, service and repository)
 

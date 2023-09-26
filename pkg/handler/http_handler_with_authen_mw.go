@@ -4,15 +4,16 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/aws/scope"
-	sql_connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/render"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
@@ -49,6 +50,7 @@ type ReqContext struct {
 	db               *sql.DB
 	AccountID        int
 	PermissionInfo   *treegrid.PermissionInfo
+	OrganizationUuid string
 }
 
 type ModulePath struct {
@@ -66,7 +68,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) getRequestContext(r *http.Request) *R
 
 func (h *HTTPTreeGridHandlerWithDynamicDB) getTreeGridService(r *http.Request) treegrid.TreeGridService {
 	reqContext := h.getRequestContext(r)
-	return h.TreeGridServiceFactory(reqContext.db, reqContext.AccountID, reqContext.PermissionInfo)
+	return h.TreeGridServiceFactory(reqContext.db, reqContext.AccountID, reqContext.OrganizationUuid, reqContext.PermissionInfo)
 }
 
 func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleGetPageCount(w http.ResponseWriter, r *http.Request) {
@@ -225,83 +227,82 @@ func getModuleFromPath(r *http.Request) *ModulePath {
 
 func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		modulePath := getModuleFromPath(r)
-		token := "<<Extract token from req here>>"
 
 		defaultResponse := &treegrid.PostResponse{}
 		defaultResponse.Changes = make([]map[string]interface{}, 0)
-		requestScope, err := scope.ResolveFromToken(token)
 
-		// hard code to test
-		requestScope.OrganizationID = 1
-		requestScope.AccountID = 2
-		if err != nil {
-			writeErrorResponse(w, defaultResponse, err)
+		code, claims, err := middleware.VerifyIdToken(r)
+		if http.StatusOK != code {
+			writeErrorResponse(w, defaultResponse, errors.New(http.StatusText(code)))
 			return
 		}
+		if !claims.OrganizationStatus || !claims.TenantStatus || claims.TenantSuspended {
+			writeErrorResponse(w, defaultResponse, errors.New("no permission"))
+			return
+		}
+
 		logger.Debug("check permission")
-		permission, ok, err := h.AccountManagerService.CheckPermission(&requestScope)
+		permission := &repository.PermissionInfo{}
+		// TODO:
+		// permission, ok, err := h.AccountManagerService.CheckPermission(claims)
 
-		if err != nil {
-			log.Println("Err", err)
-			writeErrorResponse(w, defaultResponse, err)
-			return
-		}
+		// if err != nil {
+		// 	log.Println("Err", err)
+		// 	writeErrorResponse(w, defaultResponse, err)
+		// 	return
+		// }
 
-		if !ok {
-			writeErrorResponse(w, defaultResponse, err)
-			return
-		}
+		// if !ok {
+		// 	writeErrorResponse(w, defaultResponse, err)
+		// 	return
+		// }
 
-		// check role
-		roles, err := h.AccountManagerService.GetRole(requestScope.AccountID)
+		// check role TODO:
+		// roles, err := h.AccountManagerService.GetRole(0)
 
-		if err != nil {
-			log.Println("Err", err)
-			writeErrorResponse(w, defaultResponse, err)
-			return
-		}
+		// if err != nil {
+		// 	log.Println("Err", err)
+		// 	writeErrorResponse(w, defaultResponse, err)
+		// 	return
+		// }
 
-		logger.Debug("role: ", roles, "req string: ", r.URL.Path, "module str: ", modulePath.pathFeature)
+		// logger.Debug("role: ", roles, "req string: ", r.URL.Path, "module str: ", modulePath.pathFeature)
 
-		moduleVal, ok := roles[modulePath.module]
-		if !ok {
-			writeErrorResponse(w, defaultResponse, fmt.Errorf("not found module in policies: [%s]", modulePath))
-			return
-		}
+		// moduleVal, ok := roles[modulePath.module]
+		// if !ok {
+		// 	writeErrorResponse(w, defaultResponse, fmt.Errorf("not found module in policies: [%s]", modulePath))
+		// 	return
+		// }
 
 		// use for pass to modules to filter permission, 0 mean have all permission
-		accID := 0
-		if moduleVal == 0 {
-			writeErrorResponse(w, defaultResponse, fmt.Errorf("no permission allowed to access module: [%s]", modulePath.module))
-			return
-		}
+		// accID := 0
+		// if moduleVal == 0 {
+		// 	writeErrorResponse(w, defaultResponse, fmt.Errorf("no permission allowed to access module: [%s]", modulePath.module))
+		// 	return
+		// }
 
-		moduleDataVal, ok := roles[modulePath.module+"_data"]
-		if !ok {
-			writeErrorResponse(w, defaultResponse, fmt.Errorf("not found module data in policies: [%s]", modulePath.module+"_data"))
-			return
-		}
-		accID = requestScope.AccountID
+		// moduleDataVal, ok := roles[modulePath.module+"_data"]
+		// if !ok {
+		// 	writeErrorResponse(w, defaultResponse, fmt.Errorf("not found module data in policies: [%s]", modulePath.module+"_data"))
+		// 	return
+		// }
+		// accID = 0
 
 		// user can access all module
-		if moduleDataVal == 1 {
-			accID = 0
-		} else {
-			if modulePath.pathFeature != PageCountPathString && modulePath.pathFeature != PageDataPathString {
-				writeErrorResponse(w, defaultResponse, fmt.Errorf("action is not allowed, Only /page and /data allowed"))
-				return
-			}
-		}
+		// if moduleDataVal == 1 {
+		// 	accID = 0
+		// } else {
+		// 	if modulePath.pathFeature != PageCountPathString && modulePath.pathFeature != PageDataPathString {
+		// 		writeErrorResponse(w, defaultResponse, fmt.Errorf("action is not allowed, Only /page and /data allowed"))
+		// 		return
+		// 	}
+		// }
 
 		var connString string
 
-		connString, _ = h.AccountManagerService.GetNewStringConnection(token, permission)
-		if permission.Enterprise == 0 {
-			connString = sql_connection.ChangeDatabaseConnectionSchema(connString, strconv.Itoa(permission.TMOrganizationId))
-		}
+		connString, _ = h.AccountManagerService.GetNewStringConnection(claims.TenantUuid, claims.OrganizationUuid, permission)
 		//hardcode to test
-		// connString = "root:123456@tcp(localhost:3306)/bynar"
+		// connString = "root:123456@tcp(localhost:3306)/172c1ecd-fd74-40a2-8717-1cc9a5e18880"
 
 		db, err := h.ConnectionPool.Get(connString)
 
@@ -310,13 +311,36 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 			writeErrorResponse(w, defaultResponse, err)
 			return
 		}
+		var status int
+		db.QueryRow(`SELECT status FROM users WHERE email = ?`, claims.Email).Scan(&status)
+		if status == 0 {
+			writeErrorResponse(w, defaultResponse, errors.New("user is disabled"))
+			return
+		}
+
+		modulePath := getModuleFromPath(r)
+		var val int
+		// TODO: no policy in db at current time
+		err = db.QueryRow(fmt.Sprintf("SELECT policies.%s FROM users LEFT JOIN policies ON policies.id = users.policy_id WHERE users.email = ?", modulePath.module), claims.Email).Scan(&val)
+		if err != nil {
+			log.Println("Err get policy", err)
+			writeErrorResponse(w, defaultResponse, err)
+			return
+		}
+		if val != 1 {
+			log.Println("not allowed to get policy " + modulePath.module)
+			writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
+			return
+		}
+
 		reqContext := &ReqContext{
 			connectionString: connString,
 			db:               db,
-			AccountID:        accID,
+			AccountID:        claims.OrganizationUserId,
 			PermissionInfo: &treegrid.PermissionInfo{
-				IsAccessAll: accID == 0,
+				IsAccessAll: true,
 			},
+			OrganizationUuid: claims.OrganizationUuid,
 		}
 		ctx := context.WithValue(r.Context(), RequestContextKey, reqContext)
 		newReq := r.WithContext(ctx)
@@ -331,8 +355,8 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) HandleHTTPReqWithAuthenMWAndDefaultPa
 	}
 
 	logger.Debug(h.PathPrefix + "/" + UploadPathString)
-	http.Handle(h.PathPrefix+"/"+UploadPathString, h.authenMW(http.HandlerFunc(h.HTTPHandleUpload)))
-	http.Handle(h.PathPrefix+"/"+PageCountPathString, h.authenMW(http.HandlerFunc(h.HTTPHandleGetPageCount)))
-	http.Handle(h.PathPrefix+"/"+PageDataPathString, h.authenMW(http.HandlerFunc(h.HTTPHandleGetPageData)))
+	http.Handle(h.PathPrefix+"/"+UploadPathString, render.CorsMiddleware(h.authenMW(http.HandlerFunc(h.HTTPHandleUpload))))
+	http.Handle(h.PathPrefix+"/"+PageCountPathString, render.CorsMiddleware(h.authenMW(http.HandlerFunc(h.HTTPHandleGetPageCount))))
+	http.Handle(h.PathPrefix+"/"+PageDataPathString, render.CorsMiddleware(h.authenMW(http.HandlerFunc(h.HTTPHandleGetPageData))))
 
 }
