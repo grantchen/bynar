@@ -1,11 +1,11 @@
 package repository
 
 const (
-	QueryCount = `SELECT COUNT(*) as Count FROM organizations`
+	QueryCount = `select count(*) from invoices inner join providers p on invoices.provider_id = p.id`
 
-	QuerySelect = `SELECT *,vat_number AS vat_no FROM organizations`
+	QuerySelect = `select invoices.id, invoice_date, invoice_no, currency, total, billing_period_date, provider_id, paid from invoices inner join providers p on invoices.provider_id = p.id`
 
 	QueryJoin = ``
 
-	QueryPermissionFormat = ` AND user_group_int IN (SELECT parent_id FROM user_group_lines WHERE user_id = %d) `
+	AdditionWhere = `and account_id = %d`
 )

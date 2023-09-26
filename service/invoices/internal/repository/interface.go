@@ -1,4 +1,4 @@
 package repository
 
-type OrganizationRepository interface {
+type InvoiceRepository interface {
 }

@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/external/handler/service"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/external/handler/service"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
@@ -42,7 +42,7 @@ func main() {
 		AccountManagerService:  accountService,
 		TreeGridServiceFactory: treegridService,
 		ConnectionPool:         connectionPool,
-		PathPrefix:             "/apprunnerurl/organizations",
+		PathPrefix:             "/apprunnerurl/invoices",
 	}
 
 	handler.HandleHTTPReqWithAuthenMWAndDefaultPath()

@@ -5,41 +5,36 @@ import (
 	"database/sql"
 	"fmt"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/internal/repository"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/internal/service"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/repository"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
 type treegridService struct {
-	db                  *sql.DB
-	organizationService service.OrganizationService
-	uploadService       service.UploadService
+	db            *sql.DB
+	uploadService service.UploadService
 }
 
 func newTreeGridService(db *sql.DB, accountID int) treegrid.TreeGridService {
-
-	var filterPermissionCondition string
-
 	logger.Debug("accountID:", accountID)
-	if accountID != 0 {
-		filterPermissionCondition = fmt.Sprintf(repository.QueryPermissionFormat, accountID)
+
+	var additionWhere string
+	if accountID > 0 {
+		additionWhere = fmt.Sprintf(repository.AdditionWhere, accountID)
 	}
 
-	simpleOrganizationRepository := treegrid.NewSimpleGridRowRepositoryWithCfg(db, "organizations", repository.OrganizationFieldNames,
+	simpleInvoiceRepository := treegrid.NewSimpleGridRowRepositoryWithCfg(db, "invoices", repository.InvoiceFieldNames,
 		100, &treegrid.SimpleGridRepositoryCfg{
 			MainCol:       "code",
 			QueryString:   repository.QuerySelect,
 			QueryCount:    repository.QueryCount,
-			AdditionWhere: filterPermissionCondition,
+			AdditionWhere: additionWhere,
 		})
-	organizationService := service.NewOrganizationService(db, simpleOrganizationRepository)
-
-	uploadService, _ := service.NewUploadService(db, organizationService, simpleOrganizationRepository)
+	uploadService, _ := service.NewUploadService(db, simpleInvoiceRepository, accountID)
 	return &treegridService{
-		db:                  db,
-		organizationService: organizationService,
-		uploadService:       *uploadService,
+		db:            db,
+		uploadService: *uploadService,
 	}
 }
 
@@ -56,13 +51,13 @@ func (*treegridService) GetCellData(ctx context.Context, req *treegrid.Treegrid)
 
 // GetPageCount implements treegrid.TreeGridService
 func (s *treegridService) GetPageCount(tr *treegrid.Treegrid) (float64, error) {
-	count, err := s.organizationService.GetPageCount(tr)
+	count, err := s.uploadService.GetPageCount(tr)
 	return float64(count), err
 }
 
 // GetPageData implements treegrid.TreeGridService
 func (s *treegridService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
-	return s.organizationService.GetPageData(tr)
+	return s.uploadService.GetPageData(tr)
 }
 
 // Upload implements treegrid.TreeGridService

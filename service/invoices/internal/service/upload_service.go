@@ -7,25 +7,36 @@ import (
 	"log"
 	"strings"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/internal/repository"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
 type UploadService struct {
-	db                           *sql.DB
-	organizationService          OrganizationService
-	organizationSimpleRepository treegrid.SimpleGridRowRepository
+	db                      *sql.DB
+	invoiceSimpleRepository treegrid.SimpleGridRowRepository
+	accountID               int
 }
 
 func NewUploadService(db *sql.DB,
-	organizationService OrganizationService,
-	organizationSimpleRepository treegrid.SimpleGridRowRepository,
+	invoiceSimpleRepository treegrid.SimpleGridRowRepository,
+	accountID int,
 ) (*UploadService, error) {
 	return &UploadService{
-		db:                           db,
-		organizationService:          organizationService,
-		organizationSimpleRepository: organizationSimpleRepository,
+		db:                      db,
+		invoiceSimpleRepository: invoiceSimpleRepository,
+		accountID:               accountID,
 	}, nil
+}
+
+// GetPageCount implements treegrid.UploadService
+func (u *UploadService) GetPageCount(tr *treegrid.Treegrid) (float64, error) {
+	count, err := u.invoiceSimpleRepository.GetPageCount(tr)
+	return float64(count), err
+}
+
+// GetPageData implements treegrid.UploadService
+func (u *UploadService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
+	return u.invoiceSimpleRepository.GetPageData(tr)
 }
 
 func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
@@ -59,32 +70,34 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 	}
 	defer tx.Rollback()
 
-	fieldsValidating := []string{"code"}
+	fieldsValidating := []string{"invoice_no"}
 
 	// add addition here
 	switch gr.GetActionType() {
 	case treegrid.GridRowActionAdd:
-		err1 := gr.ValidateOnRequiredAll(repository.OrganizationFieldNames)
+		// Assigning values to other fields
+		gr["account_id"] = s.accountID
+		err1 := gr.ValidateOnRequiredAll(repository.InvoiceFieldNames)
 		if err1 != nil {
 			return err1
 		}
-		ok, err1 := s.organizationSimpleRepository.ValidateOnIntegrity(gr, fieldsValidating)
+		ok, err1 := s.invoiceSimpleRepository.ValidateOnIntegrity(gr, fieldsValidating)
 		if !ok || err1 != nil {
 			return fmt.Errorf("validate duplicate: [%v], field: %s", err1, strings.Join(fieldsValidating, ", "))
 		}
-		err = s.organizationSimpleRepository.Add(tx, gr)
+		err = s.invoiceSimpleRepository.Add(tx, gr)
 	case treegrid.GridRowActionChanged:
-		err1 := gr.ValidateOnRequired(repository.OrganizationFieldNames)
+		err1 := gr.ValidateOnRequired(repository.InvoiceFieldNames)
 		if err1 != nil {
 			return err1
 		}
-		ok, err1 := s.organizationSimpleRepository.ValidateOnIntegrity(gr, fieldsValidating)
+		ok, err1 := s.invoiceSimpleRepository.ValidateOnIntegrity(gr, fieldsValidating)
 		if !ok || err1 != nil {
 			return fmt.Errorf("validate duplicate: [%w], field: %s", err1, strings.Join(fieldsValidating, ", "))
 		}
-		err = s.organizationSimpleRepository.Update(tx, gr)
+		err = s.invoiceSimpleRepository.Update(tx, gr)
 	case treegrid.GridRowActionDeleted:
-		err = s.organizationSimpleRepository.Delete(tx, gr)
+		err = s.invoiceSimpleRepository.Delete(tx, gr)
 
 	default:
 		return fmt.Errorf("undefined row type: %s", gr.GetActionType())

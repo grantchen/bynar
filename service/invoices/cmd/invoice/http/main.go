@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/internal/repository"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/internal/service"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/repository"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/service"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
@@ -19,7 +19,7 @@ func main() {
 	// (*gr)["vat_number"] = "123"
 	// (*gr)["state"] = "1123"
 	// (*gr)["code"] = "abc"
-	// s, _ := gr.MakeUpdateQuery("organizations", repository.OrganizationFieldNames)
+	// s, _ := gr.MakeUpdateQuery("invoices", repository.InvoiceFieldNames)
 	// fmt.Println(s)
 
 	// secretmanager, err := utils.GetSecretManager()
@@ -37,21 +37,20 @@ func main() {
 		log.Panic(err)
 	}
 
-	simpleOrganizationRepository := treegrid.NewSimpleGridRowRepositoryWithCfg(db, "organizations", repository.OrganizationFieldNames,
+	simpleInvoiceRepository := treegrid.NewSimpleGridRowRepositoryWithCfg(db, "invoices", repository.InvoiceFieldNames,
 		100, &treegrid.SimpleGridRepositoryCfg{
 			MainCol:     "code",
 			QueryString: repository.QuerySelect,
 			QueryCount:  repository.QueryCount,
 		})
-	organizationService := service.NewOrganizationService(db, simpleOrganizationRepository)
 
-	uploadService, _ := service.NewUploadService(db, organizationService, simpleOrganizationRepository)
+	uploadService, _ := service.NewUploadService(db, simpleInvoiceRepository, 0)
 
 	handler := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,
-		CallbackGetPageDataFunc: organizationService.GetPageData,
+		CallbackGetPageDataFunc: uploadService.GetPageData,
 		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) (float64, error) {
-			count, err := organizationService.GetPageCount(tr)
+			count, err := uploadService.GetPageCount(tr)
 			return float64(count), err
 		},
 	}
