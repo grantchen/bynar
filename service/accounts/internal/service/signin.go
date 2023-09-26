@@ -102,7 +102,6 @@ func (s *accountServiceHandler) GetUserDetails(db *sql.DB, uid string, userId in
 	account, err := s.ar.GetUserAccountDetail(uid)
 	var userResponse = model.GetUserResponse{}
 	if err == nil && account != nil {
-		userResponse.ID = account.ID
 		userResponse.Email = account.Email.String
 		userResponse.FullName = account.FullName.String
 		userResponse.Country = account.Country.String
@@ -117,6 +116,7 @@ func (s *accountServiceHandler) GetUserDetails(db *sql.DB, uid string, userId in
 	if err != nil {
 		return nil, errors.NewUnknownError("user not found").WithInternalCause(err)
 	}
+	userResponse.ID = user.ID
 	userResponse.Email = user.Email
 	userResponse.FullName = user.FullName
 	userResponse.LanguagePreference = user.LanguagePreference

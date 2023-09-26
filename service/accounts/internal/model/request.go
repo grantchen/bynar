@@ -56,3 +56,11 @@ type UpdateUserLanguagePreferenceRequest struct {
 type UpdateUserThemePreferenceRequest struct {
 	ThemePreference string `json:"themePreference" valid:""`
 }
+
+type UpdateUserProfileRequest struct {
+	Email       string `json:"email" valid:""`
+	FullName    string `json:"fullName" valid:""`
+	PhoneNumber string `json:"phoneNumber" valid:""`
+	Language    string `json:"language" valid:""`
+	Theme       string `json:"theme" valid:""`
+}

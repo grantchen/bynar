@@ -8,6 +8,8 @@ import (
 	i18n "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/service"
@@ -279,4 +281,67 @@ func (h *AccountHandler) UpdateUserThemePreference(w http.ResponseWriter, r *htt
 	}
 
 	render.Ok(w, nil)
+}
+
+// UpdateUserProfile update user profile information email phone_number language theme full_name
+func (h *AccountHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		render.MethodNotAllowed(w)
+		return
+	}
+
+	var req model.UpdateUserProfileRequest
+	if err := render.DecodeJSON(r.Body, &req); err != nil {
+		render.Error(w, err.Error())
+		return
+	}
+
+	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
+	if err != nil {
+		handler.LogInternalError(err)
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
+		return
+	}
+	err = h.as.UpdateUserProfile(reqContext.DynamicDB, reqContext.Claims.OrganizationUserId, reqContext.Claims.Uid, req)
+	if err != nil {
+		handler.LogInternalError(err)
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
+		return
+	}
+	render.Ok(w, nil)
+}
+
+// GetUserProfileById get user profile
+func (h *AccountHandler) GetUserProfileById(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		render.MethodNotAllowed(w)
+		return
+	}
+	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
+	if err != nil {
+		handler.LogInternalError(err)
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
+		return
+	}
+	id := strings.TrimPrefix(r.URL.Path, "/user/")
+	if "" == id {
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
+		return
+	}
+	userId, err := strconv.Atoi(id)
+	if err != nil {
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
+		return
+	}
+	if userId != reqContext.Claims.OrganizationUserId {
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
+		return
+	}
+	profile, err := h.as.GetUserProfileById(reqContext.DynamicDB, userId)
+	if err != nil {
+		handler.LogInternalError(err)
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
+		return
+	}
+	render.Ok(w, profile)
 }

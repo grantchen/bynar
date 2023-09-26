@@ -53,3 +53,11 @@ type SignIn struct {
 	Language string `json:"language"`
 	Theme    string `json:"theme"`
 }
+
+type UserProfileResponse struct {
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phoneNumber"`
+	FullName    string `json:"fullName"`
+	Theme       string `json:"theme"`
+	Language    string `json:"language"`
+}

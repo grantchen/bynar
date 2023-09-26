@@ -31,6 +31,12 @@ type AccountService interface {
 	UpdateUserLanguagePreference(db *sql.DB, uid string, userId int, languagePreference string) error
 	// Update user theme preference
 	UpdateUserThemePreference(db *sql.DB, userId int, themePreference string) error
+	// UpdateUserProfile update user profile
+	UpdateUserProfile(db *sql.DB, userId int, uid string, userProfile model.UpdateUserProfileRequest) error
+	// UpdateGipCustomClaims update custom claims of Google Identify Platform
+	UpdateGipCustomClaims(uid string) error
+	// GetUserProfileById get user profile info
+	GetUserProfileById(db *sql.DB, userId int) (*model.UserProfileResponse, error)
 }
 
 type accountServiceHandler struct {

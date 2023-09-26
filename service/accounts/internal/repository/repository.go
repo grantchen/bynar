@@ -25,6 +25,8 @@ type AccountRepository interface {
 	GetUserDetail(db *sql.DB, userId int) (*organization_schema.User, error)
 	// GetUserPolicy get user policy from organization_schema(uuid)
 	GetUserPolicy(db *sql.DB, id int) (map[string]int, error)
+	// UpdateUserProfile update user profile
+	UpdateUserProfile(db *sql.DB, userId int, uid string, req model.UpdateUserProfileRequest) error
 }
 
 type accountRepositoryHandler struct {

@@ -10,6 +10,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"mime/multipart"
@@ -107,4 +108,90 @@ func (s *accountServiceHandler) UpdateUserThemePreference(db *sql.DB, userId int
 	}
 
 	return nil
+}
+
+// UpdateUserProfile update user profile
+func (s *accountServiceHandler) UpdateUserProfile(db *sql.DB, userId int, uid string, userProfile model.UpdateUserProfileRequest) error {
+	prevDetail, err := s.ar.GetUserDetail(db, userId)
+	if err != nil {
+		return errors.NewUnknownError("no user found").WithInternalCause(err)
+	}
+	// if person changes email then only validate email from abstract api
+	var (
+		needUpdate       = false
+		needUpdateClaims = false
+	)
+	gipUpdateParam := map[string]interface{}{}
+	if prevDetail.Email != userProfile.Email {
+		//todo verify email
+		gipUpdateParam["email"] = userProfile.Email
+		needUpdate = true
+	}
+	// if person changes phone number then only validate phone number from abstract api
+	if prevDetail.Phone != userProfile.PhoneNumber {
+		//todo verify phoneNumber
+		gipUpdateParam["phoneNumber"] = userProfile.PhoneNumber
+		needUpdate = true
+	}
+	if prevDetail.FullName != userProfile.FullName {
+		gipUpdateParam["displayName"] = userProfile.FullName
+		needUpdate = true
+	}
+	if prevDetail.Theme != userProfile.Theme || prevDetail.LanguagePreference != userProfile.Language {
+		needUpdate = true
+		needUpdateClaims = true
+	}
+	if false == needUpdate {
+		return errors.NewUnknownError("no data change ")
+	}
+	//update gip user info
+	err = s.authProvider.UpdateUser(context.Background(), uid, gipUpdateParam)
+	if err != nil {
+		return errors.NewUnknownError("update user fail").WithInternalCause(err)
+	}
+	err = s.ar.UpdateUserProfile(db, userId, uid, userProfile)
+	if err != nil {
+		return errors.NewUnknownError("update user fail").WithInternalCause(err)
+	}
+	//update gip custom claims
+	if needUpdateClaims {
+		err = s.UpdateGipCustomClaims(uid)
+		if err != nil {
+			return errors.NewUnknownError("update user fail").WithInternalCause(err)
+		}
+	}
+	return nil
+}
+
+// UpdateGipCustomClaims update custom claims
+func (s *accountServiceHandler) UpdateGipCustomClaims(uid string) error {
+	account, err := s.ar.SelectSignInColumns(uid)
+	if err != nil || account == nil {
+		return errors.NewUnknownError("query claims data fail").WithInternalCause(err)
+	}
+
+	claims, err := convertSignInToClaims(account)
+	if err != nil {
+		return errors.NewUnknownError("convert to claims struct fail").WithInternalCause(err)
+	}
+	err = s.authProvider.SetCustomUserClaims(context.Background(), uid, claims)
+	if err != nil {
+		return errors.NewUnknownError("set custom claims fail").WithInternalCause(err)
+	}
+	return nil
+}
+
+// GetUserProfileById get user profile by userId
+func (s *accountServiceHandler) GetUserProfileById(db *sql.DB, userId int) (*model.UserProfileResponse, error) {
+	detail, err := s.ar.GetUserDetail(db, userId)
+	if err != nil {
+		return nil, errors.NewUnknownError("no user found").WithInternalCause(err)
+	}
+	return &model.UserProfileResponse{
+		Email:       detail.Email,
+		PhoneNumber: detail.Phone,
+		FullName:    detail.FullName,
+		Theme:       detail.Theme,
+		Language:    detail.LanguagePreference,
+	}, nil
 }
