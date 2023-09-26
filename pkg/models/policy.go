@@ -6,5 +6,5 @@ type ServicePolicy struct {
 }
 
 type Policy struct {
-	Services []ServicePolicy `json:"services,omitempty"`
+	Services []ServicePolicy `json:"services"`
 }

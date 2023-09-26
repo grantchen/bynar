@@ -113,7 +113,7 @@ func (s *accountServiceHandler) GetUserDetails(db *sql.DB, email string) (*model
 	userResponse.LanguagePreference = user.LanguagePreference
 	userResponse.ThemePreference = user.Theme
 	userResponse.ProfileURL = user.ProfilePhoto
-	var policy models.Policy
+	policy := models.Policy{Services: make([]models.ServicePolicy, 0)}
 	err = json.Unmarshal([]byte(user.Policies), &policy)
 	if err != nil {
 		logrus.Error("get policy error", err)

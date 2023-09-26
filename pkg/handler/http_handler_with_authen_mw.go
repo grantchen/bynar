@@ -61,6 +61,13 @@ type key string
 
 const RequestContextKey key = "reqContext"
 
+var PolicyMap = map[string][]string{
+	"list":   {"data", "page"},
+	"add":    {"upload"},
+	"update": {"upload"},
+	"delete": {"upload"},
+}
+
 func (h *HTTPTreeGridHandlerWithDynamicDB) getRequestContext(r *http.Request) *ReqContext {
 	reqContext := r.Context().Value(RequestContextKey).(*ReqContext)
 	return reqContext
@@ -329,7 +336,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 			writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
 			return
 		}
-		var policy models.Policy
+		policy := models.Policy{Services: make([]models.ServicePolicy, 0)}
 		err = json.Unmarshal([]byte(val), &policy)
 		if err != nil {
 			log.Println("Err get policy", err)
@@ -340,9 +347,17 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		for _, i := range policy.Services {
 			if i.Name == "*" || i.Name == modulePath.module {
 				for _, j := range i.Permissions {
-					if j == "*" || j == modulePath.pathFeature {
+					if j == "*" {
 						allowed = true
 						break
+					} else {
+						val, _ := PolicyMap[j]
+						for _, m := range val {
+							if m == modulePath.pathFeature {
+								allowed = true
+								break
+							}
+						}
 					}
 				}
 			}
