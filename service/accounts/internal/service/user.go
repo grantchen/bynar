@@ -157,7 +157,7 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 						if ok {
 							if i == "status" {
 								status, _ := gr.GetValInt(i)
-								params[key] = status == 1
+								params[key] = status == 0
 							} else {
 								params[key], _ = gr.GetValString(i)
 							}
