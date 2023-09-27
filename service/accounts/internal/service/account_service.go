@@ -151,7 +151,7 @@ func (s *accountServiceHandler) UpdateUserProfile(db *sql.DB, userId int, uid st
 	//update gip user info
 	err = s.authProvider.UpdateUser(context.Background(), uid, gipUpdateParam)
 	if err != nil {
-		return errors.NewUnknownError("update user profile fail").WithInternalCause(err)
+		return err
 	}
 	// update database user profile
 	err = s.ar.UpdateUserProfile(db, userId, uid, userProfile)
@@ -162,7 +162,7 @@ func (s *accountServiceHandler) UpdateUserProfile(db *sql.DB, userId int, uid st
 	if needUpdateClaims {
 		err = s.UpdateGipCustomClaims(uid)
 		if err != nil {
-			return errors.NewUnknownError("update user profile fail").WithInternalCause(err)
+			return err
 		}
 	}
 	return nil
