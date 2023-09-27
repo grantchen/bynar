@@ -21,7 +21,7 @@ func (s *accountServiceHandler) SignIn(email, oobCode string) (idToken string, e
 	if exists, err = s.authProvider.IsUserExists(context.Background(), email); err != nil {
 		return "", errors.NewUnknownError("sign in fail").WithInternalCause(err)
 	}
-	if exists == false {
+	if !exists {
 		return "", errors.NewUnknownError("sign in fail: email not sign up")
 	}
 	account, err := s.ar.SelectSignInColumns(email)

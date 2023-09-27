@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -138,9 +139,15 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 		logrus.Error("select signin columns error: ", err.Error())
 		return "", errors.New("select signin columns failed")
 	}
-	customToken, err := s.authProvider.CustomTokenWithClaims(context.Background(), uid, map[string]interface{}{
-		"uid": account.Uid, "organization_uuid": account.OrganizationUuid, "organization_user_id": account.OrganizationUserId,
-		"organization_status": account.OrganizationStatus, "tenant_uuid": account.TenantUuid,
-		"organization_account": account.OrganizationAccount})
+	data, err := json.Marshal(&account)
+	if err != nil {
+		return "", err
+	}
+	claims := map[string]interface{}{}
+	err = json.Unmarshal(data, &claims)
+	if err != nil {
+		return "", err
+	}
+	customToken, err := s.authProvider.SignIn(context.Background(), uid, claims)
 	return customToken, err
 }
