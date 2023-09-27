@@ -109,7 +109,6 @@ func (r *accountRepositoryHandler) GetUserDetail(db *sql.DB, userId int) (*organ
        coalesce(a.phone,''),
        a.status,
        coalesce(a.language_preference,''),
-       coalesce(a.policy_id,0),
        coalesce(a.theme,''),
        coalesce(a.profile_photo,''),
 	   coalesce(a.policies,'')
@@ -123,7 +122,7 @@ func (r *accountRepositoryHandler) GetUserDetail(db *sql.DB, userId int) (*organ
 	defer prepare.Close()
 	err = prepare.QueryRow(userId, true).Scan(
 		&user.ID, &user.Email, &user.FullName, &user.Phone, &user.Status,
-		&user.LanguagePreference, &user.PolicyId, &user.Theme, &user.ProfilePhoto, &user.Policies)
+		&user.LanguagePreference, &user.Theme, &user.ProfilePhoto, &user.Policies)
 	if err != nil {
 		return nil, fmt.Errorf("query row: [%w]", err)
 	}
