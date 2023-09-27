@@ -342,7 +342,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		reqContext := &ReqContext{
 			connectionString: connString,
 			db:               db,
-			AccountID:        claims.OrganizationUserId,
+			AccountID:        claims.AccountId,
 			PermissionInfo: &treegrid.PermissionInfo{
 				IsAccessAll: true,
 			},

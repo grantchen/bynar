@@ -14,10 +14,8 @@ import (
 )
 
 func main() {
-
 	connAccountString := "root:123456@tcp(localhost:3306)/accounts_management"
 	dbAccount, err := sql_db.NewConnection(connAccountString)
-
 	if err != nil {
 		log.Panic(err)
 	}
@@ -37,14 +35,13 @@ func main() {
 		}
 	}()
 
-	treegridService := service.NewTreeGridServiceFactory()
 	handler := &handler.HTTPTreeGridHandlerWithDynamicDB{
 		AccountManagerService:  accountService,
-		TreeGridServiceFactory: treegridService,
+		TreeGridServiceFactory: service.NewTreeGridServiceFactory(),
 		ConnectionPool:         connectionPool,
 		PathPrefix:             "/apprunnerurl/invoices",
+		IsValidatePermissions:  false,
 	}
-
 	handler.HandleHTTPReqWithAuthenMWAndDefaultPath()
 
 	// server

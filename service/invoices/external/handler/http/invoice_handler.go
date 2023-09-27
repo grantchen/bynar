@@ -10,20 +10,14 @@ import (
 )
 
 func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGridHandler {
-
 	simpleInvoicesRepository := treegrid.NewSimpleGridRowRepositoryWithCfg(db, "invoicess", repository.InvoiceFieldNames,
 		100, &treegrid.SimpleGridRepositoryCfg{MainCol: "code"})
-
-	uploadService, _ := service.NewUploadService(db, simpleInvoicesRepository, 0)
+	treeGridService, _ := service.NewTreeGridService(db, simpleInvoicesRepository, 0)
 
 	handler := &handler.HTTPTreeGridHandler{
-		CallbackUploadDataFunc:  uploadService.Handle,
-		CallbackGetPageDataFunc: uploadService.GetPageData,
-		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) (float64, error) {
-			count, err := uploadService.GetPageCount(tr)
-			return float64(count), err
-		},
+		CallbackUploadDataFunc:   treeGridService.Handle,
+		CallbackGetPageDataFunc:  treeGridService.GetPageData,
+		CallbackGetPageCountFunc: treeGridService.GetPageCount,
 	}
 	return handler
-
 }

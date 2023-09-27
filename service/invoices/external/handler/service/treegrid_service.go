@@ -11,30 +11,26 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
-type treegridService struct {
-	db            *sql.DB
-	uploadService service.UploadService
+type treeGridService struct {
+	db                      *sql.DB
+	internalTreeGridService service.TreeGridService
 }
 
 func newTreeGridService(db *sql.DB, accountID int) treegrid.TreeGridService {
 	logger.Debug("accountID:", accountID)
-
-	var additionWhere string
-	if accountID > 0 {
-		additionWhere = fmt.Sprintf(repository.AdditionWhere, accountID)
-	}
 
 	simpleInvoiceRepository := treegrid.NewSimpleGridRowRepositoryWithCfg(db, "invoices", repository.InvoiceFieldNames,
 		100, &treegrid.SimpleGridRepositoryCfg{
 			MainCol:       "code",
 			QueryString:   repository.QuerySelect,
 			QueryCount:    repository.QueryCount,
-			AdditionWhere: additionWhere,
+			AdditionWhere: fmt.Sprintf(repository.AdditionWhere, accountID),
 		})
-	uploadService, _ := service.NewUploadService(db, simpleInvoiceRepository, accountID)
-	return &treegridService{
-		db:            db,
-		uploadService: *uploadService,
+	internalTreeGridService, _ := service.NewTreeGridService(db, simpleInvoiceRepository, accountID)
+
+	return &treeGridService{
+		db:                      db,
+		internalTreeGridService: *internalTreeGridService,
 	}
 }
 
@@ -45,22 +41,21 @@ func NewTreeGridServiceFactory() treegrid.TreeGridServiceFactoryFunc {
 }
 
 // GetCellData implements treegrid.TreeGridService
-func (*treegridService) GetCellData(ctx context.Context, req *treegrid.Treegrid) (*treegrid.PostResponse, error) {
+func (*treeGridService) GetCellData(ctx context.Context, req *treegrid.Treegrid) (*treegrid.PostResponse, error) {
 	panic("unimplemented")
 }
 
 // GetPageCount implements treegrid.TreeGridService
-func (s *treegridService) GetPageCount(tr *treegrid.Treegrid) (float64, error) {
-	count, err := s.uploadService.GetPageCount(tr)
-	return float64(count), err
+func (s *treeGridService) GetPageCount(tr *treegrid.Treegrid) (float64, error) {
+	return s.internalTreeGridService.GetPageCount(tr)
 }
 
 // GetPageData implements treegrid.TreeGridService
-func (s *treegridService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
-	return s.uploadService.GetPageData(tr)
+func (s *treeGridService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
+	return s.internalTreeGridService.GetPageData(tr)
 }
 
 // Upload implements treegrid.TreeGridService
-func (s *treegridService) Upload(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
-	return s.uploadService.Handle(req)
+func (s *treeGridService) Upload(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
+	return s.internalTreeGridService.Handle(req)
 }

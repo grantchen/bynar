@@ -11,35 +11,33 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
-type UploadService struct {
+type TreeGridService struct {
 	db                      *sql.DB
 	invoiceSimpleRepository treegrid.SimpleGridRowRepository
 	accountID               int
 }
 
-func NewUploadService(db *sql.DB,
-	invoiceSimpleRepository treegrid.SimpleGridRowRepository,
-	accountID int,
-) (*UploadService, error) {
-	return &UploadService{
+func NewTreeGridService(db *sql.DB, invoiceSimpleRepository treegrid.SimpleGridRowRepository, accountID int) (*TreeGridService, error) {
+	return &TreeGridService{
 		db:                      db,
 		invoiceSimpleRepository: invoiceSimpleRepository,
 		accountID:               accountID,
 	}, nil
 }
 
-// GetPageCount implements treegrid.UploadService
-func (u *UploadService) GetPageCount(tr *treegrid.Treegrid) (float64, error) {
+// GetPageCount implements TreeGridService
+func (u *TreeGridService) GetPageCount(tr *treegrid.Treegrid) (float64, error) {
 	count, err := u.invoiceSimpleRepository.GetPageCount(tr)
 	return float64(count), err
 }
 
-// GetPageData implements treegrid.UploadService
-func (u *UploadService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
+// GetPageData implements TreeGridService
+func (u *TreeGridService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
 	return u.invoiceSimpleRepository.GetPageData(tr)
 }
 
-func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
+// Handle implements TreeGridService
+func (u *TreeGridService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	resp := &treegrid.PostResponse{Changes: []map[string]interface{}{}}
 	// Create new transaction
 	grList, err := treegrid.ParseRequestUploadSingleRow(req)
@@ -63,7 +61,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	return resp, nil
 }
 
-func (s *UploadService) handle(gr treegrid.GridRow) error {
+func (s *TreeGridService) handle(gr treegrid.GridRow) error {
 	tx, err := s.db.BeginTx(context.Background(), nil)
 	if err != nil {
 		return fmt.Errorf("begin transaction: [%w]", err)
@@ -98,7 +96,6 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 		err = s.invoiceSimpleRepository.Update(tx, gr)
 	case treegrid.GridRowActionDeleted:
 		err = s.invoiceSimpleRepository.Delete(tx, gr)
-
 	default:
 		return fmt.Errorf("undefined row type: %s", gr.GetActionType())
 	}
@@ -107,7 +104,7 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 		return err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err = tx.Commit(); err != nil {
 		return fmt.Errorf("commit transaction: [%w]", err)
 	}
 

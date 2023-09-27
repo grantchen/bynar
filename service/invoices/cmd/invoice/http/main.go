@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -13,46 +14,28 @@ import (
 
 // use for test only this module without permission
 func main() {
-	// gr := &treegrid.GridRow{}
-	// (*gr)["id"] = "1"
-	// (*gr)["name"] = "linh"
-	// (*gr)["vat_number"] = "123"
-	// (*gr)["state"] = "1123"
-	// (*gr)["code"] = "abc"
-	// s, _ := gr.MakeUpdateQuery("invoices", repository.InvoiceFieldNames)
-	// fmt.Println(s)
-
-	// secretmanager, err := utils.GetSecretManager()
-	// if err != nil {
-	// 	log.Panic(err)
-	// }
-
-	// appConfig := config.NewAWSSecretsManagerConfig(secretmanager)
-	// connString := appConfig.GetDBConnection()
 	connString := "root:123456@tcp(localhost:3306)/bynar"
-	// connString := "root:Munrfe2020@tcp(bynar-cet.ccwuyxj7ucnd.eu-central-1.rds.amazonaws.com:3306)/bynar"
 	db, err := sql_db.NewConnection(connString)
-
 	if err != nil {
 		log.Panic(err)
 	}
 
+	// TODO
+	// test data
+	accountID := 1
 	simpleInvoiceRepository := treegrid.NewSimpleGridRowRepositoryWithCfg(db, "invoices", repository.InvoiceFieldNames,
 		100, &treegrid.SimpleGridRepositoryCfg{
-			MainCol:     "code",
-			QueryString: repository.QuerySelect,
-			QueryCount:  repository.QueryCount,
+			MainCol:       "code",
+			QueryString:   repository.QuerySelect,
+			QueryCount:    repository.QueryCount,
+			AdditionWhere: fmt.Sprintf(repository.AdditionWhere, accountID),
 		})
-
-	uploadService, _ := service.NewUploadService(db, simpleInvoiceRepository, 0)
+	treeGridService, _ := service.NewTreeGridService(db, simpleInvoiceRepository, accountID)
 
 	handler := &handler.HTTPTreeGridHandler{
-		CallbackUploadDataFunc:  uploadService.Handle,
-		CallbackGetPageDataFunc: uploadService.GetPageData,
-		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) (float64, error) {
-			count, err := uploadService.GetPageCount(tr)
-			return float64(count), err
-		},
+		CallbackUploadDataFunc:   treeGridService.Handle,
+		CallbackGetPageDataFunc:  treeGridService.GetPageData,
+		CallbackGetPageCountFunc: treeGridService.GetPageCount,
 	}
 	http.HandleFunc("/upload", handler.HTTPHandleUpload)
 	http.HandleFunc("/data", handler.HTTPHandleGetPageCount)
