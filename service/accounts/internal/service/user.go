@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/repository"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"github.com/sirupsen/logrus"
@@ -14,8 +15,10 @@ import (
 
 // db to gip key
 var GIP_KEYS = map[string]string{
+	"email":     "email",
 	"full_name": "displayName",
 	"phone":     "phoneNumber",
+	"status":    "disableUser",
 }
 
 type UserService struct {
@@ -131,17 +134,17 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 				}
 				err = s.simpleOrganizationRepository.Update(tx, gr)
 				if err != nil {
-					return err
+					return errors.NewUnknownError("user update failed").WithInternal().WithCause(err)
 				}
 
-				var email string
-				stmt, err := tx.Prepare(`SELECT email FROM users WHERE id=?`)
+				var uid string
+				stmt, err := s.accountDB.Prepare(`SELECT organization_user_uid FROM organization_accounts WHERE organization_id = ? AND organization_user_id = ?`)
 				if err != nil {
-					return err
+					return errors.NewUnknownError("user not found").WithInternal().WithCause(err)
 				}
-				err = stmt.QueryRow(id).Scan(&email)
+				err = stmt.QueryRow(s.organizationID, id).Scan(&uid)
 				if err != nil {
-					return err
+					return errors.NewUnknownError("user not found").WithInternal().WithCause(err)
 				}
 				// update user claims in gip
 				params := map[string]interface{}{}
@@ -150,14 +153,20 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 					if i != "reqID" {
 						key, ok := GIP_KEYS[i]
 						if ok {
-							params[key], _ = gr.GetValString(i)
+							if i == "status" {
+								status, _ := gr.GetValInt(i)
+								params[key] = status == 1
+							} else {
+								params[key], _ = gr.GetValString(i)
+							}
+
 						} else {
 							customClaims[i], _ = gr.GetValString(i)
 						}
 					}
 				}
 				params["customClaims"] = customClaims
-				err = s.authProvider.UpdateUserByEmail(context.Background(), email, params)
+				err = s.authProvider.UpdateUser(context.Background(), uid, params)
 				return err
 			}
 			return nil
