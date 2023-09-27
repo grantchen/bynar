@@ -35,7 +35,7 @@ func NewUserService(db *sql.DB, accountDB *sql.DB, organizationID int, authProvi
 
 // Handle implements treegrid.TreeGridService
 func (s *UserService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
-	resp := &treegrid.PostResponse{}
+	resp := &treegrid.PostResponse{Changes: []map[string]interface{}{}}
 	// Create new transaction
 	grList, err := treegrid.ParseRequestUploadSingleRow(req)
 	if err != nil {
