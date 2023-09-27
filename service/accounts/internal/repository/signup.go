@@ -12,6 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
+	errpkg "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
 )
 
@@ -286,7 +287,7 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 		_, err = db.Exec(fmt.Sprintf("CREATE DATABASE `%s`", organizationUUID))
 		if err != nil {
 			r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
-			return 0, errors.New("create database failed")
+			return 0, errpkg.NewUnknownError("create database failed").WithInternalCause(err)
 		}
 	}
 	_, err = db.Exec(fmt.Sprintf("USE `%s`", organizationUUID))

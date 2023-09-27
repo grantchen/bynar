@@ -10,6 +10,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
@@ -234,13 +235,14 @@ func getModuleFromPath(r *http.Request) *ModulePath {
 		modulePath.module = splittedPath[0]
 	}
 	data, _ := io.ReadAll(r.Body)
-	logrus.Info("module data", string(data))
+	query, _ := url.QueryUnescape(string(data))
+	logrus.Info("module data ", query)
 	if modulePath.pathFeature == "upload" {
-		if strings.Contains(string(data), "Added") {
+		if strings.Contains(query, "Added") {
 			modulePath.pathFeature += ":Added"
-		} else if strings.Contains(string(data), "Deleted") {
+		} else if strings.Contains(query, "Deleted") {
 			modulePath.pathFeature += ":Deleted"
-		} else if strings.Contains(string(data), "Changed") {
+		} else if strings.Contains(query, "Changed") {
 			modulePath.pathFeature += ":Changed"
 		}
 	}
