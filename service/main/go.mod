@@ -5,6 +5,7 @@ go 1.19
 require (
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts v0.0.0-00010101000000-000000000000
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup v0.0.0-00010101000000-000000000000
+	git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices v0.0.0-00010101000000-000000000000
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations v0.0.0-00010101000000-000000000000
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments v0.0.0-00010101000000-000000000000
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs v0.0.0
@@ -75,3 +76,5 @@ replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups => ../user
 replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup => ../general_posting_setup
 
 replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts => ../accounts
+
+replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices => ../invoices

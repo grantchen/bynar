@@ -159,7 +159,13 @@ func (f GridRow) MakeUpdateQuery(tableName string, fieldsMapping map[string][]st
 		}
 
 		if dbNames, ok := fieldsMapping[treegridName]; ok {
-			setsQuery += dbNames[0] + " = ?,"
+			columnName := dbNames[0]
+			if strings.Contains(columnName, "_date") {
+				// If the field is a time type, convert the time string to a time type
+				setsQuery += columnName + " = STR_TO_DATE(?, '%m/%d/%Y'),"
+			} else {
+				setsQuery += columnName + " = ?,"
+			}
 			args = append(args, f[treegridName])
 		}
 	}

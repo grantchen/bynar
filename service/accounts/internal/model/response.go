@@ -52,4 +52,6 @@ type SignIn struct {
 
 	Language string `json:"language"`
 	Theme    string `json:"theme"`
+
+	AccountId int `json:"account_id"`
 }

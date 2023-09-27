@@ -30,6 +30,7 @@ import (
 
 	accounts_http_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/http"
 	accounts_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/service"
+	invoices_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/external/handler/service"
 )
 
 type HandlerMapping struct {
@@ -66,7 +67,10 @@ func main() {
 		log.Panic(err)
 	}
 
-	accountDB, err := sql_db.NewConnection(appConfig.GetAccountManagementConnection())
+	accountManagementConnectionString := appConfig.GetAccountManagementConnection()
+	logger.Debug("connection string account: ", accountManagementConnectionString)
+
+	accountDB, err := sql_db.NewConnection(accountManagementConnectionString)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -104,6 +108,24 @@ func main() {
 	http.Handle("/update-user-language-preference", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.UpdateUserLanguagePreference))))
 	http.Handle("/update-user-theme-preference", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.UpdateUserThemePreference))))
 
+	// TreeGrid Components that require authentication, but not permission
+	accountRepository := pkg_repository.NewAccountManagerRepository(accountDB)
+	accountService := pkg_service.NewAccountManagerService(accountDB, accountRepository, authProvider)
+	lsHandlerMappingWithAuthentication := make([]*HandlerMappingWithPermission, 0)
+	lsHandlerMappingWithAuthentication = append(lsHandlerMappingWithAuthentication,
+		&HandlerMappingWithPermission{factoryFunc: invoices_service.NewTreeGridServiceFactory(), prefixPath: "/invoices"},
+	)
+	for _, handlerMappingWithAuthentication := range lsHandlerMappingWithAuthentication {
+		handler := &handler.HTTPTreeGridHandlerWithDynamicDB{
+			AccountManagerService:  accountService,
+			TreeGridServiceFactory: handlerMappingWithAuthentication.factoryFunc,
+			ConnectionPool:         connectionPool,
+			PathPrefix:             prefix + handlerMappingWithAuthentication.prefixPath,
+			IsValidatePermissions:  false,
+		}
+		handler.HandleHTTPReqWithAuthenMWAndDefaultPath()
+	}
+
 	lsHandlerMapping := make([]*HandlerMapping, 0)
 	lsHandlerMapping = append(lsHandlerMapping,
 		&HandlerMapping{handler: sales_handler.NewHTTPHandler(appConfig, db),
@@ -136,17 +158,6 @@ func main() {
 	}
 
 	// _______________________________________ COMPONENT WITH PERMISSION______________________________________________
-	accountManagementConnectionString := appConfig.GetAccountManagementConnection()
-	logger.Debug("connection string account: ", accountManagementConnectionString)
-
-	dbAccount, err := connectionPool.Get(accountManagementConnectionString)
-
-	if err != nil {
-		log.Panic(err)
-	}
-	accountRepository := pkg_repository.NewAccountManagerRepository(dbAccount)
-	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, authProvider)
-
 	lsHandlerMappingWithPermission := make([]*HandlerMappingWithPermission, 0)
 	lsHandlerMappingWithPermission = append(lsHandlerMappingWithPermission,
 		&HandlerMappingWithPermission{factoryFunc: organizations_service.NewTreeGridServiceFactory(), prefixPath: "/organizations"},
@@ -159,6 +170,7 @@ func main() {
 			TreeGridServiceFactory: handlerMappingWithPermission.factoryFunc,
 			ConnectionPool:         connectionPool,
 			PathPrefix:             prefix + handlerMappingWithPermission.prefixPath,
+			IsValidatePermissions:  true,
 		}
 		handler.HandleHTTPReqWithAuthenMWAndDefaultPath()
 	}

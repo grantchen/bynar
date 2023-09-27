@@ -61,5 +61,16 @@ func (r *accountRepositoryHandler) SelectSignInColumns(uid string) (*model.SignI
 		return nil, fmt.Errorf("query row: [%w]", err)
 	}
 
+	// Query 'accounts_manager.accounts' table
+	querySql = `select id from accounts where uid = ?`
+	stmt, err = r.db.Prepare(querySql)
+	if err != nil {
+		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, querySql)
+	}
+	defer stmt.Close()
+	if err = stmt.QueryRow(uid).Scan(&signIn.AccountId); err != nil {
+		return nil, fmt.Errorf("query row: [%w]", err)
+	}
+
 	return &signIn, nil
 }
