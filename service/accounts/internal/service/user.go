@@ -88,7 +88,7 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 		ok, err1 := s.simpleOrganizationRepository.ValidateOnIntegrity(gr, fieldsValidating)
 		if !ok || err1 != nil {
 			logrus.Errorf("validate duplicate: [%v], field: %s", err1, strings.Join(fieldsValidating, ", "))
-			return fmt.Errorf("validate duplicate, field: %s", strings.Join(fieldsValidating, ", "))
+			return fmt.Errorf("value of field: %s exists", strings.Join(fieldsValidating, ", "))
 		}
 		err = func() error {
 			err = s.simpleOrganizationRepository.Add(tx, gr)
@@ -130,7 +130,8 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 			if ok {
 				ok, err1 := s.simpleOrganizationRepository.ValidateOnIntegrity(gr, fieldsValidating)
 				if !ok || err1 != nil {
-					return fmt.Errorf("validate duplicate: [%w], field: %s", err1, strings.Join(fieldsValidating, ", "))
+					logrus.Errorf("validate duplicate: [%v], field: %s", err1, strings.Join(fieldsValidating, ", "))
+					return fmt.Errorf("value of field: %s exists", strings.Join(fieldsValidating, ", "))
 				}
 				err = s.simpleOrganizationRepository.Update(tx, gr)
 				if err != nil {

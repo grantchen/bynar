@@ -300,7 +300,7 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 		_, err = db.Exec(model.SQL_TEMPLATE)
 		if err != nil {
 			r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
-			return 0, errors.New("create tables failed")
+			return 0, errpkg.NewUnknownError("create tables failed").WithInternalCause(err)
 		}
 	}
 	// create user

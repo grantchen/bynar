@@ -5421,7 +5421,7 @@ CREATE TABLE `users` (
   `phone` varchar(255) DEFAULT NULL,
   `status` tinyint(4) DEFAULT '0',
   `language_preference` varchar(255) DEFAULT 'en',
-  `policies` longtext DEFAULT '',
+  `policies` longtext,
   `theme` varchar(255) DEFAULT NULL,
   `profile_photo` varchar(1000) DEFAULT NULL,
   PRIMARY KEY (`id`) /*T![clustered_index] CLUSTERED */
