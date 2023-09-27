@@ -193,9 +193,6 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleUpload(w http.ResponseWrite
 
 		return
 	}
-	if resp.IO.Message == "" {
-		resp.IO.Message = "success"
-	}
 
 	writeResponse(w, resp)
 }
