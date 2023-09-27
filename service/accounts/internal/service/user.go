@@ -99,7 +99,8 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 			email, _ := gr.GetValString("email")
 			fullName, _ := gr.GetValString("full_name")
 			phone, _ := gr.GetValString("phone")
-			uid, err := s.authProvider.CreateUser(context.Background(), email, fullName, phone)
+			status, _ := gr.GetValInt("status")
+			uid, err := s.authProvider.CreateUser(context.Background(), email, fullName, phone, status == 0)
 			if err != nil {
 				return err
 			}

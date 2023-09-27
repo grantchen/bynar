@@ -10,7 +10,7 @@ type AuthProvider interface {
 	// IsUserExists checks if the user with the specified email exists.
 	IsUserExists(ctx context.Context, email string) (bool, error)
 	// CreateUser creates a new user with the specified properties.
-	CreateUser(ctx context.Context, email, displayName, phoneNumber string) (uid string, err error)
+	CreateUser(ctx context.Context, email, displayName, phoneNumber string, disabled bool) (uid string, err error)
 	// UpdateUser updates an existing user account with the specified properties.
 	UpdateUser(ctx context.Context, uid string, params map[string]interface{}) error
 	// UpdateUserByEmail updates an existing user account with the specified properties.

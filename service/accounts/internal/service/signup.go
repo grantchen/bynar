@@ -105,7 +105,7 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 		}
 	}
 	// create use in gip
-	uid, err := s.authProvider.CreateUser(context.TODO(), email, fullName, phoneNumber)
+	uid, err := s.authProvider.CreateUser(context.TODO(), email, fullName, phoneNumber, false)
 	if err != nil {
 		logrus.Error("gip CreateUser error: ", err.Error())
 		return "", errpkg.NewUnknownError("create user failed: " + err.Error()).WithInternal().WithCause(err)
