@@ -306,7 +306,7 @@ func (h *AccountHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Reques
 	err = h.as.UpdateUserProfile(reqContext.DynamicDB, reqContext.Claims.OrganizationUserId, reqContext.Claims.Uid, req)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.Language, "operation-failed"))
+		render.Error(w, err.Error())
 		return
 	}
 	render.Ok(w, nil)
