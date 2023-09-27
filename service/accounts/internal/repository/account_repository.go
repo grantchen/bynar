@@ -165,7 +165,7 @@ func (r *accountRepositoryHandler) UpdateUserProfile(db *sql.DB, userId int, uid
 		return fmt.Errorf("db prepare: [%w], sql string: [%s]", err, updateSql)
 	}
 	defer prepare.Close()
-	_, err = prepare.Exec(updateSql, req.Email, req.FullName, req.PhoneNumber, req.Language, req.Theme, userId)
+	_, err = prepare.Exec(req.Email, req.FullName, req.PhoneNumber, req.Language, req.Theme, userId)
 	if err != nil {
 		return fmt.Errorf("db update exec: [%w]", err)
 	}
@@ -176,7 +176,7 @@ func (r *accountRepositoryHandler) UpdateUserProfile(db *sql.DB, userId int, uid
 		return fmt.Errorf("db prepare: [%w], sql string: [%s]", err, updateSql)
 	}
 	defer stmt.Close()
-	_, err = stmt.Exec(updateAccountSql, req.Email, req.FullName, req.PhoneNumber, uid)
+	_, err = stmt.Exec(req.Email, req.FullName, req.PhoneNumber, uid)
 	if err != nil {
 		return fmt.Errorf("db update exec: [%w]", err)
 	}

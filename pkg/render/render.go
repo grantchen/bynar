@@ -102,3 +102,19 @@ func renderJSON(w http.ResponseWriter, v interface{}) {
 	w.Header().Add("Access-Control-Allow-Headers", "*")
 	w.Write(data)
 }
+
+// ErrorWithHttpCode failure response
+func ErrorWithHttpCode(w http.ResponseWriter, msg string, code int) {
+	data, err := json.Marshal(struct {
+		Error string `json:"error"`
+	}{Error: msg})
+	if err != nil {
+		http.Error(w, err.Error(), code)
+		return
+	}
+	w.Header().Add("Content-Type", "application/json; charset=utf-8")
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+	w.Header().Add("Access-Control-Allow-Methods", "GET, POST, PUT")
+	w.Header().Add("Access-Control-Allow-Headers", "*")
+	http.Error(w, string(data), code)
+}

@@ -127,10 +127,14 @@ func (s *accountServiceHandler) UpdateUserProfile(db *sql.DB, userId int, uid st
 		gipUpdateParam["email"] = userProfile.Email
 		needUpdate = true
 	}
+	phoneNumber := userProfile.PhoneNumber
+	if phoneNumber[0] != '+' {
+		phoneNumber = "+" + phoneNumber
+	}
 	// if person changes phone number then only validate phone number from abstract api
-	if prevDetail.Phone != userProfile.PhoneNumber {
+	if prevDetail.Phone != phoneNumber {
 		//todo verify phoneNumber
-		gipUpdateParam["phoneNumber"] = userProfile.PhoneNumber
+		gipUpdateParam["phoneNumber"] = phoneNumber
 		needUpdate = true
 	}
 	if prevDetail.FullName != userProfile.FullName {
@@ -142,22 +146,23 @@ func (s *accountServiceHandler) UpdateUserProfile(db *sql.DB, userId int, uid st
 		needUpdateClaims = true
 	}
 	if false == needUpdate {
-		return errors.NewUnknownError("no data change ")
+		return nil
 	}
 	//update gip user info
 	err = s.authProvider.UpdateUser(context.Background(), uid, gipUpdateParam)
 	if err != nil {
-		return errors.NewUnknownError("update user fail").WithInternalCause(err)
+		return errors.NewUnknownError("update user profile fail").WithInternalCause(err)
 	}
+	// update database user profile
 	err = s.ar.UpdateUserProfile(db, userId, uid, userProfile)
 	if err != nil {
-		return errors.NewUnknownError("update user fail").WithInternalCause(err)
+		return errors.NewUnknownError("update user profile fail").WithInternalCause(err)
 	}
 	//update gip custom claims
 	if needUpdateClaims {
 		err = s.UpdateGipCustomClaims(uid)
 		if err != nil {
-			return errors.NewUnknownError("update user fail").WithInternalCause(err)
+			return errors.NewUnknownError("update user profile fail").WithInternalCause(err)
 		}
 	}
 	return nil
@@ -185,7 +190,7 @@ func (s *accountServiceHandler) UpdateGipCustomClaims(uid string) error {
 func (s *accountServiceHandler) GetUserProfileById(db *sql.DB, userId int) (*model.UserProfileResponse, error) {
 	detail, err := s.ar.GetUserDetail(db, userId)
 	if err != nil {
-		return nil, errors.NewUnknownError("no user found").WithInternalCause(err)
+		return nil, errors.NewUnknownError("no record found").WithInternalCause(err)
 	}
 	return &model.UserProfileResponse{
 		Email:       detail.Email,
