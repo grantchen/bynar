@@ -19,7 +19,7 @@ type treegridService struct {
 	userService service.UserService
 }
 
-func newTreeGridService(db *sql.DB, accountID int) treegrid.TreeGridService {
+func newTreeGridService(db *sql.DB, accountID int, organizationUuid string) treegrid.TreeGridService {
 
 	logger.Debug("accountID:", accountID)
 
@@ -36,7 +36,7 @@ func newTreeGridService(db *sql.DB, accountID int) treegrid.TreeGridService {
 		logrus.Error(err)
 	}
 	var oid int
-	accountDB.QueryRow("SELECT organizations.id FROM organizations LEFT JOIN organization_accounts ON organization_accounts.organization_id = organizations.id WHERE organization_accounts.organization_user_id = ?", accountID).Scan(&oid)
+	accountDB.QueryRow("SELECT organizations.id FROM organizations WHERE organization_uuid = ?", organizationUuid).Scan(&oid)
 	userService := service.NewUserService(db, accountDB, oid, authProvider, simpleOrganizationRepository)
 
 	return &treegridService{
@@ -46,8 +46,8 @@ func newTreeGridService(db *sql.DB, accountID int) treegrid.TreeGridService {
 }
 
 func NewTreeGridServiceFactory() treegrid.TreeGridServiceFactoryFunc {
-	return func(db *sql.DB, accountID int, permissionInfo *treegrid.PermissionInfo) treegrid.TreeGridService {
-		return newTreeGridService(db, accountID)
+	return func(db *sql.DB, accountID int, organizationUuid string, permissionInfo *treegrid.PermissionInfo) treegrid.TreeGridService {
+		return newTreeGridService(db, accountID, organizationUuid)
 	}
 }
 

@@ -54,6 +54,7 @@ type ReqContext struct {
 	db               *sql.DB
 	AccountID        int
 	PermissionInfo   *treegrid.PermissionInfo
+	OrganizationUuid string
 }
 
 type ModulePath struct {
@@ -78,7 +79,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) getRequestContext(r *http.Request) *R
 
 func (h *HTTPTreeGridHandlerWithDynamicDB) getTreeGridService(r *http.Request) treegrid.TreeGridService {
 	reqContext := h.getRequestContext(r)
-	return h.TreeGridServiceFactory(reqContext.db, reqContext.AccountID, reqContext.PermissionInfo)
+	return h.TreeGridServiceFactory(reqContext.db, reqContext.AccountID, reqContext.OrganizationUuid, reqContext.PermissionInfo)
 }
 
 func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleGetPageCount(w http.ResponseWriter, r *http.Request) {
@@ -254,12 +255,9 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		defaultResponse := &treegrid.PostResponse{}
 		defaultResponse.Changes = make([]map[string]interface{}, 0)
 
-		code, msg, claims := middleware.VerifyIdToken(r)
+		code, claims, err := middleware.VerifyIdToken(r)
 		if http.StatusOK != code {
-			if msg == "" {
-				msg = http.StatusText(code)
-			}
-			writeErrorResponse(w, defaultResponse, errors.New(msg))
+			writeErrorResponse(w, defaultResponse, errors.New(http.StatusText(code)))
 			return
 		}
 		if !claims.OrganizationStatus || !claims.TenantStatus || claims.TenantSuspended {
@@ -391,6 +389,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 			PermissionInfo: &treegrid.PermissionInfo{
 				IsAccessAll: true,
 			},
+			OrganizationUuid: claims.OrganizationUuid,
 		}
 		ctx := context.WithValue(r.Context(), RequestContextKey, reqContext)
 		newReq := r.WithContext(ctx)

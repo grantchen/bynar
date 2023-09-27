@@ -2,6 +2,7 @@ package http_handler
 
 import (
 	"database/sql"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	i18n "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
@@ -138,7 +139,7 @@ func (h *AccountHandler) SendSignInEmail(w http.ResponseWriter, r *http.Request)
 	}
 	var req model.SendSignInEmailRequest
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
-		handler.LogInternalError(err)
+		handler.LogInternalError(errors.NewUnknownError("decode request fail").WithInternalCause(err))
 		render.Error(w, err.Error())
 		return
 	}
@@ -159,11 +160,11 @@ func (h *AccountHandler) User(w http.ResponseWriter, r *http.Request) {
 	}
 	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
-		handler.LogInternalError(err)
+		handler.LogInternalError(errors.NewUnknownError("verify token fail").WithInternalCause(err))
 		render.Error(w, err.Error())
 		return
 	}
-	userResponse, err := h.as.GetUserDetails(reqContext.DynamicDB, reqContext.Claims.Email)
+	userResponse, err := h.as.GetUserDetails(reqContext.DynamicDB, reqContext.Claims.Uid, reqContext.Claims.OrganizationUserId)
 	if err != nil {
 		handler.LogInternalError(err)
 		render.Error(w, err.Error())
@@ -182,19 +183,19 @@ func (h *AccountHandler) UploadProfilePhoto(w http.ResponseWriter, r *http.Reque
 	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "upload-profile-fail"))
 		return
 	}
 	reader, err := r.MultipartReader()
 	if err != nil || reader == nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "upload-profile-fail"))
 		return
 	}
-	url, err := h.as.UploadFileToGCS(reqContext.DynamicDB, reqContext.Claims.OrganizationUuid, reqContext.Claims.Email, reader)
+	url, err := h.as.UploadFileToGCS(reqContext.DynamicDB, reqContext.Claims.OrganizationUuid, reqContext.Claims.OrganizationUserId, reader)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "upload-profile-fail"))
 		return
 
 	}
@@ -210,15 +211,15 @@ func (h *AccountHandler) DeleteProfileImage(w http.ResponseWriter, r *http.Reque
 	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, err.Error())
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "delete-profile-fail"))
 		return
 	}
 
-	err = h.as.DeleteFileFromGCS(reqContext.DynamicDB, reqContext.Claims.OrganizationUuid, reqContext.Claims.Email)
+	err = h.as.DeleteFileFromGCS(reqContext.DynamicDB, reqContext.Claims.OrganizationUuid, reqContext.Claims.OrganizationUserId)
 
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "delete-profile-fail"))
 		return
 	}
 	render.Ok(w, nil)
@@ -242,7 +243,7 @@ func (h *AccountHandler) UpdateUserLanguagePreference(w http.ResponseWriter, r *
 		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
 		return
 	}
-	err = h.as.UpdateUserLanguagePreference(reqContext.DynamicDB, reqContext.Claims.Email, req.LanguagePreference)
+	err = h.as.UpdateUserLanguagePreference(reqContext.DynamicDB, reqContext.Claims.Uid, reqContext.Claims.OrganizationUserId, req.LanguagePreference)
 	if err != nil {
 		handler.LogInternalError(err)
 		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
@@ -270,7 +271,7 @@ func (h *AccountHandler) UpdateUserThemePreference(w http.ResponseWriter, r *htt
 		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
 		return
 	}
-	err = h.as.UpdateUserThemePreference(reqContext.DynamicDB, reqContext.Claims.Email, req.ThemePreference)
+	err = h.as.UpdateUserThemePreference(reqContext.DynamicDB, reqContext.Claims.OrganizationUserId, req.ThemePreference)
 	if err != nil {
 		handler.LogInternalError(err)
 		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))

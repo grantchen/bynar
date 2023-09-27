@@ -133,7 +133,7 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 		return "", errpkg.NewUnknownError("create user failed").WithInternal().WithCause(err)
 	}
 	// return idToken after created
-	account, err := s.ar.SelectSignInColumns(email)
+	account, err := s.ar.SelectSignInColumns(uid)
 	if err != nil {
 		logrus.Error("select signin columns error: ", err.Error())
 		return "", errors.New("select signin columns failed")

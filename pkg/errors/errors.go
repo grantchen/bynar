@@ -43,6 +43,16 @@ func (e *Error) Is(err error) bool {
 	return false
 }
 
+// WithInternalCause with the underlying internal and cause of the error.
+func (e *Error) WithInternalCause(cause error) *Error {
+	err := Clone(e)
+	err.internal = true
+	err.cause = cause
+	// overwrite stack
+	err.withStack()
+	return err
+}
+
 // WithInternal with the underlying internal of the error.
 func (e *Error) WithInternal() *Error {
 	err := Clone(e)

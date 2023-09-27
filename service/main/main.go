@@ -60,7 +60,7 @@ func main() {
 	}()
 
 	connString := appConfig.GetDBConnection()
-	db, err := sql_db.NewConnection(connString)
+	db, err := sql_db.InitializeConnection(connString)
 
 	if err != nil {
 		log.Panic(err)

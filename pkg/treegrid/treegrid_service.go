@@ -12,4 +12,4 @@ type TreeGridService interface {
 	GetCellData(ctx context.Context, req *Treegrid) (*PostResponse, error)
 }
 
-type TreeGridServiceFactoryFunc func(db *sql.DB, AccountID int, permissionInfo *PermissionInfo) TreeGridService
+type TreeGridServiceFactoryFunc func(db *sql.DB, accountID int, organizationUuid string, permissionInfo *PermissionInfo) TreeGridService

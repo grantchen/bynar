@@ -7,6 +7,8 @@
 package handler
 
 import (
+	"database/sql"
+	goErrors "errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"github.com/sirupsen/logrus"
@@ -16,7 +18,9 @@ import (
 func LogInternalError(err error) {
 	fromError := errors.FromError(err)
 	if fromError != nil && fromError.IsInternal() {
-		logrus.Errorf("%s, stack: %s", fromError.FullError(), fromError.Stack())
+		if !goErrors.Is(err, sql.ErrNoRows) {
+			logrus.Errorf("%s, stack: %s", fromError.FullError(), fromError.Stack())
+		}
 
 		if !config.IsProductionEnv() {
 			logrus.Printf("%s, stack: %s", fromError.FullError(), fromError.Stack())
