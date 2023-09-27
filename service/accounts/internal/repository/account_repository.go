@@ -156,3 +156,29 @@ func (r *accountRepositoryHandler) GetUserPolicy(db *sql.DB, id int) (map[string
 
 	return m, nil
 }
+
+// UpdateUserProfile update user profile
+func (r *accountRepositoryHandler) UpdateUserProfile(db *sql.DB, userId int, uid string, req model.UpdateUserProfileRequest) error {
+	updateSql := `update users set email = ?,full_name = ?,phone = ?,language_preference = ?,theme = ? where id = ?`
+	prepare, err := db.Prepare(updateSql)
+	if err != nil {
+		return fmt.Errorf("db prepare: [%w], sql string: [%s]", err, updateSql)
+	}
+	defer prepare.Close()
+	_, err = prepare.Exec(req.Email, req.FullName, req.PhoneNumber, req.Language, req.Theme, userId)
+	if err != nil {
+		return fmt.Errorf("db update exec: [%w]", err)
+	}
+
+	updateAccountSql := `update accounts set email = ?,full_name = ?,phone = ? where uid = ?`
+	stmt, err := r.db.Prepare(updateAccountSql)
+	if err != nil {
+		return fmt.Errorf("db prepare: [%w], sql string: [%s]", err, updateSql)
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(req.Email, req.FullName, req.PhoneNumber, uid)
+	if err != nil {
+		return fmt.Errorf("db update exec: [%w]", err)
+	}
+	return nil
+}

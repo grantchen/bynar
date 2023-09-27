@@ -55,3 +55,11 @@ type SignIn struct {
 
 	AccountId int `json:"account_id"`
 }
+
+type UserProfileResponse struct {
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phoneNumber"`
+	FullName    string `json:"fullName"`
+	Theme       string `json:"theme"`
+	Language    string `json:"language"`
+}
