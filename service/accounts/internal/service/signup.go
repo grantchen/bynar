@@ -148,6 +148,6 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 	if err != nil {
 		return "", err
 	}
-	customToken, err := s.authProvider.SignIn(context.Background(), uid, claims)
+	customToken, err := s.authProvider.CustomTokenWithClaims(context.Background(), uid, claims)
 	return customToken, err
 }
