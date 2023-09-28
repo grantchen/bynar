@@ -85,11 +85,17 @@ func (s *TreeGridService) handle(gr treegrid.GridRow) error {
 		}
 		err = s.invoiceSimpleRepository.Add(tx, gr)
 	case treegrid.GridRowActionChanged:
+		// Support operations that are not "update"
+		_, ok := gr.GetValInt("id")
+		if !ok {
+			return nil
+		}
+
 		err1 := gr.ValidateOnRequired(repository.InvoiceFieldNames)
 		if err1 != nil {
 			return err1
 		}
-		ok, err1 := s.invoiceSimpleRepository.ValidateOnIntegrity(gr, fieldsValidating)
+		ok, err1 = s.invoiceSimpleRepository.ValidateOnIntegrity(gr, fieldsValidating)
 		if !ok || err1 != nil {
 			return fmt.Errorf("validate duplicate: [%w], field: %s", err1, strings.Join(fieldsValidating, ", "))
 		}
