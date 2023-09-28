@@ -118,40 +118,43 @@ func (s *accountServiceHandler) UpdateUserProfile(db *sql.DB, userId int, uid st
 	}
 	// if person changes email then only validate email from abstract api
 	var (
-		needUpdate       = false
+		needUpdateUser   = false
 		needUpdateClaims = false
 	)
 	gipUpdateParam := map[string]interface{}{}
 	if prevDetail.Email != userProfile.Email {
 		//todo verify email
 		gipUpdateParam["email"] = userProfile.Email
-		needUpdate = true
+		needUpdateUser = true
 	}
 	phoneNumber := userProfile.PhoneNumber
 	if phoneNumber[0] != '+' {
 		phoneNumber = "+" + phoneNumber
+		userProfile.PhoneNumber = phoneNumber
 	}
+
 	// if person changes phone number then only validate phone number from abstract api
 	if prevDetail.Phone != phoneNumber {
 		//todo verify phoneNumber
 		gipUpdateParam["phoneNumber"] = phoneNumber
-		needUpdate = true
+		needUpdateUser = true
 	}
 	if prevDetail.FullName != userProfile.FullName {
 		gipUpdateParam["displayName"] = userProfile.FullName
-		needUpdate = true
+		needUpdateUser = true
 	}
 	if prevDetail.Theme != userProfile.Theme || prevDetail.LanguagePreference != userProfile.Language {
-		needUpdate = true
 		needUpdateClaims = true
 	}
-	if false == needUpdate {
+	if false == needUpdateUser && needUpdateClaims == false {
 		return nil
 	}
 	//update gip user info
-	err = s.authProvider.UpdateUser(context.Background(), uid, gipUpdateParam)
-	if err != nil {
-		return err
+	if needUpdateUser {
+		err = s.authProvider.UpdateUser(context.Background(), uid, gipUpdateParam)
+		if err != nil {
+			return err
+		}
 	}
 	// update database user profile
 	err = s.ar.UpdateUserProfile(db, userId, uid, userProfile)
