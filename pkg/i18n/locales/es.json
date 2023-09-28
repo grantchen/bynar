@@ -3,5 +3,8 @@
   "permission-denied": "Operación no autorizada",
   "upload-profile-fail": "No se pudo subir el avatar",
   "delete-profile-fail": "No se pudo eliminar el avatar",
-  "method-no-allowed": "Método no permitido"
+  "method-no-allowed": "Método no permitido",
+  "operation-failed": "operación fallida",
+  "request-parameter-error":"Error de parámetro de solicitud",
+  "no-record-found": "Ningún record fue encontrado"
 }

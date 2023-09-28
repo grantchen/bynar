@@ -3,5 +3,8 @@
   "permission-denied": "Bolivien nicht autorisierte operationen",
   "upload-profile-fail":"Avatar konnte nicht hochgeladen werden",
   "delete-profile-fail": "Avatar konnte nicht gelöscht werden",
-  "method-no-allowed": "Methode nicht erlaubt"
+  "method-no-allowed": "Methode nicht erlaubt",
+  "operation-failed": "Der Vorgang ist fehlgeschlagen",
+  "request-parameter-error":"Fehler beim Anforderungsparameter",
+  "no-record-found": "Kein Datensatz gefunden"
 }

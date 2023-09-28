@@ -8,6 +8,8 @@ import (
 	i18n "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/service"
@@ -279,4 +281,69 @@ func (h *AccountHandler) UpdateUserThemePreference(w http.ResponseWriter, r *htt
 	}
 
 	render.Ok(w, nil)
+}
+
+// UpdateUserProfile update user profile information email phone_number language theme full_name
+func (h *AccountHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
+	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
+	if err != nil {
+		handler.LogInternalError(err)
+		render.Error(w, i18n.Localize("", "error"))
+		return
+	}
+
+	if r.Method != http.MethodPut {
+		render.ErrorWithHttpCode(w, i18n.Localize(reqContext.Claims.Language, "method-no-allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req model.UpdateUserProfileRequest
+	if err = render.DecodeJSON(r.Body, &req); err != nil {
+		render.ErrorWithHttpCode(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.as.UpdateUserProfile(reqContext.DynamicDB, reqContext.Claims.OrganizationUserId, reqContext.Claims.Uid, req)
+	if err != nil {
+		handler.LogInternalError(err)
+		render.Error(w, err.Error())
+		return
+	}
+	render.Ok(w, nil)
+}
+
+// GetUserProfileById get user profile
+func (h *AccountHandler) GetUserProfileById(w http.ResponseWriter, r *http.Request) {
+	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
+	if err != nil {
+		handler.LogInternalError(err)
+		render.Error(w, i18n.Localize("", "error"))
+		return
+	}
+	if r.Method != http.MethodGet {
+		render.ErrorWithHttpCode(w, i18n.Localize(reqContext.Claims.Language, "method-no-allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	id := strings.TrimPrefix(r.URL.Path, "/user/")
+	if "" == id {
+		render.ErrorWithHttpCode(w, i18n.Localize(reqContext.Claims.Language, "request-parameter-error"), http.StatusBadRequest)
+		return
+	}
+	userId, err := strconv.Atoi(id)
+	if err != nil {
+		render.ErrorWithHttpCode(w, i18n.Localize(reqContext.Claims.Language, "request-parameter-error"), http.StatusBadRequest)
+		return
+	}
+	if userId != reqContext.Claims.OrganizationUserId {
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "permission-denied"))
+		return
+	}
+	profile, err := h.as.GetUserProfileById(reqContext.DynamicDB, userId)
+	if err != nil {
+		handler.LogInternalError(err)
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, "no-record-found"))
+		return
+	}
+	render.Ok(w, profile)
 }

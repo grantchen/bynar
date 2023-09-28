@@ -83,6 +83,7 @@ func main() {
 	http.Handle("/profile-image", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(httpHandler.DeleteProfileImage))))
 	http.Handle("/update-user-language-preference", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(httpHandler.UpdateUserLanguagePreference))))
 	http.Handle("/update-user-theme-preference", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(httpHandler.UpdateUserThemePreference))))
+	http.Handle("/update-profile", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(httpHandler.UpdateUserProfile))))
 
 	// accounts treegrid endpoints
 	dbHandler := &handler.HTTPTreeGridHandlerWithDynamicDB{

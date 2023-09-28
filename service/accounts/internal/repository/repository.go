@@ -23,6 +23,8 @@ type AccountRepository interface {
 	UpdateProfilePhotoOfUsers(db *sql.DB, userId int, profilePhoto string) error
 	// GetUserDetail get user details from organization_schema(uuid)
 	GetUserDetail(db *sql.DB, userId int) (*organization_schema.User, error)
+	// UpdateUserProfile update user profile
+	UpdateUserProfile(db *sql.DB, userId int, uid string, req model.UpdateUserProfileRequest) error
 }
 
 type accountRepositoryHandler struct {

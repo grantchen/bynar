@@ -43,7 +43,8 @@ type IdTokenClaims struct {
 		} `json:"identities"`
 		SignInProvider string `json:"sign_in_provider"`
 	} `json:"firebase"`
-	Language string `json:"language"`
+	Language  string `json:"language"`
+	AccountId int    `json:"account_id"`
 }
 
 // endpoints skip idToken auth
