@@ -313,22 +313,20 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 				writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
 				return
 			}
-
-			reqContext := &ReqContext{
-				connectionString: connString,
-				db:               db,
-				AccountID:        claims.AccountId,
-				PermissionInfo: &treegrid.PermissionInfo{
-					IsAccessAll: true,
-				},
-				OrganizationUuid: claims.OrganizationUuid,
-			}
-			ctx := context.WithValue(r.Context(), RequestContextKey, reqContext)
-			newReq := r.WithContext(ctx)
-			next.ServeHTTP(w, newReq)
-			return
 		}
-		next.ServeHTTP(w, r)
+
+		reqContext := &ReqContext{
+			connectionString: connString,
+			db:               db,
+			AccountID:        claims.AccountId,
+			PermissionInfo: &treegrid.PermissionInfo{
+				IsAccessAll: true,
+			},
+			OrganizationUuid: claims.OrganizationUuid,
+		}
+		ctx := context.WithValue(r.Context(), RequestContextKey, reqContext)
+		newReq := r.WithContext(ctx)
+		next.ServeHTTP(w, newReq)
 	})
 }
 
