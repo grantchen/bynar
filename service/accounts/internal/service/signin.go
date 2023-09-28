@@ -65,7 +65,7 @@ func (s *accountServiceHandler) SendSignInEmail(email string) *errors.Error {
 		err        error            = nil
 	)
 	if userRecord, err = s.authProvider.GetUserByEmail(context.Background(), email); err != nil || userRecord == nil {
-		return errors.NewUnknownError("email not signed up", "").WithInternalCause(err).WithMetadata(map[string]string{"uid": userRecord.UserInfo.UID})
+		return errors.NewUnknownError("email not signed up", "").WithInternalCause(err)
 	}
 
 	account, err := s.ar.SelectSignInColumns(userRecord.UserInfo.UID)
