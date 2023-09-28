@@ -12,6 +12,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
+	"github.com/sirupsen/logrus"
 )
 
 // SelectSignInColumns query accounts,organization_accounts,organizations,tenants columns to generate idToken of
@@ -70,7 +71,9 @@ func (r *accountRepositoryHandler) SelectSignInColumns(uid string) (*model.SignI
 	}
 	defer stmt.Close()
 	if err = stmt.QueryRow(uid).Scan(&signIn.AccountId); err != nil {
-		return nil, fmt.Errorf("query row: [%w]", err)
+		// user not exists in accounts if user added in user list
+		logrus.Error("query row: [%w]", err)
+		// return nil, fmt.Errorf("query row: [%w]", err)
 	}
 
 	return &signIn, nil
