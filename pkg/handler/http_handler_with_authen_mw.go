@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -18,7 +18,6 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/render"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"github.com/sirupsen/logrus"
@@ -275,76 +274,61 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		// Validate permissions
 		if h.IsValidatePermissions {
 			logger.Debug("check permission")
-			permission := &repository.PermissionInfo{}
-			// TODO:
-			// permission, ok, err := h.AccountManagerService.CheckPermission(claims)
-
-			// if err != nil {
-			// 	log.Println("Err", err)
-			// 	writeErrorResponse(w, defaultResponse, err)
-			// 	return
-			// }
-
-			// if !ok {
-			// 	writeErrorResponse(w, defaultResponse, err)
-			// 	return
-			// }
-
-			// check role TODO:
-			// roles, err := h.AccountManagerService.GetRole(0)
-
-		modulePath := getModuleFromPath(r)
-		var val string
-		err = db.QueryRow("SELECT policies FROM users WHERE users.email = ?", claims.Email).Scan(&val)
-		if err != nil {
-			log.Println("Err get policy", err)
-			writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
-			return
-		}
-		policy := models.Policy{Services: make([]models.ServicePolicy, 0)}
-		err = json.Unmarshal([]byte(val), &policy)
-		if err != nil {
-			log.Println("Err get policy", err)
-			writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
-			return
-		}
-		allowed := false
-		for _, i := range policy.Services {
-			if i.Name == "*" || i.Name == modulePath.module {
-				for _, j := range i.Permissions {
-					if j == "*" {
-						allowed = true
-						break
-					} else {
-						val, _ := PolicyMap[j]
-						for _, m := range val {
-							if m == modulePath.pathFeature {
-								allowed = true
-								break
+			modulePath := getModuleFromPath(r)
+			var val string
+			err = db.QueryRow("SELECT policies FROM users WHERE users.email = ?", claims.Email).Scan(&val)
+			if err != nil {
+				log.Println("Err get policy", err)
+				writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
+				return
+			}
+			policy := models.Policy{Services: make([]models.ServicePolicy, 0)}
+			err = json.Unmarshal([]byte(val), &policy)
+			if err != nil {
+				log.Println("Err get policy", err)
+				writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
+				return
+			}
+			allowed := false
+			for _, i := range policy.Services {
+				if i.Name == "*" || i.Name == modulePath.module {
+					for _, j := range i.Permissions {
+						if j == "*" {
+							allowed = true
+							break
+						} else {
+							val, _ := PolicyMap[j]
+							for _, m := range val {
+								if m == modulePath.pathFeature {
+									allowed = true
+									break
+								}
 							}
 						}
 					}
 				}
 			}
-		}
-		if !allowed {
-			log.Println("not allowed to get policy "+modulePath.module, modulePath.pathFeature)
-			writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
+			if !allowed {
+				log.Println("not allowed to get policy "+modulePath.module, modulePath.pathFeature)
+				writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
+				return
+			}
+
+			reqContext := &ReqContext{
+				connectionString: connString,
+				db:               db,
+				AccountID:        claims.AccountId,
+				PermissionInfo: &treegrid.PermissionInfo{
+					IsAccessAll: true,
+				},
+				OrganizationUuid: claims.OrganizationUuid,
+			}
+			ctx := context.WithValue(r.Context(), RequestContextKey, reqContext)
+			newReq := r.WithContext(ctx)
+			next.ServeHTTP(w, newReq)
 			return
 		}
-
-		reqContext := &ReqContext{
-			connectionString: connString,
-			db:               db,
-			AccountID:        claims.AccountId,
-			PermissionInfo: &treegrid.PermissionInfo{
-				IsAccessAll: true,
-			},
-			OrganizationUuid: claims.OrganizationUuid,
-		}
-		ctx := context.WithValue(r.Context(), RequestContextKey, reqContext)
-		newReq := r.WithContext(ctx)
-		next.ServeHTTP(w, newReq)
+		next.ServeHTTP(w, r)
 	})
 }
 
