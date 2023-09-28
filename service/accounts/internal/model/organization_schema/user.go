@@ -14,7 +14,7 @@ type User struct {
 	Phone              string `db:"phone"`
 	Status             bool   `db:"status"`
 	LanguagePreference string `db:"language_preference"`
-	PolicyId           int    `db:"policy_id"`
 	Theme              string `db:"theme"`
 	ProfilePhoto       string `db:"profile_photo"`
+	Policies           string `db:"policies"`
 }

@@ -1,22 +1,28 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
+
+	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/render"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
+	"github.com/sirupsen/logrus"
 )
 
 type ConnectionResolver interface {
@@ -62,6 +68,13 @@ type ModulePath struct {
 type key string
 
 const RequestContextKey key = "reqContext"
+
+var PolicyMap = map[string][]string{
+	"list":   {"data", "page"},
+	"add":    {"upload:Added"},
+	"update": {"upload:Changed"},
+	"delete": {"upload:Deleted"},
+}
 
 func (h *HTTPTreeGridHandlerWithDynamicDB) getRequestContext(r *http.Request) *ReqContext {
 	reqContext := r.Context().Value(RequestContextKey).(*ReqContext)
@@ -224,6 +237,20 @@ func getModuleFromPath(r *http.Request) *ModulePath {
 	} else {
 		modulePath.module = splittedPath[0]
 	}
+	data, _ := io.ReadAll(r.Body)
+	query, _ := url.QueryUnescape(string(data))
+	logrus.Info("module data ", query)
+	if modulePath.pathFeature == "upload" {
+		if strings.Contains(query, "Added") {
+			modulePath.pathFeature += ":Added"
+		} else if strings.Contains(query, "Deleted") {
+			modulePath.pathFeature += ":Deleted"
+		} else if strings.Contains(query, "Changed") {
+			modulePath.pathFeature += ":Changed"
+		}
+	}
+	r.Body.Close() //  must close
+	r.Body = io.NopCloser(bytes.NewBuffer(data))
 	return modulePath
 }
 
@@ -250,90 +277,49 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		if h.IsValidatePermissions {
 			logger.Debug("check permission")
 			permission := &repository.PermissionInfo{}
-			// TODO:
-			// permission, ok, err := h.AccountManagerService.CheckPermission(claims)
-
-			// if err != nil {
-			// 	log.Println("Err", err)
-			// 	writeErrorResponse(w, defaultResponse, err)
-			// 	return
-			// }
-
-			// if !ok {
-			// 	writeErrorResponse(w, defaultResponse, err)
-			// 	return
-			// }
-
-			// check role TODO:
-			// roles, err := h.AccountManagerService.GetRole(0)
-
-			// if err != nil {
-			// 	log.Println("Err", err)
-			// 	writeErrorResponse(w, defaultResponse, err)
-			// 	return
-			// }
-
-			// logger.Debug("role: ", roles, "req string: ", r.URL.Path, "module str: ", modulePath.pathFeature)
-
-			// moduleVal, ok := roles[modulePath.module]
-			// if !ok {
-			// 	writeErrorResponse(w, defaultResponse, fmt.Errorf("not found module in policies: [%s]", modulePath))
-			// 	return
-			// }
-
-			// use for pass to modules to filter permission, 0 mean have all permission
-			// accID := 0
-			// if moduleVal == 0 {
-			// 	writeErrorResponse(w, defaultResponse, fmt.Errorf("no permission allowed to access module: [%s]", modulePath.module))
-			// 	return
-			// }
-
-			// moduleDataVal, ok := roles[modulePath.module+"_data"]
-			// if !ok {
-			// 	writeErrorResponse(w, defaultResponse, fmt.Errorf("not found module data in policies: [%s]", modulePath.module+"_data"))
-			// 	return
-			// }
-			// accID = 0
-
-			// user can access all module
-			// if moduleDataVal == 1 {
-			// 	accID = 0
-			// } else {
-			// 	if modulePath.pathFeature != PageCountPathString && modulePath.pathFeature != PageDataPathString {
-			// 		writeErrorResponse(w, defaultResponse, fmt.Errorf("action is not allowed, Only /page and /data allowed"))
-			// 		return
-			// 	}
-			// }
-
-			connString, _ = h.AccountManagerService.GetNewStringConnection(claims.TenantUuid, claims.OrganizationUuid, permission)
-			//hardcode to test
-			// connString = "root:123456@tcp(localhost:3306)/172c1ecd-fd74-40a2-8717-1cc9a5e18880"
-
-			db, err = h.ConnectionPool.Get(connString)
-
-			if err != nil {
-				log.Println("Err get connection db", err)
-				writeErrorResponse(w, defaultResponse, err)
-				return
-			}
-			var status int
-			db.QueryRow(`SELECT status FROM users WHERE email = ?`, claims.Email).Scan(&status)
-			if status == 0 {
-				writeErrorResponse(w, defaultResponse, errors.New("user is disabled"))
-				return
-			}
-
 			modulePath := getModuleFromPath(r)
-			var val int
-			// TODO: no policy in db at current time
-			err = db.QueryRow(fmt.Sprintf("SELECT policies.%s FROM users LEFT JOIN policies ON policies.id = users.policy_id WHERE users.email = ?", modulePath.module), claims.Email).Scan(&val)
+			connString, _ = h.AccountManagerService.GetNewStringConnection(claims.TenantUuid, claims.OrganizationUuid, permission)
+			db, err = h.ConnectionPool.Get(connString)
 			if err != nil {
 				log.Println("Err get policy", err)
-				writeErrorResponse(w, defaultResponse, err)
+				writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
 				return
 			}
-			if val != 1 {
-				log.Println("not allowed to get policy " + modulePath.module)
+			var val string
+			err = db.QueryRow("SELECT policies FROM users WHERE users.email = ?", claims.Email).Scan(&val)
+			if err != nil {
+				log.Println("Err get policy", err)
+				writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
+				return
+			}
+			policy := models.Policy{Services: make([]models.ServicePolicy, 0)}
+			err = json.Unmarshal([]byte(val), &policy)
+			if err != nil {
+				log.Println("Err get policy", err)
+				writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
+				return
+			}
+			allowed := false
+			for _, i := range policy.Services {
+				if i.Name == "*" || i.Name == modulePath.module {
+					for _, j := range i.Permissions {
+						if j == "*" {
+							allowed = true
+							break
+						} else {
+							val, _ := PolicyMap[j]
+							for _, m := range val {
+								if m == modulePath.pathFeature {
+									allowed = true
+									break
+								}
+							}
+						}
+					}
+				}
+			}
+			if !allowed {
+				log.Println("not allowed to get policy "+modulePath.module, modulePath.pathFeature)
 				writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
 				return
 			}

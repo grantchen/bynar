@@ -7,6 +7,6 @@ var UserFieldNames = map[string][]string{
 	"phone":               {"phone"},
 	"status":              {"status"},
 	"language_preference": {"language_preference"},
-	"policy_id":           {"policy_id"},
 	"theme":               {"theme"},
+	"policies":            {"policies"},
 }

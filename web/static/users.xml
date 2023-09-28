@@ -50,7 +50,7 @@
       <C Name='phone' RelWidth='150' Type='Text' CanEdit='1' CaseSensitive='0' VarHeight='1'/>
       <C Name='language_preference' RelWidth='150' Type='Text' CanEdit='1' CaseSensitive='0' VarHeight='1'/>
       <C Name='theme' RelWidth='150' Type='Text' CanEdit='1' CaseSensitive='0' VarHeight='1'/>
-      <C Name='policy_id' RelWidth='150' Type='Text' CanEdit='1' CaseSensitive='0' VarHeight='1'/>
+      <C Name='policies' RelWidth='150' Type='Text' CanEdit='1' CaseSensitive='0' VarHeight='1'/>
       <C Name='status' RelWidth='150' Type='Bool' CaseSensitive='0' CanEdit='1' VarHeight='1'/>
 
    </Cols>
