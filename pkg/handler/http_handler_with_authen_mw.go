@@ -7,12 +7,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"strings"
+
+	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
@@ -274,7 +276,15 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		// Validate permissions
 		if h.IsValidatePermissions {
 			logger.Debug("check permission")
+			permission := &repository.PermissionInfo{}
 			modulePath := getModuleFromPath(r)
+			connString, _ = h.AccountManagerService.GetNewStringConnection(claims.TenantUuid, claims.OrganizationUuid, permission)
+			db, err = h.ConnectionPool.Get(connString)
+			if err != nil {
+				log.Println("Err get policy", err)
+				writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
+				return
+			}
 			var val string
 			err = db.QueryRow("SELECT policies FROM users WHERE users.email = ?", claims.Email).Scan(&val)
 			if err != nil {
