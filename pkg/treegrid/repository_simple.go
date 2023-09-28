@@ -8,6 +8,7 @@ import (
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
+	"github.com/sirupsen/logrus"
 )
 
 // use for table with no child
@@ -165,12 +166,11 @@ func (s *simpleGridRepository) GetPageCount(tg *Treegrid) (int64, error) {
 		query = BuildSimpleQueryCount(s.tableName, s.fieldMapping, s.cfg.QueryCount)
 		query = query + DummyWhere + FilterWhere + s.cfg.AdditionWhere
 	} else {
-
 		where := DummyWhere + FilterWhere + s.cfg.AdditionWhere
 		query = BuildSimpleQueryGroupByCount(s.tableName, s.fieldMapping, tg.GroupCols, where, s.cfg.QueryCount)
 	}
 
-	logger.Debug("query GetPageCount: ")
+	logger.Debug("query GetPageCount: ", query)
 
 	rows, err := s.db.Query(query, FilterArgs...)
 	if err != nil {
@@ -246,7 +246,7 @@ func (s *simpleGridRepository) Update(tx *sql.Tx, gr GridRow) error {
 		return fmt.Errorf("not field update detected")
 	}
 	args = append(args, gr.GetID())
-	logger.Debug(query, "args", args)
+	logrus.Info(query, "args", args)
 	if _, err := tx.Exec(query, args...); err != nil {
 		return fmt.Errorf("exec query: [%w], query: %s, args: %d", err, query, len(args))
 	}

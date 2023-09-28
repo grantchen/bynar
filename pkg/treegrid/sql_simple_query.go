@@ -32,7 +32,7 @@ func BuildSimpleQueryGroupByCount(tableName string, fieldMapping map[string][]st
 	}
 	var query string
 	if defaultQueryCount == "" {
-		query = `select COUNT(*) FROM ` + where + tableName + " group by " + strings.Join(groupBy[:], ",")
+		query = `select COUNT(*) FROM ` + tableName + where + " group by " + strings.Join(groupBy[:], ",")
 	} else {
 		query = defaultQueryCount + where + " group by " + strings.Join(groupBy[:], ",")
 	}

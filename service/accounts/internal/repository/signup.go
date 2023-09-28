@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -11,6 +12,8 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
+	errpkg "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
 )
 
 // CreateOrganization create the organization when creating user
@@ -284,7 +287,7 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 		_, err = db.Exec(fmt.Sprintf("CREATE DATABASE `%s`", organizationUUID))
 		if err != nil {
 			r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
-			return 0, errors.New("create database failed")
+			return 0, errpkg.NewUnknownError("create database failed", "").WithInternalCause(err)
 		}
 	}
 	_, err = db.Exec(fmt.Sprintf("USE `%s`", organizationUUID))
@@ -297,16 +300,18 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 		_, err = db.Exec(model.SQL_TEMPLATE)
 		if err != nil {
 			r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
-			return 0, errors.New("create tables failed")
+			return 0, errpkg.NewUnknownError("create tables failed", "").WithInternalCause(err)
 		}
 	}
 	// create user
-	stmt, err := db.Prepare(`INSERT INTO users (email, full_name, phone, status, language_preference, policy_id, theme) VALUES (?,?,?,?,?,?,?)`)
+	stmt, err := db.Prepare(`INSERT INTO users (email, full_name, phone, status, language_preference, policies, theme) VALUES (?,?,?,?,?,?,?)`)
 	if err != nil {
 		logrus.Error(err)
 		return 0, err
 	}
-	res, err := stmt.Exec(email, fullName, phoneNumber, 1, "en", 1, "light")
+	policy := models.Policy{Services: []models.ServicePolicy{{Name: "*", Permissions: []string{"*"}}}}
+	data, _ := json.Marshal(&policy)
+	res, err := stmt.Exec(email, fullName, phoneNumber, 1, "en", string(data), "light")
 	stmt.Close()
 	if err != nil {
 		logrus.Error("insert user error ", err.Error())

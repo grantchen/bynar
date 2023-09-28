@@ -81,7 +81,7 @@ func (g gipClient) IsUserExists(ctx context.Context, email string) (bool, error)
 }
 
 // CreateUser creates a new user with the specified properties.
-func (g gipClient) CreateUser(ctx context.Context, email, displayName, phoneNumber string) (uid string, err error) {
+func (g gipClient) CreateUser(ctx context.Context, email, displayName, phoneNumber string, disabled bool) (uid string, err error) {
 	client, err := g.app.Auth(ctx)
 	if err != nil {
 		return "", fmt.Errorf("error getting Auth client: %v", err)
@@ -93,7 +93,7 @@ func (g gipClient) CreateUser(ctx context.Context, email, displayName, phoneNumb
 		PhoneNumber(phoneNumber).
 		EmailVerified(false).
 		Password(utils.RandString(10)).
-		Disabled(false)
+		Disabled(disabled)
 	u, err := client.CreateUser(ctx, params)
 	if err != nil {
 		logrus.Errorf("error creating user: %s", err.Error())

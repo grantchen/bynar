@@ -28,7 +28,7 @@ func TestMain(m *testing.M) {
 }
 
 func Test_gipClient_CreateUser(t *testing.T) {
-	uid, err := client.CreateUser(context.Background(), "test@test.com", "test", "+14155552671")
+	uid, err := client.CreateUser(context.Background(), "test@test.com", "test", "+14155552671", false)
 	if err != nil {
 		t.Errorf("CreateUser(); err = %s; want err = <nil>", err)
 	}
@@ -51,7 +51,7 @@ func Test_gipClient_IsUserExists(t *testing.T) {
 		t.Errorf("IsUserExists(); exists = %t; want exists = false", exists)
 	}
 
-	uid, err := client.CreateUser(context.Background(), email, "test", "+14155552671")
+	uid, err := client.CreateUser(context.Background(), email, "test", "+14155552671", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,7 +74,7 @@ func Test_gipClient_IsUserExists(t *testing.T) {
 }
 
 func Test_gipClient_DeleteUser(t *testing.T) {
-	uid, err := client.CreateUser(context.Background(), "test@test.com", "test", "+14155552671")
+	uid, err := client.CreateUser(context.Background(), "test@test.com", "test", "+14155552671", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +87,7 @@ func Test_gipClient_DeleteUser(t *testing.T) {
 
 func Test_gipClient_DeleteUserByEmail(t *testing.T) {
 	email := "test@test.com"
-	_, err := client.CreateUser(context.Background(), email, "test", "+14155552671")
+	_, err := client.CreateUser(context.Background(), email, "test", "+14155552671", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +99,7 @@ func Test_gipClient_DeleteUserByEmail(t *testing.T) {
 }
 
 func Test_gipClient_UpdateUser(t *testing.T) {
-	uid, err := client.CreateUser(context.Background(), "test@test.com", "test", "+14155552671")
+	uid, err := client.CreateUser(context.Background(), "test@test.com", "test", "+14155552671", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -152,7 +152,7 @@ func Test_gipClient_UpdateUser(t *testing.T) {
 }
 
 func Test_gipClient_SignIn(t *testing.T) {
-	uid, err := client.CreateUser(context.Background(), "test@test.com", "test", "+14155552671")
+	uid, err := client.CreateUser(context.Background(), "test@test.com", "test", "+14155552671", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -175,7 +175,7 @@ func Test_gipClient_SignIn(t *testing.T) {
 }
 
 func Test_gipClient_VerifyIDToken(t *testing.T) {
-	uid, err := client.CreateUser(context.Background(), "test@test.com", "test", "+14155552671")
+	uid, err := client.CreateUser(context.Background(), "test@test.com", "test", "+14155552671", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -220,7 +220,7 @@ func Test_gipClient_VerifyIDToken(t *testing.T) {
 }
 
 func Test_gipClient_VerifyIDTokenAndCheckRevoked(t *testing.T) {
-	uid, err := client.CreateUser(context.Background(), "test@test.com", "test", "+14155552671")
+	uid, err := client.CreateUser(context.Background(), "test@test.com", "test", "+14155552671", false)
 	if err != nil {
 		t.Fatal(err)
 	}

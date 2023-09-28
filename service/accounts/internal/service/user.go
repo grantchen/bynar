@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/repository"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"github.com/sirupsen/logrus"
@@ -14,8 +15,10 @@ import (
 
 // db to gip key
 var GIP_KEYS = map[string]string{
+	"email":     "email",
 	"full_name": "displayName",
 	"phone":     "phoneNumber",
+	"status":    "disableUser",
 }
 
 type UserService struct {
@@ -32,7 +35,7 @@ func NewUserService(db *sql.DB, accountDB *sql.DB, organizationID int, authProvi
 
 // Handle implements treegrid.TreeGridService
 func (s *UserService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
-	resp := &treegrid.PostResponse{}
+	resp := &treegrid.PostResponse{Changes: []map[string]interface{}{}}
 	// Create new transaction
 	grList, err := treegrid.ParseRequestUploadSingleRow(req)
 	if err != nil {
@@ -84,7 +87,8 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 		}
 		ok, err1 := s.simpleOrganizationRepository.ValidateOnIntegrity(gr, fieldsValidating)
 		if !ok || err1 != nil {
-			return fmt.Errorf("validate duplicate: [%v], field: %s", err1, strings.Join(fieldsValidating, ", "))
+			logrus.Errorf("validate duplicate: [%v], field: %s", err1, strings.Join(fieldsValidating, ", "))
+			return fmt.Errorf("value of field: %s exists", strings.Join(fieldsValidating, ", "))
 		}
 		err = func() error {
 			err = s.simpleOrganizationRepository.Add(tx, gr)
@@ -95,7 +99,8 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 			email, _ := gr.GetValString("email")
 			fullName, _ := gr.GetValString("full_name")
 			phone, _ := gr.GetValString("phone")
-			uid, err := s.authProvider.CreateUser(context.Background(), email, fullName, phone)
+			status, _ := gr.GetValInt("status")
+			uid, err := s.authProvider.CreateUser(context.Background(), email, fullName, phone, status == 0)
 			if err != nil {
 				return err
 			}
@@ -121,41 +126,52 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 		if err1 != nil {
 			return err1
 		}
-		ok, err1 := s.simpleOrganizationRepository.ValidateOnIntegrity(gr, fieldsValidating)
-		if !ok || err1 != nil {
-			return fmt.Errorf("validate duplicate: [%w], field: %s", err1, strings.Join(fieldsValidating, ", "))
-		}
 		err = func() error {
-			err = s.simpleOrganizationRepository.Update(tx, gr)
-			if err != nil {
-				return err
-			}
-			id, _ := gr.GetValInt("id")
-			var email string
-			stmt, err := tx.Prepare(`SELECT email FROM users WHERE id=?`)
-			if err != nil {
-				return err
-			}
-			err = stmt.QueryRow(id).Scan(&email)
-			if err != nil {
-				return err
-			}
-			// update user claims in gip
-			params := map[string]interface{}{}
-			customClaims := map[string]interface{}{}
-			for _, i := range gr.UpdatedFields() {
-				if i != "reqID" {
-					key, ok := GIP_KEYS[i]
-					if ok {
-						params[key], _ = gr.GetValString(i)
-					} else {
-						customClaims[i], _ = gr.GetValString(i)
+			id, ok := gr.GetValInt("id")
+			if ok {
+				ok, err1 := s.simpleOrganizationRepository.ValidateOnIntegrity(gr, fieldsValidating)
+				if !ok || err1 != nil {
+					logrus.Errorf("validate duplicate: [%v], field: %s", err1, strings.Join(fieldsValidating, ", "))
+					return fmt.Errorf("value of field: %s exists", strings.Join(fieldsValidating, ", "))
+				}
+				err = s.simpleOrganizationRepository.Update(tx, gr)
+				if err != nil {
+					return errors.NewUnknownError("user update failed", errors.ErrCode).WithInternal().WithCause(err)
+				}
+
+				var uid string
+				stmt, err := s.accountDB.Prepare(`SELECT organization_user_uid FROM organization_accounts WHERE organization_id = ? AND organization_user_id = ?`)
+				if err != nil {
+					return errors.NewUnknownError("user not found", errors.ErrCodeNoUserFound).WithInternal().WithCause(err)
+				}
+				err = stmt.QueryRow(s.organizationID, id).Scan(&uid)
+				if err != nil {
+					return errors.NewUnknownError("user not found", errors.ErrCodeNoUserFound).WithInternal().WithCause(err)
+				}
+				// update user claims in gip
+				params := map[string]interface{}{}
+				customClaims := map[string]interface{}{}
+				for _, i := range gr.UpdatedFields() {
+					if i != "reqID" {
+						key, ok := GIP_KEYS[i]
+						if ok {
+							if i == "status" {
+								status, _ := gr.GetValInt(i)
+								params[key] = status == 0
+							} else {
+								params[key], _ = gr.GetValString(i)
+							}
+
+						} else {
+							customClaims[i], _ = gr.GetValString(i)
+						}
 					}
 				}
+				params["customClaims"] = customClaims
+				err = s.authProvider.UpdateUser(context.Background(), uid, params)
+				return err
 			}
-			params["customClaims"] = customClaims
-			err = s.authProvider.UpdateUserByEmail(context.Background(), email, params)
-			return err
+			return nil
 		}()
 	case treegrid.GridRowActionDeleted:
 		err = func() error {

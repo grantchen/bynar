@@ -11,6 +11,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
 	"github.com/sirupsen/logrus"
 )
 
@@ -21,7 +22,7 @@ func (s *accountServiceHandler) SignIn(email, oobCode string) (string, *errors.E
 	if exists, err = s.authProvider.IsUserExists(context.Background(), email); err != nil {
 		return "", errors.NewUnknownError("sign in fail", "").WithInternalCause(err)
 	}
-	if exists == false {
+	if !exists {
 		return "", errors.NewUnknownError("sign in fail: email not sign up", errors.ErrCodeNoUserFound)
 	}
 	account, err := s.ar.SelectSignInColumns(email)
@@ -123,8 +124,8 @@ func (s *accountServiceHandler) GetUserDetails(db *sql.DB, uid string, userId in
 	userResponse.LanguagePreference = user.LanguagePreference
 	userResponse.ThemePreference = user.Theme
 	userResponse.ProfileURL = user.ProfilePhoto
-	userResponse.PolicyID = user.PolicyId
-	policy, err := s.ar.GetUserPolicy(db, user.PolicyId)
+	policy := models.Policy{Services: make([]models.ServicePolicy, 0)}
+	err = json.Unmarshal([]byte(user.Policies), &policy)
 	if err != nil {
 		logrus.Error("get policy error", err)
 	}
