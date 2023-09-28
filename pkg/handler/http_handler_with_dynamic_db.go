@@ -21,7 +21,7 @@ func VerifyIdTokenAndInitDynamicDB(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		code, claims, err := middleware.VerifyIdToken(r)
 		if err != nil {
-			LogInternalError(errors.NewUnknownError("verify id_token fail").WithInternalCause(err))
+			LogInternalError(errors.NewUnknownError("verify id_token fail", "").WithInternalCause(err))
 		}
 		if http.StatusOK != code {
 			http.Error(w, http.StatusText(code), code)
@@ -38,7 +38,7 @@ func VerifyIdTokenAndInitDynamicDB(next http.Handler) http.Handler {
 		db, err := sql_db.InitializeConnection(connString)
 
 		if err != nil {
-			LogInternalError(errors.NewUnknownError("new dynamic db connection fail").WithInternalCause(err))
+			LogInternalError(errors.NewUnknownError("new dynamic db connection fail", "").WithInternalCause(err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -57,7 +57,7 @@ func VerifyIdTokenAndInitDynamicDB(next http.Handler) http.Handler {
 // get dynamic db connection url
 func getDynamicDBConnection(tenantUuid, organizationUuid string) (string, error) {
 	if len(os.Getenv(tenantUuid)) == 0 {
-		return "", errors.NewUnknownError("no mysql conn environment of " + tenantUuid).WithInternal()
+		return "", errors.NewUnknownError("no mysql conn environment of "+tenantUuid, "").WithInternal()
 	}
 	envs := strings.Split(os.Getenv(tenantUuid), "/")
 	connStr := envs[0] + "/" + organizationUuid

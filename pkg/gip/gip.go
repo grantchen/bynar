@@ -35,8 +35,12 @@ const (
 	ENVGoogleAPIKey                     = "GOOGLE_API_KEY"
 )
 
-var ErrUserNotFound = errors.New("user not found")
-var ErrIDTokenInvalid = errors.New("id token invalid")
+var (
+	ErrUserNotFound             = errors.New("user not found")
+	ErrIDTokenInvalid           = errors.New("id token invalid")
+	ErrEmailAlreadyExists       = errors.New("email already exists")
+	ErrPhoneNumberAlreadyExists = errors.New("phone_number already exists")
+)
 
 // gipClient is the interface for the AuthProvider.
 type gipClient struct {
@@ -135,8 +139,9 @@ func (g gipClient) UpdateUser(ctx context.Context, uid string, params map[string
 
 	_, err = client.UpdateUser(ctx, uid, updateParams)
 	if err != nil {
-		if auth.IsUserNotFound(err) {
-			return ErrUserNotFound
+		known, err := isKnownError(err)
+		if known {
+			return err
 		}
 		logrus.Errorf("error updating user: %s", err.Error())
 		strs := strings.Split(err.Error(), "\n")
@@ -372,4 +377,18 @@ func (g gipClient) GetUserByEmail(ctx context.Context, email string) (*auth.User
 	}
 
 	return u, nil
+}
+
+// check error is known or not
+func isKnownError(err error) (bool, error) {
+	if auth.IsUserNotFound(err) {
+		return true, ErrUserNotFound
+	} else if auth.IsEmailAlreadyExists(err) {
+		return true, ErrEmailAlreadyExists
+	} else if auth.IsEmailAlreadyExists(err) {
+		return true, ErrEmailAlreadyExists
+	} else if auth.IsPhoneNumberAlreadyExists(err) {
+		return true, ErrPhoneNumberAlreadyExists
+	}
+	return false, err
 }
