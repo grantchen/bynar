@@ -166,10 +166,10 @@ func (h *AccountHandler) User(w http.ResponseWriter, r *http.Request) {
 		render.Error(w, err.Error())
 		return
 	}
-	userResponse, err := h.as.GetUserDetails(reqContext.DynamicDB, reqContext.Claims.Uid, reqContext.Claims.OrganizationUserId)
-	if err != nil {
-		handler.LogInternalError(err)
-		render.Error(w, err.Error())
+	userResponse, getErr := h.as.GetUserDetails(reqContext.DynamicDB, reqContext.Claims.Uid, reqContext.Claims.OrganizationUserId)
+	if getErr != nil {
+		handler.LogInternalError(getErr)
+		render.Error(w, getErr.Error())
 		return
 	}
 	render.Ok(w, userResponse)

@@ -46,15 +46,15 @@ func (s *accountServiceHandler) SignIn(email, oobCode string) (string, *errors.E
 }
 
 // covert signIn struct to claims map
-func convertSignInToClaims(signIn *model.SignIn) (map[string]interface{}, *errors.Error) {
+func convertSignInToClaims(signIn *model.SignIn) (map[string]interface{}, error) {
 	data, err := json.Marshal(&signIn)
 	if err != nil {
-		return nil, errors.NewUnknownError("convert sign in claims fail", errors.ErrCode).WithInternalCause(err)
+		return nil, err
 	}
 	claims := map[string]interface{}{}
 	err = json.Unmarshal(data, &claims)
 	if err != nil {
-		return nil, errors.NewUnknownError("convert sign in claims fail", errors.ErrCode).WithInternalCause(err)
+		return nil, err
 	}
 	return claims, nil
 }
