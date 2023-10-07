@@ -17,7 +17,7 @@ type treegridService struct {
 	uploadService       service.UploadService
 }
 
-func newTreeGridService(db *sql.DB, accountID int) treegrid.TreeGridService {
+func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.TreeGridService {
 
 	var filterPermissionCondition string
 
@@ -44,8 +44,8 @@ func newTreeGridService(db *sql.DB, accountID int) treegrid.TreeGridService {
 }
 
 func NewTreeGridServiceFactory() treegrid.TreeGridServiceFactoryFunc {
-	return func(db *sql.DB, accountID int, organizationUuid string, permissionInfo *treegrid.PermissionInfo) treegrid.TreeGridService {
-		return newTreeGridService(db, accountID)
+	return func(db *sql.DB, accountID int, organizationUuid string, permissionInfo *treegrid.PermissionInfo, language string) treegrid.TreeGridService {
+		return newTreeGridService(db, accountID, language)
 	}
 }
 

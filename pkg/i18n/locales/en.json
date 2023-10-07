@@ -6,5 +6,7 @@
   "delete-profile-fail": "Failed to delete avatar",
   "operation-failed": "Operation failed",
   "request-parameter-error": "Request parameter error",
-  "no-record-found": "No record found"
+  "no-record-found": "No record found",
+  "required-fields-blank": "Required fields cannot be blank",
+  "value-duplicate": "The value is duplicate"
 }

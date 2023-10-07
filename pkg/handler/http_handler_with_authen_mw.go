@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"io"
 	"log"
 	"net/http"
@@ -59,6 +60,8 @@ type ReqContext struct {
 	AccountID        int
 	PermissionInfo   *treegrid.PermissionInfo
 	OrganizationUuid string
+	language         string
+	//claims           *middleware.IdTokenClaims
 }
 
 type ModulePath struct {
@@ -83,7 +86,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) getRequestContext(r *http.Request) *R
 
 func (h *HTTPTreeGridHandlerWithDynamicDB) getTreeGridService(r *http.Request) treegrid.TreeGridService {
 	reqContext := h.getRequestContext(r)
-	return h.TreeGridServiceFactory(reqContext.db, reqContext.AccountID, reqContext.OrganizationUuid, reqContext.PermissionInfo)
+	return h.TreeGridServiceFactory(reqContext.db, reqContext.AccountID, reqContext.OrganizationUuid, reqContext.PermissionInfo, reqContext.language)
 }
 
 func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleGetPageCount(w http.ResponseWriter, r *http.Request) {
@@ -173,26 +176,33 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleUpload(w http.ResponseWrite
 		resp = &treegrid.PostResponse{}
 	)
 
+	// Parse token and get the language
+	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
+	if err != nil {
+		writeErrorResponse(w, resp, errors.New(i18n.Localize(reqContext.Claims.Language, "error")))
+		return
+	}
+
 	// get and parse post data
 	if err := r.ParseForm(); err != nil {
 		logger.Debug("parse form err: ", err)
-		writeErrorResponse(w, resp, err)
+		writeErrorResponse(w, resp, errors.New(i18n.Localize(reqContext.Claims.Language, "error")))
 
 		return
 	}
 
 	if err := json.Unmarshal([]byte(r.Form.Get("Data")), &postData); err != nil {
 		logger.Debug("unmarshal err: ", err)
-		writeErrorResponse(w, resp, err)
+		writeErrorResponse(w, resp, errors.New(i18n.Localize(reqContext.Claims.Language, "error")))
 
 		return
 	}
 
 	treegridService := h.getTreeGridService(r)
-	resp, err := treegridService.Upload(postData)
+	resp, err = treegridService.Upload(postData)
 
 	if err != nil {
-		writeErrorResponse(w, resp, err)
+		writeErrorResponse(w, resp, errors.New(i18n.Localize(reqContext.Claims.Language, err.Error())))
 
 		return
 	}
@@ -333,6 +343,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 				IsAccessAll: true,
 			},
 			OrganizationUuid: claims.OrganizationUuid,
+			language:         claims.Language,
 		}
 		ctx := context.WithValue(r.Context(), RequestContextKey, reqContext)
 		newReq := r.WithContext(ctx)

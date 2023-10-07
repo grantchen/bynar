@@ -6,5 +6,7 @@
   "method-no-allowed": "Methode nicht erlaubt",
   "operation-failed": "Der Vorgang ist fehlgeschlagen",
   "request-parameter-error":"Fehler beim Anforderungsparameter",
-  "no-record-found": "Kein Datensatz gefunden"
+  "no-record-found": "Kein Datensatz gefunden",
+  "required-fields-blank": "Der felder darf nie Leer werden",
+  "value-duplicate": "Die werte sind reproduzierbar"
 }

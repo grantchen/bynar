@@ -6,5 +6,7 @@
   "method-no-allowed": "Méthode interdite",
   "operation-failed": "l'opération a échoué",
   "request-parameter-error": "Erreur de paramètre de demande",
-  "no-record-found": "Aucun Enregistrement Trouvé"
+  "no-record-found": "Aucun Enregistrement Trouvé",
+  "required-fields-blank": "Les champs obligatoires ne peuvent pas être vides",
+  "value-duplicate": "La valeur est dupliquée"
 }
