@@ -8,5 +8,7 @@
   "request-parameter-error": "Request parameter error",
   "no-record-found": "No record found",
   "required-fields-blank": "Required fields cannot be blank",
-  "value-duplicate": "The value is duplicate"
+  "value-duplicate": "The value is duplicate",
+  "undefined-row-type": "The row type is undefined",
+  "commit-transaction": "Commit transaction error"
 }

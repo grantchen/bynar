@@ -104,7 +104,7 @@ func (s *TreeGridService) handle(gr treegrid.GridRow) error {
 	case treegrid.GridRowActionDeleted:
 		err = s.invoiceSimpleRepository.Delete(tx, gr)
 	default:
-		return errors.New("error")
+		return errors.New("undefined-row-type")
 	}
 
 	if err != nil {
@@ -112,7 +112,7 @@ func (s *TreeGridService) handle(gr treegrid.GridRow) error {
 	}
 
 	if err = tx.Commit(); err != nil {
-		return errors.New("error")
+		return errors.New("commit-transaction")
 	}
 
 	return err

@@ -8,5 +8,7 @@
   "request-parameter-error":"Fehler beim Anforderungsparameter",
   "no-record-found": "Kein Datensatz gefunden",
   "required-fields-blank": "Der felder darf nie Leer werden",
-  "value-duplicate": "Die werte sind reproduzierbar"
+  "value-duplicate": "Die werte sind reproduzierbar",
+  "undefined-row-type": "Der Zeilentyp ist undefiniert",
+  "commit-transaction": "Transaktionsfehler begehen"
 }

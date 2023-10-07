@@ -8,5 +8,7 @@
   "request-parameter-error":"Error de parámetro de solicitud",
   "no-record-found": "Ningún record fue encontrado",
   "required-fields-blank": "Los campos obligatorios no pueden estar en blanco",
-  "value-duplicate": "El valor es duplicado"
+  "value-duplicate": "El valor es duplicado",
+  "undefined-row-type": "El tipo de fila no está definido",
+  "commit-transaction": "cometer error de transacción"
 }
