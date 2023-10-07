@@ -287,7 +287,7 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 		_, err = db.Exec(fmt.Sprintf("CREATE DATABASE `%s`", organizationUUID))
 		if err != nil {
 			r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
-			return 0, errpkg.NewUnknownError("create database failed").WithInternalCause(err)
+			return 0, errpkg.NewUnknownError("create database failed", "").WithInternalCause(err)
 		}
 	}
 	_, err = db.Exec(fmt.Sprintf("USE `%s`", organizationUUID))
@@ -300,7 +300,7 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 		_, err = db.Exec(model.SQL_TEMPLATE)
 		if err != nil {
 			r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
-			return 0, errpkg.NewUnknownError("create tables failed").WithInternalCause(err)
+			return 0, errpkg.NewUnknownError("create tables failed", "").WithInternalCause(err)
 		}
 	}
 	// create user

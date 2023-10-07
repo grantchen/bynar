@@ -136,17 +136,17 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 				}
 				err = s.simpleOrganizationRepository.Update(tx, gr)
 				if err != nil {
-					return errors.NewUnknownError("user update failed").WithInternal().WithCause(err)
+					return errors.NewUnknownError("user update failed", errors.ErrCode).WithInternal().WithCause(err)
 				}
 
 				var uid string
 				stmt, err := s.accountDB.Prepare(`SELECT organization_user_uid FROM organization_accounts WHERE organization_id = ? AND organization_user_id = ?`)
 				if err != nil {
-					return errors.NewUnknownError("user not found").WithInternal().WithCause(err)
+					return errors.NewUnknownError("user not found", errors.ErrCodeNoUserFound).WithInternal().WithCause(err)
 				}
 				err = stmt.QueryRow(s.organizationID, id).Scan(&uid)
 				if err != nil {
-					return errors.NewUnknownError("user not found").WithInternal().WithCause(err)
+					return errors.NewUnknownError("user not found", errors.ErrCodeNoUserFound).WithInternal().WithCause(err)
 				}
 				// update user claims in gip
 				params := map[string]interface{}{}
