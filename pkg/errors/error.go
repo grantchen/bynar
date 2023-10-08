@@ -26,4 +26,9 @@ var (
 	ErrCodeIDTokenInvalid           = "id-token-invalid"
 	ErrCodeSignatureInvalid         = "signature-invalid"
 	ErrCodeTimestampExpired         = "timestamp-expired"
+	ErrCodeValueDuplicated          = "value-duplicate"
+	ErrCodeRequiredFieldsBlank      = "required-fields-blank"
+	ErrCodeUndefinedTowType         = "undefined-row-type"
+	ErrCodeBeginTransaction         = "begin-transaction"
+	ErrCodeCommitTransaction        = "commit-transaction"
 )
