@@ -138,6 +138,12 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 			return tableData, fmt.Errorf("parse rows GetPageDataGroupBy: [%w]", err)
 		}
 		entry := rowVals.StringValues()
+		for i, j := range entry {
+			if i != "Count" {
+				entry["id"] = j
+				break
+			}
+		}
 		entry["Def"] = "Group"
 		entry["Expanded"] = "0"
 		tgCol := tg.GroupCols[level]
