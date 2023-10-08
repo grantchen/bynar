@@ -3,12 +3,12 @@
   "permission-denied": "Operación no autorizada",
   "upload-profile-fail": "No se pudo subir el avatar",
   "delete-profile-fail": "No se pudo eliminar el avatar",
-  "method-no-allowed": "Método no permitido",
+  "method-not-allowed": "Método no permitido",
   "operation-failed": "operación fallida",
   "request-parameter-error":"Error de parámetro de solicitud",
-  "no-record-found": "Ningún record fue encontrado",
-  "required-fields-blank": "Los campos obligatorios no pueden estar en blanco",
-  "value-duplicate": "El valor es duplicado",
-  "undefined-row-type": "El tipo de fila no está definido",
-  "commit-transaction": "cometer error de transacción"
+  "no-user-found": "No se puede encontrar usuario",
+  "email-already-exists": "Email already exists",
+  "id-token-invalid": "Idtoken no válido",
+  "signature-invalid": "La firma no es válida",
+  "timestamp-expired": "La marca de tiempo ha expirado"
 }

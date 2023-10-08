@@ -3,12 +3,12 @@
   "permission-denied": "Bolivien nicht autorisierte operationen",
   "upload-profile-fail":"Avatar konnte nicht hochgeladen werden",
   "delete-profile-fail": "Avatar konnte nicht gelöscht werden",
-  "method-no-allowed": "Methode nicht erlaubt",
+  "method-not-allowed": "Methode nicht erlaubt",
   "operation-failed": "Der Vorgang ist fehlgeschlagen",
   "request-parameter-error":"Fehler beim Anforderungsparameter",
-  "no-record-found": "Kein Datensatz gefunden",
-  "required-fields-blank": "Der felder darf nie Leer werden",
-  "value-duplicate": "Die werte sind reproduzierbar",
-  "undefined-row-type": "Der Zeilentyp ist undefiniert",
-  "commit-transaction": "Transaktionsfehler begehen"
+  "no-user-found": "kein Benutzer gefunden",
+  "email-already-exists": "Email already exists",
+  "id-token-invalid": "IdToken ungültig",
+  "signature-invalid": "Unterschrift ungültig",
+  "timestamp-expired": "Zeitstempel abgelaufen"
 }

@@ -3,12 +3,12 @@
   "permission-denied": "Opération non autorisée",
   "upload-profile-fail": "Échec du téléchargement de l'avatar",
   "delete-profile-fail": "Fehler beim Löschen des Avatars",
-  "method-no-allowed": "Méthode interdite",
+  "method-not-allowed": "Méthode interdite",
   "operation-failed": "l'opération a échoué",
   "request-parameter-error": "Erreur de paramètre de demande",
-  "no-record-found": "Aucun Enregistrement Trouvé",
-  "required-fields-blank": "Les champs obligatoires ne peuvent pas être vides",
-  "value-duplicate": "La valeur est dupliquée",
-  "undefined-row-type": "Le type de ligne n'est pas défini",
-  "commit-transaction": "Erreur de transaction de validation"
+  "no-user-found": "Aucun utilisateur trouvé",
+  "email-already-exists": "Email already exists",
+  "id-token-invalid": "Idtoken est invalide",
+  "signature-invalid": "Signature non valide",
+  "timestamp-expired": "L'horodatage a expiré"
 }

@@ -141,7 +141,7 @@ func (h *AccountHandler) SendSignInEmail(w http.ResponseWriter, r *http.Request)
 	}
 	var req model.SendSignInEmailRequest
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
-		handler.LogInternalError(errors.NewUnknownError("decode request fail").WithInternalCause(err))
+		handler.LogInternalError(errors.NewUnknownError("decode request fail", errors.ErrCodeNoUserFound).WithInternalCause(err))
 		render.Error(w, err.Error())
 		return
 	}
@@ -162,14 +162,14 @@ func (h *AccountHandler) User(w http.ResponseWriter, r *http.Request) {
 	}
 	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
-		handler.LogInternalError(errors.NewUnknownError("verify token fail").WithInternalCause(err))
+		handler.LogInternalError(errors.NewUnknownError("verify token fail", "").WithInternalCause(err))
 		render.Error(w, err.Error())
 		return
 	}
-	userResponse, err := h.as.GetUserDetails(reqContext.DynamicDB, reqContext.Claims.Uid, reqContext.Claims.OrganizationUserId)
-	if err != nil {
-		handler.LogInternalError(err)
-		render.Error(w, err.Error())
+	userResponse, getErr := h.as.GetUserDetails(reqContext.DynamicDB, reqContext.Claims.Uid, reqContext.Claims.OrganizationUserId)
+	if getErr != nil {
+		handler.LogInternalError(getErr)
+		render.Error(w, getErr.Error())
 		return
 	}
 	render.Ok(w, userResponse)
@@ -185,19 +185,19 @@ func (h *AccountHandler) UploadProfilePhoto(w http.ResponseWriter, r *http.Reque
 	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.Language, "upload-profile-fail"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, errors.ErrCodeIDTokenInvalid))
 		return
 	}
 	reader, err := r.MultipartReader()
 	if err != nil || reader == nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.Language, "upload-profile-fail"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, errors.ErrCode))
 		return
 	}
-	url, err := h.as.UploadFileToGCS(reqContext.DynamicDB, reqContext.Claims.OrganizationUuid, reqContext.Claims.OrganizationUserId, reader)
-	if err != nil {
-		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.Language, "upload-profile-fail"))
+	url, uploadErr := h.as.UploadFileToGCS(reqContext.DynamicDB, reqContext.Claims.OrganizationUuid, reqContext.Claims.OrganizationUserId, reader)
+	if uploadErr != nil {
+		handler.LogInternalError(uploadErr)
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, uploadErr.Code))
 		return
 
 	}
@@ -213,15 +213,15 @@ func (h *AccountHandler) DeleteProfileImage(w http.ResponseWriter, r *http.Reque
 	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.Language, "delete-profile-fail"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, errors.ErrCodeIDTokenInvalid))
 		return
 	}
 
-	err = h.as.DeleteFileFromGCS(reqContext.DynamicDB, reqContext.Claims.OrganizationUuid, reqContext.Claims.OrganizationUserId)
+	deleteErr := h.as.DeleteFileFromGCS(reqContext.DynamicDB, reqContext.Claims.OrganizationUuid, reqContext.Claims.OrganizationUserId)
 
-	if err != nil {
-		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.Language, "delete-profile-fail"))
+	if deleteErr != nil {
+		handler.LogInternalError(deleteErr)
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, deleteErr.Code))
 		return
 	}
 	render.Ok(w, nil)
@@ -242,13 +242,13 @@ func (h *AccountHandler) UpdateUserLanguagePreference(w http.ResponseWriter, r *
 	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, errors.ErrCodeIDTokenInvalid))
 		return
 	}
-	err = h.as.UpdateUserLanguagePreference(reqContext.DynamicDB, reqContext.Claims.Uid, reqContext.Claims.OrganizationUserId, req.LanguagePreference)
-	if err != nil {
-		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
+	updateErr := h.as.UpdateUserLanguagePreference(reqContext.DynamicDB, reqContext.Claims.Uid, reqContext.Claims.OrganizationUserId, req.LanguagePreference)
+	if updateErr != nil {
+		handler.LogInternalError(updateErr)
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, updateErr.Code))
 		return
 	}
 
@@ -270,13 +270,13 @@ func (h *AccountHandler) UpdateUserThemePreference(w http.ResponseWriter, r *htt
 	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, errors.ErrCodeIDTokenInvalid))
 		return
 	}
-	err = h.as.UpdateUserThemePreference(reqContext.DynamicDB, reqContext.Claims.OrganizationUserId, req.ThemePreference)
-	if err != nil {
-		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.Language, "error"))
+	updateErr := h.as.UpdateUserThemePreference(reqContext.DynamicDB, reqContext.Claims.OrganizationUserId, req.ThemePreference)
+	if updateErr != nil {
+		handler.LogInternalError(updateErr)
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, updateErr.Code))
 		return
 	}
 
@@ -288,12 +288,12 @@ func (h *AccountHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Reques
 	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize("", "error"))
+		render.Error(w, i18n.Localize("", errors.ErrCodeIDTokenInvalid))
 		return
 	}
 
 	if r.Method != http.MethodPut {
-		render.ErrorWithHttpCode(w, i18n.Localize(reqContext.Claims.Language, "method-no-allowed"), http.StatusMethodNotAllowed)
+		render.ErrorWithHttpCode(w, i18n.Localize(reqContext.Claims.Language, errors.ErrCodeIDTokenInvalid), http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -303,10 +303,10 @@ func (h *AccountHandler) UpdateUserProfile(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = h.as.UpdateUserProfile(reqContext.DynamicDB, reqContext.Claims.OrganizationUserId, reqContext.Claims.Uid, req)
-	if err != nil {
+	updateErr := h.as.UpdateUserProfile(reqContext.DynamicDB, reqContext.Claims.OrganizationUserId, reqContext.Claims.Uid, req)
+	if updateErr != nil {
 		handler.LogInternalError(err)
-		render.Error(w, err.Error())
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, updateErr.Code))
 		return
 	}
 	render.Ok(w, nil)
@@ -317,32 +317,32 @@ func (h *AccountHandler) GetUserProfileById(w http.ResponseWriter, r *http.Reque
 	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize("", "error"))
+		render.Error(w, i18n.Localize("", errors.ErrCodeIDTokenInvalid))
 		return
 	}
 	if r.Method != http.MethodGet {
-		render.ErrorWithHttpCode(w, i18n.Localize(reqContext.Claims.Language, "method-no-allowed"), http.StatusMethodNotAllowed)
+		render.ErrorWithHttpCode(w, i18n.Localize(reqContext.Claims.Language, errors.ErrCodeMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
 
 	id := strings.TrimPrefix(r.URL.Path, "/user/")
 	if "" == id {
-		render.ErrorWithHttpCode(w, i18n.Localize(reqContext.Claims.Language, "request-parameter-error"), http.StatusBadRequest)
+		render.ErrorWithHttpCode(w, i18n.Localize(reqContext.Claims.Language, errors.ErrCodeRequestParameter), http.StatusBadRequest)
 		return
 	}
 	userId, err := strconv.Atoi(id)
 	if err != nil {
-		render.ErrorWithHttpCode(w, i18n.Localize(reqContext.Claims.Language, "request-parameter-error"), http.StatusBadRequest)
+		render.ErrorWithHttpCode(w, i18n.Localize(reqContext.Claims.Language, errors.ErrCodeRequestParameter), http.StatusBadRequest)
 		return
 	}
 	if userId != reqContext.Claims.OrganizationUserId {
-		render.Error(w, i18n.Localize(reqContext.Claims.Language, "permission-denied"))
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, errors.ErrCodePermissionDenied))
 		return
 	}
-	profile, err := h.as.GetUserProfileById(reqContext.DynamicDB, userId)
-	if err != nil {
-		handler.LogInternalError(err)
-		render.Error(w, i18n.Localize(reqContext.Claims.Language, "no-record-found"))
+	profile, reErr := h.as.GetUserProfileById(reqContext.DynamicDB, userId)
+	if reErr != nil {
+		handler.LogInternalError(reErr)
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, reErr.Code))
 		return
 	}
 	render.Ok(w, profile)

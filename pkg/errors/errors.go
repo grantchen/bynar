@@ -3,6 +3,7 @@ package errors
 import (
 	"errors"
 	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"runtime"
 )
 
@@ -12,10 +13,12 @@ const (
 )
 
 // Error is a status error.
+// code is for international
 type Error struct {
 	Reason   string
 	Message  string
 	Metadata map[string]string
+	Code     string
 
 	internal bool // is internal error or not
 	cause    error
@@ -50,6 +53,7 @@ func (e *Error) WithInternalCause(cause error) *Error {
 	err.cause = cause
 	// overwrite stack
 	err.withStack()
+	err.setKnownErrorCode()
 	return err
 }
 
@@ -66,6 +70,7 @@ func (e *Error) WithCause(cause error) *Error {
 	err.cause = cause
 	// overwrite stack
 	err.withStack()
+	err.setKnownErrorCode()
 	return err
 }
 
@@ -92,28 +97,29 @@ func (e *Error) withStack() {
 }
 
 // New returns an error object for the reason, message.
-func New(reason, message string) *Error {
+func New(reason, message, code string) *Error {
 	err := &Error{
 		Reason:  reason,
 		Message: message,
+		Code:    code,
 	}
 	err.withStack()
 	return err
 }
 
 // NewUnknownError returns an error object for the unknown reason, message.
-func NewUnknownError(message string) *Error {
-	return New(UnknownReason, message)
+func NewUnknownError(message, code string) *Error {
+	return New(UnknownReason, message, code)
 }
 
 // Newf New(code fmt.Sprintf(format, a...))
 func Newf(reason, format string, a ...interface{}) *Error {
-	return New(reason, fmt.Sprintf(format, a...))
+	return New(reason, fmt.Sprintf(format, a...), "")
 }
 
 // Errorf returns an error object for the code, message and error info.
 func Errorf(reason, format string, a ...interface{}) error {
-	return New(reason, fmt.Sprintf(format, a...))
+	return New(reason, fmt.Sprintf(format, a...), "")
 }
 
 // Reason returns the reason for a particular error.
@@ -135,6 +141,7 @@ func Clone(err *Error) *Error {
 		Reason:   err.Reason,
 		Message:  err.Message,
 		Metadata: metadata,
+		Code:     err.Code,
 		internal: err.internal,
 		cause:    err.cause,
 		stack:    err.stack,
@@ -151,4 +158,23 @@ func FromError(err error) *Error {
 		return se
 	}
 	return nil
+}
+
+// set code value
+func (e *Error) setKnownErrorCode() {
+	if e.Code != "" || e.cause == nil {
+		return
+	}
+	if errors.Is(e.cause, gip.ErrUserNotFound) {
+		e.Code = ErrCodeNoUserFound
+	} else if errors.Is(e.cause, gip.ErrPhoneNumberAlreadyExists) {
+		e.Code = ErrCodeEmailAlreadyExists
+	} else if errors.Is(e.cause, gip.ErrPhoneNumberAlreadyExists) {
+		e.Code = ErrCodePhoneNumberAlreadyExists
+	} else if errors.Is(e.cause, gip.ErrIDTokenInvalid) {
+		e.Code = ErrCodeIDTokenInvalid
+	} else {
+		e.Code = ErrCode
+	}
+
 }
