@@ -7,6 +7,7 @@
   "operation-failed": "operación fallida",
   "request-parameter-error":"Error de parámetro de solicitud",
   "no-user-found": "No se puede encontrar usuario",
+  "no-user_group_line-found": "No se encontró ninguna línea de grupo de usuarios",
   "email-already-exists": "Email already exists",
   "id-token-invalid": "Idtoken no válido",
   "signature-invalid": "La firma no es válida",

@@ -11,12 +11,11 @@ import (
 )
 
 func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGridHandler {
-
 	simpleOrganizationRepository := treegrid.NewSimpleGridRowRepositoryWithCfg(db, "organizations", repository.OrganizationFieldNames,
 		100, &treegrid.SimpleGridRepositoryCfg{MainCol: "code"})
 	organizationService := service.NewOrganizationService(db, simpleOrganizationRepository)
 
-	uploadService, _ := service.NewUploadService(db, organizationService, simpleOrganizationRepository)
+	uploadService, _ := service.NewUploadService(db, organizationService, simpleOrganizationRepository, 0)
 
 	handler := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,
