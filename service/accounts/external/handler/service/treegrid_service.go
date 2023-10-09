@@ -23,8 +23,8 @@ func newTreeGridService(db *sql.DB, accountID int, organizationUuid string) tree
 
 	logger.Debug("accountID:", accountID)
 
-	simpleOrganizationRepository := treegrid.NewSimpleGridRowRepository(db, "users", repository.UserFieldNames,
-		100)
+	simpleOrganizationRepository := treegrid.NewSimpleGridRowRepositoryWithCfg(db, "users", repository.UserFieldNames,
+		100, &treegrid.SimpleGridRepositoryCfg{MainCol: "email"})
 
 	authProvider, err := gip.NewGIPClient()
 	if err != nil {

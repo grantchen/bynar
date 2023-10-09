@@ -114,8 +114,8 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 		FilterWhere = FilterWhere + s.cfg.AdditionWhere
 	}
 
-	where = DummyWhere + FilterWhere
-	query := BuildSimpleQueryGroupBy(s.tableName, s.fieldMapping, tg.GroupCols, where, level, s.cfg.QueryJoin)
+	groupWhere := DummyWhere + FilterWhere
+	query := BuildSimpleQueryGroupBy(s.tableName, s.fieldMapping, tg.GroupCols, groupWhere, level, s.cfg.QueryJoin)
 
 	pos, _ := tg.BodyParams.IntPos()
 	query = AppendLimitToQuery(query, s.pageSize, pos)
@@ -144,7 +144,10 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 		if s.cfg != nil && s.cfg.MainCol != "" {
 			entry[s.cfg.MainCol] = entry[tgCol]
 		}
-		entry["Rows"] = strconv.Itoa(level+1) + "AND " + s.fieldMapping[tgCol][0] + " = '" + entry[tgCol] + "'"
+		if where != "" {
+			where += " "
+		}
+		entry["Rows"] = strconv.Itoa(level+1) + where + "AND " + s.fieldMapping[tgCol][0] + " = '" + entry[tgCol] + "'"
 		tableData = append(tableData, entry)
 	}
 	return tableData, nil
