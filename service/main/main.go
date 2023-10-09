@@ -10,7 +10,6 @@ import (
 
 	"github.com/joho/godotenv"
 
-	general_posting_setup_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/external/handler/http"
 	organizations_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/external/handler/service"
 	payments_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/external/handler/http"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
@@ -30,6 +29,7 @@ import (
 
 	accounts_http_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/http"
 	accounts_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/service"
+	general_posting_setup_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/external/service"
 	invoices_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/external/handler/service"
 )
 
@@ -147,9 +147,6 @@ func main() {
 	lsHandlerMapping = append(lsHandlerMapping,
 		&HandlerMapping{handler: usergroups_handler.NewHTTPHandler(appConfig, db),
 			prefixPath: "/user_groups"})
-	lsHandlerMapping = append(lsHandlerMapping,
-		&HandlerMapping{handler: general_posting_setup_handler.NewHTTPHandler(appConfig, db),
-			prefixPath: "/general_posting_setup"})
 
 	for _, handlerMapping := range lsHandlerMapping {
 		http.HandleFunc(prefix+handlerMapping.prefixPath+"/data", handlerMapping.handler.HTTPHandleGetPageCount)
@@ -164,6 +161,7 @@ func main() {
 	lsHandlerMappingWithPermission = append(lsHandlerMappingWithPermission,
 		&HandlerMappingWithPermission{factoryFunc: organizations_service.NewTreeGridServiceFactory(), prefixPath: "/organizations"},
 		&HandlerMappingWithPermission{factoryFunc: accounts_service.NewTreeGridServiceFactory(), prefixPath: "/user_list"},
+		&HandlerMappingWithPermission{factoryFunc: general_posting_setup_service.NewTreeGridServiceFactory(), prefixPath: "/general_posting_setup"},
 	)
 
 	for _, handlerMappingWithPermission := range lsHandlerMappingWithPermission {
