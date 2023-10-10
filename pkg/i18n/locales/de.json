@@ -11,7 +11,7 @@
   "id-token-invalid": "IdToken ungültig",
   "signature-invalid": "Unterschrift ungültig",
   "timestamp-expired": "Zeitstempel abgelaufen",
-  "required-fields-blank": "Der felder darf nie Leer werden",
+  "required-fields-blank": "Erforderliche Felder dürfen nicht leer sein",
   "value-duplicate": "Feld ist doppelt vorhanden, Wert",
   "undefined-row-type": "Der Zeilentyp ist undefiniert",
   "begin-transaction": "Fehler beim Beginn der Transaktion",
