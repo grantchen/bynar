@@ -109,14 +109,13 @@ func (s *TreeGridService) handle(gr treegrid.GridRow) error {
 	}
 
 	if err != nil {
-		result := err.Error()
-		//Find index of comma
-		commaIndex := strings.Index(err.Error(), ",")
-		//If comma is found, intercept the string
-		if commaIndex != -1 {
-			result = err.Error()[:commaIndex]
+		//Formatted messy string
+		contains := strings.Contains(err.Error(), "of range")
+		if contains {
+			return fmt.Errorf("Out of range value for column total ")
+		} else {
+			return fmt.Errorf(err.Error())
 		}
-		return fmt.Errorf(result)
 	}
 
 	if err = tx.Commit(); err != nil {
