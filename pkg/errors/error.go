@@ -31,4 +31,5 @@ var (
 	ErrCodeUndefinedTowType         = "undefined-row-type"
 	ErrCodeBeginTransaction         = "begin-transaction"
 	ErrCodeCommitTransaction        = "commit-transaction"
+	ErrCodeOutRange                 = "out-range"
 )

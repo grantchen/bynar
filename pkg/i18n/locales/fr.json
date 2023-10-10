@@ -15,5 +15,6 @@
   "value-duplicate": "Le champ est en double, valeur",
   "undefined-row-type": "Le type de ligne n'est pas défini",
   "begin-transaction": "Erreur de début de transaction",
-  "commit-transaction": "Erreur de transaction de validation"
+  "commit-transaction": "Erreur de transaction de validation",
+  "out-range": "Valeur hors plage pour le total de la colonne "
 }

@@ -112,7 +112,7 @@ func (s *TreeGridService) handle(gr treegrid.GridRow) error {
 		//Formatted messy string
 		contains := strings.Contains(err.Error(), "of range")
 		if contains {
-			return fmt.Errorf("Out of range value for column total ")
+			return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeOutRange))
 		} else {
 			return fmt.Errorf(err.Error())
 		}

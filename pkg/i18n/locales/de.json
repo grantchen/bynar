@@ -15,5 +15,6 @@
   "value-duplicate": "Feld ist doppelt vorhanden, Wert",
   "undefined-row-type": "Der Zeilentyp ist undefiniert",
   "begin-transaction": "Fehler beim Beginn der Transaktion",
-  "commit-transaction": "Transaktionsfehler begehen"
+  "commit-transaction": "Transaktionsfehler begehen",
+  "out-range": "Der Wert für die Spaltensumme liegt außerhalb des gültigen Bereichs "
 }
