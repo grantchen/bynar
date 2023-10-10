@@ -2,14 +2,19 @@ package main
 
 import (
 	"fmt"
-	connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
 	"log"
 	"net/http"
 	"os"
 
+	connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
+
 	"github.com/joho/godotenv"
 
+	accounts_http_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/http"
+	accounts_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/service"
+	general_posting_setup_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/external/service"
+	invoices_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/external/handler/service"
 	organizations_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/external/handler/service"
 	payments_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/external/handler/http"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
@@ -25,12 +30,7 @@ import (
 	procurements_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/procurements/external/handler/http"
 	sales_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/external/handler/http"
 	transfers_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/external/handler/http"
-	usergroups_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/external/handler/http"
-
-	accounts_http_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/http"
-	accounts_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/service"
-	general_posting_setup_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/external/service"
-	invoices_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/external/handler/service"
+	user_group_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/external/service"
 )
 
 type HandlerMapping struct {
@@ -141,12 +141,6 @@ func main() {
 	lsHandlerMapping = append(lsHandlerMapping,
 		&HandlerMapping{handler: procurements_handler.NewHTTPHandler(appConfig, db),
 			prefixPath: "/procurements"})
-	// lsHandlerMapping = append(lsHandlerMapping,
-	// 	&HandlerMapping{handler: organizations_handler.NewHTTPHandler(appConfig, db),
-	// 		prefixPath: "/organizations"})
-	lsHandlerMapping = append(lsHandlerMapping,
-		&HandlerMapping{handler: usergroups_handler.NewHTTPHandler(appConfig, db),
-			prefixPath: "/user_groups"})
 
 	for _, handlerMapping := range lsHandlerMapping {
 		http.HandleFunc(prefix+handlerMapping.prefixPath+"/data", handlerMapping.handler.HTTPHandleGetPageCount)
@@ -162,6 +156,7 @@ func main() {
 		&HandlerMappingWithPermission{factoryFunc: organizations_service.NewTreeGridServiceFactory(), prefixPath: "/organizations"},
 		&HandlerMappingWithPermission{factoryFunc: accounts_service.NewTreeGridServiceFactory(), prefixPath: "/user_list"},
 		&HandlerMappingWithPermission{factoryFunc: general_posting_setup_service.NewTreeGridServiceFactory(), prefixPath: "/general_posting_setup"},
+		&HandlerMappingWithPermission{factoryFunc: user_group_service.NewTreeGridServiceFactory(), prefixPath: "/user_groups"},
 	)
 
 	for _, handlerMappingWithPermission := range lsHandlerMappingWithPermission {

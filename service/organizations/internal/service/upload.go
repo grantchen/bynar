@@ -16,19 +16,19 @@ type UploadService struct {
 	db                           *sql.DB
 	organizationService          OrganizationService
 	organizationSimpleRepository treegrid.SimpleGridRowRepository
-	accountID                    int
+	userID                       int
 }
 
 func NewUploadService(db *sql.DB,
 	organizationService OrganizationService,
 	organizationSimpleRepository treegrid.SimpleGridRowRepository,
-	accountID int,
+	userID int,
 ) (*UploadService, error) {
 	return &UploadService{
 		db:                           db,
 		organizationService:          organizationService,
 		organizationSimpleRepository: organizationSimpleRepository,
-		accountID:                    accountID,
+		userID:                       userID,
 	}, nil
 }
 
@@ -73,7 +73,8 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 		if err1 != nil {
 			return errors.NewUnknownError("prepare sql error", errors.ErrCode).WithInternalCause(err)
 		}
-		err = stmt.QueryRow(s.accountID).Scan(&parentId)
+		defer stmt.Close()
+		err = stmt.QueryRow(s.userID).Scan(&parentId)
 		if err != nil {
 			return errors.NewUnknownError("user_group_lines doest not exist", errors.ErrCodeNoUserGroupLineFound).WithInternalCause(err)
 		}

@@ -45,8 +45,8 @@ func main() {
 		})
 	organizationService := service.NewOrganizationService(db, simpleOrganizationRepository)
 
-	accountId := 6 // for test only
-	uploadService, _ := service.NewUploadService(db, organizationService, simpleOrganizationRepository, accountId)
+	userID := 1 // for test only
+	uploadService, _ := service.NewUploadService(db, organizationService, simpleOrganizationRepository, userID)
 
 	handler := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,
