@@ -4,24 +4,27 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/repository"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"log"
 	"strings"
-
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/repository"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
 type TreeGridService struct {
 	db                      *sql.DB
 	invoiceSimpleRepository treegrid.SimpleGridRowRepository
 	accountID               int
+	language                string
 }
 
-func NewTreeGridService(db *sql.DB, invoiceSimpleRepository treegrid.SimpleGridRowRepository, accountID int) (*TreeGridService, error) {
+func NewTreeGridService(db *sql.DB, invoiceSimpleRepository treegrid.SimpleGridRowRepository, accountID int, language string) (*TreeGridService, error) {
 	return &TreeGridService{
 		db:                      db,
 		invoiceSimpleRepository: invoiceSimpleRepository,
 		accountID:               accountID,
+		language:                language,
 	}, nil
 }
 
@@ -46,7 +49,7 @@ func (u *TreeGridService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespo
 	}
 
 	for _, gr := range grList {
-		if err := u.handle(gr); err != nil {
+		if err = u.handle(gr); err != nil {
 			log.Println("Err", err)
 
 			resp.IO.Result = -1
@@ -64,12 +67,11 @@ func (u *TreeGridService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespo
 func (s *TreeGridService) handle(gr treegrid.GridRow) error {
 	tx, err := s.db.BeginTx(context.Background(), nil)
 	if err != nil {
-		return fmt.Errorf("begin transaction: [%w]", err)
+		return fmt.Errorf("%s: [%w]", i18n.Localize(s.language, errors.ErrCodeBeginTransaction), err)
 	}
 	defer tx.Rollback()
 
 	fieldsValidating := []string{"invoice_no"}
-
 	// add addition here
 	switch gr.GetActionType() {
 	case treegrid.GridRowActionAdd:
@@ -77,11 +79,11 @@ func (s *TreeGridService) handle(gr treegrid.GridRow) error {
 		gr["account_id"] = s.accountID
 		err1 := gr.ValidateOnRequiredAll(repository.InvoiceFieldNames)
 		if err1 != nil {
-			return err1
+			return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeRequiredFieldsBlank))
 		}
 		ok, err1 := s.invoiceSimpleRepository.ValidateOnIntegrity(gr, fieldsValidating)
 		if !ok || err1 != nil {
-			return fmt.Errorf("validate duplicate: [%v], field: %s", err1, strings.Join(fieldsValidating, ", "))
+			return fmt.Errorf("%s: %s: %s", strings.Join(fieldsValidating, ", "), i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr["invoice_no"])
 		}
 		err = s.invoiceSimpleRepository.Add(tx, gr)
 	case treegrid.GridRowActionChanged:
@@ -93,25 +95,31 @@ func (s *TreeGridService) handle(gr treegrid.GridRow) error {
 
 		err1 := gr.ValidateOnRequired(repository.InvoiceFieldNames)
 		if err1 != nil {
-			return err1
+			return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeRequiredFieldsBlank))
 		}
 		ok, err1 = s.invoiceSimpleRepository.ValidateOnIntegrity(gr, fieldsValidating)
 		if !ok || err1 != nil {
-			return fmt.Errorf("validate duplicate: [%w], field: %s", err1, strings.Join(fieldsValidating, ", "))
+			return fmt.Errorf("%s %s: %s", strings.Join(fieldsValidating, ", "), i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr["invoice_no"])
 		}
 		err = s.invoiceSimpleRepository.Update(tx, gr)
 	case treegrid.GridRowActionDeleted:
 		err = s.invoiceSimpleRepository.Delete(tx, gr)
 	default:
-		return fmt.Errorf("undefined row type: %s", gr.GetActionType())
+		return fmt.Errorf("%s: %s", i18n.Localize(s.language, errors.ErrCodeUndefinedTowType), gr.GetActionType())
 	}
 
 	if err != nil {
-		return err
+		//Formatted messy string
+		contains := strings.Contains(err.Error(), "of range")
+		if contains {
+			return fmt.Errorf("Out of range value for column total ")
+		} else {
+			return fmt.Errorf(err.Error())
+		}
 	}
 
 	if err = tx.Commit(); err != nil {
-		return fmt.Errorf("commit transaction: [%w]", err)
+		return fmt.Errorf("%s: [%w]", i18n.Localize(s.language, errors.ErrCodeCommitTransaction), err)
 	}
 
 	return err

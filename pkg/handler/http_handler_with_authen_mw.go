@@ -59,6 +59,8 @@ type ReqContext struct {
 	AccountID        int
 	PermissionInfo   *treegrid.PermissionInfo
 	OrganizationUuid string
+	language         string
+	//claims           *middleware.IdTokenClaims
 }
 
 type ModulePath struct {
@@ -83,7 +85,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) getRequestContext(r *http.Request) *R
 
 func (h *HTTPTreeGridHandlerWithDynamicDB) getTreeGridService(r *http.Request) treegrid.TreeGridService {
 	reqContext := h.getRequestContext(r)
-	return h.TreeGridServiceFactory(reqContext.db, reqContext.AccountID, reqContext.OrganizationUuid, reqContext.PermissionInfo)
+	return h.TreeGridServiceFactory(reqContext.db, reqContext.AccountID, reqContext.OrganizationUuid, reqContext.PermissionInfo, reqContext.language)
 }
 
 func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleGetPageCount(w http.ResponseWriter, r *http.Request) {
@@ -333,6 +335,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 				IsAccessAll: true,
 			},
 			OrganizationUuid: claims.OrganizationUuid,
+			language:         claims.Language,
 		}
 		ctx := context.WithValue(r.Context(), RequestContextKey, reqContext)
 		newReq := r.WithContext(ctx)

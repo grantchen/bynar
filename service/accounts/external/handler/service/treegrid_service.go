@@ -19,7 +19,7 @@ type treegridService struct {
 	userService service.UserService
 }
 
-func newTreeGridService(db *sql.DB, accountID int, organizationUuid string) treegrid.TreeGridService {
+func newTreeGridService(db *sql.DB, accountID int, organizationUuid, language string) treegrid.TreeGridService {
 
 	logger.Debug("accountID:", accountID)
 
@@ -46,8 +46,8 @@ func newTreeGridService(db *sql.DB, accountID int, organizationUuid string) tree
 }
 
 func NewTreeGridServiceFactory() treegrid.TreeGridServiceFactoryFunc {
-	return func(db *sql.DB, accountID int, organizationUuid string, permissionInfo *treegrid.PermissionInfo) treegrid.TreeGridService {
-		return newTreeGridService(db, accountID, organizationUuid)
+	return func(db *sql.DB, accountID int, organizationUuid string, permissionInfo *treegrid.PermissionInfo, language string) treegrid.TreeGridService {
+		return newTreeGridService(db, accountID, organizationUuid, language)
 	}
 }
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
@@ -16,7 +15,7 @@ type treeGridService struct {
 	internalTreeGridService service.TreeGridService
 }
 
-func newTreeGridService(db *sql.DB, accountID int) treegrid.TreeGridService {
+func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.TreeGridService {
 	logger.Debug("accountID:", accountID)
 
 	simpleInvoiceRepository := treegrid.NewSimpleGridRowRepositoryWithCfg(db, "invoices", repository.InvoiceFieldNames,
@@ -26,7 +25,7 @@ func newTreeGridService(db *sql.DB, accountID int) treegrid.TreeGridService {
 			QueryCount:    repository.QueryCount,
 			AdditionWhere: fmt.Sprintf(repository.AdditionWhere, accountID),
 		})
-	internalTreeGridService, _ := service.NewTreeGridService(db, simpleInvoiceRepository, accountID)
+	internalTreeGridService, _ := service.NewTreeGridService(db, simpleInvoiceRepository, accountID, language)
 
 	return &treeGridService{
 		db:                      db,
@@ -35,8 +34,8 @@ func newTreeGridService(db *sql.DB, accountID int) treegrid.TreeGridService {
 }
 
 func NewTreeGridServiceFactory() treegrid.TreeGridServiceFactoryFunc {
-	return func(db *sql.DB, accountID int, organizationUuid string, permissionInfo *treegrid.PermissionInfo) treegrid.TreeGridService {
-		return newTreeGridService(db, accountID)
+	return func(db *sql.DB, accountID int, organizationUuid string, permissionInfo *treegrid.PermissionInfo, language string) treegrid.TreeGridService {
+		return newTreeGridService(db, accountID, language)
 	}
 }
 

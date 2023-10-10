@@ -11,5 +11,10 @@
   "email-already-exists": "Email already exists",
   "id-token-invalid": "IdToken invalid",
   "signature-invalid": "Signature invalid",
-  "timestamp-expired": "Timestamp expired"
+  "timestamp-expired": "Timestamp expired",
+  "required-fields-blank": "Required fields cannot be blank",
+  "value-duplicate": "Field is duplicate, value",
+  "undefined-row-type": "The row type is undefined",
+  "begin-transaction": "Begin transaction error",
+  "commit-transaction": "Commit transaction error"
 }
