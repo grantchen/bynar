@@ -21,6 +21,7 @@ var (
 	ErrCodeOperationFailed          = "operation-failed"
 	ErrCodeRequestParameter         = "request-parameter-error"
 	ErrCodeNoUserFound              = "no-user-found"
+	ErrCodeNoUserGroupLineFound     = "no-user_group_line-found"
 	ErrCodeEmailAlreadyExists       = "email-already-exists"
 	ErrCodePhoneNumberAlreadyExists = "phone_number-already-exists"
 	ErrCodeIDTokenInvalid           = "id-token-invalid"

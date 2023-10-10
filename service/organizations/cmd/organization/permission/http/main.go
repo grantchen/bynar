@@ -4,7 +4,10 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/joho/godotenv"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/external/handler/service"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
@@ -14,9 +17,14 @@ import (
 )
 
 func main() {
+	err := godotenv.Load("../main/.env")
+	if err != nil {
+		log.Fatal("Error loading .env file in main service")
+	}
+	appConfig := config.NewLocalConfig()
 
-	connAccountString := "root:123456@tcp(localhost:3306)/accounts_management"
-	dbAccount, err := sql_db.NewConnection(connAccountString)
+	accountManagementConnectionString := appConfig.GetAccountManagementConnection()
+	dbAccount, err := sql_db.NewConnection(accountManagementConnectionString)
 
 	if err != nil {
 		log.Panic(err)

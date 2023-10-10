@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/internal/repository"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
@@ -15,16 +16,19 @@ type UploadService struct {
 	db                           *sql.DB
 	organizationService          OrganizationService
 	organizationSimpleRepository treegrid.SimpleGridRowRepository
+	accountID                    int
 }
 
 func NewUploadService(db *sql.DB,
 	organizationService OrganizationService,
 	organizationSimpleRepository treegrid.SimpleGridRowRepository,
+	accountID int,
 ) (*UploadService, error) {
 	return &UploadService{
 		db:                           db,
 		organizationService:          organizationService,
 		organizationSimpleRepository: organizationSimpleRepository,
+		accountID:                    accountID,
 	}, nil
 }
 
@@ -64,7 +68,19 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 	// add addition here
 	switch gr.GetActionType() {
 	case treegrid.GridRowActionAdd:
-		err1 := gr.ValidateOnRequiredAll(repository.OrganizationFieldNames)
+		var parentId int
+		stmt, err1 := s.db.Prepare(`SELECT parent_id FROM user_group_lines WHERE user_id = ?`)
+		if err1 != nil {
+			return errors.NewUnknownError("prepare sql error", errors.ErrCode).WithInternalCause(err)
+		}
+		err = stmt.QueryRow(s.accountID).Scan(&parentId)
+		if err != nil {
+			return errors.NewUnknownError("user_group_lines doest not exist", errors.ErrCodeNoUserGroupLineFound).WithInternalCause(err)
+		}
+
+		gr["user_group_int"] = parentId
+
+		err1 = gr.ValidateOnRequiredAll(repository.OrganizationFieldNames)
 		if err1 != nil {
 			return err1
 		}
