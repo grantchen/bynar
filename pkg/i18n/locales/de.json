@@ -12,7 +12,7 @@
   "signature-invalid": "Unterschrift ungültig",
   "timestamp-expired": "Zeitstempel abgelaufen",
   "required-fields-blank": "Erforderliche Felder dürfen nicht leer sein",
-  "value-duplicate": "Feld ist doppelt vorhanden, Wert",
+  "value-duplicate": "Dieses Feld wird wiederholt, der Wert",
   "undefined-row-type": "Der Zeilentyp ist undefiniert",
   "begin-transaction": "Fehler beim Beginn der Transaktion",
   "commit-transaction": "Transaktionsfehler begehen",
