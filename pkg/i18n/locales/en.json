@@ -7,6 +7,7 @@
   "operation-failed": "Operation failed",
   "request-parameter-error": "Request parameter error",
   "no-user-found": "No user found",
+  "no-user_group_line-found": "No user group line found",
   "email-already-exists": "Email already exists",
   "id-token-invalid": "IdToken invalid",
   "signature-invalid": "Signature invalid",
