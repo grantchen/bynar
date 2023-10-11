@@ -5,8 +5,12 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/sirupsen/logrus"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/internal/service"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
+	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
@@ -20,10 +24,31 @@ type treegridService struct {
 func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.TreeGridService {
 
 	var filterPermissionCondition string
+	var userID int
 
 	logger.Debug("accountID:", accountID)
 	if accountID != 0 {
-		filterPermissionCondition = fmt.Sprintf(repository.QueryPermissionFormat, accountID)
+		appConfig := config.NewLocalConfig()
+		accountDB, err := sql_db.NewConnection(appConfig.GetAccountManagementConnection())
+		if err != nil {
+			logrus.Error(err)
+			return nil
+		}
+
+		querySql := fmt.Sprintf(`SELECT organization_user_id FROM organization_accounts WHERE organization_user_uid = (SELECT uid from accounts WHERE id = ?)`)
+		stmt, err := accountDB.Prepare(querySql)
+		if err != nil {
+			logrus.Errorf("db prepare: [%v], sql string: [%s]", err, querySql)
+			return nil
+		}
+		defer stmt.Close()
+		err = stmt.QueryRow(accountID).Scan(&userID)
+		if err != nil {
+			logrus.Errorf("query user id: [%v], sql string: [%s]", err, querySql)
+			return nil
+		}
+
+		filterPermissionCondition = fmt.Sprintf(repository.QueryPermissionFormat, userID)
 	}
 
 	simpleOrganizationRepository := treegrid.NewSimpleGridRowRepositoryWithCfg(db, "organizations", repository.OrganizationFieldNames,
@@ -35,7 +60,7 @@ func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.Tre
 		})
 	organizationService := service.NewOrganizationService(db, simpleOrganizationRepository)
 
-	uploadService, _ := service.NewUploadService(db, organizationService, simpleOrganizationRepository)
+	uploadService, _ := service.NewUploadService(db, organizationService, simpleOrganizationRepository, userID)
 	return &treegridService{
 		db:                  db,
 		organizationService: organizationService,
