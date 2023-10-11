@@ -20,7 +20,7 @@ func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.Tre
 
 	simpleInvoiceRepository := treegrid.NewSimpleGridRowRepositoryWithCfg(db, "invoices", repository.InvoiceFieldNames,
 		100, &treegrid.SimpleGridRepositoryCfg{
-			MainCol:       "code",
+			MainCol:       "invoice_date",
 			QueryString:   repository.QuerySelect,
 			QueryCount:    repository.QueryCount,
 			AdditionWhere: fmt.Sprintf(repository.AdditionWhere, accountID),
