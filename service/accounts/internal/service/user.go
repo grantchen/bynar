@@ -4,13 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
+	"log"
 	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
-	"github.com/sirupsen/logrus"
 )
 
 // db to gip key
@@ -27,31 +28,61 @@ type UserService struct {
 	organizationID               int
 	authProvider                 gip.AuthProvider
 	simpleOrganizationRepository treegrid.SimpleGridRowRepository
+	language                     string
 }
 
-func NewUserService(db *sql.DB, accountDB *sql.DB, organizationID int, authProvider gip.AuthProvider, simpleOrganizationService treegrid.SimpleGridRowRepository) *UserService {
-	return &UserService{db, accountDB, organizationID, authProvider, simpleOrganizationService}
+func NewUserService(db *sql.DB, accountDB *sql.DB, organizationID int, authProvider gip.AuthProvider, simpleOrganizationService treegrid.SimpleGridRowRepository, language string) *UserService {
+	return &UserService{db, accountDB, organizationID, authProvider, simpleOrganizationService, language}
 }
 
 // Handle implements treegrid.TreeGridService
 func (s *UserService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	resp := &treegrid.PostResponse{Changes: []map[string]interface{}{}}
 	// Create new transaction
+	tx, err := s.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("%s: [%w]", i18n.Localize(s.language, errors.ErrCodeBeginTransaction), err)
+	}
+	defer tx.Rollback()
 	grList, err := treegrid.ParseRequestUploadSingleRow(req)
 	if err != nil {
 		return nil, fmt.Errorf("parse requst: [%w]", err)
 	}
-	for _, gr := range grList {
-		if err := s.handle(gr); err != nil {
-			logrus.Error("Err", err)
+	isCommit := true
+	seenEmails := make(map[string]bool)
 
-			resp.IO.Result = -1
-			resp.IO.Message += err.Error() + "\n"
-			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
-			break
+	for _, gr := range grList {
+		if gr["email"] != nil {
+			email := gr["email"].(string)
+			//Check if the value is already in the map
+			if seenEmails[email] {
+				//If there is the same invoice_no, handle it accordingly.
+				isCommit = false
+				resp.IO.Result = -1
+				resp.IO.Message = fmt.Sprintf("email: %s: %s", i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr["email"].(string))
+				resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
+			} else {
+				seenEmails[email] = true
+			}
 		}
-		resp.Changes = append(resp.Changes, gr)
-		resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
+	}
+	// If no errors occurred, commit the transaction
+	if isCommit == true {
+		for _, gr := range grList {
+			if err = s.handle(tx, gr); err != nil {
+				log.Println("Err", err)
+				isCommit = false
+				resp.IO.Result = -1
+				resp.IO.Message += err.Error() + "\n"
+				resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
+				break
+			}
+			resp.Changes = append(resp.Changes, gr)
+			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
+		}
+		if err = tx.Commit(); err != nil {
+			return nil, fmt.Errorf("%s: [%w]", i18n.Localize(s.language, errors.ErrCodeCommitTransaction), err)
+		}
 	}
 
 	return resp, nil
@@ -69,13 +100,8 @@ func (s *UserService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, e
 	return s.simpleOrganizationRepository.GetPageData(tr)
 }
 
-func (s *UserService) handle(gr treegrid.GridRow) error {
-	tx, err := s.db.BeginTx(context.Background(), nil)
-	if err != nil {
-		return fmt.Errorf("begin transaction: [%w]", err)
-	}
-	defer tx.Rollback()
-
+func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
+	var err error
 	fieldsValidating := []string{"email"}
 
 	// add addition here
@@ -87,8 +113,7 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 		}
 		ok, err1 := s.simpleOrganizationRepository.ValidateOnIntegrity(gr, fieldsValidating)
 		if !ok || err1 != nil {
-			logrus.Errorf("validate duplicate: [%v], field: %s", err1, strings.Join(fieldsValidating, ", "))
-			return fmt.Errorf("value of field: %s exists", strings.Join(fieldsValidating, ", "))
+			return fmt.Errorf("%s: %s: %s", strings.Join(fieldsValidating, ", "), i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr["email"])
 		}
 		err = func() error {
 			err = s.simpleOrganizationRepository.Add(tx, gr)
@@ -131,8 +156,7 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 			if ok {
 				ok, err1 := s.simpleOrganizationRepository.ValidateOnIntegrity(gr, fieldsValidating)
 				if !ok || err1 != nil {
-					logrus.Errorf("validate duplicate: [%v], field: %s", err1, strings.Join(fieldsValidating, ", "))
-					return fmt.Errorf("value of field: %s exists", strings.Join(fieldsValidating, ", "))
+					return fmt.Errorf("%s: %s: %s", strings.Join(fieldsValidating, ", "), i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr["email"])
 				}
 				err = s.simpleOrganizationRepository.Update(tx, gr)
 				if err != nil {
@@ -195,15 +219,11 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 		}()
 
 	default:
-		return fmt.Errorf("undefined row type: %s", gr.GetActionType())
+		return fmt.Errorf("%s: %s", i18n.Localize(s.language, errors.ErrCodeUndefinedTowType), gr.GetActionType())
 	}
 
 	if err != nil {
 		return err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit transaction: [%w]", err)
 	}
 
 	return err

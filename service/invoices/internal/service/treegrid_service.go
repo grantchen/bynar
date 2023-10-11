@@ -64,7 +64,7 @@ func (u *TreeGridService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespo
 				//If there is the same invoice_no, handle it accordingly.
 				isCommit = false
 				resp.IO.Result = -1
-				resp.IO.Message = fmt.Sprintf("invoice_no: %s%s:%s", i18n.Localize(u.language, errors.ErrCodeValueDuplicated), ":", gr["invoice_no"].(string))
+				resp.IO.Message = fmt.Sprintf("invoice_no: %s: %s", i18n.Localize(u.language, errors.ErrCodeValueDuplicated), gr["invoice_no"].(string))
 				resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
 			} else {
 				seenInvoiceNos[invoiceNo] = true
