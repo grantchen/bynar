@@ -43,33 +43,54 @@ func (u *TreeGridService) GetPageData(tr *treegrid.Treegrid) ([]map[string]strin
 func (u *TreeGridService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	resp := &treegrid.PostResponse{Changes: []map[string]interface{}{}}
 	// Create new transaction
+	tx, err := u.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("%s: [%w]", i18n.Localize(u.language, errors.ErrCodeBeginTransaction), err)
+	}
+	defer tx.Rollback()
+
 	grList, err := treegrid.ParseRequestUploadSingleRow(req)
 	if err != nil {
 		return nil, fmt.Errorf("parse requst: [%w]", err)
 	}
-
+	isCommit := true
+	seenInvoiceNos := make(map[string]bool)
 	for _, gr := range grList {
-		if err = u.handle(gr); err != nil {
-			log.Println("Err", err)
-
+		invoiceNo := gr["invoice_no"].(string)
+		//Check if the value is already in the map
+		if seenInvoiceNos[invoiceNo] {
+			//If there is the same invoice_no, handle it accordingly.
+			isCommit = false
 			resp.IO.Result = -1
-			resp.IO.Message += err.Error() + "\n"
+			resp.IO.Message = fmt.Sprintf("invoice_no: %s%s:%s", i18n.Localize(u.language, errors.ErrCodeValueDuplicated), ":", gr["invoice_no"].(string))
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
-			break
+		} else {
+			seenInvoiceNos[invoiceNo] = true
 		}
-		resp.Changes = append(resp.Changes, gr)
-		resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
 	}
-
+	// If no errors occurred, commit the transaction
+	if isCommit == true {
+		for _, gr := range grList {
+			if err = u.handle(tx, gr); err != nil {
+				log.Println("Err", err)
+				isCommit = false
+				resp.IO.Result = -1
+				resp.IO.Message += err.Error() + "\n"
+				resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
+				break
+			}
+			resp.Changes = append(resp.Changes, gr)
+			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
+		}
+		if err = tx.Commit(); err != nil {
+			return nil, fmt.Errorf("%s: [%w]", i18n.Localize(u.language, errors.ErrCodeCommitTransaction), err)
+		}
+	}
 	return resp, nil
 }
 
-func (s *TreeGridService) handle(gr treegrid.GridRow) error {
-	tx, err := s.db.BeginTx(context.Background(), nil)
-	if err != nil {
-		return fmt.Errorf("%s: [%w]", i18n.Localize(s.language, errors.ErrCodeBeginTransaction), err)
-	}
-	defer tx.Rollback()
+func (s *TreeGridService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
+	var err error
 
 	fieldsValidating := []string{"invoice_no"}
 	// add addition here
@@ -116,10 +137,6 @@ func (s *TreeGridService) handle(gr treegrid.GridRow) error {
 		} else {
 			return fmt.Errorf(err.Error())
 		}
-	}
-
-	if err = tx.Commit(); err != nil {
-		return fmt.Errorf("%s: [%w]", i18n.Localize(s.language, errors.ErrCodeCommitTransaction), err)
 	}
 
 	return err
