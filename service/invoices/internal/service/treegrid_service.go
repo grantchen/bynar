@@ -55,17 +55,20 @@ func (u *TreeGridService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespo
 	}
 	isCommit := true
 	seenInvoiceNos := make(map[string]bool)
+
 	for _, gr := range grList {
-		invoiceNo := gr["invoice_no"].(string)
-		//Check if the value is already in the map
-		if seenInvoiceNos[invoiceNo] {
-			//If there is the same invoice_no, handle it accordingly.
-			isCommit = false
-			resp.IO.Result = -1
-			resp.IO.Message = fmt.Sprintf("invoice_no: %s%s:%s", i18n.Localize(u.language, errors.ErrCodeValueDuplicated), ":", gr["invoice_no"].(string))
-			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
-		} else {
-			seenInvoiceNos[invoiceNo] = true
+		if gr["invoice_no"] != nil {
+			invoiceNo := gr["invoice_no"].(string)
+			//Check if the value is already in the map
+			if seenInvoiceNos[invoiceNo] {
+				//If there is the same invoice_no, handle it accordingly.
+				isCommit = false
+				resp.IO.Result = -1
+				resp.IO.Message = fmt.Sprintf("invoice_no: %s%s:%s", i18n.Localize(u.language, errors.ErrCodeValueDuplicated), ":", gr["invoice_no"].(string))
+				resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
+			} else {
+				seenInvoiceNos[invoiceNo] = true
+			}
 		}
 	}
 	// If no errors occurred, commit the transaction
