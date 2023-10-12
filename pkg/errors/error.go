@@ -33,4 +33,7 @@ var (
 	ErrCodeBeginTransaction         = "begin-transaction"
 	ErrCodeCommitTransaction        = "commit-transaction"
 	ErrCodeOutRange                 = "out-range"
+	ErrCodePhoneNumber              = "phone-number"
+	ErrCodeEmail                    = "email-error"
+	ErrCodeTooLong                  = "too-long"
 )

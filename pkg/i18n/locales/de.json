@@ -17,5 +17,8 @@
   "undefined-row-type": "Der Zeilentyp ist undefiniert",
   "begin-transaction": "Fehler beim Beginn der Transaktion",
   "commit-transaction": "Transaktionsfehler begehen",
-  "out-range": "Der Wert für die Spaltensumme liegt außerhalb des gültigen Bereichs "
+  "out-range": "Der Wert für die Spaltensumme liegt außerhalb des gültigen Bereichs ",
+  "phone-number": "Fehler im Format der Telefonnummer",
+  "email-error": "Fehler im E-Mail-Format",
+  "too-long": "Die Daten für die Spalte „full_name“ sind zu lang"
 }

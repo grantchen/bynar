@@ -17,5 +17,8 @@
   "undefined-row-type": "Le type de ligne n'est pas défini",
   "begin-transaction": "Erreur de début de transaction",
   "commit-transaction": "Erreur de transaction de validation",
-  "out-range": "Valeur hors plage pour le total de la colonne "
+  "out-range": "Valeur hors plage pour le total de la colonne ",
+  "phone-number": "Erreur de format du numéro de téléphone",
+  "email-error": "Erreur de format d'e-mail",
+  "too-long": "Données trop longues pour la colonne full_name"
 }

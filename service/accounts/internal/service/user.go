@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"log"
+	"regexp"
 	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/repository"
@@ -138,7 +139,14 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		err = func() error {
 			err = s.simpleOrganizationRepository.Add(tx, gr)
 			if err != nil {
-				return err
+				//Formatted messy string
+				contains := strings.Contains(err.Error(), "too long")
+				contains1 := strings.Contains(err.Error(), "Too Long")
+				if contains || contains1 {
+					return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeTooLong))
+				} else {
+					return err
+				}
 			}
 			// create user in gip
 			email, _ := gr.GetValString("email")
@@ -147,7 +155,17 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			status, _ := gr.GetValInt("status")
 			uid, err := s.authProvider.CreateUser(context.Background(), email, fullName, phone, status == 0)
 			if err != nil {
-				return err
+				phonePattern := `(?i)INVALID_PHONE_NUMBER|phone number`
+				regex := regexp.MustCompile(phonePattern)
+				emailPattern := `(?i)INVALID_EMAIL|email`
+				regexEmail := regexp.MustCompile(emailPattern)
+				if regex.MatchString(err.Error()) {
+					return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodePhoneNumber))
+				} else if regexEmail.MatchString(err.Error()) {
+					return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeEmail))
+				} else {
+					return err
+				}
 			}
 			var userID int
 			stmt, err := tx.Prepare("SELECT id FROM users WHERE email=?")
@@ -184,7 +202,14 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				}
 				err = s.simpleOrganizationRepository.Update(tx, gr)
 				if err != nil {
-					return errors.NewUnknownError("user update failed", errors.ErrCode).WithInternal().WithCause(err)
+					//Formatted messy string
+					contains := strings.Contains(err.Error(), "too long")
+					contains1 := strings.Contains(err.Error(), "Too Long")
+					if contains || contains1 {
+						return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeTooLong))
+					} else {
+						return err
+					}
 				}
 
 				var uid string
@@ -217,6 +242,19 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				}
 				params["customClaims"] = customClaims
 				err = s.authProvider.UpdateUser(context.Background(), uid, params)
+				if err != nil {
+					phonePattern := `(?i)INVALID_PHONE_NUMBER|phone number`
+					regex := regexp.MustCompile(phonePattern)
+					emailPattern := `(?i)INVALID_EMAIL|email`
+					regexEmail := regexp.MustCompile(emailPattern)
+					if regex.MatchString(err.Error()) {
+						return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodePhoneNumber))
+					} else if regexEmail.MatchString(err.Error()) {
+						return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeEmail))
+					} else {
+						return err
+					}
+				}
 				return err
 			}
 			return nil

@@ -17,5 +17,8 @@
   "undefined-row-type": "El tipo de fila no está definido",
   "begin-transaction": "Error al iniciar transacción",
   "commit-transaction": "cometer error de transacción",
-  "out-range": "Valor fuera de rango para el total de la columna "
+  "out-range": "Valor fuera de rango para el total de la columna ",
+  "phone-number": "Error de formato del número de teléfono",
+  "email-error": "Error de formato de correo electrónico",
+  "too-long": "Datos demasiado largos para la columna nombre_completo"
 }
