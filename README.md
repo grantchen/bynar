@@ -3,6 +3,8 @@ Bynar backend golang application
 
 ## Directory Description
 ### pkg
+Common functions for service use.
+
 | Name | Description |
 | :--- | :--- |
 | checkout | Checkout payment replate api, include GenerateAuthToken generate payment api access token and credit card verify|
@@ -21,6 +23,8 @@ Bynar backend golang application
 | utils | Collection of commonly used functions|
 
 ### service
+System service http api collections, it call pkg common functions in pkg directory.
+
 | Name | Description |
 | :--- | :--- |
 | accounts | Account relate service code, include sign in, sign up, upload profile picture, treegrid api code|
