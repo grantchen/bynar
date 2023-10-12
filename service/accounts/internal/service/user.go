@@ -95,11 +95,12 @@ func (s *UserService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse,
 			resp.Changes = append(resp.Changes, gr)
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
 		}
+	}
+	if isCommit == true {
 		if err = tx.Commit(); err != nil {
 			return nil, fmt.Errorf("%s: [%w]", i18n.Localize(s.language, errors.ErrCodeCommitTransaction), err)
 		}
 	}
-
 	return resp, nil
 }
 
