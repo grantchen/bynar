@@ -50,19 +50,34 @@ func (s *UserService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse,
 	}
 	isCommit := true
 	seenEmails := make(map[string]bool)
-
+	seenPhone := make(map[string]bool)
 	for _, gr := range grList {
 		if gr["email"] != nil {
 			email := gr["email"].(string)
 			//Check if the value is already in the map
 			if seenEmails[email] {
-				//If there is the same invoice_no, handle it accordingly.
+				//If there is the same email, handle it accordingly.
 				isCommit = false
 				resp.IO.Result = -1
 				resp.IO.Message = fmt.Sprintf("email: %s: %s", i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr["email"].(string))
 				resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
 			} else {
 				seenEmails[email] = true
+			}
+		}
+	}
+	for _, gr := range grList {
+		if gr["phone"] != nil {
+			phone := gr["phone"].(string)
+			//Check if the value is already in the map
+			if seenPhone[phone] {
+				//If there is the same phone, handle it accordingly.
+				isCommit = false
+				resp.IO.Result = -1
+				resp.IO.Message = fmt.Sprintf("phone: %s: %s", i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr["phone"].(string))
+				resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
+			} else {
+				seenPhone[phone] = true
 			}
 		}
 	}
@@ -103,17 +118,21 @@ func (s *UserService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, e
 func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	var err error
 	fieldsValidating := []string{"email"}
-
+	fieldsValidatingPhone := []string{"phone"}
 	// add addition here
 	switch gr.GetActionType() {
 	case treegrid.GridRowActionAdd:
 		err1 := gr.ValidateOnRequiredAll(repository.UserFieldNames)
 		if err1 != nil {
-			return err1
+			return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeRequiredFieldsBlank))
 		}
 		ok, err1 := s.simpleOrganizationRepository.ValidateOnIntegrity(gr, fieldsValidating)
 		if !ok || err1 != nil {
 			return fmt.Errorf("%s: %s: %s", strings.Join(fieldsValidating, ", "), i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr["email"])
+		}
+		ok1, err1 := s.simpleOrganizationRepository.ValidateOnIntegrity(gr, fieldsValidatingPhone)
+		if !ok1 || err1 != nil {
+			return fmt.Errorf("%s: %s: %s", strings.Join(fieldsValidatingPhone, ", "), i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr["phone"])
 		}
 		err = func() error {
 			err = s.simpleOrganizationRepository.Add(tx, gr)
@@ -149,7 +168,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	case treegrid.GridRowActionChanged:
 		err1 := gr.ValidateOnRequired(repository.UserFieldNames)
 		if err1 != nil {
-			return err1
+			return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeRequiredFieldsBlank))
 		}
 		err = func() error {
 			id, ok := gr.GetValInt("id")
@@ -157,6 +176,10 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				ok, err1 := s.simpleOrganizationRepository.ValidateOnIntegrity(gr, fieldsValidating)
 				if !ok || err1 != nil {
 					return fmt.Errorf("%s: %s: %s", strings.Join(fieldsValidating, ", "), i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr["email"])
+				}
+				ok1, err2 := s.simpleOrganizationRepository.ValidateOnIntegrity(gr, fieldsValidatingPhone)
+				if !ok1 || err2 != nil {
+					return fmt.Errorf("%s: %s: %s", strings.Join(fieldsValidatingPhone, ", "), i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr["phone"])
 				}
 				err = s.simpleOrganizationRepository.Update(tx, gr)
 				if err != nil {
