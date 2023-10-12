@@ -32,7 +32,7 @@ func NewUploadService(db *sql.DB,
 
 // Handle implements UploadService
 func (u *uploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
-	resp := &treegrid.PostResponse{}
+	resp := &treegrid.PostResponse{Changes: []map[string]interface{}{}}
 	// Create new transaction
 	grList, err := treegrid.ParseRequestUploadSingleRow(req)
 	if err != nil {
@@ -86,7 +86,10 @@ func (u *uploadService) handle(gr treegrid.GridRow) error {
 		}
 		err = u.tgGeneralPostingSetupSimpleRepository.Add(tx, gr)
 	case treegrid.GridRowActionChanged:
-
+		err = gr.ValidateOnRequired(repository.GeneralPostingSetupFieldNames)
+		if err != nil {
+			return err
+		}
 		id := gr.GetIDInt()
 		var generalPostingSetup *model.GeneralPostingSetup
 		generalPostingSetup, err = u.generalPostingSetupRepository.GetGeneralPostingSetup(gr.GetIDInt())
