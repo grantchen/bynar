@@ -247,10 +247,13 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 					regex := regexp.MustCompile(phonePattern)
 					emailPattern := `(?i)INVALID_EMAIL|email`
 					regexEmail := regexp.MustCompile(emailPattern)
+					contains := strings.Contains(err.Error(), "user not found")
 					if regex.MatchString(err.Error()) {
 						return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodePhoneNumber))
 					} else if regexEmail.MatchString(err.Error()) {
 						return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeEmail))
+					} else if contains {
+						return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeGipUser))
 					} else {
 						return err
 					}
