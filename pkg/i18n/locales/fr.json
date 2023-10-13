@@ -20,5 +20,6 @@
   "out-range": "Valeur hors plage pour le total de la colonne ",
   "phone-number": "Erreur de format du numéro de téléphone",
   "email-error": "Erreur de format d'e-mail",
-  "too-long": "Données trop longues pour la colonne full_name"
+  "too-long": "Données trop longues pour la colonne full_name",
+  "gip-user-not-found": "L'utilisateur dans gip n'existe pas. Veuillez d'abord supprimer cet utilisateur, puis l'ajouter à nouveau"
 }

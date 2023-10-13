@@ -36,4 +36,5 @@ var (
 	ErrCodePhoneNumber              = "phone-number"
 	ErrCodeEmail                    = "email-error"
 	ErrCodeTooLong                  = "too-long"
+	ErrCodeGipUser                  = "gip-user-not-found"
 )

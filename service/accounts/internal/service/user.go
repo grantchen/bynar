@@ -215,11 +215,11 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				var uid string
 				stmt, err := s.accountDB.Prepare(`SELECT organization_user_uid FROM organization_accounts WHERE organization_id = ? AND organization_user_id = ?`)
 				if err != nil {
-					return errors.NewUnknownError("user not found", errors.ErrCodeNoUserFound).WithInternal().WithCause(err)
+					return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeGipUser))
 				}
 				err = stmt.QueryRow(s.organizationID, id).Scan(&uid)
 				if err != nil {
-					return errors.NewUnknownError("user not found", errors.ErrCodeNoUserFound).WithInternal().WithCause(err)
+					return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeGipUser))
 				}
 				// update user claims in gip
 				params := map[string]interface{}{}
@@ -274,7 +274,10 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			// delete user in gip
 			err = s.authProvider.DeleteUserByEmail(context.Background(), email)
 			if err != nil {
-				return err
+				contains := strings.Contains(err.Error(), "user not found")
+				if !contains {
+					return err
+				}
 			}
 			err = s.simpleOrganizationRepository.Delete(tx, gr)
 			return err
