@@ -172,6 +172,9 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 				if err != nil {
 					return errors.NewUnknownError("user not found", errors.ErrCodeNoUserFound).WithInternal().WithCause(err)
 				}
+				if u.CustomClaims == nil {
+					u.CustomClaims = map[string]interface{}{}
+				}
 				for k, v := range customClaims {
 					u.CustomClaims[k] = v
 				}
