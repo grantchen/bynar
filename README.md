@@ -1,94 +1,135 @@
-Welcome to the AWS CodeStar sample web application
+Bynar backend golang application
 ==================================================
 
-This sample code helps get you started with a simple Go web application deployed by AWS CloudFormation to AWS Lambda and Amazon API Gateway.
+## Directory Description
+### pkg
+Common functions for service use.
 
-What's Here
------------
+| Name | Description |
+| :--- | :--- |
+| checkout | Checkout payment replate api, include GenerateAuthToken generate payment api access token and credit card verify|
+| config | Global config, DB config|
+| db | Database connection util|
+| email | Sendgrid email relate util|
+| errors | Error const variable and error handle relate functions|
+| gcs | Google cloud storage relate util|
+| gip | Google identify platform relate util|
+| handler | Http treegrid handler|
+| i18n | I18n handler relate util|
+| logger | Log hanler util |
+| middleware | Token auth middleware util |
+| render | Http render relate util |
+| treegrid | Treegrid relate handler util|
+| utils | Collection of commonly used functions|
 
-This sample includes:
+### service
+System service http api collections, it call pkg common functions in pkg directory.
 
-* README.md - this file
-* buildspec.yml - this file is used by AWS CodeBuild to package your
-  application for deployment to AWS Lambda
-* main.go - this file contains the sample Go code for the web application
-* main_test.go - this file contains unit tests for the sample Go code
-* template.yml - this file contains the AWS Serverless Application Model (AWS SAM) used
-  by AWS CloudFormation to deploy your application to AWS Lambda and Amazon API
-  Gateway.
-* template-configuration.json - this file contains the project ARN with placeholders used for tagging resources with the project ID  
+| Name | Description |
+| :--- | :--- |
+| accounts | Account relate service code, include sign in, sign up, upload profile picture, treegrid api code|
+| general_posting_setup | General posting setup service treegrid relate api code|
+| invoices | Invoices service treegrid relate api code|
+| main | Main run code|
+| organizations | Organizations service treegrid relate api code|
+| usergroups | Usergroups service treegrid relate api code|
 
-Getting Started
----------------
+## How to run
+Before run should create .env file in service/main directory, you can copy .env.template as base template.
 
-These directions assume you want to develop on your development environment or a Cloud9 environment.
+```shell
+ $ cd service/main/
+ $ go run main.go
+```
 
-To work on the sample code, you'll need to clone your project's repository to your
-local computer. If you haven't, do that first. You can find instructions in the
-AWS CodeStar user guide at https://docs.aws.amazon.com/codestar/latest/userguide/getting-started.html#clone-repo
+## ENV keys
 
+#### Check out api keys
+Can get key values from Checkout.com.
 
-1. Install Go.  See https://golang.org/dl/ for details.
+| Key | Description |
+| :--- | :--- |
+| CHECKOUT_SANDBOX | Is checkout sandbox enviroment |
+| CHECKOUT_CLIENT_ID | Checkout client id |
+| CHECKOUT_CLIENT_SECRET | Checkout client sercret |
+| CHECKOUT_PROCESS_CHANNEL_ID | Checkout process channel id |
 
-2. Install your dependencies:
+#### google identify platform keys
 
-          $ go get github.com/stretchr/testify/assert
-          $ go get github.com/aws/aws-lambda-go/lambda
-            
-3.  Install the SAM CLI. For details see 
-https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html
+| Key | Description |
+| :--- | :--- |
+| GOOGLE_APPLICATION_CREDENTIALS_JSON | FireBase Service accounts private json key value. https://console.firebase.google.com/project/xxx/settings/serviceaccounts/adminsdk?hl=en |
+| GOOGLE_API_KEY | Google Api key|
+| SIGNUP_REDIRECT_URL | Sign up redirect url. Ex: "http://localhost:3000/signup"|
+| SIGNUP_CUSTOM_VERIFICATION_KEY | Sign up custom verfication key|
+| SIGNIN_REDIRECT_URL | Sign in redirect url. Ex: "http://localhost:3000/signin"|
 
-4. Run the following command in your repository to build the main.go file.
+#### database config keys
+| Key | Description |
+| :--- | :--- |
+| DB_CONN_KEY | Bynar database connction string. Ex: "root:123456@tcp(localhost:3306)/bynar"|
+| DB_ACCOUNT_CONN_KEY | Bynar accounts manager database connction string.  Ex: "root:123456@tcp(localhost:3306)/accounts_manager"|
 
-           $ GOARCH=amd64 GOOS=linux go build main.go
-           
-5.  Start the development server:
-            
-            $ sam local start-api -p 8080
+#### sendgrid config keys
+| Key | Description |
+| :--- | :--- |
+| SENDGRID_API_KEY | Send grid api key|
+| SENDGRID_FROM_NAME | Send email from user name|
+| SENDGRID_FROM_ADDRESS | Send email address|
+| SENDGRID_TO_NAME | Send to name|
+| SENDGRID_REDIRECT_URL | Sendgrid redirect url|
 
-6.  Open http://127.0.0.1:8080/ in a web browser to view your webapp. 
+#### google cloud storage keys
+| Key | Description |
+| :--- | :--- |
+| GOOGLE_CLOUD_STORAGE_BUCKET | Google cloud storage bucket name|
 
-What Do I Do Next?
-------------------
+#### Code runtime environment
+| Key | Description |
+| :--- | :--- |
+| ENV | Code runtime environment settings. Default: development|
 
-If you have checked out a local copy of your repository you can start making
-changes to the sample code.  We suggest making a small change to main.go first,
-so you can see how changes pushed to your project's repository are automatically
-picked up by your project pipeline and deployed to AWS Lambda and Amazon API Gateway.
-(You can watch the pipeline progress on your AWS CodeStar project dashboard.)
-Once you've seen how that works, start developing your own code, and have fun!
+## How to deploy
 
-To run your test locally, go to the root directory of the sample code and
-run the `go test` command, which AWS CodeBuild also runs through your
-`buildspec.yml` file.
+When push code to master will trigger google cloud build, google cloud build will run by cloudbuild.yaml step by step
 
-To test your new code during the release process, modify the existing tests or
-add tests for any new packages you create. AWS CodeBuild will run the tests during
-the build stage of your project pipeline. You can find the test results in the
-AWS CodeBuild console.
+## What services and Api uses
 
-Learn more about AWS CodeBuild and how it builds and tests your application here:
-https://docs.aws.amazon.com/codebuild/latest/userguide/concepts.html
+### Signup API
+| Url | Description |
+| :--- | :--- |
+| /signup  | User sign up api|
+| /confirm-email   | Confirm user email api when sign up|
+| /verify-card  | Verify credit card api when sign up|
+| /create-user  | Create user info to database api|
 
-Learn more about AWS Serverless Application Model (AWS SAM) and how it works here:
-https://github.com/awslabs/serverless-application-model/blob/master/HOWTO.md
+### Signin API
+| Url | Description |
+| :--- | :--- |
+| /signin-email  | Send email api when sign in|
+| /signin  | User sign in api|
 
-AWS Lambda Developer Guide:
-https://docs.aws.amazon.com/lambda/latest/dg/deploying-lambda-apps.html
+### User API
+| Url | Description |
+| :--- | :--- |
+| /user  | Get user info|
+| /user/:id  | Get user info by id|
+| /upload  | Upload user photo api|
+| /profile-image  | Delete user photo api|
+| /update-user-language-preference | Update user language preference api|
+| /update-user-theme-preference | Update user theme preference api|
+| /update-profile| Update user profile api|
 
-Learn more about AWS CodeStar by reading the user guide, and post questions and
-comments about AWS CodeStar on our forum.
+### TreeGrid API
+| Url | Description |
+| :--- | :--- |
+| /:service/data  | Get list data api|
+| /:service/page  | Get page data api|
+| /:service/upload  | Hanlde upload api|
+| /:service/cell  | Update cell value api|
 
-User Guide: https://docs.aws.amazon.com/codestar/latest/userguide/welcome.html
-
-Forum: https://forums.aws.amazon.com/forum.jspa?forumID=248
-
-What Should I Do Before Running My Project in Production?
-------------------
-
-AWS recommends you review the security best practices recommended by the framework
-author of your selected sample application before running it in production. You
-should also regularly review and apply any available patches or associated security
-advisories for dependencies used within your application.
-
-Best Practices: https://docs.aws.amazon.com/codestar/latest/userguide/best-practices.html?icmpid=docs_acs_rm_sec
+Current avaliable sevices are: 
+ * organizations
+ * user_list
+ * general_posting_setup
+ * user_groups
