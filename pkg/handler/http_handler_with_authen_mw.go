@@ -73,9 +73,9 @@ const RequestContextKey key = "reqContext"
 
 var PolicyMap = map[string][]string{
 	"list":   {"data", "page"},
-	"add":    {"upload:Added"},
-	"update": {"upload:Changed"},
-	"delete": {"upload:Deleted"},
+	"add":    {"upload:Added", "upload"},
+	"update": {"upload:Changed", "upload"},
+	"delete": {"upload:Deleted", "upload"},
 }
 
 func (h *HTTPTreeGridHandlerWithDynamicDB) getRequestContext(r *http.Request) *ReqContext {
