@@ -7,26 +7,31 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/internal/repository"
 )
 
 type UploadService struct {
-	db                          *sql.DB
-	updateGRUserGroupRepository treegrid.GridRowRepositoryWithChild
-	updateGRUserRepository      treegrid.SimpleGridRowRepository
+	db                                   *sql.DB
+	updateGRUserGroupRepository          treegrid.SimpleGridRowRepository
+	updateGRUserGroupRepositoryWithChild treegrid.GridRowRepositoryWithChild
+	updateGRUserRepository               treegrid.SimpleGridRowRepository
 }
 
 func NewUploadService(db *sql.DB,
-	updateGridRowRepository treegrid.GridRowRepositoryWithChild,
+	updateGRUserGroupRepository treegrid.SimpleGridRowRepository,
+	updateGRUserGroupRepositoryWithChild treegrid.GridRowRepositoryWithChild,
 	updateUserRepository treegrid.SimpleGridRowRepository,
 ) *UploadService {
 	return &UploadService{
-		db:                          db,
-		updateGRUserGroupRepository: updateGridRowRepository,
-		updateGRUserRepository:      updateUserRepository,
+		db:                                   db,
+		updateGRUserGroupRepository:          updateGRUserGroupRepository,
+		updateGRUserGroupRepositoryWithChild: updateGRUserGroupRepositoryWithChild,
+		updateGRUserRepository:               updateUserRepository,
 	}
 }
 
@@ -35,7 +40,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	// Create new transaction
 	b, _ := json.Marshal(req)
 	logger.Debug("request: ", string(b))
-	trList, err := treegrid.ParseRequestUpload(req, u.updateGRUserGroupRepository)
+	trList, err := treegrid.ParseRequestUpload(req, u.updateGRUserGroupRepositoryWithChild)
 
 	if err != nil {
 		return nil, fmt.Errorf("parse request: [%w]", err)
@@ -95,8 +100,33 @@ func (s *UploadService) save(tx *sql.Tx, tr *treegrid.MainRow) error {
 }
 
 func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
+	fieldsValidating := []string{"code"}
 
-	return s.updateGRUserGroupRepository.SaveMainRow(tx, tr)
+	var err error
+	switch tr.Fields.GetActionType() {
+	case treegrid.GridRowActionAdd:
+		err = tr.Fields.ValidateOnRequiredAll(repository.UserGroupFieldNames)
+		if err != nil {
+			return err
+		}
+
+		ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tr.Fields, fieldsValidating)
+		if !ok || err != nil {
+			return fmt.Errorf("validate duplicate: [%v], field: %s", err, strings.Join(fieldsValidating, ", "))
+		}
+	case treegrid.GridRowActionChanged:
+		err = tr.Fields.ValidateOnRequired(repository.UserGroupFieldNames)
+		if err != nil {
+			return err
+		}
+
+		ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tr.Fields, fieldsValidating)
+		if !ok || err != nil {
+			return fmt.Errorf("validate duplicate: [%v], field: %s", err, strings.Join(fieldsValidating, ", "))
+		}
+	}
+
+	return s.updateGRUserGroupRepositoryWithChild.SaveMainRow(tx, tr)
 }
 
 func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, parentID interface{}) error {
@@ -141,7 +171,7 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, pare
 				return fmt.Errorf("user is belong to a specific user group lines. UserId: [%s], err: [%w]", userId, err)
 			}
 
-			err = s.updateGRUserGroupRepository.SaveLineAdd(tx, item)
+			err = s.updateGRUserGroupRepositoryWithChild.SaveLineAdd(tx, item)
 			if err != nil {
 				return fmt.Errorf("add child user groups line error: [%w]", err)
 			}
@@ -162,7 +192,7 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, pare
 
 			// re-assign user_group_lines id
 			item["id"] = userGroupId
-			err = s.updateGRUserGroupRepository.SaveLineDelete(tx, item)
+			err = s.updateGRUserGroupRepositoryWithChild.SaveLineDelete(tx, item)
 			if err != nil {
 				return fmt.Errorf("delete child user group line error: [%w]", err)
 			}
