@@ -34,4 +34,6 @@ type AuthProvider interface {
 	SetCustomUserClaims(ctx context.Context, uid string, customClaims map[string]interface{}) error
 	// GetUserByEmail get user info by email from google identify platform
 	GetUserByEmail(ctx context.Context, email string) (*auth.UserRecord, error)
+	// GetUser get user info by uid from google identify platform
+	GetUser(ctx context.Context, uid string) (*auth.UserRecord, error)
 }

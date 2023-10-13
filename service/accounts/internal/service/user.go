@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	stderr "errors"
 	"fmt"
 	"strings"
 
@@ -167,7 +168,14 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 						}
 					}
 				}
-				params["customClaims"] = customClaims
+				u, err := s.authProvider.GetUser(context.Background(), uid)
+				if err != nil {
+					return errors.NewUnknownError("user not found", errors.ErrCodeNoUserFound).WithInternal().WithCause(err)
+				}
+				for k, v := range customClaims {
+					u.CustomClaims[k] = v
+				}
+				params["customClaims"] = u.CustomClaims
 				err = s.authProvider.UpdateUser(context.Background(), uid, params)
 				return err
 			}
@@ -188,7 +196,12 @@ func (s *UserService) handle(gr treegrid.GridRow) error {
 			// delete user in gip
 			err = s.authProvider.DeleteUserByEmail(context.Background(), email)
 			if err != nil {
-				return err
+				if stderr.Is(err, gip.ErrUserNotFound) {
+					logrus.Error("delete user by email from gip ", email, err)
+				} else {
+					return err
+				}
+
 			}
 			err = s.simpleOrganizationRepository.Delete(tx, gr)
 			return err
