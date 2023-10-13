@@ -21,5 +21,13 @@
   "phone-number": "Fehler im Format der Telefonnummer",
   "email-error": "Fehler im E-Mail-Format",
   "too-long": "Die Daten für die Spalte „full_name“ sind zu lang",
-  "gip-user-not-found": "Der Benutzer in gip existiert nicht. Bitte löschen Sie diesen Benutzer zuerst und fügen Sie ihn dann erneut hinzu"
+  "gip-user-not-found": "Der Benutzer in gip existiert nicht. Bitte löschen Sie diesen Benutzer zuerst und fügen Sie ihn dann erneut hinzu",
+  "archived-update": "archiviert = 1, kann nicht aktualisiert werden",
+  "archived-delete": "archiviert = 1, kann nicht gelöscht werden",
+  "not-valid-archived": "Ungültiger archivierter Wert",
+  "not-valid-status": "Ungültiger Statuswert",
+  "status-and-archived-same": "Status und Archiviert haben den gleichen Wert 1",
+  "merge-request": "Zusammenführung mit aktuellen Daten schlägt fehl",
+  "invalid-condition": "Ungültiger Zustand beim Aktualisieren der Daten",
+  "not-field-update": "Keine Feldaktualisierung erkannt"
 }

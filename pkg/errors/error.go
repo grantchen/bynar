@@ -38,3 +38,14 @@ var (
 	ErrCodeTooLong                  = "too-long"
 	ErrCodeGipUser                  = "gip-user-not-found"
 )
+
+var (
+	ErrCodeArchivedUpdate     = "archived-update"
+	ErrCodeArchivedDelete     = "archived-delete"
+	ErrCodeArchivedNotValid   = "not-valid-archived"
+	ErrCodeStatusNotValid     = "not-valid-status"
+	ErrCodeSameArchivedStatus = "status-and-archived-same"
+	ErrCodeMergeRequest       = "merge-request"
+	ErrCodeInvalidCondition   = "invalid-condition"
+	ErrCodeNotField           = "not-field-update"
+)

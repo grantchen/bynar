@@ -21,5 +21,13 @@
   "phone-number": "Phone number format error",
   "email-error": "Email format error",
   "too-long": "Data too long for column full_name",
-  "gip-user-not-found": "The user in gip does not exist，please delete this user first and then add it again"
+  "gip-user-not-found": "The user in gip does not exist，please delete this user first and then add it again",
+  "archived-update": "archived = 1, can not update",
+  "archived-delete": "archived = 1, can not delete",
+  "not-valid-archived": "not valid archived value",
+  "not-valid-status": "not valid status value",
+  "status-and-archived-same": "status and archived is same value 1",
+  "merge-request": "merge with current data fail",
+  "invalid-condition": "invalid condition when update data",
+  "not-field-update": "not field update detected"
 }
