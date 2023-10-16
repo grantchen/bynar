@@ -22,12 +22,11 @@ func (r *cardServiceHandler) AddCard(req *models.ValidateCardRequest) error {
 		return errors.NewUnknownError("failed to validate card", "").WithInternal().WithCause(err)
 	}
 	if !cardDetails.Approved || cardDetails.Status != "Card Verified" {
-		// TODO: delete card
-		// err = r.paymentProvider.DeleteCard(cardDetails.Source.ID)
-		// if err != nil {
-		// 	return errors.NewUnknownError("failed to delete card", "").WithInternal().WithCause(err)
-		// }
-		return errors.NewUnknownError("failed to validate card", "")
+		err = r.paymentProvider.DeleteCard(cardDetails.Source.ID)
+		if err != nil {
+			return errors.NewUnknownError("failed to delete card", "").WithInternal().WithCause(err)
+		}
+		return errors.NewUnknownError("card not approved or not verified", "")
 	}
 	err = r.cr.AddCard(req.ID, cardDetails.Customer.ID, cardDetails.Source.ID, total)
 	if err != nil {
@@ -37,8 +36,19 @@ func (r *cardServiceHandler) AddCard(req *models.ValidateCardRequest) error {
 }
 
 func (r *cardServiceHandler) ListCards(accountID int) (model.ListCardsResponse, error) {
-	// TODO:
-	return model.ListCardsResponse{Name: "test", Email: "demo@demo.com", Instruments: []model.CardDetails{{ExpiryYear: 2023, ExpiryMonth: 11}}}, nil
+	card, err := r.cr.ListCards(accountID)
+	if err != nil {
+		return card, err
+	}
+	info, err := r.paymentProvider.FetchCustomerDetails(card.ID)
+	if err != nil {
+		return card, err
+	}
+	card.Name = info.Name
+	card.Email = info.Email
+	card.Default = info.Default
+	card.Instruments = info.Instruments
+	return r.cr.ListCards(accountID)
 }
 
 func (r *cardServiceHandler) UpdateCard(accountID int, sourceID string) error {
@@ -55,16 +65,14 @@ func (r *cardServiceHandler) UpdateCard(accountID int, sourceID string) error {
 		if err = r.cr.UpdateDefaultCard(tx, accountID, sourceID); err != nil {
 			return err
 		}
-		// TODO: update card
-		// customerInfo := models.UpdateCustomer{
-		// 	Email:             cardDetails.Email,
-		// 	Name:              cardDetails.FullName,
-		// 	DefaultInstrument: sourceID,
-		// }
-		// if err = r.paymentProvider.UpdateCustomer(customerInfo, cardDetails.CustomerID); err != nil {
-		// 	logrus.Errorf("DeleteCard: Error updating card from checkout %v", err)
-		// 	return err
-		// }
+		customerInfo := models.UpdateCustomer{
+			Email:             cardDetails.Email,
+			Name:              cardDetails.FullName,
+			DefaultInstrument: sourceID,
+		}
+		if err = r.paymentProvider.UpdateCustomer(customerInfo, cardDetails.CustomerID); err != nil {
+			return errors.NewUnknownError("update card failed", "").WithInternal().WithCause(err)
+		}
 		return nil
 	})
 	if err != nil {
@@ -91,10 +99,9 @@ func (r *cardServiceHandler) DeleteCard(accountID int, sourceID string) error {
 		if err = r.cr.DeleteCard(tx, sourceID); err != nil {
 			return errors.NewUnknownError("delete card failed from db", "").WithInternal().WithCause(err)
 		}
-		// TODO: deletecard
-		// if err = r.paymentProvider.DeleteCard(cardDetails.SourceID); err != nil {
-		// 	return errors.NewUnknownError("delete card failed from checkout", "").WithInternal().WithCause(err)
-		// }
+		if err = r.paymentProvider.DeleteCard(cardDetails.SourceID); err != nil {
+			return errors.NewUnknownError("delete card failed from checkout", "").WithInternal().WithCause(err)
+		}
 		return nil
 	})
 	if err != nil {

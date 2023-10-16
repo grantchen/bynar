@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/cards/internal/model"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/models"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 )
 
@@ -57,7 +58,12 @@ func (r *cardRepositoryHandler) FetchCardBySourceID(sourceID string) (cardDetail
 }
 
 func (r *cardRepositoryHandler) ListCards(accountID int) (model.ListCardsResponse, error) {
-	return model.ListCardsResponse{}, nil
+	resp := model.ListCardsResponse{Instruments: make([]models.CardDetails, 0)}
+	err := r.db.QueryRow(`SELECT user_payment_gateway_id, source_id, email, full_name FROM accounts_cards ac JOIN accounts a on ac.user_id = a.id WHERE ac.user_id = ? AND is_default = ?`, accountID, true).Scan(&resp.ID, &resp.Default, &resp.Email, &resp.Name)
+	if err != nil {
+		return resp, errors.NewUnknownError("list card failed", "").WithInternal().WithCause(err)
+	}
+	return resp, nil
 }
 
 func (r *cardRepositoryHandler) UpdateDefaultCard(tx *sql.Tx, accountID int, sourceID string) error {
