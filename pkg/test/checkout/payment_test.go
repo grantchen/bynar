@@ -54,3 +54,13 @@ func TestValidateCard(t *testing.T) {
 		t.Logf("card info is %+v", card)
 	}
 }
+
+func TestFetchCustomerDetails(t *testing.T) {
+	res, err := client.FetchCustomerDetails("cus_4xeunchcg3lu3gcyh222qfgvr4")
+	if err != nil {
+		t.Fatalf("TestFetchCustomerDetails: fetch customer details error is %+v", err)
+	} else {
+		t.Logf("customer detail is %+v", res)
+	}
+
+}

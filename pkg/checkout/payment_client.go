@@ -145,3 +145,150 @@ func (p paymentClient) ValidateCard(userDetails *models.ValidateCardRequest) (mo
 	}
 	return resp, nil
 }
+
+// DeleteCard Delete an instrument
+func (p paymentClient) DeleteCard(sourceID string) error {
+	apiURL := fmt.Sprintf(`%v/%v`, configuration.CurrentEnv().InstrumentUri(), sourceID)
+	method := "DELETE"
+	authorization, err := p.GenerateAuthToken(configuration.VaultInstruments)
+	if err != nil {
+		return err
+	}
+	client := &http.Client{}
+	req, err := http.NewRequest(method, apiURL, nil)
+	req.Header.Add("Authorization", "Bearer "+authorization.AccessToken)
+	req.Header.Add("Content-Type", "application/json")
+	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 204 {
+		var errResp models.CheckOutErrorResponse
+		err = json.NewDecoder(res.Body).Decode(&errResp)
+		if err != nil {
+			return err
+		}
+		logrus.Errorf("DeleteCard: Error in delete card %+v", errResp)
+		return errors.New(strings.Join(errResp.ErrorCodes, ";"))
+	}
+	return nil
+}
+
+// UpdateCustomer updates customer information in checkout like name, email and default card
+func (p paymentClient) UpdateCustomer(customerInfo models.UpdateCustomer, customerID string) error {
+	apiURL := fmt.Sprintf(`%v/%v`, configuration.CurrentEnv().CustomerUri(), customerID)
+	method := "PATCH"
+	payload := strings.NewReader(fmt.Sprintf(`{
+						"email": "%v",
+						"name": "%v",
+						"default": "%v"
+					  }`, customerInfo.Email, customerInfo.Name, customerInfo.DefaultInstrument))
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, apiURL, payload)
+	if err != nil {
+		logrus.Errorf("UpdateCustomer: Error creating new request %v", err)
+		return err
+	}
+	authorization, err := p.GenerateAuthToken(configuration.VaultInstruments)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Add("Authorization", "Bearer "+authorization.AccessToken)
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusNoContent {
+		var errResp models.CheckOutErrorResponse
+		err = json.NewDecoder(res.Body).Decode(&errResp)
+		if err != nil {
+			return err
+		}
+		logrus.Errorf("DeleteCard: Error in delete card %+v", errResp)
+		return errors.New(strings.Join(errResp.ErrorCodes, ";"))
+	}
+
+	return nil
+}
+
+// FetchPaymentDetails fetch payment details of customer
+func (p paymentClient) FetchPaymentDetails(paymentID string) (paymentDetails models.FetchPaymentDetails, err error) {
+	apiURL := fmt.Sprintf(`%v/%v`, configuration.CurrentEnv().PaymentsUri(), paymentID)
+	method := "GET"
+	authorization, err := p.GenerateAuthToken(configuration.GatewayPaymentDetails)
+	if err != nil {
+		return paymentDetails, err
+	}
+	client := &http.Client{}
+	req, err := http.NewRequest(method, apiURL, nil)
+	req.Header.Add("Authorization", "Bearer "+authorization.AccessToken)
+	req.Header.Add("Content-Type", "application/json")
+	res, err := client.Do(req)
+	if err != nil {
+		return paymentDetails, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		var errResp models.CheckOutErrorResponse
+		err = json.NewDecoder(res.Body).Decode(&errResp)
+		if err != nil {
+			return paymentDetails, err
+		}
+		logrus.Errorf("GetCustomerDetails: Error in fetching payment details %+v with statusCode %v", errResp, res.StatusCode)
+		return paymentDetails, errors.New(strings.Join(errResp.ErrorCodes, ";"))
+	}
+
+	err = json.NewDecoder(res.Body).Decode(&paymentDetails)
+	if err != nil {
+		return paymentDetails, err
+	}
+
+	return paymentDetails, nil
+}
+
+// FetchCustomerDetails fetch customer all card details
+func (p paymentClient) FetchCustomerDetails(customerID string) (models.CustomerResponse, error) {
+	var customerDetails models.CustomerResponse
+	apiURL := fmt.Sprintf(`%v/%v`, configuration.CurrentEnv().CustomerUri(), customerID)
+	method := "GET"
+	authorization, err := p.GenerateAuthToken(configuration.VaultInstruments)
+	if err != nil {
+		return customerDetails, err
+	}
+	client := &http.Client{}
+	req, err := http.NewRequest(method, apiURL, nil)
+	req.Header.Add("Authorization", "Bearer "+authorization.AccessToken)
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := client.Do(req)
+	if err != nil {
+		return customerDetails, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		var errResp models.CheckOutErrorResponse
+		err = json.NewDecoder(res.Body).Decode(&errResp)
+		if err != nil {
+			return customerDetails, err
+		}
+		logrus.Errorf("GetCustomerDetails: Error in fetching customer details %+v with statusCode %v", errResp, res.StatusCode)
+		return customerDetails, errors.New(strings.Join(errResp.ErrorCodes, ";"))
+	}
+
+	err = json.NewDecoder(res.Body).Decode(&customerDetails)
+	if err != nil {
+		return customerDetails, err
+	}
+
+	return customerDetails, nil
+}
