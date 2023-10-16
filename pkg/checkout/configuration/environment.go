@@ -28,6 +28,8 @@ type CheckoutEnv struct {
 	baseUri          string
 	authorizationUri string
 	paymentsUri      string
+	instrumentUri    string
+	customerUri      string
 	isSandbox        bool
 }
 
@@ -46,6 +48,16 @@ func (e *CheckoutEnv) PaymentsUri() string {
 	return e.paymentsUri
 }
 
+// InstrumentUri return checkout instrument api uri
+func (e *CheckoutEnv) InstrumentUri() string {
+	return e.instrumentUri
+}
+
+// CustomerUri return checkout customer api uri
+func (e *CheckoutEnv) CustomerUri() string {
+	return e.customerUri
+}
+
 // IsSandbox return current env is sandbox test
 func (e *CheckoutEnv) IsSandbox() bool {
 	return e.isSandbox
@@ -56,12 +68,16 @@ func NewEnvironment(
 	baseUri string,
 	authorizationUri string,
 	paymentsUri string,
+	instrumentUri string,
+	customerUri string,
 	isSandbox bool,
 ) *CheckoutEnv {
 	return &CheckoutEnv{
 		baseUri:          baseUri,
 		authorizationUri: authorizationUri,
 		paymentsUri:      paymentsUri,
+		instrumentUri:    instrumentUri,
+		customerUri:      customerUri,
 		isSandbox:        isSandbox}
 }
 
@@ -70,6 +86,8 @@ func Sandbox() *CheckoutEnv {
 	return NewEnvironment("https://api.sandbox.checkout.com",
 		"https://access.sandbox.checkout.com/connect/token",
 		"https://api.sandbox.checkout.com/payments",
+		"https://api.sandbox.checkout.com/instruments",
+		"https://api.sandbox.checkout.com/customers",
 		true)
 }
 
@@ -79,6 +97,8 @@ func Production() *CheckoutEnv {
 		"https://api.checkout.com",
 		"https://access.checkout.com/connect/token",
 		"https://api.checkout.com/payments",
+		"https://api.checkout.com/instruments",
+		"https://api.sandbox.checkout.com/customers",
 		false)
 }
 
