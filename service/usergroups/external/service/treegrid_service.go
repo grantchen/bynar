@@ -50,7 +50,14 @@ func newTreeGridService(db *sql.DB) treegrid.TreeGridService {
 		1, // arbitrary
 	)
 
-	uploadService := service.NewUploadService(db, grUserGroupDataUploadRepositoryWithChild, grUserRepository)
+	grUserGroupRepository := treegrid.NewSimpleGridRowRepository(
+		db,
+		"user_groups",
+		repository.UserGroupFieldNames,
+		1, // arbitrary
+	)
+
+	uploadService := service.NewUploadService(db, grUserGroupRepository, grUserGroupDataUploadRepositoryWithChild, grUserRepository)
 	return &treegridService{
 		db:               db,
 		userGroupService: userGroupService,

@@ -4,9 +4,10 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/joho/godotenv"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
-	"github.com/joho/godotenv"
 
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
@@ -80,8 +81,14 @@ func main() {
 		repository.UserUploadNames,
 		1, // arbitrary
 	)
+	grUserGroupRepository := treegrid.NewSimpleGridRowRepository(
+		db,
+		"user_groups",
+		repository.UserGroupFieldNames,
+		1, // arbitrary
+	)
 
-	uploadService := service.NewUploadService(db, grUserGroupDataUploadRepositoryWithChild, grUserRepository)
+	uploadService := service.NewUploadService(db, grUserGroupRepository, grUserGroupDataUploadRepositoryWithChild, grUserRepository)
 
 	authProvider, err := gip.NewGIPClient()
 	if err != nil {
