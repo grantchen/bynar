@@ -36,6 +36,9 @@ func (h *CardHandler) ListCards(w http.ResponseWriter, r *http.Request) {
 		render.Error(w, err.Error())
 		return
 	}
+	if !reqContext.Claims.OrganizationAccount {
+		render.Error(w, "not organization account")
+	}
 	resp, err := h.cs.ListCards(reqContext.Claims.AccountId)
 	if err != nil {
 		handler.LogInternalError(err)
@@ -55,6 +58,9 @@ func (h *CardHandler) AddCard(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		render.Error(w, err.Error())
 		return
+	}
+	if !reqContext.Claims.OrganizationAccount {
+		render.Error(w, "not organization account")
 	}
 	var req model.AddCardRequest
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
@@ -81,6 +87,9 @@ func (h *CardHandler) UpdateCard(w http.ResponseWriter, r *http.Request) {
 		render.Error(w, err.Error())
 		return
 	}
+	if !reqContext.Claims.OrganizationAccount {
+		render.Error(w, "not organization account")
+	}
 	var req model.UpdateCardRequest
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
 		render.Error(w, err.Error())
@@ -104,6 +113,9 @@ func (h *CardHandler) DeleteCard(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		render.Error(w, err.Error())
 		return
+	}
+	if !reqContext.Claims.OrganizationAccount {
+		render.Error(w, "not organization account")
 	}
 	var req model.DeleteCardRequest
 	if err := render.DecodeJSON(r.Body, &req); err != nil {

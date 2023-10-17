@@ -48,7 +48,7 @@ func (r *cardServiceHandler) ListCards(accountID int) (model.ListCardsResponse, 
 	card.Email = info.Email
 	card.Default = info.Default
 	card.Instruments = info.Instruments
-	return r.cr.ListCards(accountID)
+	return card, nil
 }
 
 func (r *cardServiceHandler) UpdateCard(accountID int, sourceID string) error {
