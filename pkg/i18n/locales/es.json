@@ -20,7 +20,7 @@
   "out-range": "Valor fuera de rango para la columna",
   "phone-number": "Error de formato del número de teléfono",
   "email-error": "Error de formato de correo electrónico",
-  "too-long": "Datos demasiado largos para la columna nombre_completo",
+  "too-long": "Datos demasiado largos para la columna",
   "gip-user-not-found": "El usuario en gip no existe. Primero elimine este usuario y luego agréguelo nuevamente",
   "archived-update": "archivado = 1, no se puede actualizar",
   "archived-delete": "Archivada = 1, no se puede eliminar",
