@@ -13,8 +13,21 @@
   "signature-invalid": "Signature non valide",
   "timestamp-expired": "L'horodatage a expiré",
   "required-fields-blank": "Les champs obligatoires ne peuvent pas être vides",
-  "value-duplicate": "Le champ est en double, valeur",
+  "value-duplicate": "Ce champ est répété, la valeur",
   "undefined-row-type": "Le type de ligne n'est pas défini",
   "begin-transaction": "Erreur de début de transaction",
-  "commit-transaction": "Erreur de transaction de validation"
+  "commit-transaction": "Erreur de transaction de validation",
+  "out-range": "Valeur hors plage pour la colonne",
+  "phone-number": "Erreur de format du numéro de téléphone",
+  "email-error": "Erreur de format d'e-mail",
+  "too-long": "Données trop longues pour la colonne",
+  "gip-user-not-found": "L'utilisateur dans gip n'existe pas. Veuillez d'abord supprimer cet utilisateur, puis l'ajouter à nouveau",
+  "archived-update": "archivé = 1, impossible de mettre à jour",
+  "archived-delete": "archivé = 1, ne peut pas supprimer",
+  "not-valid-archived": "valeur archivée non valide",
+  "not-valid-status": "valeur de statut non valide",
+  "status-and-archived-same": "le statut et l'archivage ont la même valeur 1",
+  "merge-request": "la fusion avec les données actuelles échoue",
+  "invalid-condition": "condition invalide lors de la mise à jour des données",
+  "not-field-update": "aucune mise à jour de champ n'a été détectée"
 }

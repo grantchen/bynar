@@ -91,11 +91,22 @@ type Customer struct {
 
 // Processing validate card processing response
 type Processing struct {
-	AcquirerTransactionID    string `json:"acquirer_transaction_id"`
-	RetrievalReferenceNumber string `json:"retrieval_reference_number"`
-	MerchantCategoryCode     string `json:"merchant_category_code"`
-	SchemeMerchantID         string `json:"scheme_merchant_id"`
-	Aft                      bool   `json:"aft"`
+	AcquirerTransactionID            string `json:"acquirer_transaction_id"`
+	RetrievalReferenceNumber         string `json:"retrieval_reference_number"`
+	MerchantCategoryCode             string `json:"merchant_category_code"`
+	SchemeMerchantID                 string `json:"scheme_merchant_id"`
+	Aft                              bool   `json:"aft"`
+	RecommendationCode               string `json:"recommendation_code"`
+	PartnerOrderId                   string `json:"partner_order_id"`
+	PartnerSessionId                 string `json:"partner_session_id"`
+	PartnerClientToken               string `json:"partner_client_token"`
+	PartnerPaymentId                 string `json:"partner_payment_id"`
+	PartnerStatus                    string `json:"partner_status"`
+	PartnerTransactionId             string `json:"partner_transaction_id"`
+	PartnerErrorCodes                string `json:"partner_error_codes"`
+	PartnerErrorMessage              string `json:"partner_error_message"`
+	PartnerAuthorizationCode         string `json:"partner_authorization_code"`
+	PartnerAuthorizationResponseCode string `json:"partner_authorization_response_code"`
 }
 
 // Links validate card links response

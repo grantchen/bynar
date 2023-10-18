@@ -37,7 +37,7 @@ func newTreeGridService(db *sql.DB, accountID int, organizationUuid, language st
 	}
 	var oid int
 	accountDB.QueryRow("SELECT organizations.id FROM organizations WHERE organization_uuid = ?", organizationUuid).Scan(&oid)
-	userService := service.NewUserService(db, accountDB, oid, authProvider, simpleOrganizationRepository)
+	userService := service.NewUserService(db, accountDB, oid, authProvider, simpleOrganizationRepository, language)
 
 	return &treegridService{
 		db:          db,
