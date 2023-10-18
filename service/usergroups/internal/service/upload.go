@@ -97,14 +97,14 @@ func (s *UploadService) save(tx *sql.Tx, tr *treegrid.MainRow) error {
 		return fmt.Errorf("%s %s: [%w]",
 			i18n.Localize(s.language, errors.ErrCodeSave),
 			i18n.Localize(s.language, errors.ErrCodeUserGroup),
-			err)
+			i18n.ErrMsgToI18n(err, s.language))
 	}
 
 	if err := s.saveUserGroupLine(tx, tr, tr.Fields.GetID()); err != nil {
 		return fmt.Errorf("%s %s: [%w]",
 			i18n.Localize(s.language, errors.ErrCodeSave),
 			i18n.Localize(s.language, errors.ErrCodeUserGroupLine),
-			err)
+			i18n.ErrMsgToI18n(err, s.language))
 	}
 
 	return nil

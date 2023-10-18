@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
@@ -17,18 +17,21 @@ type UploadService struct {
 	organizationService          OrganizationService
 	organizationSimpleRepository treegrid.SimpleGridRowRepository
 	userID                       int
+	language                     string
 }
 
 func NewUploadService(db *sql.DB,
 	organizationService OrganizationService,
 	organizationSimpleRepository treegrid.SimpleGridRowRepository,
 	userID int,
+	language string,
 ) (*UploadService, error) {
 	return &UploadService{
 		db:                           db,
 		organizationService:          organizationService,
 		organizationSimpleRepository: organizationSimpleRepository,
 		userID:                       userID,
+		language:                     language,
 	}, nil
 }
 
@@ -45,7 +48,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 			log.Println("Err", err)
 
 			resp.IO.Result = -1
-			resp.IO.Message += err.Error() + "\n"
+			resp.IO.Message += i18n.ErrMsgToI18n(err, u.language).Error() + "\n"
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
 			break
 		}
@@ -85,9 +88,12 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 		if err1 != nil {
 			return err1
 		}
-		ok, err1 := s.organizationSimpleRepository.ValidateOnIntegrity(gr, fieldsValidating)
-		if !ok || err1 != nil {
-			return fmt.Errorf("validate duplicate: [%v], field: %s", err1, strings.Join(fieldsValidating, ", "))
+
+		for _, field := range fieldsValidating {
+			ok, err := s.organizationSimpleRepository.ValidateOnIntegrity(gr, []string{field})
+			if !ok || err != nil {
+				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr[field])
+			}
 		}
 		err = s.organizationSimpleRepository.Add(tx, gr)
 	case treegrid.GridRowActionChanged:
@@ -95,9 +101,11 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 		if err1 != nil {
 			return err1
 		}
-		ok, err1 := s.organizationSimpleRepository.ValidateOnIntegrity(gr, fieldsValidating)
-		if !ok || err1 != nil {
-			return fmt.Errorf("validate duplicate: [%w], field: %s", err1, strings.Join(fieldsValidating, ", "))
+		for _, field := range fieldsValidating {
+			ok, err := s.organizationSimpleRepository.ValidateOnIntegrity(gr, []string{field})
+			if !ok || err != nil {
+				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr[field])
+			}
 		}
 		err = s.organizationSimpleRepository.Update(tx, gr)
 	case treegrid.GridRowActionDeleted:

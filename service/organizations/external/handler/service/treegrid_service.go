@@ -60,7 +60,7 @@ func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.Tre
 		})
 	organizationService := service.NewOrganizationService(db, simpleOrganizationRepository)
 
-	uploadService, _ := service.NewUploadService(db, organizationService, simpleOrganizationRepository, userID)
+	uploadService, _ := service.NewUploadService(db, organizationService, simpleOrganizationRepository, userID, language)
 	return &treegridService{
 		db:                  db,
 		organizationService: organizationService,
