@@ -52,7 +52,7 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 		1, // arbitrary
 	)
 
-	uploadService := service.NewUploadService(db, grUserGroupRepository, grUserGroupDataUploadRepositoryWithChild, grUserRepository)
+	uploadService := service.NewUploadService(db, grUserGroupRepository, grUserGroupDataUploadRepositoryWithChild, grUserRepository, "en")
 
 	handler := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,
