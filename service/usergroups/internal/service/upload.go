@@ -175,6 +175,11 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, pare
 		// action user first then user_group_lines
 		switch item.GetActionType() {
 		case treegrid.GridRowActionAdd:
+			err = item.ValidateOnRequiredAll(map[string][]string{"user_id": repository.UserGroupLineFieldNames["user_id"]})
+			if err != nil {
+				return err
+			}
+
 			logger.Debug("add child row")
 			//add to users == DONT ADD USER ANYMORE,JUST CHECK USER AND WHERE THERE IS A LINE IN USER GROUP LINES TABLE OR NOT
 			// err := s.updateGRUserRepository.Add(tx, item)
