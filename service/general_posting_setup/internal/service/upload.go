@@ -173,10 +173,13 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		//Formatted messy string
 		contains := strings.Contains(err.Error(), "of range")
 		containsUpdate := strings.Contains(err.Error(), "not field")
+		containsIncorrect := strings.Contains(err.Error(), "Truncated incorrect")
 		if contains {
 			return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeOutRange))
 		} else if containsUpdate {
 			return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeNotField))
+		} else if containsIncorrect {
+			return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeOutRange))
 		} else {
 			return err
 		}
