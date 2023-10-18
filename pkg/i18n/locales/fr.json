@@ -7,7 +7,6 @@
   "operation-failed": "l'opération a échoué",
   "request-parameter-error": "Erreur de paramètre de demande",
   "no-user-found": "Aucun utilisateur trouvé",
-  "no-user_group_line-found": "Aucune ligne de groupe d'utilisateurs trouvée",
   "email-already-exists": "Email already exists",
   "id-token-invalid": "Idtoken est invalide",
   "signature-invalid": "Signature non valide",
@@ -22,6 +21,14 @@
   "email-error": "Erreur de format d'e-mail",
   "too-long": "Données trop longues pour la colonne",
   "gip-user-not-found": "L'utilisateur dans gip n'existe pas. Veuillez d'abord supprimer cet utilisateur, puis l'ajouter à nouveau",
+  "user-not-exist": "l'utilisateur n'existe pas!",
+  "user-belong-specific-user-group-lines": "l'utilisateur appartient à un groupe d'utilisateurs spécifique",
+  "no-user-group-line-found": "Vous n'êtes dans aucun groupe d'utilisateurs et ne pouvez pas créer d'organisation",
+
+  "save": "sauvegarder",
+  "user-group": "groupe d'utilisateurs",
+  "user-group-line": "ligne de groupe d'utilisateurs",
+
   "archived-update": "archivé = 1, impossible de mettre à jour",
   "archived-delete": "archivé = 1, ne peut pas supprimer",
   "not-valid-archived": "valeur archivée non valide",
@@ -29,5 +36,6 @@
   "status-and-archived-same": "le statut et l'archivage ont la même valeur 1",
   "merge-request": "la fusion avec les données actuelles échoue",
   "invalid-condition": "condition invalide lors de la mise à jour des données",
-  "not-field-update": "aucune mise à jour de champ n'a été détectée"
+  "not-field-update": "aucune mise à jour de champ n'a été détectée",
+  "no-allow-to update-child-line": ""
 }

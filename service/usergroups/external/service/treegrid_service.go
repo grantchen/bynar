@@ -15,7 +15,7 @@ type treegridService struct {
 	uploadService    *service.UploadService
 }
 
-func newTreeGridService(db *sql.DB) treegrid.TreeGridService {
+func newTreeGridService(db *sql.DB, language string) treegrid.TreeGridService {
 	gridRowDataRepositoryWithChild := treegrid.NewGridRowDataRepositoryWithChild(
 		db,
 		"user_groups",
@@ -57,7 +57,7 @@ func newTreeGridService(db *sql.DB) treegrid.TreeGridService {
 		1, // arbitrary
 	)
 
-	uploadService := service.NewUploadService(db, grUserGroupRepository, grUserGroupDataUploadRepositoryWithChild, grUserRepository)
+	uploadService := service.NewUploadService(db, grUserGroupRepository, grUserGroupDataUploadRepositoryWithChild, grUserRepository, language)
 	return &treegridService{
 		db:               db,
 		userGroupService: userGroupService,
@@ -67,7 +67,7 @@ func newTreeGridService(db *sql.DB) treegrid.TreeGridService {
 
 func NewTreeGridServiceFactory() treegrid.TreeGridServiceFactoryFunc {
 	return func(db *sql.DB, AccountID int, organizationUuid string, permissionInfo *treegrid.PermissionInfo, language string) treegrid.TreeGridService {
-		return newTreeGridService(db)
+		return newTreeGridService(db, language)
 	}
 }
 

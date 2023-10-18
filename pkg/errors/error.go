@@ -21,7 +21,6 @@ var (
 	ErrCodeOperationFailed          = "operation-failed"
 	ErrCodeRequestParameter         = "request-parameter-error"
 	ErrCodeNoUserFound              = "no-user-found"
-	ErrCodeNoUserGroupLineFound     = "no-user_group_line-found"
 	ErrCodeEmailAlreadyExists       = "email-already-exists"
 	ErrCodePhoneNumberAlreadyExists = "phone_number-already-exists"
 	ErrCodeIDTokenInvalid           = "id-token-invalid"
@@ -37,15 +36,26 @@ var (
 	ErrCodeEmail                    = "email-error"
 	ErrCodeTooLong                  = "too-long"
 	ErrCodeGipUser                  = "gip-user-not-found"
+	ErrCodeUserNotExist             = "user-not-exist"
+
+	ErrCodeUserBelongSpecificUserGroupLines = "user-belong-specific-user-group-lines"
+	ErrCodeNoUserGroupLineFound             = "no-user-group-line-found"
 )
 
 var (
-	ErrCodeArchivedUpdate     = "archived-update"
-	ErrCodeArchivedDelete     = "archived-delete"
-	ErrCodeArchivedNotValid   = "not-valid-archived"
-	ErrCodeStatusNotValid     = "not-valid-status"
-	ErrCodeSameArchivedStatus = "status-and-archived-same"
-	ErrCodeMergeRequest       = "merge-request"
-	ErrCodeInvalidCondition   = "invalid-condition"
-	ErrCodeNotField           = "not-field-update"
+	ErrCodeSave          = "save"
+	ErrCodeUserGroup     = "user-group"
+	ErrCodeUserGroupLine = "user-group-line"
+)
+
+var (
+	ErrCodeArchivedUpdate           = "archived-update"
+	ErrCodeArchivedDelete           = "archived-delete"
+	ErrCodeArchivedNotValid         = "not-valid-archived"
+	ErrCodeStatusNotValid           = "not-valid-status"
+	ErrCodeSameArchivedStatus       = "status-and-archived-same"
+	ErrCodeMergeRequest             = "merge-request"
+	ErrCodeInvalidCondition         = "invalid-condition"
+	ErrCodeNotField                 = "not-field-update"
+	ErrCodeNoAllowToUpdateChildLine = "no-allow-to update-child-line"
 )

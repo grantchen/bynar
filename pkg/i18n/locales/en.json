@@ -7,7 +7,6 @@
   "operation-failed": "Operation failed",
   "request-parameter-error": "Request parameter error",
   "no-user-found": "No user found",
-  "no-user_group_line-found": "No user group line found",
   "email-already-exists": "Email already exists",
   "id-token-invalid": "IdToken invalid",
   "signature-invalid": "Signature invalid",
@@ -22,6 +21,14 @@
   "email-error": "Email format error",
   "too-long": "Data too long for column",
   "gip-user-not-found": "The user in gip does not exist，please delete this user first and then add it again",
+  "user-not-exist": "user not exist!",
+  "user-belong-specific-user-group-lines": "user is belong to a specific user group lines",
+  "no-user-group-line-found": "You are not in any user group and cannot create an organization",
+
+  "save": "save",
+  "user-group": "user group",
+  "user-group-line": "user group line",
+
   "archived-update": "archived = 1, can not update",
   "archived-delete": "archived = 1, can not delete",
   "not-valid-archived": "not valid archived value",
@@ -29,5 +36,6 @@
   "status-and-archived-same": "status and archived is same value 1",
   "merge-request": "merge with current data fail",
   "invalid-condition": "invalid condition when update data",
-  "not-field-update": "not field update detected"
+  "not-field-update": "not field update detected",
+  "no-allow-to update-child-line": "no allow to update child line"
 }

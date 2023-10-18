@@ -7,7 +7,6 @@
   "operation-failed": "Der Vorgang ist fehlgeschlagen",
   "request-parameter-error":"Fehler beim Anforderungsparameter",
   "no-user-found": "kein Benutzer gefunden",
-  "no-user_group_line-found": "Keine Benutzergruppenzeile gefunden",
   "email-already-exists": "Email already exists",
   "id-token-invalid": "IdToken ungültig",
   "signature-invalid": "Unterschrift ungültig",
@@ -22,6 +21,14 @@
   "email-error": "Fehler im E-Mail-Format",
   "too-long": "Daten zu lang für Spalte",
   "gip-user-not-found": "Der Benutzer in gip existiert nicht. Bitte löschen Sie diesen Benutzer zuerst und fügen Sie ihn dann erneut hinzu",
+  "user-not-exist": "Benutzer existiert nicht!",
+  "user-belong-specific-user-group-lines": "Der Benutzer gehört zu einer bestimmten Benutzergruppe",
+  "no-user-group-line-found": "Sie gehören keiner Benutzergruppe an und können keine Organisation erstellen",
+
+  "save": "speichern",
+  "user-group": "Benutzergruppe",
+  "user-group-line": "Benutzergruppenzeile",
+
   "archived-update": "archiviert = 1, kann nicht aktualisiert werden",
   "archived-delete": "archiviert = 1, kann nicht gelöscht werden",
   "not-valid-archived": "Ungültiger archivierter Wert",
@@ -29,5 +36,6 @@
   "status-and-archived-same": "Status und Archiviert haben den gleichen Wert 1",
   "merge-request": "Zusammenführung mit aktuellen Daten schlägt fehl",
   "invalid-condition": "Ungültiger Zustand beim Aktualisieren der Daten",
-  "not-field-update": "Keine Feldaktualisierung erkannt"
+  "not-field-update": "Keine Feldaktualisierung erkannt",
+  "no-allow-to update-child-line": ""
 }
