@@ -29,5 +29,7 @@
   "status-and-archived-same": "le statut et l'archivage ont la même valeur 1",
   "merge-request": "la fusion avec les données actuelles échoue",
   "invalid-condition": "condition invalide lors de la mise à jour des données",
-  "not-field-update": "aucune mise à jour de champ n'a été détectée"
+  "not-field-update": "aucune mise à jour de champ n'a été détectée",
+  "truncated-incorrect": "Erreur incorrecte tronquée",
+  "positive-number": "La valeur doit être positive"
 }

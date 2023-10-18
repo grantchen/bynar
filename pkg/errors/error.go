@@ -48,4 +48,6 @@ var (
 	ErrCodeMergeRequest       = "merge-request"
 	ErrCodeInvalidCondition   = "invalid-condition"
 	ErrCodeNotField           = "not-field-update"
+	ErrCodeTruncatedIncorrect = "truncated-incorrect"
+	ErrCodePositiveNumber     = "positive-number"
 )

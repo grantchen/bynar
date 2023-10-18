@@ -29,5 +29,7 @@
   "status-and-archived-same": "status and archived is same value 1",
   "merge-request": "merge with current data fail",
   "invalid-condition": "invalid condition when update data",
-  "not-field-update": "not field update detected"
+  "not-field-update": "not field update detected",
+  "truncated-incorrect": "Truncated incorrect error",
+  "positive-number": "Value must be positive"
 }

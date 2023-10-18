@@ -99,12 +99,17 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		if err != nil {
 			return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeRequiredFieldsBlank))
 		}
+		err = gr.ValidateOnPositiveNumber(repository.GeneralPostingSetupFieldNames)
+		if err != nil {
+			return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodePositiveNumber))
+		}
 		generalPostingSetup, _ := model.ParseGridRow(gr)
 		err = u.checkGeneralPostSetupCondition(generalPostingSetup)
 		if err != nil {
 			return err
 		}
-		if generalPostingSetup.Status == 1 {
+		status, _ := gr.GetValInt("status")
+		if status == 1 {
 			for _, field := range fieldsCombinationValidating {
 				ok, err := u.tgGeneralPostingSetupSimpleRepository.ValidateOnIntegrity(gr, []string{field})
 				if !ok || err != nil {
@@ -117,6 +122,10 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		err = gr.ValidateOnRequired(repository.GeneralPostingSetupFieldNames)
 		if err != nil {
 			return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeRequiredFieldsBlank))
+		}
+		err = gr.ValidateOnPositiveNumber(repository.GeneralPostingSetupFieldNames)
+		if err != nil {
+			return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodePositiveNumber))
 		}
 		//id := gr.GetIDInt()
 		var generalPostingSetup *model.GeneralPostingSetup
@@ -141,7 +150,8 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		}
 
 		logger.Debug("status: ", generalPostingSetup.Status, "check: ", generalPostingSetup.Status == 1)
-		if generalPostingSetup.Status == 1 {
+		status, _ := gr.GetValInt("status")
+		if status == 1 {
 			newGr := gr.MergeWithMap(generalPostingSetup.ToMap())
 			logger.Debug("newMap", newGr)
 			for _, field := range fieldsCombinationValidating {
@@ -156,15 +166,17 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		//id := gr.GetIDInt()
 		var generalPostingSetup *model.GeneralPostingSetup
 		generalPostingSetup, err = u.generalPostingSetupRepository.GetGeneralPostingSetup(gr.GetIDInt())
-		if err != nil {
-			return err
+		if err == nil {
+			if generalPostingSetup.Archived == 1 {
+				return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeArchivedDelete))
+			}
+			err = u.tgGeneralPostingSetupSimpleRepository.Delete(tx, gr)
+			if err != nil {
+				return err
+			}
+		} else {
+			return nil
 		}
-
-		if generalPostingSetup.Archived == 1 {
-			return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeArchivedDelete))
-		}
-		err = u.tgGeneralPostingSetupSimpleRepository.Delete(tx, gr)
-
 	default:
 		return fmt.Errorf("%s: %s", i18n.Localize(u.language, errors.ErrCodeUndefinedTowType), gr.GetActionType())
 	}

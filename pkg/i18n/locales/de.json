@@ -29,5 +29,7 @@
   "status-and-archived-same": "Status und Archiviert haben den gleichen Wert 1",
   "merge-request": "Zusammenführung mit aktuellen Daten schlägt fehl",
   "invalid-condition": "Ungültiger Zustand beim Aktualisieren der Daten",
-  "not-field-update": "Keine Feldaktualisierung erkannt"
+  "not-field-update": "Keine Feldaktualisierung erkannt",
+  "truncated-incorrect": "Abgeschnittener falscher Fehler",
+  "positive-number": "Der Wert muss positiv sein"
 }
