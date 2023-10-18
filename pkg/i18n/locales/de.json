@@ -20,7 +20,7 @@
   "out-range": "Wert für Spalte außerhalb des gültigen Bereichs",
   "phone-number": "Fehler im Format der Telefonnummer",
   "email-error": "Fehler im E-Mail-Format",
-  "too-long": "Die Daten für die Spalte „full_name“ sind zu lang",
+  "too-long": "Daten zu lang für Spalte",
   "gip-user-not-found": "Der Benutzer in gip existiert nicht. Bitte löschen Sie diesen Benutzer zuerst und fügen Sie ihn dann erneut hinzu",
   "archived-update": "archiviert = 1, kann nicht aktualisiert werden",
   "archived-delete": "archiviert = 1, kann nicht gelöscht werden",

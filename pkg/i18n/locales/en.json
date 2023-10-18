@@ -20,7 +20,7 @@
   "out-range": "Out of range value for column",
   "phone-number": "Phone number format error",
   "email-error": "Email format error",
-  "too-long": "Data too long for column full_name",
+  "too-long": "Data too long for column",
   "gip-user-not-found": "The user in gip does not exist，please delete this user first and then add it again",
   "archived-update": "archived = 1, can not update",
   "archived-delete": "archived = 1, can not delete",
