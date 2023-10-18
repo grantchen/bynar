@@ -136,13 +136,7 @@ func (s *TreeGridService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	}
 
 	if err != nil {
-		//Formatted messy string
-		contains := strings.Contains(err.Error(), "of range")
-		if contains {
-			return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeOutRange))
-		} else {
-			return fmt.Errorf(err.Error())
-		}
+		return i18n.ErrMsgToI18n(err, s.language)
 	}
 
 	return err

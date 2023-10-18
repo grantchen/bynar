@@ -11,7 +11,6 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"log"
-	"strings"
 )
 
 type uploadService struct {
@@ -170,19 +169,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	}
 
 	if err != nil {
-		//Formatted messy string
-		contains := strings.Contains(err.Error(), "of range")
-		containsUpdate := strings.Contains(err.Error(), "not field")
-		containsIncorrect := strings.Contains(err.Error(), "Truncated incorrect")
-		if contains {
-			return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeOutRange))
-		} else if containsUpdate {
-			return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeNotField))
-		} else if containsIncorrect {
-			return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeOutRange))
-		} else {
-			return err
-		}
+		return i18n.ErrMsgToI18n(err, u.language)
 	}
 
 	return err
