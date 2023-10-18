@@ -37,5 +37,7 @@
   "merge-request": "Fusionar con datos actuales falla",
   "invalid-condition": "Condición no válida al actualizar datos",
   "not-field-update": "no se detectó actualización de campo",
-  "no-allow-to update-child-line": ""
+  "no-allow-to update-child-line": "",
+  "truncated-incorrect": "Error incorrecto truncado",
+  "positive-number": "El valor debe ser positivo."
 }
