@@ -16,13 +16,14 @@ import (
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 
+	"github.com/sirupsen/logrus"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/render"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
-	"github.com/sirupsen/logrus"
 )
 
 type ConnectionResolver interface {
