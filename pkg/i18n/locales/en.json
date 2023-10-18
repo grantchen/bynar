@@ -37,5 +37,7 @@
   "merge-request": "merge with current data fail",
   "invalid-condition": "invalid condition when update data",
   "not-field-update": "not field update detected",
-  "no-allow-to update-child-line": "no allow to update child line"
+  "no-allow-to update-child-line": "no allow to update child line",
+  "truncated-incorrect": "Truncated incorrect error",
+  "positive-number": "Value must be positive"
 }

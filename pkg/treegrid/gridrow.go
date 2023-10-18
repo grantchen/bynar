@@ -60,6 +60,24 @@ func (f GridRow) ValidateOnRequired(fieldsMapping map[string][]string) error {
 	return nil
 }
 
+// used to check A positive number.
+func (f GridRow) ValidateOnPositiveNumber(fieldsMapping map[string][]string) error {
+	for key, _ := range fieldsMapping {
+		if key == "Changed" || key == "id" {
+			continue
+		}
+		val, ok := f[key]
+		if intValue, ok1 := val.(string); ok1 {
+			intVal, _ := strconv.Atoi(intValue)
+			if ok && ok1 && intVal < 0 {
+				return fmt.Errorf("[%w]: %s", errors.ErrMissingRequiredParams, key)
+			}
+		}
+
+	}
+	return nil
+}
+
 func (f GridRow) MakeValidateOnIntegrityQuery(tableName string, fieldsMapping map[string][]string, fieldsValidating []string) (query string, args []interface{}) {
 	queryFormat := `select COUNT(*) as Count
 	FROM %s

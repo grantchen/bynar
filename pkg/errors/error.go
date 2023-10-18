@@ -58,4 +58,6 @@ var (
 	ErrCodeInvalidCondition         = "invalid-condition"
 	ErrCodeNotField                 = "not-field-update"
 	ErrCodeNoAllowToUpdateChildLine = "no-allow-to update-child-line"
+	ErrCodeTruncatedIncorrect       = "truncated-incorrect"
+	ErrCodePositiveNumber           = "positive-number"
 )

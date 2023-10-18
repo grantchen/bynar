@@ -10,8 +10,10 @@ import (
 func ErrMsgToI18n(err error, language string) error {
 	errMsg := err.Error()
 	switch {
-	case strings.Contains(errMsg, "of range") || strings.Contains(errMsg, "Truncated incorrect"):
+	case strings.Contains(errMsg, "of range"):
 		return fmt.Errorf(Localize(language, errors.ErrCodeOutRange))
+	case strings.Contains(errMsg, "Truncated incorrect"):
+		return fmt.Errorf(Localize(language, errors.ErrCodeTruncatedIncorrect))
 	case strings.Contains(errMsg, "not field"):
 		return fmt.Errorf(Localize(language, errors.ErrCodeNotField))
 	case strings.Contains(errMsg, "too long") || strings.Contains(errMsg, "Too Long"):

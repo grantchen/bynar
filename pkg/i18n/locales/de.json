@@ -37,5 +37,7 @@
   "merge-request": "Zusammenführung mit aktuellen Daten schlägt fehl",
   "invalid-condition": "Ungültiger Zustand beim Aktualisieren der Daten",
   "not-field-update": "Keine Feldaktualisierung erkannt",
-  "no-allow-to update-child-line": ""
+  "no-allow-to update-child-line": "",
+  "truncated-incorrect": "Abgeschnittener falscher Fehler",
+  "positive-number": "Der Wert muss positiv sein"
 }
