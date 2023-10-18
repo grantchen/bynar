@@ -84,7 +84,10 @@ func (r *cardServiceHandler) UpdateCard(accountID int, sourceID string) error {
 func (r *cardServiceHandler) DeleteCard(accountID int, sourceID string) error {
 	cardDetails, err := r.cr.FetchCardBySourceID(sourceID)
 	if err != nil {
-		return err
+		if err = r.paymentProvider.DeleteCard(sourceID); err != nil {
+			return errors.NewUnknownError("delete card failed from checkout", "").WithInternal().WithCause(err)
+		}
+		return nil
 	}
 
 	if cardDetails.UserID != accountID {
