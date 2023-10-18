@@ -94,7 +94,10 @@ func (s *UploadService) handle(tr *treegrid.MainRow) error {
 
 func (s *UploadService) save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	if err := s.saveUserGroup(tx, tr); err != nil {
-		return fmt.Errorf("save usergroups: [%w]", err)
+		return fmt.Errorf("%s %s: [%w]",
+			i18n.Localize(s.language, errors.ErrCodeSave),
+			i18n.Localize(s.language, errors.ErrCodeUserGroup),
+			err)
 	}
 
 	if err := s.saveUserGroupLine(tx, tr, tr.Fields.GetID()); err != nil {
@@ -118,9 +121,11 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 			return err
 		}
 
-		ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tr.Fields, fieldsValidating)
-		if !ok || err != nil {
-			return fmt.Errorf("validate duplicate: [%v], field: %s", err, strings.Join(fieldsValidating, ", "))
+		for _, field := range fieldsValidating {
+			ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tr.Fields, []string{field})
+			if !ok || err != nil {
+				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), tr.Fields[field])
+			}
 		}
 	case treegrid.GridRowActionChanged:
 		err = tr.Fields.ValidateOnRequired(repository.UserGroupFieldNames)
@@ -128,9 +133,11 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 			return err
 		}
 
-		ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tr.Fields, fieldsValidating)
-		if !ok || err != nil {
-			return fmt.Errorf("validate duplicate: [%v], field: %s", err, strings.Join(fieldsValidating, ", "))
+		for _, field := range fieldsValidating {
+			ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tr.Fields, []string{field})
+			if !ok || err != nil {
+				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), tr.Fields[field])
+			}
 		}
 	case treegrid.GridRowActionDeleted:
 		// ignore id start with CR
