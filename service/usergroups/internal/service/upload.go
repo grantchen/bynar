@@ -165,21 +165,8 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, parentID interface{}) error {
 	for _, item := range tr.Items {
 		logger.Debug("save group line: ", tr, "parentID: ", parentID)
-		userId, err := s.getUserIdFromUserGroupLineId(tx, item.GetLineID())
 
-		logger.Debug("userID: ", userId)
-		// mark id of parent to corect field
-		// item["parent"] = parentID
-
-		// if action is update or delete, need a valid user_id
-		if err != nil && (item.GetActionType() == treegrid.GridRowActionChanged ||
-			item.GetActionType() == treegrid.GridRowActionDeleted) {
-			return fmt.Errorf("not valid user_id: [%d] err: [%w]", userId, err)
-		}
-
-		userGroupId := item.GetID()
-
-		// action user first then user_group_lines
+		var err error
 		switch item.GetActionType() {
 		case treegrid.GridRowActionAdd:
 			err = item.ValidateOnRequiredAll(map[string][]string{"user_id": repository.UserGroupLineFieldNames["user_id"]})
@@ -188,14 +175,6 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, pare
 			}
 
 			logger.Debug("add child row")
-			//add to users == DONT ADD USER ANYMORE,JUST CHECK USER AND WHERE THERE IS A LINE IN USER GROUP LINES TABLE OR NOT
-			// err := s.updateGRUserRepository.Add(tx, item)
-			// if err != nil {
-			// 	return fmt.Errorf("add child user error: [%w]", err)
-			// }
-
-			// get id of user and assign to user_id
-			// item["user_id"] = item.GetID()
 			userId := item["user_id"]
 			ok, err := s.checkValidUser(tx, userId)
 
@@ -218,18 +197,9 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, pare
 			return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeNoAllowToUpdateChildLine))
 		case treegrid.GridRowActionDeleted:
 			logger.Debug("delete child")
-			item["id"] = userId
-
-			// ____ NOT DELETE USER FROM USER TALBLE, JUST REMOVE LINE FROM USER_GROUP_LINE TABLE
-			// err := s.updateGRUserRepository.Delete(tx, item)
-
-			// // delete userid first
-			// if err != nil {
-			// 	return fmt.Errorf("delete child user error: [%w]", err)
-			// }
 
 			// re-assign user_group_lines id
-			item["id"] = userGroupId
+			item["id"] = item.GetID()
 			err = s.updateGRUserGroupRepositoryWithChild.SaveLineDelete(tx, item)
 			if err != nil {
 				return fmt.Errorf("delete child user group line error: [%w]", err)
