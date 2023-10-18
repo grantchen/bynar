@@ -132,6 +132,24 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 		if !ok || err != nil {
 			return fmt.Errorf("validate duplicate: [%v], field: %s", err, strings.Join(fieldsValidating, ", "))
 		}
+	case treegrid.GridRowActionDeleted:
+		// ignore id start with CR
+		idStr := tr.Fields.GetIDStr()
+		if !strings.HasPrefix(idStr, "CR") {
+			stmt, err := tx.Prepare("DELETE FROM user_group_lines WHERE parent_id = ?")
+			if err != nil {
+				return err
+			}
+
+			defer stmt.Close()
+
+			_, err = stmt.Exec(idStr)
+			if err != nil {
+				return err
+			}
+		}
+
+		fmt.Println(tr.Fields.GetID())
 	}
 
 	return s.updateGRUserGroupRepositoryWithChild.SaveMainRow(tx, tr)
