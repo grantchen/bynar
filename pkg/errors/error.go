@@ -32,4 +32,20 @@ var (
 	ErrCodeUndefinedTowType         = "undefined-row-type"
 	ErrCodeBeginTransaction         = "begin-transaction"
 	ErrCodeCommitTransaction        = "commit-transaction"
+	ErrCodeOutRange                 = "out-range"
+	ErrCodePhoneNumber              = "phone-number"
+	ErrCodeEmail                    = "email-error"
+	ErrCodeTooLong                  = "too-long"
+	ErrCodeGipUser                  = "gip-user-not-found"
+)
+
+var (
+	ErrCodeArchivedUpdate     = "archived-update"
+	ErrCodeArchivedDelete     = "archived-delete"
+	ErrCodeArchivedNotValid   = "not-valid-archived"
+	ErrCodeStatusNotValid     = "not-valid-status"
+	ErrCodeSameArchivedStatus = "status-and-archived-same"
+	ErrCodeMergeRequest       = "merge-request"
+	ErrCodeInvalidCondition   = "invalid-condition"
+	ErrCodeNotField           = "not-field-update"
 )
