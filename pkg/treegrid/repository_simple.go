@@ -6,9 +6,10 @@ import (
 	"math"
 	"strconv"
 
+	"github.com/sirupsen/logrus"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
-	"github.com/sirupsen/logrus"
 )
 
 // use for table with no child

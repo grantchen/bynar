@@ -79,7 +79,7 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 		defer stmt.Close()
 		err = stmt.QueryRow(s.userID).Scan(&parentId)
 		if err != nil {
-			return errors.NewUnknownError("user_group_lines doest not exist", errors.ErrCodeNoUserGroupLineFound).WithInternalCause(err)
+			return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeNoUserGroupLineFound))
 		}
 
 		gr["user_group_int"] = parentId

@@ -40,6 +40,7 @@ func main() {
 	connString := appConfig.GetAccountManagementConnection()
 	connAccountString := appConfig.GetAccountManagementConnection()
 	// connString := "root:Munrfe2020@tcp(bynar-cet.ccwuyxj7ucnd.eu-central-1.rds.amazonaws.com:3306)/bynar"
+	connString = "root:123456@tcp(localhost:3306)/46542255-9d45-49d5-939d-84bc55b1a938"
 	db, err := sql_db.NewConnection(connString)
 
 	if err != nil {
