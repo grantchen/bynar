@@ -47,12 +47,13 @@ func (u *uploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	isCommit := true
 	fieldsCombinationValidating := []string{"status", "general_product_posting_group_id", "general_business_posting_group_id"}
 	for _, field := range fieldsCombinationValidating {
-		seenMap := make(map[string]bool)
+		seenMap := make(map[int]bool)
 		for _, gr := range grList {
 			if gr[field] != nil {
-				value := gr[field].(string)
+				status, _ := gr.GetValInt("status")
+				value, _ := gr.GetValInt(field)
 				// Check if the value is already in the map
-				if seenMap[value] {
+				if seenMap[value] && status == 1 {
 					// If there is the same value, handle it accordingly.
 					isCommit = false
 					resp.IO.Result = -1
