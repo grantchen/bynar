@@ -379,6 +379,21 @@ func (g gipClient) GetUserByEmail(ctx context.Context, email string) (*auth.User
 	return u, nil
 }
 
+// GetUser get user info by uid from google identify platform
+func (g gipClient) GetUser(ctx context.Context, uid string) (*auth.UserRecord, error) {
+	client, err := g.app.Auth(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error getting Auth client: %v", err)
+	}
+
+	u, err := client.GetUser(ctx, uid)
+	if err != nil {
+		return nil, fmt.Errorf("error getting user by uid %s: %v", uid, err)
+	}
+
+	return u, nil
+}
+
 // check error is known or not
 func isKnownError(err error) (bool, error) {
 	if auth.IsUserNotFound(err) {

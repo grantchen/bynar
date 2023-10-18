@@ -45,8 +45,14 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 		repository.UserUploadNames,
 		1, // arbitrary
 	)
+	grUserGroupRepository := treegrid.NewSimpleGridRowRepository(
+		db,
+		"user_groups",
+		repository.UserGroupFieldNames,
+		1, // arbitrary
+	)
 
-	uploadService := service.NewUploadService(db, grUserGroupDataUploadRepositoryWithChild, grUserRepository)
+	uploadService := service.NewUploadService(db, grUserGroupRepository, grUserGroupDataUploadRepositoryWithChild, grUserRepository)
 
 	handler := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,
