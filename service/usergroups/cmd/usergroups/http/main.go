@@ -88,7 +88,7 @@ func main() {
 		1, // arbitrary
 	)
 
-	uploadService := service.NewUploadService(db, grUserGroupRepository, grUserGroupDataUploadRepositoryWithChild, grUserRepository)
+	uploadService := service.NewUploadService(db, grUserGroupRepository, grUserGroupDataUploadRepositoryWithChild, grUserRepository, "en")
 
 	authProvider, err := gip.NewGIPClient()
 	if err != nil {

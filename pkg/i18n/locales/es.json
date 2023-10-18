@@ -22,6 +22,13 @@
   "email-error": "Error de formato de correo electrónico",
   "too-long": "Datos demasiado largos para la columna nombre_completo",
   "gip-user-not-found": "El usuario en gip no existe. Primero elimine este usuario y luego agréguelo nuevamente",
+  "user-not-exist": "",
+  "user-belong-specific-user-group-lines": "",
+
+  "save": "save",
+  "user-group": "user group",
+  "user-group-line": "user group line",
+
   "archived-update": "archivado = 1, no se puede actualizar",
   "archived-delete": "Archivada = 1, no se puede eliminar",
   "not-valid-archived": "valor archivado no válido",
@@ -29,5 +36,6 @@
   "status-and-archived-same": "estado y archivado es el mismo valor 1",
   "merge-request": "Fusionar con datos actuales falla",
   "invalid-condition": "Condición no válida al actualizar datos",
-  "not-field-update": "no se detectó actualización de campo"
+  "not-field-update": "no se detectó actualización de campo",
+  "no-allow-to update-child-line": ""
 }

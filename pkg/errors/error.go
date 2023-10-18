@@ -37,15 +37,25 @@ var (
 	ErrCodeEmail                    = "email-error"
 	ErrCodeTooLong                  = "too-long"
 	ErrCodeGipUser                  = "gip-user-not-found"
+	ErrCodeUserNotExist             = "user-not-exist"
+
+	ErrCodeUserBelongSpecificUserGroupLines = "user-belong-specific-user-group-lines"
 )
 
 var (
-	ErrCodeArchivedUpdate     = "archived-update"
-	ErrCodeArchivedDelete     = "archived-delete"
-	ErrCodeArchivedNotValid   = "not-valid-archived"
-	ErrCodeStatusNotValid     = "not-valid-status"
-	ErrCodeSameArchivedStatus = "status-and-archived-same"
-	ErrCodeMergeRequest       = "merge-request"
-	ErrCodeInvalidCondition   = "invalid-condition"
-	ErrCodeNotField           = "not-field-update"
+	ErrCodeSave          = "save"
+	ErrCodeUserGroup     = "user-group"
+	ErrCodeUserGroupLine = "user-group-line"
+)
+
+var (
+	ErrCodeArchivedUpdate           = "archived-update"
+	ErrCodeArchivedDelete           = "archived-delete"
+	ErrCodeArchivedNotValid         = "not-valid-archived"
+	ErrCodeStatusNotValid           = "not-valid-status"
+	ErrCodeSameArchivedStatus       = "status-and-archived-same"
+	ErrCodeMergeRequest             = "merge-request"
+	ErrCodeInvalidCondition         = "invalid-condition"
+	ErrCodeNotField                 = "not-field-update"
+	ErrCodeNoAllowToUpdateChildLine = "no-allow-to update-child-line"
 )

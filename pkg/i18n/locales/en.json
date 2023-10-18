@@ -22,6 +22,13 @@
   "email-error": "Email format error",
   "too-long": "Data too long for column full_name",
   "gip-user-not-found": "The user in gip does not exist，please delete this user first and then add it again",
+  "user-not-exist": "user not exist!",
+  "user-belong-specific-user-group-lines": "user is belong to a specific user group lines",
+
+  "save": "save",
+  "user-group": "user group",
+  "user-group-line": "user group line",
+
   "archived-update": "archived = 1, can not update",
   "archived-delete": "archived = 1, can not delete",
   "not-valid-archived": "not valid archived value",
@@ -29,5 +36,6 @@
   "status-and-archived-same": "status and archived is same value 1",
   "merge-request": "merge with current data fail",
   "invalid-condition": "invalid condition when update data",
-  "not-field-update": "not field update detected"
+  "not-field-update": "not field update detected",
+  "no-allow-to update-child-line": "no allow to update child line"
 }

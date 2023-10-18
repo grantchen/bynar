@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
@@ -20,18 +22,21 @@ type UploadService struct {
 	updateGRUserGroupRepository          treegrid.SimpleGridRowRepository
 	updateGRUserGroupRepositoryWithChild treegrid.GridRowRepositoryWithChild
 	updateGRUserRepository               treegrid.SimpleGridRowRepository
+	language                             string
 }
 
 func NewUploadService(db *sql.DB,
 	updateGRUserGroupRepository treegrid.SimpleGridRowRepository,
 	updateGRUserGroupRepositoryWithChild treegrid.GridRowRepositoryWithChild,
 	updateUserRepository treegrid.SimpleGridRowRepository,
+	language string,
 ) *UploadService {
 	return &UploadService{
 		db:                                   db,
 		updateGRUserGroupRepository:          updateGRUserGroupRepository,
 		updateGRUserGroupRepositoryWithChild: updateGRUserGroupRepositoryWithChild,
 		updateGRUserRepository:               updateUserRepository,
+		language:                             language,
 	}
 }
 
@@ -77,7 +82,7 @@ func (s *UploadService) handle(tr *treegrid.MainRow) error {
 	defer tx.Rollback()
 
 	if err := s.save(tx, tr); err != nil {
-		return fmt.Errorf("usergroups svc save '%s': [%w]", tr.IDString(), err)
+		return err
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -93,7 +98,10 @@ func (s *UploadService) save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	}
 
 	if err := s.saveUserGroupLine(tx, tr, tr.Fields.GetID()); err != nil {
-		return fmt.Errorf("save user group line: [%w]", err)
+		return fmt.Errorf("%s %s: [%w]",
+			i18n.Localize(s.language, errors.ErrCodeSave),
+			i18n.Localize(s.language, errors.ErrCodeUserGroupLine),
+			err)
 	}
 
 	return nil
@@ -162,13 +170,13 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, pare
 			ok, err := s.checkValidUser(tx, userId)
 
 			if err != nil || !ok {
-				return fmt.Errorf("user not exist! userId: [%s], err: [%w]", userId, err)
+				return fmt.Errorf("%s user_id: [%s]", i18n.Localize(s.language, errors.ErrCodeUserNotExist), userId)
 			}
 
 			ok, err = s.userExistInLine(tx, userId)
 
 			if err != nil || !ok {
-				return fmt.Errorf("user is belong to a specific user group lines. UserId: [%s], err: [%w]", userId, err)
+				return fmt.Errorf("%s user_id: [%s]", i18n.Localize(s.language, errors.ErrCodeUserBelongSpecificUserGroupLines), userId)
 			}
 
 			err = s.updateGRUserGroupRepositoryWithChild.SaveLineAdd(tx, item)
@@ -177,7 +185,7 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, pare
 			}
 		case treegrid.GridRowActionChanged:
 			// DO NOTHING WITH ACTION UPDATE, NOT ALLOW UPDATE LINES TABLE
-			return fmt.Errorf("no allow to update child line")
+			return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeNoAllowToUpdateChildLine))
 		case treegrid.GridRowActionDeleted:
 			logger.Debug("delete child")
 			item["id"] = userId

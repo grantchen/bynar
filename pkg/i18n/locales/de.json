@@ -22,6 +22,13 @@
   "email-error": "Fehler im E-Mail-Format",
   "too-long": "Die Daten für die Spalte „full_name“ sind zu lang",
   "gip-user-not-found": "Der Benutzer in gip existiert nicht. Bitte löschen Sie diesen Benutzer zuerst und fügen Sie ihn dann erneut hinzu",
+  "user-not-exist": "",
+  "user-belong-specific-user-group-lines": "",
+
+  "save": "save",
+  "user-group": "user group",
+  "user-group-line": "user group line",
+
   "archived-update": "archiviert = 1, kann nicht aktualisiert werden",
   "archived-delete": "archiviert = 1, kann nicht gelöscht werden",
   "not-valid-archived": "Ungültiger archivierter Wert",
@@ -29,5 +36,6 @@
   "status-and-archived-same": "Status und Archiviert haben den gleichen Wert 1",
   "merge-request": "Zusammenführung mit aktuellen Daten schlägt fehl",
   "invalid-condition": "Ungültiger Zustand beim Aktualisieren der Daten",
-  "not-field-update": "Keine Feldaktualisierung erkannt"
+  "not-field-update": "Keine Feldaktualisierung erkannt",
+  "no-allow-to update-child-line": ""
 }
