@@ -2,14 +2,17 @@ package i18n
 
 import (
 	"fmt"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"strings"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 )
 
 // Convert to 18 pieces of information based on err
 func ErrMsgToI18n(err error, language string) error {
 	errMsg := err.Error()
 	switch {
+	case strings.Contains(errMsg, "missing required params"):
+		return fmt.Errorf(strings.ReplaceAll(errMsg, "missing required params", Localize(language, "missing-required-params")))
 	case strings.Contains(errMsg, "of range"):
 		return fmt.Errorf(Localize(language, errors.ErrCodeOutRange))
 	case strings.Contains(errMsg, "Truncated incorrect"):
