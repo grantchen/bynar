@@ -15,7 +15,7 @@ type treegridService struct {
 	uploadService              service.UploadService
 }
 
-func newTreeGridService(db *sql.DB, accountID int) treegrid.TreeGridService {
+func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.TreeGridService {
 	simpleGeneralPostingSetupRepository := treegrid.NewSimpleGridRowRepositoryWithCfg(
 		db,
 		"general_posting_setup",
@@ -35,6 +35,7 @@ func newTreeGridService(db *sql.DB, accountID int) treegrid.TreeGridService {
 		db,
 		simpleGeneralPostingSetupRepository,
 		generalPostingSetupRepository,
+		language,
 	)
 	return &treegridService{
 		db:                         db,
@@ -45,7 +46,7 @@ func newTreeGridService(db *sql.DB, accountID int) treegrid.TreeGridService {
 
 func NewTreeGridServiceFactory() treegrid.TreeGridServiceFactoryFunc {
 	return func(db *sql.DB, accountID int, organizationUuid string, permissionInfo *treegrid.PermissionInfo, language string) treegrid.TreeGridService {
-		return newTreeGridService(db, accountID)
+		return newTreeGridService(db, accountID, language)
 	}
 }
 

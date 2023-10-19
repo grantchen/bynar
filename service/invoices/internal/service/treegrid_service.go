@@ -106,7 +106,7 @@ func (s *TreeGridService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		gr["account_id"] = s.accountID
 		err1 := gr.ValidateOnRequiredAll(repository.InvoiceFieldNames)
 		if err1 != nil {
-			return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeRequiredFieldsBlank))
+			return i18n.ErrMsgToI18n(err, s.language)
 		}
 		ok, err1 := s.invoiceSimpleRepository.ValidateOnIntegrity(gr, fieldsValidating)
 		if !ok || err1 != nil {
@@ -122,7 +122,7 @@ func (s *TreeGridService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 
 		err1 := gr.ValidateOnRequired(repository.InvoiceFieldNames)
 		if err1 != nil {
-			return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeRequiredFieldsBlank))
+			return i18n.ErrMsgToI18n(err, s.language)
 		}
 		ok, err1 = s.invoiceSimpleRepository.ValidateOnIntegrity(gr, fieldsValidating)
 		if !ok || err1 != nil {

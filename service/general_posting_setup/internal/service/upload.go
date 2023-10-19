@@ -23,11 +23,14 @@ type uploadService struct {
 func NewUploadService(db *sql.DB,
 	tgGeneralPostingSetupSimpleRepository treegrid.SimpleGridRowRepository,
 	generalPostingSetupRepository repository.GeneralPostingSetupRepository,
+	language string,
+
 ) UploadService {
 	return &uploadService{
 		db:                                    db,
 		tgGeneralPostingSetupSimpleRepository: tgGeneralPostingSetupSimpleRepository,
 		generalPostingSetupRepository:         generalPostingSetupRepository,
+		language:                              language,
 	}
 }
 
@@ -57,7 +60,7 @@ func (u *uploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 					// If there is the same value, handle it accordingly.
 					isCommit = false
 					resp.IO.Result = -1
-					resp.IO.Message = fmt.Sprintf("%s: %s: %s", field, i18n.Localize(u.language, errors.ErrCodeValueDuplicated), value)
+					resp.IO.Message = fmt.Sprintf("%s: %s: %d", field, i18n.Localize(u.language, errors.ErrCodeValueDuplicated), value)
 					resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
 					break
 				} else {
@@ -97,7 +100,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	case treegrid.GridRowActionAdd:
 		err = gr.ValidateOnRequired(repository.GeneralPostingSetupFieldNames)
 		if err != nil {
-			return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeRequiredFieldsBlank))
+			return i18n.ErrMsgToI18n(err, u.language)
 		}
 		err = gr.ValidateOnPositiveNumber(repository.GeneralPostingSetupFieldNames)
 		if err != nil {
@@ -121,7 +124,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	case treegrid.GridRowActionChanged:
 		err = gr.ValidateOnRequired(repository.GeneralPostingSetupFieldNames)
 		if err != nil {
-			return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeRequiredFieldsBlank))
+			return i18n.ErrMsgToI18n(err, u.language)
 		}
 		err = gr.ValidateOnPositiveNumber(repository.GeneralPostingSetupFieldNames)
 		if err != nil {
