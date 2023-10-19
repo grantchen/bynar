@@ -179,6 +179,10 @@ func writeErrorResponse(w http.ResponseWriter, resp *treegrid.PostResponse, err 
 		resp.IO.Message = err.Error()
 	}
 
+	if resp.Changes == nil {
+		resp.Changes = make([]map[string]interface{}, 0)
+	}
+
 	// write response with error
 	writeResponse(w, resp)
 }
@@ -188,6 +192,10 @@ func writeResponse(w http.ResponseWriter, resp *treegrid.PostResponse) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-type", " application/json")
 	w.WriteHeader(http.StatusOK)
+
+	if resp.Changes == nil {
+		resp.Changes = make([]map[string]interface{}, 0)
+	}
 
 	respBytes, err := json.Marshal(resp)
 	if err != nil {
