@@ -147,5 +147,8 @@ func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, f
 		return "", errpkg.NewUnknownError("no user found", errpkg.ErrCode).WithInternal().WithCause(err)
 	}
 	customToken, err := s.authProvider.CustomTokenWithClaims(context.Background(), uid, claims)
-	return customToken, errpkg.NewUnknownError("set custom token with claims fail", "").WithInternal().WithCause(err)
+	if err != nil {
+		return "", errpkg.NewUnknownError("set custom token with claims fail", "").WithInternal().WithCause(err)
+	}
+	return customToken, nil
 }
