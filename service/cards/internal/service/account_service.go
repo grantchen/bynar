@@ -43,6 +43,10 @@ func (r *cardServiceHandler) AddCard(req *models.ValidateCardRequest) error {
 	}
 	err = r.cr.AddCard(req.ID, cardDetails.Customer.ID, cardDetails.Source.ID, total)
 	if err != nil {
+		err = r.paymentProvider.DeleteCard(cardDetails.Source.ID)
+		if err != nil {
+			return errors.NewUnknownError("failed to delete card", "").WithInternal().WithCause(err)
+		}
 		return errors.NewUnknownError("failed to add user card", "").WithInternal().WithCause(err)
 	}
 	return nil
