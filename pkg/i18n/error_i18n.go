@@ -25,6 +25,13 @@ func ErrMsgToI18n(err error, language string) error {
 		return fmt.Errorf(Localize(language, errors.ErrCodePhoneNumber))
 	case strings.Contains(errMsg, "INVALID_EMAIL") || strings.Contains(errMsg, "email"):
 		return fmt.Errorf(Localize(language, errors.ErrCodeEmail))
+	case strings.Contains(errMsg, "missing required params"):
+		index := strings.Index(errMsg, ":")
+		result := ""
+		if index != -1 && index+1 < len(errMsg) {
+			result = err.Error()[index+1:]
+		}
+		return fmt.Errorf("%s: %s", Localize(language, errors.ErrCodeRequiredFieldsBlank), result)
 	default:
 		return err
 	}

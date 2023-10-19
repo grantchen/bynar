@@ -114,7 +114,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	case treegrid.GridRowActionAdd:
 		err1 := gr.ValidateOnRequiredAll(repository.UserFieldNames)
 		if err1 != nil {
-			return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeRequiredFieldsBlank))
+			return i18n.ErrMsgToI18n(err1, s.language)
 		}
 		for _, field := range fieldsValidating {
 			ok, err := s.simpleOrganizationRepository.ValidateOnIntegrity(gr, []string{field})
@@ -156,7 +156,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	case treegrid.GridRowActionChanged:
 		err1 := gr.ValidateOnRequired(repository.UserFieldNames)
 		if err1 != nil {
-			return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeRequiredFieldsBlank))
+			return i18n.ErrMsgToI18n(err1, s.language)
 		}
 		err = func() error {
 			id, ok := gr.GetValInt("id")
