@@ -122,7 +122,7 @@ func ParseRequestUpload2(req *PostRequest) (*GridList, error) {
 
 // SetGridRowIdentity sets required params for indentifying grid row
 // sets params:
-// "Def": "Node" | "Data"
+// "Def": "Node" | "Data" | "R"
 func SetGridRowIdentity(gr GridRow, identityStore IdentityStorage) (isChild bool, err error) {
 	id := gr.GetID()
 
