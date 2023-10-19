@@ -22,14 +22,23 @@ func (r *cardRepositoryHandler) AddCard(userID int, customerID, sourceID string,
 	if total > 0 {
 		isDefault = 0
 	}
-	_, err := r.db.Exec(`INSERT INTO accounts_cards
-				(user_payment_gateway_id, source_id, user_id, is_default)
+	var count int
+	err := r.db.QueryRow(`SELECT COUNT(*) FROM accounts_cards WHERE user_payment_gateway_id=? AND source_id=?`, customerID, sourceID).Scan(&count)
+	if err != nil {
+		return errors.NewUnknownError("select card failed", "").WithInternal().WithCause(err)
+	}
+	if count > 0 {
+		return errors.NewUnknownError("card exists", "")
+	}
+	_, err = r.db.Exec(`INSERT INTO accounts_cards
+				(user_payment_gateway_id, source_id, user_id, is_default, account_id)
 				VALUE
-				(?, ?, ?, ?)`,
+				(?, ?, ?, ?, ?)`,
 		customerID,
 		sourceID,
 		userID,
-		isDefault)
+		isDefault,
+		userID)
 	if err != nil {
 		return errors.NewUnknownError("add card failed", "").WithInternal().WithCause(err)
 	}

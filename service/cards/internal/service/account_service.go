@@ -7,6 +7,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/models"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
+	"github.com/sirupsen/logrus"
 )
 
 func (r *cardServiceHandler) AddCard(req *models.ValidateCardRequest) error {
@@ -17,9 +18,21 @@ func (r *cardServiceHandler) AddCard(req *models.ValidateCardRequest) error {
 	if total >= 10 {
 		return errors.NewUnknownError("user can't add more than 10 cards", "")
 	}
+	logrus.Infof("----- add card request  %#v\n", req)
 	cardDetails, err := r.paymentProvider.ValidateCard(req)
 	if err != nil {
 		return errors.NewUnknownError("failed to validate card", "").WithInternal().WithCause(err)
+	}
+	// TODO: delete log after tested
+	logrus.Infof("----- add card details %#v\n", cardDetails)
+	var rsp models.CustomerResponse
+	if cardDetails.Source.ID == "" {
+		rsp, err = r.paymentProvider.FetchCustomerDetails(cardDetails.Customer.ID)
+		if err != nil {
+			return errors.NewUnknownError("failed to fetch card", "").WithInternal().WithCause(err)
+		}
+		logrus.Infof("--- fetch cards %#v\n", rsp.Instruments)
+		cardDetails.Source.ID = rsp.Instruments[len(rsp.Instruments)-1].ID
 	}
 	if !cardDetails.Approved || cardDetails.Status != "Card Verified" {
 		err = r.paymentProvider.DeleteCard(cardDetails.Source.ID)
@@ -30,7 +43,7 @@ func (r *cardServiceHandler) AddCard(req *models.ValidateCardRequest) error {
 	}
 	err = r.cr.AddCard(req.ID, cardDetails.Customer.ID, cardDetails.Source.ID, total)
 	if err != nil {
-		errors.NewUnknownError("failed to add user card", "").WithInternal().WithCause(err)
+		return errors.NewUnknownError("failed to add user card", "").WithInternal().WithCause(err)
 	}
 	return nil
 }
