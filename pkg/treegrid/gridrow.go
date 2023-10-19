@@ -237,6 +237,20 @@ func (g GridRow) GetIDInt() (id int) {
 	return id
 }
 
+func (g *GridRow) GetGroupIDStr(id string) string {
+	// check is group
+	if strings.Contains(id, "$") { // id when group by have format: (CR[0-9]+\$)+<real_id>
+		idGroup := strings.Split(id, "$")
+		if len(idGroup) == 3 {
+			return idGroup[1]
+		}
+
+		return idGroup[len(idGroup)-1]
+	}
+
+	return id
+}
+
 func (g *GridRow) removeGroupID(id string) string {
 	//check is group
 	if strings.Contains(id, "$") { // id when group by have format: (CR[0-9]+\$)+<real_id>

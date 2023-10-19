@@ -20,6 +20,7 @@
   "phone-number": "Phone number format error",
   "email-error": "Email format error",
   "too-long": "Data too long for column",
+  "missing-required-params": "missing required params",
   "gip-user-not-found": "The user in gip does not exist，please delete this user first and then add it again",
   "user-not-exist": "user not exist!",
   "user-belong-specific-user-group-lines": "user is belong to a specific user group lines",
