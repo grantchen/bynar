@@ -113,7 +113,6 @@ func (g *gridRowDataRepositoryWithChild) GetPageCount(tg *Treegrid) (int64, erro
 				g.tableName,
 				g.cfg.ParentIdField,
 				g.tableName) +
-
 				g.cfg.QueryParentJoins +
 				DummyWhere +
 				FilterWhere["parent"] + ") "
@@ -129,7 +128,6 @@ func (g *gridRowDataRepositoryWithChild) GetPageCount(tg *Treegrid) (int64, erro
 				g.lineTableName,
 				g.cfg.ChildJoinFieldWithParent,
 				g.lineTableName) +
-
 				g.cfg.QueryChildJoins +
 				DummyWhere +
 				FilterWhere["child"] + ") "
@@ -416,7 +414,6 @@ func (g *gridRowDataRepositoryWithChild) getParentData(level int, group_cols []s
 	// Loop through the rows and form the row content.
 	for rows.Next() {
 		tempObj := make(map[string]string)
-		tempObj["Def"] = "Group"
 		tempObj["Expanded"] = "0"
 
 		err := row.Parse(rows)
@@ -431,10 +428,15 @@ func (g *gridRowDataRepositoryWithChild) getParentData(level int, group_cols []s
 			}
 
 			tempObj["Count"] = "1"
+			// for expendable parent rows
+			tempObj["has_child"] = "1"
 
 			tableData = append(tableData, tempObj)
 			continue
 		}
+
+		// remove Def for editable parent rows
+		tempObj["Def"] = "Group"
 
 		docType := row.GetValue(colData.DBNameShort)
 		if docType == "" {
