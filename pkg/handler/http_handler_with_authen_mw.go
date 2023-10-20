@@ -33,6 +33,7 @@ type ConnectionResolver interface {
 const UploadPathString = "upload"
 const PageCountPathString = "data"
 const PageDataPathString = "page"
+const CellDataPathString = "cell"
 
 type HTTPTreeGridHandlerWithDynamicDB struct {
 	PathPrefix             string
@@ -203,7 +204,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleUpload(w http.ResponseWrite
 	writeResponse(w, resp)
 }
 
-func (h *HTTPTreeGridHandlerWithDynamicDB) HandleCell(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleCell(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		log.Println(err)
 		return
@@ -354,5 +355,6 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) HandleHTTPReqWithAuthenMWAndDefaultPa
 	http.Handle(h.PathPrefix+"/"+UploadPathString, render.CorsMiddleware(h.authenMW(http.HandlerFunc(h.HTTPHandleUpload))))
 	http.Handle(h.PathPrefix+"/"+PageCountPathString, render.CorsMiddleware(h.authenMW(http.HandlerFunc(h.HTTPHandleGetPageCount))))
 	http.Handle(h.PathPrefix+"/"+PageDataPathString, render.CorsMiddleware(h.authenMW(http.HandlerFunc(h.HTTPHandleGetPageData))))
+	http.Handle(h.PathPrefix+"/"+CellDataPathString, render.CorsMiddleware(h.authenMW(http.HandlerFunc(h.HTTPHandleCell))))
 
 }
