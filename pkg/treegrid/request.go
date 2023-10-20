@@ -122,7 +122,7 @@ func ParseRequestUpload2(req *PostRequest) (*GridList, error) {
 
 // SetGridRowIdentity sets required params for indentifying grid row
 // sets params:
-// "Def": "Node" | "Data"
+// "Def": "Node" | "Data" | "R"
 func SetGridRowIdentity(gr GridRow, identityStore IdentityStorage) (isChild bool, err error) {
 	id := gr.GetID()
 
@@ -134,6 +134,12 @@ func SetGridRowIdentity(gr GridRow, identityStore IdentityStorage) (isChild bool
 		}
 
 		if val == "Data" { // all data already are set
+			return true, nil
+		}
+
+		// add data after grouped
+		if val == "R" {
+			gr["Parent"] = gr.GetGroupIDStr(gr.GetParentID())
 			return true, nil
 		}
 
