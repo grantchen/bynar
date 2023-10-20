@@ -72,8 +72,8 @@ func NewTreeGridServiceFactory() treegrid.TreeGridServiceFactoryFunc {
 }
 
 // GetCellData implements treegrid.TreeGridService
-func (*treegridService) GetCellData(ctx context.Context, req *treegrid.Treegrid) (*treegrid.PostResponse, error) {
-	panic("unimplemented")
+func (s *treegridService) GetCellData(ctx context.Context, req *treegrid.Treegrid) (*treegrid.PostResponse, error) {
+	return s.userGroupService.GetCellSuggestion(req)
 }
 
 // GetPageCount implements treegrid.TreeGridService
