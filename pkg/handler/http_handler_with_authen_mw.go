@@ -207,24 +207,28 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleUpload(w http.ResponseWrite
 func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleCell(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		log.Println(err)
+		writeErrorResponse(w, nil, err)
 		return
 	}
 
 	trRequest, err := treegrid.ParseRequest([]byte(r.Form.Get("Data")))
 	if err != nil {
 		log.Println(err)
+		writeErrorResponse(w, nil, err)
+		return
 	}
 
 	trGrid, err := treegrid.NewTreegrid(trRequest)
 	if err != nil {
 		log.Println(err)
+		writeErrorResponse(w, nil, err)
+		return
 	}
 
 	treegridService := h.getTreeGridService(r)
 	resp, err := treegridService.GetCellData(r.Context(), trGrid)
 	if err != nil {
 		writeErrorResponse(w, resp, err)
-
 		return
 	}
 
