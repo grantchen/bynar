@@ -295,6 +295,7 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 		r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
 		return 0, errors.New("use database failed")
 	}
+	policy := models.Policy{Services: []models.ServicePolicy{}}
 	if name == "" {
 		// create tables
 		_, err = db.Exec(model.SQL_TEMPLATE)
@@ -302,6 +303,7 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 			r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
 			return 0, errpkg.NewUnknownError("create tables failed", "").WithInternalCause(err)
 		}
+		policy = models.Policy{Services: []models.ServicePolicy{{Name: "*", Permissions: []string{"*"}}}}
 	}
 	// create user
 	stmt, err := db.Prepare(`INSERT INTO users (email, full_name, phone, status, language_preference, policies, theme) VALUES (?,?,?,?,?,?,?)`)
@@ -309,7 +311,6 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 		logrus.Error(err)
 		return 0, err
 	}
-	policy := models.Policy{Services: []models.ServicePolicy{{Name: "*", Permissions: []string{"*"}}}}
 	data, _ := json.Marshal(&policy)
 	res, err := stmt.Exec(email, fullName, phoneNumber, 1, "en", string(data), "light")
 	stmt.Close()

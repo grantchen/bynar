@@ -13,6 +13,7 @@ import (
 
 	accounts_http_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/http"
 	accounts_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/service"
+	cards_http_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/cards/external/handler/http"
 	general_posting_setup_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/external/service"
 	invoices_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/external/handler/service"
 	organizations_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/external/handler/service"
@@ -109,6 +110,13 @@ func main() {
 	http.Handle("/update-user-language-preference", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.UpdateUserLanguagePreference))))
 	http.Handle("/update-user-theme-preference", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.UpdateUserThemePreference))))
 	http.Handle("/update-profile", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.UpdateUserProfile))))
+
+	cardsHandler := cards_http_handler.NewHTTPHandler(accountDB, authProvider, paymentProvider)
+	// Cards endpoints
+	http.Handle(prefix+"/cards/list", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(cardsHandler.ListCards))))
+	http.Handle(prefix+"/cards/add", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(cardsHandler.AddCard))))
+	http.Handle(prefix+"/cards/update", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(cardsHandler.UpdateCard))))
+	http.Handle(prefix+"/cards/delete", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(cardsHandler.DeleteCard))))
 
 	// TreeGrid Components that require authentication, but not permission
 	accountRepository := pkg_repository.NewAccountManagerRepository(accountDB)
