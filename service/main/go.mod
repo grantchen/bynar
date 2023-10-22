@@ -78,3 +78,5 @@ replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup
 replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts => ../accounts
 
 replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices => ../invoices
+
+replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/cards => ../cards
