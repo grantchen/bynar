@@ -1,11 +1,11 @@
 {
   "error": "Es ist etwas schief gegangen. Komm, noch mal",
   "permission-denied": "Bolivien nicht autorisierte operationen",
-  "upload-profile-fail":"Avatar konnte nicht hochgeladen werden",
+  "upload-profile-fail": "Avatar konnte nicht hochgeladen werden",
   "delete-profile-fail": "Avatar konnte nicht gelöscht werden",
   "method-not-allowed": "Methode nicht erlaubt",
   "operation-failed": "Der Vorgang ist fehlgeschlagen",
-  "request-parameter-error":"Fehler beim Anforderungsparameter",
+  "request-parameter-error": "Fehler beim Anforderungsparameter",
   "no-user-found": "kein Benutzer gefunden",
   "email-already-exists": "Email already exists",
   "id-token-invalid": "IdToken ungültig",
@@ -25,11 +25,9 @@
   "user-not-exist": "Benutzer existiert nicht!",
   "user-belong-specific-user-group-lines": "Der Benutzer gehört zu einer bestimmten Benutzergruppe",
   "no-user-group-line-found": "Sie gehören keiner Benutzergruppe an und können keine Organisation erstellen",
-
   "save": "speichern",
   "user-group": "Benutzergruppe",
   "user-group-line": "Benutzergruppenzeile",
-
   "archived-update": "archiviert = 1, kann nicht aktualisiert werden",
   "archived-delete": "archiviert = 1, kann nicht gelöscht werden",
   "not-valid-archived": "Ungültiger archivierter Wert",
@@ -40,5 +38,11 @@
   "not-field-update": "Keine Feldaktualisierung erkannt",
   "no-allow-to update-child-line": "",
   "truncated-incorrect": "Abgeschnittener falscher Fehler",
-  "positive-number": "Der Wert muss positiv sein"
+  "positive-number": "Der Wert muss positiv sein",
+  "failed-fetch-card": "Karte konnte nicht abgerufen werden",
+  "failed-add-card": "Karte konnte nicht hinzugefügt werden",
+  "failed-update-card": "Karte konnte nicht aktualisiert werden",
+  "failed-delete-card": "Karte konnte nicht gelöscht werden",
+  "failed-validate-card": "Karte konnte nicht validiert werden",
+  "user-not-allowed": "Der Benutzer darf den Vorgang nicht ausführen"
 }

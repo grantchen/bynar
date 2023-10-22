@@ -5,7 +5,7 @@
   "delete-profile-fail": "No se pudo eliminar el avatar",
   "method-not-allowed": "Método no permitido",
   "operation-failed": "operación fallida",
-  "request-parameter-error":"Error de parámetro de solicitud",
+  "request-parameter-error": "Error de parámetro de solicitud",
   "no-user-found": "No se puede encontrar usuario",
   "email-already-exists": "Email already exists",
   "id-token-invalid": "Idtoken no válido",
@@ -25,11 +25,9 @@
   "user-not-exist": "¡no existe ese usuario!",
   "user-belong-specific-user-group-lines": "El usuario pertenece a un grupo de usuarios específico.",
   "no-user-group-line-found": "No estás en ningún grupo de usuarios y no puedes crear una organización.",
-
   "save": "ahorrar",
   "user-group": "grupo de usuario",
   "user-group-line": "línea de grupo de usuarios",
-
   "archived-update": "archivado = 1, no se puede actualizar",
   "archived-delete": "Archivada = 1, no se puede eliminar",
   "not-valid-archived": "valor archivado no válido",
@@ -40,5 +38,11 @@
   "not-field-update": "no se detectó actualización de campo",
   "no-allow-to update-child-line": "",
   "truncated-incorrect": "Error incorrecto truncado",
-  "positive-number": "El valor debe ser positivo."
+  "positive-number": "El valor debe ser positivo.",
+  "failed-fetch-card": "no se pudo recuperar la tarjeta",
+  "failed-add-card": "no se pudo agregar la tarjeta",
+  "failed-update-card": "no se pudo actualizar la tarjeta",
+  "failed-delete-card": "no se pudo eliminar la tarjeta",
+  "failed-validate-card": "no se pudo validar la tarjeta",
+  "user-not-allowed": "Usuario no autorizada a hacer la operación"
 }

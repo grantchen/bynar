@@ -25,11 +25,9 @@
   "user-not-exist": "l'utilisateur n'existe pas!",
   "user-belong-specific-user-group-lines": "l'utilisateur appartient à un groupe d'utilisateurs spécifique",
   "no-user-group-line-found": "Vous n'êtes dans aucun groupe d'utilisateurs et ne pouvez pas créer d'organisation",
-
   "save": "sauvegarder",
   "user-group": "groupe d'utilisateurs",
   "user-group-line": "ligne de groupe d'utilisateurs",
-
   "archived-update": "archivé = 1, impossible de mettre à jour",
   "archived-delete": "archivé = 1, ne peut pas supprimer",
   "not-valid-archived": "valeur archivée non valide",
@@ -40,5 +38,11 @@
   "not-field-update": "aucune mise à jour de champ n'a été détectée",
   "no-allow-to update-child-line": "",
   "truncated-incorrect": "Erreur incorrecte tronquée",
-  "positive-number": "La valeur doit être positive"
+  "positive-number": "La valeur doit être positive",
+  "failed-fetch-card": "échec de récupération de la carte",
+  "failed-add-card": "échec de l'ajout de la carte",
+  "failed-update-card": "échec de la mise à jour de la carte",
+  "failed-delete-card": "échec de la suppression de la carte",
+  "failed-validate-card": "échec de validation de la carte",
+  "user-not-allowed": "l'utilisateur n'est pas autorisé à effectuer l'opération"
 }

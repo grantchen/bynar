@@ -25,11 +25,9 @@
   "user-not-exist": "user not exist!",
   "user-belong-specific-user-group-lines": "user is belong to a specific user group lines",
   "no-user-group-line-found": "You are not in any user group and cannot create an organization",
-
   "save": "save",
   "user-group": "user group",
   "user-group-line": "user group line",
-
   "archived-update": "archived = 1, can not update",
   "archived-delete": "archived = 1, can not delete",
   "not-valid-archived": "not valid archived value",
@@ -40,5 +38,11 @@
   "not-field-update": "not field update detected",
   "no-allow-to update-child-line": "no allow to update child line",
   "truncated-incorrect": "Truncated incorrect error",
-  "positive-number": "Value must be positive"
+  "positive-number": "Value must be positive",
+  "failed-fetch-card": "failed to fetch card",
+  "failed-add-card": "failed to add card",
+  "failed-update-card": "failed to update card",
+  "failed-delete-card": "failed to delete card",
+  "failed-validate-card": "failed to validate card",
+  "user-not-allowed": "user not allowed to do this operation"
 }
