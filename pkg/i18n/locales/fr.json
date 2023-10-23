@@ -45,5 +45,5 @@
   "failed-delete-card": "échec de la suppression de la carte",
   "failed-validate-card": "échec de validation de la carte",
   "user-not-allowed": "l'utilisateur n'est pas autorisé à effectuer l'opération",
-  "code-same": "code : %s est le même à la demande"
+  "code-same": "code: %s est le même à la demande"
 }

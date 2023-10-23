@@ -51,7 +51,7 @@ func (u *uploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	for _, gr := range grList {
 		if existsMap[gr["code"].(string)] {
 			resp.IO.Result = -1
-			resp.IO.Message += i18n.Localize(u.language, "same-same", gr["code"].(string)) + "\n"
+			resp.IO.Message += i18n.Localize(u.language, "code-same", gr["code"].(string)) + "\n"
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
 			return resp, nil
 		} else {
