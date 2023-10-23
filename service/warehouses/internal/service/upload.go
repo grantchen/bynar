@@ -47,6 +47,17 @@ func (u *uploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 		return nil, fmt.Errorf("begin transaction: [%w]", err)
 	}
 	defer tx.Rollback()
+	existsMap := map[string]bool{}
+	for _, gr := range grList {
+		if existsMap[gr["code"].(string)] {
+			resp.IO.Result = -1
+			resp.IO.Message += "code: " + gr["code"].(string) + " is same at the request\n"
+			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
+			return resp, nil
+		} else {
+			existsMap[gr["code"].(string)] = true
+		}
+	}
 	for _, gr := range grList {
 		if err := u.handle(tx, gr); err != nil {
 			log.Println("Err", err)
