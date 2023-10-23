@@ -51,7 +51,7 @@ func (u *uploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	for _, gr := range grList {
 		if existsMap[gr["code"].(string)] {
 			resp.IO.Result = -1
-			resp.IO.Message += "code: " + gr["code"].(string) + " is same at the request\n"
+			resp.IO.Message += i18n.Localize(u.language, "same-same", gr["code"].(string)) + "\n"
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
 			return resp, nil
 		} else {
@@ -94,7 +94,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			return err
 		}
 		for _, field := range fieldsCombinationValidating {
-			ok, err := u.tgWarehousesSimpleRepository.ValidateOnIntegrity(gr, []string{field})
+			ok, err := u.tgWarehousesSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
 				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(u.language, errors.ErrCodeValueDuplicated), gr[field])
 			}
@@ -110,7 +110,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			return err
 		}
 		for _, field := range fieldsCombinationValidating {
-			ok, err := u.tgWarehousesSimpleRepository.ValidateOnIntegrity(gr, []string{field})
+			ok, err := u.tgWarehousesSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
 				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(u.language, errors.ErrCodeValueDuplicated), gr[field])
 			}

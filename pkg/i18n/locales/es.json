@@ -44,5 +44,6 @@
   "failed-update-card": "no se pudo actualizar la tarjeta",
   "failed-delete-card": "no se pudo eliminar la tarjeta",
   "failed-validate-card": "no se pudo validar la tarjeta",
-  "user-not-allowed": "Usuario no autorizada a hacer la operación"
+  "user-not-allowed": "Usuario no autorizada a hacer la operación",
+  "code-same": "código: %s es el mismo en la solicitud"
 }
