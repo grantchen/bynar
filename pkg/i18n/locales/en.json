@@ -44,5 +44,6 @@
   "failed-update-card": "failed to update card",
   "failed-delete-card": "failed to delete card",
   "failed-validate-card": "failed to validate card",
-  "user-not-allowed": "user not allowed to do this operation"
+  "user-not-allowed": "user not allowed to do this operation",
+  "code-same": "code: %s is same at the request"
 }

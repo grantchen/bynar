@@ -15,6 +15,7 @@ require (
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/sites v0.0.0-00010101000000-000000000000
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers v0.0.0-00010101000000-000000000000
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups v0.0.0-00010101000000-000000000000
+	git-codecommit.eu-central-1.amazonaws.com/v1/repos/warehouses v0.0.0-00010101000000-000000000000
 	github.com/joho/godotenv v1.4.0
 )
 
@@ -84,3 +85,5 @@ replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts => ../accoun
 replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices => ../invoices
 
 replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/cards => ../cards
+
+replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/warehouses => ../warehouses
