@@ -65,6 +65,7 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 	defer tx.Rollback()
 
 	fieldsValidating := []string{"code"}
+	positiveFieldsValidating := []string{"subsidiaries_uuid", "address_uuid", "contact_uuid", "responsibility_center_uuid"}
 
 	// add addition here
 	switch gr.GetActionType() {
@@ -72,6 +73,13 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 		err = gr.ValidateOnRequiredAll(repository.SiteFieldNames)
 		if err != nil {
 			return err
+		}
+
+		for _, field := range positiveFieldsValidating {
+			err = gr.ValidateOnPositiveNumber(map[string][]string{field: repository.SiteFieldNames[field]})
+			if err != nil {
+				return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodePositiveNumber))
+			}
 		}
 
 		for _, field := range fieldsValidating {
@@ -86,6 +94,14 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 		if err != nil {
 			return err
 		}
+
+		for _, field := range positiveFieldsValidating {
+			err = gr.ValidateOnPositiveNumber(map[string][]string{field: repository.SiteFieldNames[field]})
+			if err != nil {
+				return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodePositiveNumber))
+			}
+		}
+
 		for _, field := range fieldsValidating {
 			ok, err := s.siteSimpleRepository.ValidateOnIntegrity(gr, []string{field})
 			if !ok || err != nil {
