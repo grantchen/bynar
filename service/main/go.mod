@@ -12,6 +12,7 @@ require (
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs v0.0.0
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/procurements v0.0.0-00010101000000-000000000000
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales v0.0.0-00010101000000-000000000000
+	git-codecommit.eu-central-1.amazonaws.com/v1/repos/sites v0.0.0-00010101000000-000000000000
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers v0.0.0-00010101000000-000000000000
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups v0.0.0-00010101000000-000000000000
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/warehouses v0.0.0-00010101000000-000000000000
@@ -72,6 +73,8 @@ replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales => ../sales
 replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/procurements => ../procurements
 
 replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations => ../organizations
+
+replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/sites => ../sites
 
 replace git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups => ../usergroups
 

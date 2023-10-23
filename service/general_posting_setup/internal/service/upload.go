@@ -4,13 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
-	"log"
 )
 
 type uploadService struct {
@@ -114,7 +115,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		status, _ := gr.GetValInt("status")
 		if status == 1 {
 			for _, field := range fieldsCombinationValidating {
-				ok, err := u.tgGeneralPostingSetupSimpleRepository.ValidateOnIntegrity(gr, []string{field})
+				ok, err := u.tgGeneralPostingSetupSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 				if !ok || err != nil {
 					return fmt.Errorf("%s: %s: %s", field, i18n.Localize(u.language, errors.ErrCodeValueDuplicated), gr[field])
 				}
@@ -158,7 +159,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			newGr := gr.MergeWithMap(generalPostingSetup.ToMap())
 			logger.Debug("newMap", newGr)
 			for _, field := range fieldsCombinationValidating {
-				ok, err := u.tgGeneralPostingSetupSimpleRepository.ValidateOnIntegrity(newGr, []string{field})
+				ok, err := u.tgGeneralPostingSetupSimpleRepository.ValidateOnIntegrity(tx, newGr, []string{field})
 				if !ok || err != nil {
 					return fmt.Errorf("%s: %s: %s", field, i18n.Localize(u.language, errors.ErrCodeValueDuplicated), gr[field])
 				}

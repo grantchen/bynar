@@ -19,7 +19,7 @@ type SimpleGridRowRepository interface {
 	Delete(tx *sql.Tx, gr GridRow) error
 	GetPageCount(tg *Treegrid) (int64, error)
 	GetPageData(tg *Treegrid) ([]map[string]string, error)
-	ValidateOnIntegrity(gr GridRow, validateFields []string) (bool, error)
+	ValidateOnIntegrity(tx *sql.Tx, gr GridRow, validateFields []string) (bool, error)
 }
 
 type SimpleGridRepositoryCfg struct {
@@ -40,12 +40,12 @@ type simpleGridRepository struct {
 }
 
 // ValidateOnIntegrity implements SimpleGridRowRepository
-func (s *simpleGridRepository) ValidateOnIntegrity(gr GridRow, validateFields []string) (bool, error) {
+func (s *simpleGridRepository) ValidateOnIntegrity(tx *sql.Tx, gr GridRow, validateFields []string) (bool, error) {
 	query, args := gr.MakeValidateOnIntegrityQuery(s.tableName, s.fieldMapping, validateFields)
 	fmt.Printf("ValidateOnIntegrity query: %s, %s\n", query, args)
 
 	var Count int
-	err := s.db.QueryRow(query, args...).Scan(&Count)
+	err := tx.QueryRow(query, args...).Scan(&Count)
 
 	if err != nil {
 		return false, fmt.Errorf("query row: [%w]", err)
