@@ -122,7 +122,7 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 		}
 
 		for _, field := range fieldsValidating {
-			ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tr.Fields, []string{field})
+			ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
 			if !ok || err != nil {
 				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), tr.Fields[field])
 			}
@@ -134,7 +134,7 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 		}
 
 		for _, field := range fieldsValidating {
-			ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tr.Fields, []string{field})
+			ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
 			if !ok || err != nil {
 				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), tr.Fields[field])
 			}

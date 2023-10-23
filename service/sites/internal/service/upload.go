@@ -41,32 +41,38 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 		return nil, fmt.Errorf("parse requst: [%w]", err)
 	}
 
+	tx, err := u.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		return nil, fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeBeginTransaction))
+	}
+	defer tx.Rollback()
+
 	for _, gr := range grList {
-		if err := u.handle(gr); err != nil {
+		if err = u.handle(tx, gr); err != nil {
 			log.Println("Err", err)
 
 			resp.IO.Result = -1
 			resp.IO.Message += i18n.ErrMsgToI18n(err, u.language).Error() + "\n"
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
-			break
+
+			// rollback
+			return resp, err
 		}
 		resp.Changes = append(resp.Changes, gr)
 		resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
+	}
+	if err = tx.Commit(); err != nil {
+		return nil, fmt.Errorf("%s: [%w]", i18n.Localize(u.language, errors.ErrCodeCommitTransaction), err)
 	}
 
 	return resp, nil
 }
 
-func (s *UploadService) handle(gr treegrid.GridRow) error {
-	tx, err := s.db.BeginTx(context.Background(), nil)
-	if err != nil {
-		return fmt.Errorf("begin transaction: [%w]", err)
-	}
-	defer tx.Rollback()
-
+func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	fieldsValidating := []string{"code"}
 	positiveFieldsValidating := []string{"subsidiaries_uuid", "address_uuid", "contact_uuid", "responsibility_center_uuid"}
 
+	var err error
 	// add addition here
 	switch gr.GetActionType() {
 	case treegrid.GridRowActionAdd:
@@ -83,7 +89,7 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 		}
 
 		for _, field := range fieldsValidating {
-			ok, err := s.siteSimpleRepository.ValidateOnIntegrity(gr, []string{field})
+			ok, err := s.siteSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
 				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr[field])
 			}
@@ -103,7 +109,7 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 		}
 
 		for _, field := range fieldsValidating {
-			ok, err := s.siteSimpleRepository.ValidateOnIntegrity(gr, []string{field})
+			ok, err := s.siteSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
 				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr[field])
 			}
@@ -114,14 +120,6 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 
 	default:
 		return fmt.Errorf("undefined row type: %s", gr.GetActionType())
-	}
-
-	if err != nil {
-		return err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit transaction: [%w]", err)
 	}
 
 	return err

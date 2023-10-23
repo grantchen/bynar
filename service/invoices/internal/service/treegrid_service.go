@@ -4,12 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
+	"strings"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
-	"log"
-	"strings"
 )
 
 type TreeGridService struct {
@@ -108,7 +109,7 @@ func (s *TreeGridService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		if err1 != nil {
 			return i18n.ErrMsgToI18n(err, s.language)
 		}
-		ok, err1 := s.invoiceSimpleRepository.ValidateOnIntegrity(gr, fieldsValidating)
+		ok, err1 := s.invoiceSimpleRepository.ValidateOnIntegrity(tx, gr, fieldsValidating)
 		if !ok || err1 != nil {
 			return fmt.Errorf("%s: %s: %s", strings.Join(fieldsValidating, ", "), i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr["invoice_no"])
 		}
@@ -124,7 +125,7 @@ func (s *TreeGridService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		if err1 != nil {
 			return i18n.ErrMsgToI18n(err, s.language)
 		}
-		ok, err1 = s.invoiceSimpleRepository.ValidateOnIntegrity(gr, fieldsValidating)
+		ok, err1 = s.invoiceSimpleRepository.ValidateOnIntegrity(tx, gr, fieldsValidating)
 		if !ok || err1 != nil {
 			return fmt.Errorf("%s %s: %s", strings.Join(fieldsValidating, ", "), i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr["invoice_no"])
 		}
