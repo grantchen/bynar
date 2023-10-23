@@ -93,26 +93,29 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) getTreeGridService(r *http.Request) t
 func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleGetPageCount(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		log.Println(err)
+		writeErrorResponse(w, nil, err)
 		return
 	}
 
 	trRequest, err := treegrid.ParseRequest([]byte(r.Form.Get("Data")))
 	if err != nil {
 		log.Println(err)
+		writeErrorResponse(w, nil, err)
+		return
 	}
 
 	treegr, err := treegrid.NewTreegrid(trRequest)
 	if err != nil {
 		log.Println(err)
+		writeErrorResponse(w, nil, err)
+		return
 	}
 
 	treegridService := h.getTreeGridService(r)
 	allPages, err := treegridService.GetPageCount(treegr)
 
 	if err != nil {
-		defaultResponse := &treegrid.PostResponse{}
-		defaultResponse.Changes = make([]map[string]interface{}, 0)
-		writeErrorResponse(w, defaultResponse, err)
+		writeErrorResponse(w, nil, err)
 		return
 	}
 
@@ -122,6 +125,8 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleGetPageCount(w http.Respons
 
 	if err != nil {
 		log.Println(err)
+		writeErrorResponse(w, nil, err)
+		return
 	}
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -132,17 +137,22 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleGetPageCount(w http.Respons
 func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleGetPageData(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		log.Println(err)
+		writeErrorResponse(w, nil, err)
 		return
 	}
 
 	trRequest, err := treegrid.ParseRequest([]byte(r.Form.Get("Data")))
 	if err != nil {
 		log.Println(err)
+		writeErrorResponse(w, nil, err)
+		return
 	}
 
 	trGrid, err := treegrid.NewTreegrid(trRequest)
 	if err != nil {
 		log.Println(err)
+		writeErrorResponse(w, nil, err)
+		return
 	}
 
 	var response = make([]map[string]string, 0, 100)
@@ -150,9 +160,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleGetPageData(w http.Response
 	treegridService := h.getTreeGridService(r)
 	response, err = treegridService.GetPageData(trGrid)
 	if err != nil {
-		defaultResponse := &treegrid.PostResponse{}
-		defaultResponse.Changes = make([]map[string]interface{}, 0)
-		writeErrorResponse(w, defaultResponse, err)
+		writeErrorResponse(w, nil, err)
 		return
 	}
 
@@ -173,22 +181,18 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleUpload(w http.ResponseWrite
 		postData = &treegrid.PostRequest{
 			Changes: make([]map[string]interface{}, 10),
 		}
-
-		resp = &treegrid.PostResponse{}
 	)
 
 	// get and parse post data
 	if err := r.ParseForm(); err != nil {
 		logger.Debug("parse form err: ", err)
-		writeErrorResponse(w, resp, err)
-
+		writeErrorResponse(w, nil, err)
 		return
 	}
 
 	if err := json.Unmarshal([]byte(r.Form.Get("Data")), &postData); err != nil {
 		logger.Debug("unmarshal err: ", err)
-		writeErrorResponse(w, resp, err)
-
+		writeErrorResponse(w, nil, err)
 		return
 	}
 
@@ -197,7 +201,6 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleUpload(w http.ResponseWrite
 
 	if err != nil {
 		writeErrorResponse(w, resp, err)
-
 		return
 	}
 
@@ -267,6 +270,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 
 		defaultResponse := &treegrid.PostResponse{}
 		defaultResponse.Changes = make([]map[string]interface{}, 0)
+		defaultResponse.Body = make([]interface{}, 0)
 
 		code, claims, err := middleware.VerifyIdToken(r)
 		if http.StatusOK != code {

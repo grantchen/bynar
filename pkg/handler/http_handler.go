@@ -38,17 +38,22 @@ func (h *HTTPTreeGridHandler) getDB(r *http.Request) *sql.DB {
 func (h *HTTPTreeGridHandler) HTTPHandleGetPageCount(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		log.Println(err)
+		writeErrorResponse(w, nil, err)
 		return
 	}
 
 	trRequest, err := treegrid.ParseRequest([]byte(r.Form.Get("Data")))
 	if err != nil {
 		log.Println(err)
+		writeErrorResponse(w, nil, err)
+		return
 	}
 
 	treegr, err := treegrid.NewTreegrid(trRequest)
 	if err != nil {
 		log.Println(err)
+		writeErrorResponse(w, nil, err)
+		return
 	}
 
 	allPages, _ := h.CallbackGetPageCountFunc(treegr)
@@ -59,6 +64,8 @@ func (h *HTTPTreeGridHandler) HTTPHandleGetPageCount(w http.ResponseWriter, r *h
 
 	if err != nil {
 		log.Println(err)
+		writeErrorResponse(w, nil, err)
+		return
 	}
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -69,17 +76,22 @@ func (h *HTTPTreeGridHandler) HTTPHandleGetPageCount(w http.ResponseWriter, r *h
 func (h *HTTPTreeGridHandler) HTTPHandleGetPageData(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		log.Println(err)
+		writeErrorResponse(w, nil, err)
 		return
 	}
 
 	trRequest, err := treegrid.ParseRequest([]byte(r.Form.Get("Data")))
 	if err != nil {
 		log.Println(err)
+		writeErrorResponse(w, nil, err)
+		return
 	}
 
 	trGrid, err := treegrid.NewTreegrid(trRequest)
 	if err != nil {
 		log.Println(err)
+		writeErrorResponse(w, nil, err)
+		return
 	}
 
 	var response = make([]map[string]string, 0, 100)
@@ -103,32 +115,26 @@ func (h *HTTPTreeGridHandler) HTTPHandleUpload(w http.ResponseWriter, r *http.Re
 		postData = &treegrid.PostRequest{
 			Changes: make([]map[string]interface{}, 10),
 		}
-
-		resp = &treegrid.PostResponse{}
 	)
 
 	// get and parse post data
 	if err := r.ParseForm(); err != nil {
 		logger.Debug("parse form err: ", err)
-		writeErrorResponse(w, resp, err)
-
+		writeErrorResponse(w, nil, err)
 		return
 	}
 
 	if err := json.Unmarshal([]byte(r.Form.Get("Data")), &postData); err != nil {
 		logger.Debug("unmarshal err: ", err)
-		writeErrorResponse(w, resp, err)
-
+		writeErrorResponse(w, nil, err)
 		return
 	}
 
 	// b, _ := json.Marshal(postData)
 	// logger.Debug("postData: ", string(b), "form data: ", r.Form.Get("Data"))
 	resp, err := h.CallbackUploadDataFunc(postData)
-
 	if err != nil {
 		writeErrorResponse(w, resp, err)
-
 		return
 	}
 
@@ -139,23 +145,27 @@ func (h *HTTPTreeGridHandler) HTTPHandleCell(w http.ResponseWriter, r *http.Requ
 	logger.Debug("request come here")
 	if err := r.ParseForm(); err != nil {
 		log.Println(err)
+		writeErrorResponse(w, nil, err)
 		return
 	}
 
 	trRequest, err := treegrid.ParseRequest([]byte(r.Form.Get("Data")))
 	if err != nil {
 		log.Println(err)
+		writeErrorResponse(w, nil, err)
+		return
 	}
 
 	trGrid, err := treegrid.NewTreegrid(trRequest)
 	if err != nil {
 		log.Println(err)
+		writeErrorResponse(w, nil, err)
+		return
 	}
 
 	resp, err := h.CallBackGetCellDataFunc(trGrid)
 	if err != nil {
 		writeErrorResponse(w, resp, err)
-
 		return
 	}
 
@@ -179,10 +189,6 @@ func writeErrorResponse(w http.ResponseWriter, resp *treegrid.PostResponse, err 
 		resp.IO.Message = err.Error()
 	}
 
-	if resp.Changes == nil {
-		resp.Changes = make([]map[string]interface{}, 0)
-	}
-
 	// write response with error
 	writeResponse(w, resp)
 }
@@ -193,9 +199,7 @@ func writeResponse(w http.ResponseWriter, resp *treegrid.PostResponse) {
 	w.Header().Set("Content-type", " application/json")
 	w.WriteHeader(http.StatusOK)
 
-	if resp.Changes == nil {
-		resp.Changes = make([]map[string]interface{}, 0)
-	}
+	resp = treegrid.MakeResponseBody(resp)
 
 	respBytes, err := json.Marshal(resp)
 	if err != nil {
