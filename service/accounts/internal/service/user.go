@@ -185,7 +185,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				params := map[string]interface{}{}
 				customClaims := map[string]interface{}{}
 				for _, i := range gr.UpdatedFields() {
-					if i != "reqID" {
+					if i != "reqID" && i != "policies" {
 						key, ok := GIP_KEYS[i]
 						if ok {
 							if i == "status" {
