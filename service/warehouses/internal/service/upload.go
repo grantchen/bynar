@@ -59,7 +59,7 @@ func (u *uploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 		}
 	}
 	for _, gr := range grList {
-		if err := u.handle(tx, gr); err != nil {
+		if err = u.handle(tx, gr); err != nil {
 			log.Println("Err", err)
 
 			resp.IO.Result = -1
@@ -69,6 +69,11 @@ func (u *uploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 		}
 		resp.Changes = append(resp.Changes, gr)
 		resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
+	}
+	if err == nil {
+		if err := tx.Commit(); err != nil {
+			return nil, fmt.Errorf("commit transaction: [%w]", err)
+		}
 	}
 
 	return resp, nil
@@ -136,10 +141,6 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 
 	if err != nil {
 		return i18n.ErrMsgToI18n(err, u.language)
-	}
-
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit transaction: [%w]", err)
 	}
 
 	return err
