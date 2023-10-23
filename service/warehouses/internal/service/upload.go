@@ -44,49 +44,20 @@ func (u *uploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	}
 	tx, err := u.db.BeginTx(context.Background(), nil)
 	if err != nil {
-		return nil, fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeBeginTransaction))
+		return nil, fmt.Errorf("begin transaction: [%w]", err)
 	}
 	defer tx.Rollback()
-	isCommit := true
-	fieldsCombinationValidating := []string{"status", "general_product_posting_group_id", "general_business_posting_group_id"}
-	for _, field := range fieldsCombinationValidating {
-		seenMap := make(map[int]bool)
-		for _, gr := range grList {
-			if gr[field] != nil {
-				status, _ := gr.GetValInt("status")
-				value, _ := gr.GetValInt(field)
-				// Check if the value is already in the map
-				if seenMap[value] && status == 1 {
-					// If there is the same value, handle it accordingly.
-					isCommit = false
-					resp.IO.Result = -1
-					resp.IO.Message = fmt.Sprintf("%s: %s: %d", field, i18n.Localize(u.language, errors.ErrCodeValueDuplicated), value)
-					resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
-					break
-				} else {
-					seenMap[value] = true
-				}
-			}
-		}
-	}
-	if isCommit == true {
-		for _, gr := range grList {
-			if err := u.handle(tx, gr); err != nil {
-				log.Println("Err", err)
+	for _, gr := range grList {
+		if err := u.handle(tx, gr); err != nil {
+			log.Println("Err", err)
 
-				resp.IO.Result = -1
-				resp.IO.Message += err.Error() + "\n"
-				resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
-				break
-			}
-			resp.Changes = append(resp.Changes, gr)
-			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
+			resp.IO.Result = -1
+			resp.IO.Message += err.Error() + "\n"
+			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
+			break
 		}
-	}
-	if isCommit == true {
-		if err = tx.Commit(); err != nil {
-			return nil, fmt.Errorf("%s: [%w]", i18n.Localize(u.language, errors.ErrCodeCommitTransaction), err)
-		}
+		resp.Changes = append(resp.Changes, gr)
+		resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
 	}
 
 	return resp, nil
@@ -120,7 +91,10 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(u.language, errors.ErrCodeValueDuplicated), gr[field])
 			}
 		}
-		err = u.tgWarehousesSimpleRepository.Update(tx, gr)
+		_, ok := gr.GetValInt("id")
+		if ok {
+			err = u.tgWarehousesSimpleRepository.Update(tx, gr)
+		}
 	case treegrid.GridRowActionDeleted:
 		err = u.tgWarehousesSimpleRepository.Delete(tx, gr)
 		//id := gr.GetIDInt()
@@ -143,6 +117,10 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 
 	if err != nil {
 		return i18n.ErrMsgToI18n(err, u.language)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit transaction: [%w]", err)
 	}
 
 	return err
