@@ -29,6 +29,7 @@ type (
 		}
 
 		Changes []map[string]interface{}
+		Body    []interface{}
 	}
 )
 
@@ -64,3 +65,20 @@ func CreateSuggestionResult(suggestionKey string, suggestion *Suggestion, tr *Tr
 }
 
 type ChangeItemType string
+
+// MakeResponseBody creates a new PostResponse with empty Changes and Body
+func MakeResponseBody(resp *PostResponse) *PostResponse {
+	if resp == nil {
+		resp = &PostResponse{}
+	}
+
+	if resp.Changes == nil {
+		resp.Changes = make([]map[string]interface{}, 0)
+	}
+
+	if resp.Body == nil {
+		resp.Body = make([]interface{}, 0)
+	}
+
+	return resp
+}

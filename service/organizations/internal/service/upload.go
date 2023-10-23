@@ -90,7 +90,7 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 		}
 
 		for _, field := range fieldsValidating {
-			ok, err := s.organizationSimpleRepository.ValidateOnIntegrity(gr, []string{field})
+			ok, err := s.organizationSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
 				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr[field])
 			}
@@ -102,7 +102,7 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 			return err1
 		}
 		for _, field := range fieldsValidating {
-			ok, err := s.organizationSimpleRepository.ValidateOnIntegrity(gr, []string{field})
+			ok, err := s.organizationSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
 				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr[field])
 			}

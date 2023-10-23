@@ -5,13 +5,15 @@ import (
 	"database/sql"
 	stderr "errors"
 	"fmt"
+	"log"
+
+	"github.com/sirupsen/logrus"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
-	"github.com/sirupsen/logrus"
-	"log"
 )
 
 // db to gip key
@@ -117,7 +119,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			return i18n.ErrMsgToI18n(err1, s.language)
 		}
 		for _, field := range fieldsValidating {
-			ok, err := s.simpleOrganizationRepository.ValidateOnIntegrity(gr, []string{field})
+			ok, err := s.simpleOrganizationRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
 				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr[field])
 			}
@@ -162,7 +164,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			id, ok := gr.GetValInt("id")
 			if ok {
 				for _, field := range fieldsValidating {
-					ok, err = s.simpleOrganizationRepository.ValidateOnIntegrity(gr, []string{field})
+					ok, err = s.simpleOrganizationRepository.ValidateOnIntegrity(tx, gr, []string{field})
 					if !ok || err != nil {
 						return fmt.Errorf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr[field])
 					}
