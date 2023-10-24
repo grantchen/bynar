@@ -366,20 +366,6 @@ func (g GridRow) UpdatedFields() []string {
 	return updatedFields
 }
 
-func (g GridRow) GetStrInt(name string) (int, bool) {
-	val, ok := g[name]
-	if !ok {
-		return 0, false
-	}
-
-	valInt, ok := val.(int)
-	if !ok {
-		return 0, false
-	}
-
-	return valInt, true
-}
-
 func (g GridRow) MergeWithMap(m map[string]interface{}) GridRow {
 	newG := make(map[string]interface{})
 

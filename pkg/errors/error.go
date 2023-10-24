@@ -46,6 +46,8 @@ var (
 	ErrCodeSave          = "save"
 	ErrCodeUserGroup     = "user-group"
 	ErrCodeUserGroupLine = "user-group-line"
+	ErrCodeTransfer      = "transfer"
+	ErrCodeTransferLine  = "transfer-line"
 )
 
 var (

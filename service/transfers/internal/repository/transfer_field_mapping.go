@@ -88,36 +88,31 @@ var (
 
 	TransferLineFieldNames = map[string][]string{
 		"id": {
-			"",
-			"transfer_lines",
+			"transfer_lines.id",
+		},
+		"Parent": {
+			"transfer_lines.parent_id",
 		},
 		"item_id": {
-			"",
-			"transfer_lines",
+			"transfer_lines.item_id",
 		},
 		"input_quantity": {
-			"",
-			"transfer_lines",
+			"transfer_lines.input_quantity",
 		},
 		"item_unit_value": {
-			"",
-			"transfer_lines",
+			"transfer_lines.item_unit_value",
 		},
 		"quantity": {
-			"",
-			"transfer_lines",
+			"transfer_lines.quantity",
 		},
 		"item_unit_id": {
-			"",
-			"transfer_lines",
+			"transfer_lines.item_unit_id",
 		},
 		"shipment_date": {
-			"",
-			"transfer_lines",
+			"transfer_lines.shipment_date",
 		},
 		"receipt_date": {
-			"",
-			"transfer_lines",
+			"transfer_lines.receipt_date",
 		},
 	}
 )

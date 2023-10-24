@@ -5,7 +5,6 @@ import (
 )
 
 type TransferService interface {
-	GetPageCount(tr *treegrid.Treegrid) (float64, error)
+	GetPageCount(tr *treegrid.Treegrid) (int64, error)
 	GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error)
-	HandleUpload(req *treegrid.PostRequest, accountID int) (*treegrid.PostResponse, error)
 }

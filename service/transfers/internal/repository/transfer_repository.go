@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
@@ -15,16 +17,23 @@ import (
 type transferRepository struct {
 	gridTreeRepository treegrid.GridRowRepositoryWithChild
 	db                 *sql.DB
+	language           string
 }
 
 // Save implements TransferRepository
 func (t *transferRepository) Save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	if err := t.SaveTransfer(tx, tr); err != nil {
-		return fmt.Errorf("save transfer: [%w]", err)
+		return fmt.Errorf("%s %s: [%w]",
+			i18n.Localize(t.language, errors.ErrCodeSave),
+			i18n.Localize(t.language, errors.ErrCodeTransfer),
+			i18n.ErrMsgToI18n(err, t.language))
 	}
 
 	if err := t.SaveTransferLines(tx, tr); err != nil {
-		return fmt.Errorf("save transfer line: [%w]", err)
+		return fmt.Errorf("%s %s: [%w]",
+			i18n.Localize(t.language, errors.ErrCodeSave),
+			i18n.Localize(t.language, errors.ErrCodeTransferLine),
+			i18n.ErrMsgToI18n(err, t.language))
 	}
 
 	return nil
@@ -174,7 +183,7 @@ func (t *transferRepository) GetTransferCount(treegrid *treegrid.Treegrid) (int,
 
 }
 
-func NewTransferRepository(db *sql.DB) TransferRepository {
+func NewTransferRepository(db *sql.DB, language string) TransferRepository {
 	grRepository := treegrid.NewGridRepository(db,
 		"transfers",
 		"transfer_lines",
@@ -184,5 +193,6 @@ func NewTransferRepository(db *sql.DB) TransferRepository {
 	return &transferRepository{
 		db:                 db,
 		gridTreeRepository: grRepository,
+		language:           language,
 	}
 }

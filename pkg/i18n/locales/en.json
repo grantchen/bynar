@@ -28,6 +28,8 @@
   "save": "save",
   "user-group": "user group",
   "user-group-line": "user group line",
+  "transfer": "transfer",
+  "transfer-line": "transfer line",
   "archived-update": "archived = 1, can not update",
   "archived-delete": "archived = 1, can not delete",
   "not-valid-archived": "not valid archived value",

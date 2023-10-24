@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -397,17 +398,23 @@ func (t *transferRepository) validateAddTransferLine(tx *sql.Tx, item treegrid.G
 	}
 
 	query := `SELECT value FROM units WHERE id = ?`
-	var unitVal int
-	if err := tx.QueryRow(query, unitID).Scan(&unitVal); err != nil {
+	var value float64
+	if err := tx.QueryRow(query, unitID).Scan(&value); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("no units with item_unit_id: %s", unitID)
+		}
+
 		return fmt.Errorf("query row: [%w], query: %s", err, query)
 	}
+
+	unitVal := int(value)
 
 	// check item unit val
 	itemUnitVal, ok := item["item_unit_value"]
 	if !ok {
 		item["item_unit_value"] = unitVal
 	} else {
-		itemUnitValInt, _ := item.GetStrInt("item_unit_value")
+		itemUnitValInt, _ := item.GetValInt("item_unit_value")
 
 		if itemUnitValInt != unitVal {
 			return fmt.Errorf("invalid item_unit_value: got '%d', want '%d'", itemUnitValInt, itemUnitVal)
@@ -415,7 +422,7 @@ func (t *transferRepository) validateAddTransferLine(tx *sql.Tx, item treegrid.G
 	}
 
 	// check calculated quantity
-	inputQuantity, _ := item.GetStrInt("input_quantity")
+	inputQuantity, _ := item.GetValInt("input_quantity")
 	if inputQuantity == 0 {
 		return fmt.Errorf("invalid input quantity: '%d'", inputQuantity)
 	}
