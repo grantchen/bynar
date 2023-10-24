@@ -3,10 +3,12 @@ package service
 import (
 	"context"
 	"database/sql"
-	"errors"
+	stderr "errors"
 	"fmt"
 	"math"
 
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/repository"
 )
@@ -16,12 +18,13 @@ const (
 )
 
 var (
-	ErrForbiddenStatus = errors.New("forbidden transfer status")
-	ErrInvalidQuantity = errors.New("invalid quantity")
+	ErrForbiddenStatus = stderr.New("forbidden transfer status")
+	ErrInvalidQuantity = stderr.New("invalid quantity")
 )
 
 type transferService struct {
 	conn                *sql.DB
+	language            string
 	userRepository      repository.UserRepository
 	workflowRepository  repository.WorkflowRepository
 	transferRepository  repository.TransferRepository
@@ -29,25 +32,27 @@ type transferService struct {
 	documentRepository  repository.DocumentRepository
 }
 
-// GetTransfersPageData implements TransferService
-func (t *transferService) GetTransfersPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
+// GetPageData implements TransferService
+func (t *transferService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
 	return t.transferRepository.GetTransfersPageData(tr)
 }
 
-// GetPagesCount implements TransferService
-func (t *transferService) GetPagesCount(tr *treegrid.Treegrid) (float64, error) {
+// GetPageCount implements TransferService
+func (t *transferService) GetPageCount(tr *treegrid.Treegrid) (float64, error) {
 	rowsCount, _ := t.transferRepository.GetTransferCount(tr)
 
 	return math.Ceil(float64(rowsCount) / float64(pageSize)), nil
 }
 
-func NewTransferService(db *sql.DB, userRepository repository.UserRepository,
+func NewTransferService(db *sql.DB, language string,
+	userRepository repository.UserRepository,
 	workflowRepository repository.WorkflowRepository,
 	transferRepository repository.TransferRepository,
 	inventoryRepository repository.InventoryRepository,
 	documentRepository repository.DocumentRepository) TransferService {
 	return &transferService{
 		conn:                db,
+		language:            language,
 		userRepository:      userRepository,
 		workflowRepository:  workflowRepository,
 		inventoryRepository: inventoryRepository,
@@ -134,6 +139,10 @@ func (t *transferService) handleUpload(tr *treegrid.MainRow) error {
 		if err := t.transferRepository.UpdateStatus(tx, tr.Status()); err != nil {
 			return fmt.Errorf("transfer svc update status: [%w]", err)
 		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("%s: [%w]", i18n.Localize(t.language, errors.ErrCodeCommitTransaction), err)
 	}
 
 	return nil

@@ -11,13 +11,13 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/service"
 )
 
-var accountID = 11111
+var accountID = 6
 
 func main() {
 
 	// appConfig := config.NewLocalConfig()
 	// dbConnString := appConfig.GetDBConnection()
-	dbConnString := "root:123456@tcp(localhost:3306)/bynar"
+	dbConnString := "root:123456@tcp(localhost:3306)/46542255-9d45-49d5-939d-84bc55b1a938"
 
 	db, err := sql_db.NewConnection(dbConnString)
 	if err != nil {
@@ -32,6 +32,7 @@ func main() {
 
 	transferService := service.NewTransferService(
 		db,
+		"en",
 		userRepository,
 		workflowRepository,
 		transferRepository,
@@ -40,8 +41,8 @@ func main() {
 	)
 
 	handler := &handler.HTTPTreeGridHandler{
-		CallbackGetPageCountFunc: transferService.GetPagesCount,
-		CallbackGetPageDataFunc:  transferService.GetTransfersPageData,
+		CallbackGetPageCountFunc: transferService.GetPageCount,
+		CallbackGetPageDataFunc:  transferService.GetPageData,
 		CallbackUploadDataFunc: func(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 			return transferService.HandleUpload(req, accountID)
 		},

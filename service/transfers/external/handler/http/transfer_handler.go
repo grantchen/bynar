@@ -3,9 +3,9 @@ package http_handler
 import (
 	"database/sql"
 
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/config"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/service"
 )
@@ -26,6 +26,7 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 
 	transferService := service.NewTransferService(
 		db,
+		"en",
 		userRepository,
 		workflowRepository,
 		transferRepository,
@@ -34,8 +35,8 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 	)
 
 	handler := &handler.HTTPTreeGridHandler{
-		CallbackGetPageCountFunc: transferService.GetPagesCount,
-		CallbackGetPageDataFunc:  transferService.GetTransfersPageData,
+		CallbackGetPageCountFunc: transferService.GetPageCount,
+		CallbackGetPageDataFunc:  transferService.GetPageData,
 		CallbackUploadDataFunc: func(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 			return transferService.HandleUpload(req, AccountID)
 		},

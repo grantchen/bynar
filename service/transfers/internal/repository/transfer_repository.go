@@ -166,7 +166,8 @@ func (t *transferRepository) GetTransferCount(treegrid *treegrid.Treegrid) (int,
 
 	rows, err := t.db.Query(query, mergedArgs...)
 	if err != nil {
-		log.Fatalln(err, "query", query, "colData", column)
+		log.Println(err, "query", query, "colData", column)
+		return 0, err
 	}
 
 	return utils.CheckCount(rows), nil
