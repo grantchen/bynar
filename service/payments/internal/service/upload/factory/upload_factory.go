@@ -37,7 +37,7 @@ func NewUploadService(sqlDB *sql.DB, moduleID int, accountID int) (svc_upload.Up
 		paymentRepository),
 	)
 
-	paymentSvc := svc.NewPaymentService(
+	paymentSvc := svc.NewPaymentServiceOld(
 		paymentRepository,
 		procurementRepository,
 		currencyRepository,

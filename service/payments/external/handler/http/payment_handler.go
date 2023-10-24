@@ -2,40 +2,80 @@ package http_handler
 
 import (
 	"database/sql"
-	"net/http"
-
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/config"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/service/upload/factory"
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/repository"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/service"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
+	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
+	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
-var (
-	ModuleID  int = 8
-	AccountID int = 123456
-)
-
+const ModuleID = 8 //hardcode
 func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGridHandler {
 
-	// uploadHandler := &http_handler.UploadHandler{ModuleID: ModuleID, AccountID: AccountID}
-	handler := &handler.HTTPTreeGridHandler{
-		CallbackUploadDataFunc: func(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
-			conn := sql_db.Conn()
-			// because need create each conn string per req
-			uploadSvc, err := factory.NewUploadService(conn, ModuleID, AccountID)
-			if err != nil {
-				return &treegrid.PostResponse{
-					IO: struct {
-						Message string
-						Result  int
-					}{Message: "could not open connection",
-						Result: http.StatusInternalServerError},
-				}, nil
-			}
+	gridRowDataRepositoryWithChild := treegrid.NewGridRowDataRepositoryWithChild(
+		db,
+		"payments",
+		"payment_lines",
+		repository.PaymentFieldNames,
+		repository.PaymentLineFieldNames,
+		100,
+		&treegrid.GridRowDataRepositoryWithChildCfg{
+			MainCol:                  "document_id",
+			QueryParent:              repository.QueryParent,
+			QueryParentCount:         repository.QueryParentCount,
+			QueryParentJoins:         repository.QueryParentJoins,
+			QueryChild:               repository.QueryChild,
+			QueryChildCount:          repository.QueryChildCount,
+			QueryChildJoins:          repository.QueryChildJoins,
+			ChildJoinFieldWithParent: "parent_id",
+			ParentIdField:            "id",
+		},
+	)
+	paymentRepository := repository.NewPayment(db, "payments", "payment_lines")
+	procurementRepository := pkg_repository.NewProcurementRepository(db)
+	currencyRepository := pkg_repository.NewCurrencyRepository(db)
+	cashManagementRepository := pkg_repository.NewCashManagementRepository(db)
+	// todo refactor moduleId
+	workflowRepository := pkg_repository.NewWorkflowRepository(db, 1)
+	documentRepository := pkg_repository.NewDocuments(db, "procurements")
+	approvalSvc := pkg_service.NewApprovalCashPaymentService(pkg_repository.NewApprovalOrder(
+		workflowRepository,
+		paymentRepository),
+	)
 
-			return uploadSvc.Handle(req)
+	docSvc := pkg_service.NewDocumentService(documentRepository)
+	paymentService := service.NewPaymentService(db, gridRowDataRepositoryWithChild, paymentRepository, procurementRepository, currencyRepository, cashManagementRepository)
+
+	grPaymentDataUploadRepositoryWithChild := treegrid.NewGridRepository(db, "payments",
+		"payment_lines",
+		repository.PaymentFieldNames,
+		repository.PaymentLineFieldNames)
+
+	grPaymentLineRepository := treegrid.NewSimpleGridRowRepository(
+		db,
+		"payment_lines",
+		repository.PaymentLineFieldNames,
+		1, // arbitrary
+	)
+	grPaymentRepository := treegrid.NewSimpleGridRowRepository(
+		db,
+		"payments",
+		repository.PaymentFieldNames,
+		1, // arbitrary
+	)
+
+	uploadService := service.NewUploadService(db, grPaymentRepository, grPaymentDataUploadRepositoryWithChild, grPaymentLineRepository, "en", approvalSvc, docSvc, ModuleID, paymentService)
+
+	handler := &handler.HTTPTreeGridHandler{
+		CallbackUploadDataFunc:  uploadService.Handle,
+		CallbackGetPageDataFunc: paymentService.GetPageData,
+		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) (float64, error) {
+			count, err := paymentService.GetPageCount(tr)
+			return float64(count), err
 		},
 	}
+
 	return handler
 }

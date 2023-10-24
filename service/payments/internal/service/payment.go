@@ -14,19 +14,19 @@ const (
 	SuccessApplied = 2
 )
 
-type paymentService struct {
+type paymentServiceOld struct {
 	paymentRepository   repository.PaymentRepository
 	procRepository      pkg_repository.ProcurementRepository
 	currRepository      pkg_repository.CurrencyRepository
 	cashManagRepository pkg_repository.CashManagementRepository
 }
 
-func NewPaymentService(
+func NewPaymentServiceOld(
 	paymentRepository repository.PaymentRepository,
 	procRepository pkg_repository.ProcurementRepository,
 	currRepository pkg_repository.CurrencyRepository,
-	cashManagRepository pkg_repository.CashManagementRepository) *paymentService {
-	return &paymentService{
+	cashManagRepository pkg_repository.CashManagementRepository) *paymentServiceOld {
+	return &paymentServiceOld{
 		paymentRepository:   paymentRepository,
 		procRepository:      procRepository,
 		currRepository:      currRepository,
@@ -34,11 +34,11 @@ func NewPaymentService(
 	}
 }
 
-func (s *paymentService) GetTx(tx *sql.Tx, id interface{}) (*models.Payment, error) {
+func (s *paymentServiceOld) GetTx(tx *sql.Tx, id interface{}) (*models.Payment, error) {
 	return s.paymentRepository.Get(tx, id)
 }
 
-func (s *paymentService) Handle(tx *sql.Tx, m *models.Payment, moduleID int) error {
+func (s *paymentServiceOld) Handle(tx *sql.Tx, m *models.Payment, moduleID int) error {
 	if err := s.handlePayment(tx, m); err != nil {
 		return fmt.Errorf("handle payment: [%w]", err)
 	}
@@ -64,7 +64,7 @@ func (s *paymentService) Handle(tx *sql.Tx, m *models.Payment, moduleID int) err
 	return nil
 }
 
-func (s *paymentService) HandleLine(tx *sql.Tx, payment *models.Payment, line *models.PaymentLine) (err error) {
+func (s *paymentServiceOld) HandleLine(tx *sql.Tx, payment *models.Payment, line *models.PaymentLine) (err error) {
 	pr, err := s.procRepository.GetProcurement(tx, line.AppliesDocumentID)
 	if err != nil {
 		return fmt.Errorf("get procurement: [%w], id: %d", err, line.AppliesDocumentID)
@@ -92,7 +92,7 @@ func (s *paymentService) HandleLine(tx *sql.Tx, payment *models.Payment, line *m
 	return nil
 }
 
-func (s *paymentService) handlePayment(tx *sql.Tx, m *models.Payment) error {
+func (s *paymentServiceOld) handlePayment(tx *sql.Tx, m *models.Payment) error {
 	if m.PaidStatus == 1 {
 		return nil
 	}

@@ -5,41 +5,49 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/repository"
 	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"log"
-	"strconv"
 	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 )
 
 type UploadService struct {
-	db                                   *sql.DB
-	updateGRUserGroupRepository          treegrid.SimpleGridRowRepository
-	updateGRUserGroupRepositoryWithChild treegrid.GridRowRepositoryWithChild
-	updateGRUserRepository               treegrid.SimpleGridRowRepository
-	language                             string
-	approvalService                      pkg_service.ApprovalCashPaymentService
-	paymentService                       PaymentService
-	docSvc                               pkg_service.DocumentService
+	db                                 *sql.DB
+	updateGRPaymentRepository          treegrid.SimpleGridRowRepository
+	updateGRPaymentRepositoryWithChild treegrid.GridRowRepositoryWithChild
+	updateGRPaymentLineRepository      treegrid.SimpleGridRowRepository
+	language                           string
+	approvalService                    pkg_service.ApprovalCashPaymentService
+	docSvc                             pkg_service.DocumentService
+	accountId                          int
+	paymentService                     PaymentService
 }
 
 func NewUploadService(db *sql.DB,
-	updateGRUserGroupRepository treegrid.SimpleGridRowRepository,
-	updateGRUserGroupRepositoryWithChild treegrid.GridRowRepositoryWithChild,
-	updateUserRepository treegrid.SimpleGridRowRepository,
+	updateGRPaymentRepository treegrid.SimpleGridRowRepository,
+	updateGRPaymentRepositoryWithChild treegrid.GridRowRepositoryWithChild,
+	updateGRPaymentLineRepository treegrid.SimpleGridRowRepository,
 	language string,
+	approvalService pkg_service.ApprovalCashPaymentService,
+	docSvc pkg_service.DocumentService,
+	accountId int,
+	paymentService PaymentService,
 ) *UploadService {
 	return &UploadService{
-		db:                                   db,
-		updateGRUserGroupRepository:          updateGRUserGroupRepository,
-		updateGRUserGroupRepositoryWithChild: updateGRUserGroupRepositoryWithChild,
-		updateGRUserRepository:               updateUserRepository,
-		language:                             language,
+		db:                                 db,
+		updateGRPaymentRepository:          updateGRPaymentRepository,
+		updateGRPaymentRepositoryWithChild: updateGRPaymentRepositoryWithChild,
+		updateGRPaymentLineRepository:      updateGRPaymentLineRepository,
+		language:                           language,
+		approvalService:                    approvalService,
+		docSvc:                             docSvc,
+		accountId:                          accountId,
+		paymentService:                     paymentService,
 	}
 }
 
@@ -48,15 +56,20 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	// Create new transaction
 	b, _ := json.Marshal(req)
 	logger.Debug("request: ", string(b))
-	trList, err := treegrid.ParseRequestUpload(req, u.updateGRUserGroupRepositoryWithChild)
+	trList, err := treegrid.ParseRequestUpload(req, u.updateGRPaymentRepositoryWithChild)
 
 	if err != nil {
 		return nil, fmt.Errorf("parse request: [%w]", err)
 	}
 
+	tx, err := u.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("begin transaction: [%w]", err)
+	}
+	defer tx.Rollback()
 	m := make(map[string]interface{}, 0)
 	for _, tr := range trList.MainRows() {
-		if err := u.handle(tr); err != nil {
+		if err := u.handle(tx, tr); err != nil {
 			log.Println("Err", err)
 
 			resp.IO.Result = -1
@@ -77,15 +90,40 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	return resp, nil
 }
 
-func (s *UploadService) handle(tr *treegrid.MainRow) error {
-	tx, err := s.db.BeginTx(context.Background(), nil)
-	if err != nil {
-		return fmt.Errorf("begin transaction: [%w]", err)
-	}
-	defer tx.Rollback()
+func (u *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 
-	if err := s.save(tx, tr); err != nil {
+	// Check Approval Order todo refactor moduleID
+	ok, err := u.approvalService.Check(tr, 1, u.accountId)
+	if err != nil {
 		return err
+
+	}
+
+	if !ok {
+		return errors.NewUnknownError("forbidden action", "").WithInternalCause(err)
+	}
+	if err = u.save(tx, tr); err != nil {
+		return err
+	}
+
+	if tr.Status() == 1 {
+		logger.Debug("status equal 1 - do calculation, status", tr.Status())
+
+		// working with procurement - calculating and updating.
+		entity, err := u.paymentService.GetTx(tx, tr.Fields.GetID())
+		if err != nil {
+			return fmt.Errorf("could not get procurement service: [%w]", err)
+		}
+		// todo refactor moduleID
+		if err := u.paymentService.Handle(tx, entity, 1); err != nil {
+			return fmt.Errorf("could not handle procurement: [%w]", err)
+		}
+		if entity.DocumentNo == "" {
+			if err := u.docSvc.Handle(tx, entity.ID, entity.DocumentID, entity.DocumentNo); err != nil {
+				return err
+			}
+		}
+
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -95,58 +133,58 @@ func (s *UploadService) handle(tr *treegrid.MainRow) error {
 	return nil
 }
 
-func (s *UploadService) save(tx *sql.Tx, tr *treegrid.MainRow) error {
-	if err := s.saveUserGroup(tx, tr); err != nil {
+func (u *UploadService) save(tx *sql.Tx, tr *treegrid.MainRow) error {
+	if err := u.savePayment(tx, tr); err != nil {
 		return fmt.Errorf("%s %s: [%w]",
-			i18n.Localize(s.language, errors.ErrCodeSave),
-			i18n.Localize(s.language, errors.ErrCodeUserGroup),
-			i18n.ErrMsgToI18n(err, s.language))
+			i18n.Localize(u.language, errors.ErrCodeSave),
+			i18n.Localize(u.language, errors.ErrCodeUserGroup),
+			i18n.ErrMsgToI18n(err, u.language))
 	}
 
-	if err := s.saveUserGroupLine(tx, tr, tr.Fields.GetID()); err != nil {
+	if err := u.savePaymentLine(tx, tr, tr.Fields.GetID()); err != nil {
 		return fmt.Errorf("%s %s: [%w]",
-			i18n.Localize(s.language, errors.ErrCodeSave),
-			i18n.Localize(s.language, errors.ErrCodeUserGroupLine),
-			i18n.ErrMsgToI18n(err, s.language))
+			i18n.Localize(u.language, errors.ErrCodeSave),
+			i18n.Localize(u.language, errors.ErrCodeUserGroupLine),
+			i18n.ErrMsgToI18n(err, u.language))
 	}
 
 	return nil
 }
 
-func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
-	fieldsValidating := []string{"code"}
+func (u *UploadService) savePayment(tx *sql.Tx, tr *treegrid.MainRow) error {
+	fieldsValidating := []string{"document_id"}
 
 	var err error
 	switch tr.Fields.GetActionType() {
 	case treegrid.GridRowActionAdd:
-		err = tr.Fields.ValidateOnRequiredAll(repository.UserGroupFieldNames)
+		err = tr.Fields.ValidateOnRequiredAll(repository.PaymentFieldNames)
 		if err != nil {
 			return err
 		}
 
 		for _, field := range fieldsValidating {
-			ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
+			ok, err := u.updateGRPaymentRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), tr.Fields[field])
+				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(u.language, errors.ErrCodeValueDuplicated), tr.Fields[field])
 			}
 		}
 	case treegrid.GridRowActionChanged:
-		err = tr.Fields.ValidateOnRequired(repository.UserGroupFieldNames)
+		err = tr.Fields.ValidateOnRequired(repository.PaymentFieldNames)
 		if err != nil {
 			return err
 		}
 
 		for _, field := range fieldsValidating {
-			ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
+			ok, err := u.updateGRPaymentRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), tr.Fields[field])
+				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(u.language, errors.ErrCodeValueDuplicated), tr.Fields[field])
 			}
 		}
 	case treegrid.GridRowActionDeleted:
 		// ignore id start with CR
 		idStr := tr.Fields.GetIDStr()
 		if !strings.HasPrefix(idStr, "CR") {
-			stmt, err := tx.Prepare("DELETE FROM user_group_lines WHERE parent_id = ?")
+			stmt, err := tx.Prepare("DELETE FROM payment_lines WHERE parent_id = ?")
 			if err != nil {
 				return err
 			}
@@ -162,48 +200,35 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 		fmt.Println(tr.Fields.GetID())
 	}
 
-	return s.updateGRUserGroupRepositoryWithChild.SaveMainRow(tx, tr)
+	return u.updateGRPaymentRepositoryWithChild.SaveMainRow(tx, tr)
 }
 
-func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, parentID interface{}) error {
+func (u *UploadService) savePaymentLine(tx *sql.Tx, tr *treegrid.MainRow, parentID interface{}) error {
 	for _, item := range tr.Items {
-		logger.Debug("save group line: ", tr, "parentID: ", parentID)
+		logger.Debug("save payment line: ", tr, "parentID: ", parentID)
 
 		var err error
 		switch item.GetActionType() {
 		case treegrid.GridRowActionAdd:
-			err = item.ValidateOnRequiredAll(map[string][]string{"user_id": repository.UserGroupLineFieldNames["user_id"]})
+			err = item.ValidateOnRequiredAll(map[string][]string{"user_id": repository.PaymentLineFieldNames["user_id"]})
 			if err != nil {
 				return err
 			}
 
 			logger.Debug("add child row")
-			userId := item["user_id"]
-			ok, err := s.checkValidUser(tx, userId)
-
-			if err != nil || !ok {
-				return fmt.Errorf("%s user_id: [%s]", i18n.Localize(s.language, errors.ErrCodeUserNotExist), userId)
-			}
-
-			ok, err = s.userExistInLine(tx, userId)
-
-			if err != nil || !ok {
-				return fmt.Errorf("%s user_id: [%s]", i18n.Localize(s.language, errors.ErrCodeUserBelongSpecificUserGroupLines), userId)
-			}
-
-			err = s.updateGRUserGroupRepositoryWithChild.SaveLineAdd(tx, item)
+			err = u.updateGRPaymentRepositoryWithChild.SaveLineAdd(tx, item)
 			if err != nil {
 				return fmt.Errorf("add child user groups line error: [%w]", err)
 			}
 		case treegrid.GridRowActionChanged:
 			// DO NOTHING WITH ACTION UPDATE, NOT ALLOW UPDATE LINES TABLE
-			return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeNoAllowToUpdateChildLine))
+			return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeNoAllowToUpdateChildLine))
 		case treegrid.GridRowActionDeleted:
 			logger.Debug("delete child")
 
 			// re-assign user_group_lines id
 			item["id"] = item.GetID()
-			err = s.updateGRUserGroupRepositoryWithChild.SaveLineDelete(tx, item)
+			err = u.updateGRPaymentRepositoryWithChild.SaveLineDelete(tx, item)
 			if err != nil {
 				return fmt.Errorf("delete child user group line error: [%w]", err)
 			}
@@ -213,67 +238,4 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, pare
 		}
 	}
 	return nil
-}
-
-func (s *UploadService) getUserIdFromUserGroupLineId(tx *sql.Tx, userGroupLineId string) (int, error) {
-	query := `SELECT user_id FROM user_group_lines WHERE id = ?`
-	args := []interface{}{userGroupLineId}
-	rows, err := tx.Query(query, args...)
-	if err != nil {
-		return 0, fmt.Errorf("query: [%w], sql string: [%s]", err, query)
-	}
-	defer rows.Close()
-	rowVals, err := utils.NewRowVals(rows)
-	if err != nil {
-		return 0, fmt.Errorf("new row vals: [%w], row vals: [%v]", err, rowVals)
-	}
-
-	rows.Next()
-	if err := rowVals.Parse(rows); err != nil {
-		return 0, fmt.Errorf("parse rows: [%w]", err)
-	}
-
-	entry := rowVals.StringValues()
-	userId, _ := strconv.Atoi(entry["user_id"])
-	if err != nil {
-		return 0, fmt.Errorf("parse id error: [%w]", err)
-	}
-	return userId, nil
-}
-
-func (s *UploadService) checkValidUser(tx *sql.Tx, userId interface{}) (bool, error) {
-	query := `
-	SELECT COUNT(*) as Count FROM users where id = ?
-	`
-	params := []interface{}{userId}
-	rows, err := s.db.Query(query, params...)
-
-	if err != nil {
-		return false, err
-	}
-	defer rows.Close()
-	count, err := utils.CheckCoutWithError(rows)
-	if err != nil {
-		return false, err
-	}
-
-	return count == 1, nil
-}
-
-func (s *UploadService) userExistInLine(tx *sql.Tx, userId interface{}) (bool, error) {
-	query := `
-	SELECT COUNT(*) as Count FROM user_group_lines where user_id = ?
-	`
-	params := []interface{}{userId}
-	rows, err := s.db.Query(query, params...)
-	if err != nil {
-		return false, err
-	}
-	defer rows.Close()
-	count, err := utils.CheckCoutWithError(rows)
-	if err != nil {
-		return false, err
-	}
-
-	return count == 0, nil
 }

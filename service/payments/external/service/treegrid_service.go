@@ -5,7 +5,8 @@ import (
 	"database/sql"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/service"
-
+	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
+	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
@@ -13,9 +14,13 @@ type treegridService struct {
 	db             *sql.DB
 	paymentService service.PaymentService
 	uploadService  *service.UploadService
+	accountId      int
 }
 
-func newTreeGridService(db *sql.DB, language string) treegrid.TreeGridService {
+// todo
+const moduleID = 1
+
+func newTreeGridService(db *sql.DB, language string, accountId int) treegrid.TreeGridService {
 	gridRowDataRepositoryWithChild := treegrid.NewGridRowDataRepositoryWithChild(
 		db,
 		"payments",
@@ -31,63 +36,77 @@ func newTreeGridService(db *sql.DB, language string) treegrid.TreeGridService {
 			QueryChild:               repository.QueryChild,
 			QueryChildCount:          repository.QueryChildCount,
 			QueryChildJoins:          repository.QueryChildJoins,
-			QueryChildSuggestion:     repository.QueryChildSuggestion,
 			ChildJoinFieldWithParent: "parent_id",
 			ParentIdField:            "id",
 		},
 	)
-	userGroupService := service.NewUserGroupService(db, gridRowDataRepositoryWithChild)
 
-	grUserGroupDataUploadRepositoryWithChild := treegrid.NewGridRepository(db, "user_groups",
-		"user_group_lines",
-		repository.UserGroupFieldNames,
-		repository.UserGroupLineFieldUploadNames)
+	paymentRepository := repository.NewPayment(db, "payments", "payment_lines")
+	procurementRepository := pkg_repository.NewProcurementRepository(db)
+	currencyRepository := pkg_repository.NewCurrencyRepository(db)
+	cashManagementRepository := pkg_repository.NewCashManagementRepository(db)
+	documentRepository := pkg_repository.NewDocuments(db, "procurements")
+	workflowRepository := pkg_repository.NewWorkflowRepository(db, moduleID)
+	// init services
+	approvalSvc := pkg_service.NewApprovalCashPaymentService(pkg_repository.NewApprovalOrder(
+		workflowRepository,
+		paymentRepository),
+	)
 
-	grUserRepository := treegrid.NewSimpleGridRowRepository(
+	docSvc := pkg_service.NewDocumentService(documentRepository)
+
+	paymentService := service.NewPaymentService(db, gridRowDataRepositoryWithChild, paymentRepository, procurementRepository, currencyRepository, cashManagementRepository)
+
+	grPaymentDataUploadRepositoryWithChild := treegrid.NewGridRepository(db, "payments",
+		"payment_lines",
+		repository.PaymentFieldNames,
+		repository.PaymentLineFieldNames)
+
+	grPaymentLineRepository := treegrid.NewSimpleGridRowRepository(
 		db,
-		"users",
-		repository.UserUploadNames,
+		"payment_lines",
+		repository.PaymentLineFieldNames,
 		1, // arbitrary
 	)
 
-	grUserGroupRepository := treegrid.NewSimpleGridRowRepository(
+	grPaymentRepository := treegrid.NewSimpleGridRowRepository(
 		db,
-		"user_groups",
-		repository.UserGroupFieldNames,
+		"payments",
+		repository.PaymentFieldNames,
 		1, // arbitrary
 	)
 
-	uploadService := service.NewUploadService(db, grUserGroupRepository, grUserGroupDataUploadRepositoryWithChild, grUserRepository, language)
+	uploadService := service.NewUploadService(db, grPaymentRepository, grPaymentDataUploadRepositoryWithChild, grPaymentLineRepository, language, approvalSvc, docSvc, accountId, paymentService)
 	return &treegridService{
-		db:               db,
-		userGroupService: userGroupService,
-		uploadService:    uploadService,
+		db:             db,
+		paymentService: paymentService,
+		uploadService:  uploadService,
 	}
 }
 
 func NewTreeGridServiceFactory() treegrid.TreeGridServiceFactoryFunc {
 	return func(db *sql.DB, AccountID int, organizationUuid string, permissionInfo *treegrid.PermissionInfo, language string) treegrid.TreeGridService {
-		return newTreeGridService(db, language)
+		return newTreeGridService(db, language, AccountID)
 	}
-}
-
-// GetCellData implements treegrid.TreeGridService
-func (s *treegridService) GetCellData(ctx context.Context, req *treegrid.Treegrid) (*treegrid.PostResponse, error) {
-	return s.userGroupService.GetCellSuggestion(req)
 }
 
 // GetPageCount implements treegrid.TreeGridService
 func (s *treegridService) GetPageCount(tr *treegrid.Treegrid) (float64, error) {
-	count, err := s.userGroupService.GetPageCount(tr)
+	count, err := s.paymentService.GetPageCount(tr)
 	return float64(count), err
 }
 
 // GetPageData implements treegrid.TreeGridService
 func (s *treegridService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
-	return s.userGroupService.GetPageData(tr)
+	return s.paymentService.GetPageData(tr)
 }
 
 // Upload implements treegrid.TreeGridService
 func (s *treegridService) Upload(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	return s.uploadService.Handle(req)
+}
+
+// GetCellData implements treegrid.TreeGridService
+func (s *treegridService) GetCellData(ctx context.Context, req *treegrid.Treegrid) (*treegrid.PostResponse, error) {
+	panic("unimplemented")
 }
