@@ -89,7 +89,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		if err1 != nil {
 			return i18n.ErrMsgToI18n(err1, u.language)
 		}
-		err = gr.ValidateOnPositiveNumber(repository.WarehousesFieldNames)
+		err = gr.ValidateOnNotNegativeNumber(repository.WarehousesFieldNames)
 		if err != nil {
 			return err
 		}
@@ -105,7 +105,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		if err1 != nil {
 			return err1
 		}
-		err = gr.ValidateOnPositiveNumber(repository.WarehousesFieldNames)
+		err = gr.ValidateOnNotNegativeNumber(repository.WarehousesFieldNames)
 		if err != nil {
 			return err
 		}

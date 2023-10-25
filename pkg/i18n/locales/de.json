@@ -38,7 +38,7 @@
   "not-field-update": "Keine Feldaktualisierung erkannt",
   "no-allow-to update-child-line": "",
   "truncated-incorrect": "Abgeschnittener falscher Fehler",
-  "positive-number": "Der Wert muss positiv sein",
+  "not-negative-number": "Der Wert darf keine negative Zahl sein",
   "failed-fetch-card": "Karte konnte nicht abgerufen werden",
   "failed-add-card": "Karte konnte nicht hinzugefügt werden",
   "failed-update-card": "Karte konnte nicht aktualisiert werden",

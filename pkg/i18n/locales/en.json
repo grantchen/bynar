@@ -38,7 +38,7 @@
   "not-field-update": "not field update detected",
   "no-allow-to update-child-line": "no allow to update child line",
   "truncated-incorrect": "Truncated incorrect error",
-  "positive-number": "Value must be positive",
+  "not-negative-number": "Value cannot negative number",
   "failed-fetch-card": "failed to fetch card",
   "failed-add-card": "failed to add card",
   "failed-update-card": "failed to update card",

@@ -61,7 +61,7 @@ func (f GridRow) ValidateOnRequired(fieldsMapping map[string][]string) error {
 }
 
 // used to check A positive number.
-func (f GridRow) ValidateOnPositiveNumber(fieldsMapping map[string][]string) error {
+func (f GridRow) ValidateOnNotNegativeNumber(fieldsMapping map[string][]string) error {
 	for key, _ := range fieldsMapping {
 		if key == "Changed" || key == "id" {
 			continue
@@ -70,7 +70,7 @@ func (f GridRow) ValidateOnPositiveNumber(fieldsMapping map[string][]string) err
 		if intValue, ok1 := val.(string); ok1 {
 			intVal, _ := strconv.Atoi(intValue)
 			if ok && ok1 && intVal < 0 {
-				return fmt.Errorf("[%s]: %s", key, "field must be positive")
+				return fmt.Errorf("[%s]: %s", key, "field must be not negative")
 			}
 		}
 
