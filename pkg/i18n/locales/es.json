@@ -45,5 +45,7 @@
   "failed-delete-card": "no se pudo eliminar la tarjeta",
   "failed-validate-card": "no se pudo validar la tarjeta",
   "user-not-allowed": "Usuario no autorizada a hacer la operación",
-  "code-same": "código: %s es el mismo en la solicitud"
+  "code-same": "código: %s es el mismo en la solicitud",
+  "payment": "pago",
+  "payment-line": "linea de pago"
 }

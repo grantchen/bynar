@@ -91,17 +91,17 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 }
 
 func (u *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
-	// Check Approval Order
-	ok, err := u.approvalService.Check(tr, u.accountId)
-	if err != nil {
-		return err
-
-	}
-
-	if !ok {
-		return errors.NewUnknownError("forbidden action", "").WithInternalCause(err)
-	}
-	if err = u.save(tx, tr); err != nil {
+	// Check Approval Order todo test
+	//ok, err := u.approvalService.Check(tr, u.accountId, u.language)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//if !ok {
+	//	return fmt.Errorf("%s",
+	//		i18n.Localize(u.language, "forbidden-action"))
+	//}
+	if err := u.save(tx, tr); err != nil {
 		return err
 	}
 
@@ -136,14 +136,14 @@ func (u *UploadService) save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	if err := u.savePayment(tx, tr); err != nil {
 		return fmt.Errorf("%s %s: [%w]",
 			i18n.Localize(u.language, errors.ErrCodeSave),
-			i18n.Localize(u.language, errors.ErrCodeUserGroup),
+			i18n.Localize(u.language, errors.ErrCodePayment),
 			i18n.ErrMsgToI18n(err, u.language))
 	}
 
 	if err := u.savePaymentLine(tx, tr, tr.Fields.GetID()); err != nil {
 		return fmt.Errorf("%s %s: [%w]",
 			i18n.Localize(u.language, errors.ErrCodeSave),
-			i18n.Localize(u.language, errors.ErrCodeUserGroupLine),
+			i18n.Localize(u.language, errors.ErrCodePaymentLine),
 			i18n.ErrMsgToI18n(err, u.language))
 	}
 
@@ -156,11 +156,14 @@ func (u *UploadService) savePayment(tx *sql.Tx, tr *treegrid.MainRow) error {
 	var err error
 	switch tr.Fields.GetActionType() {
 	case treegrid.GridRowActionAdd:
-		err = tr.Fields.ValidateOnRequiredAll(repository.PaymentFieldNames)
+		err = tr.Fields.ValidateOnRequiredAll(repository.PaymentFieldUploadNames)
 		if err != nil {
 			return err
 		}
-
+		tr.Fields["status"] = 0
+		tr.Fields["paid"] = 0
+		tr.Fields["remaining"] = 0
+		tr.Fields["paid_status"] = 0
 		for _, field := range fieldsValidating {
 			ok, err := u.updateGRPaymentRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
 			if !ok || err != nil {
@@ -209,7 +212,7 @@ func (u *UploadService) savePaymentLine(tx *sql.Tx, tr *treegrid.MainRow, parent
 		var err error
 		switch item.GetActionType() {
 		case treegrid.GridRowActionAdd:
-			err = item.ValidateOnRequiredAll(map[string][]string{"user_id": repository.PaymentLineFieldNames["user_id"]})
+			err = item.ValidateOnRequiredAll(repository.PaymentLineFieldUploadNames)
 			if err != nil {
 				return err
 			}

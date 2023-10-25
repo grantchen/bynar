@@ -16,7 +16,7 @@ type PaymentService interface {
 }
 
 type DocumentService interface {
-	Handle(tx *sql.Tx, paymentID, docID int, docNo string) error
+	Handle(tx *sql.Tx, modelID, docID int, docNo string) error
 }
 
 type CashReceiptService interface {
@@ -26,11 +26,11 @@ type CashReceiptService interface {
 }
 
 type ApprovalService interface {
-	Check(tr *treegrid.MainRow, accountID int) (bool, error)
+	Check(tr *treegrid.MainRow, accountID int, language string) (bool, error)
 }
 
 type ApprovalCashPaymentService interface {
-	Check(tr *treegrid.MainRow, accountID int) (bool, error)
+	Check(tr *treegrid.MainRow, accountID int, language string) (bool, error)
 }
 
 type AccountManagerService interface {

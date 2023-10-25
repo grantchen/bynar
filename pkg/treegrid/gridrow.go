@@ -111,9 +111,9 @@ func (f GridRow) MakeInsertQuery(tableName string, fieldsMapping map[string][]st
 			continue
 		}
 
-		if treegridName == "transaction_no" {
-			continue
-		}
+		//if treegridName == "transaction_no" {
+		//	continue
+		//}
 
 		if strVal, ok := val.(string); ok && strVal == "" {
 			continue
@@ -125,17 +125,17 @@ func (f GridRow) MakeInsertQuery(tableName string, fieldsMapping map[string][]st
 		}
 	}
 
-	if len(fieldsMapping["transaction_no"]) > 0 {
-		columnNames = append(columnNames, "transaction_no")
-	}
+	//if len(fieldsMapping["transaction_no"]) > 0 {
+	//	columnNames = append(columnNames, "transaction_no")
+	//}
 
 	vals := ""
 	colNamesStr := strings.Join(columnNames, ",")
 	for _, v := range columnNames {
-		if v == "transaction_no" {
-			vals += "UUID_SHORT(),"
-			continue
-		}
+		//if v == "transaction_no" {
+		//	vals += "UUID_SHORT(),"
+		//	continue
+		//}
 
 		if !strings.Contains(v, "_date") {
 			vals += "?,"

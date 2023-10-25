@@ -23,7 +23,7 @@ func NewApprovalService(storage ApprovalStorage) ApprovalService {
 	return &approvalService{storage}
 }
 
-func (s *approvalService) Check(tr *treegrid.MainRow, accountID int) (bool, error) {
+func (s *approvalService) Check(tr *treegrid.MainRow, accountID int, language string) (bool, error) {
 	logger.Debug("check", accountID, tr.Fields.GetActionType())
 
 	switch tr.Fields.GetActionType() {

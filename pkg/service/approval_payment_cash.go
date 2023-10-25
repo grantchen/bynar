@@ -3,9 +3,12 @@ package service
 import (
 	"errors"
 	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
+
+	errpkg "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 )
 
 type approvalCashPaymentService struct {
@@ -16,26 +19,29 @@ func NewApprovalCashPaymentService(storage ApprovalStorage) ApprovalCashPaymentS
 	return &approvalCashPaymentService{storage}
 }
 
-func (s *approvalCashPaymentService) Check(tr *treegrid.MainRow, accountID int) (bool, error) {
+func (s *approvalCashPaymentService) Check(tr *treegrid.MainRow, accountID int, language string) (bool, error) {
 	logger.Debug("check", accountID, tr.Fields.GetActionType())
 	switch tr.Fields.GetActionType() {
 	case treegrid.GridRowActionAdd:
-		return s.checkActionAdded(tr, accountID)
+		return s.checkActionAdded(tr, accountID, language)
 	case treegrid.GridRowActionChanged:
-		return s.checkActionUpdated(tr, accountID)
+		return s.checkActionUpdated(tr, accountID, language)
 	case treegrid.GridRowActionDeleted:
-		return s.checkActionDeleted(tr)
+		return s.checkActionDeleted(tr, language)
 	}
 
-	return false, errors.New("undefined action type :" + string(tr.Fields.GetActionType()))
+	return false, fmt.Errorf("%s : %s",
+		i18n.Localize(language, errpkg.ErrCodeUndefinedActionType),
+		string(tr.Fields.GetActionType()))
 }
 
-func (s *approvalCashPaymentService) checkActionAdded(tr *treegrid.MainRow, accountID int) (bool, error) {
+func (s *approvalCashPaymentService) checkActionAdded(tr *treegrid.MainRow, accountID int, language string) (bool, error) {
 	logger.Debug("check added action")
 
 	docID, ok := tr.Fields.GetValInt("document_id")
 	if !ok {
-		return false, errors.New("missing document_id")
+		return false, fmt.Errorf("%s : %s",
+			i18n.Localize(language, "missing"), errors.New("missing "))
 	}
 
 	wrkItem, err := s.storage.GetWorkflowItem(accountID, docID)
@@ -53,7 +59,7 @@ func (s *approvalCashPaymentService) checkActionAdded(tr *treegrid.MainRow, acco
 	return wrkItem.ApprovalOrder == 1, nil
 }
 
-func (s *approvalCashPaymentService) checkActionUpdated(tr *treegrid.MainRow, accountID int) (bool, error) {
+func (s *approvalCashPaymentService) checkActionUpdated(tr *treegrid.MainRow, accountID int, language string) (bool, error) {
 	logger.Debug("row id", tr.Fields.GetID())
 	currStatus, err := s.storage.GetStatus(tr.Fields.GetID())
 	if err != nil {
@@ -128,7 +134,7 @@ func (s *approvalCashPaymentService) checkActionUpdated(tr *treegrid.MainRow, ac
 	return true, nil
 }
 
-func (s *approvalCashPaymentService) checkActionDeleted(tr *treegrid.MainRow) (bool, error) {
+func (s *approvalCashPaymentService) checkActionDeleted(tr *treegrid.MainRow, language string) (bool, error) {
 	status, err := s.storage.GetStatus(tr.Fields.GetID())
 	if err != nil {
 		return false, err

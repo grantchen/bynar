@@ -29,7 +29,7 @@ func NewDocumentService(store DocumentStorage) DocumentService {
 	return &documentService{store: store}
 }
 
-func (d *documentService) Handle(tx *sql.Tx, paymentID, docID int, docNo string) error {
+func (d *documentService) Handle(tx *sql.Tx, modelID, docID int, docNo string) error {
 	doc, err := d.store.GetDocument(docID)
 	if err != nil {
 		return fmt.Errorf("get document: [%w]", err)
@@ -63,10 +63,10 @@ func (d *documentService) Handle(tx *sql.Tx, paymentID, docID int, docNo string)
 
 			return nil
 		}
-		return d.generate(tx, paymentID, doc.SeriesID, false)
+		return d.generate(tx, modelID, doc.SeriesID, false)
 	}
 
-	return d.generate(tx, paymentID, doc.SeriesID, true)
+	return d.generate(tx, modelID, doc.SeriesID, true)
 }
 
 func (d *documentService) generate(tx *sql.Tx, transferID int, seriesID int, update bool) error {

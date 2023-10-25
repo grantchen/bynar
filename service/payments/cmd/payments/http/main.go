@@ -28,7 +28,7 @@ func main() {
 	connString := appConfig.GetAccountManagementConnection()
 	connAccountString := appConfig.GetAccountManagementConnection()
 	// connString := "root:Munrfe2020@tcp(bynar-cet.ccwuyxj7ucnd.eu-central-1.rds.amazonaws.com:3306)/bynar"
-	connString = "2Cef1WJMcYBTnfh.root:mEt9041wub4bdbCW@tcp(gateway01.eu-central-1.prod.aws.tidbcloud.com:4000)/c8460451-c997-4289-ad09-0e4b74ef7fb2?tls=true"
+	connString = "2Cef1WJMcYBTnfh.root:mEt9041wub4bdbCW@tcp(gateway01.eu-central-1.prod.aws.tidbcloud.com:4000)/bynar_dev?tls=true"
 	db, err := sql_db.NewConnection(connString)
 
 	if err != nil {
