@@ -53,7 +53,6 @@ func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.Tre
 	inventoryRepository := repository.NewInventoryRepository(db)
 	transferRepository := repository.NewTransferRepository(db, language)
 	userRepository := repository.NewUserRepository(db)
-	workflowRepository := repository.NewWorkflowRepository()
 
 	transferService := service.NewTransferService(
 		db,
@@ -65,7 +64,6 @@ func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.Tre
 		db,
 		grTransferRepositoryWithChild,
 		userRepository,
-		workflowRepository,
 		transferRepository,
 		inventoryRepository,
 		documentRepository,

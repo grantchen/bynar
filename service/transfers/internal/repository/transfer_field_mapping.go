@@ -1,12 +1,6 @@
 package repository
 
 var (
-	TreeGridServiceNames = []string{
-		"Added",
-		"Deleted",
-		"Changed",
-	}
-
 	TransferFieldNames = map[string][]string{
 		"id": {
 			"id",
@@ -127,13 +121,5 @@ var (
 			"transfer_lines.receipt_date",
 			"transfer_lines.receipt_date",
 		},
-		//"item_unit_value": {
-		//	"item_unit_value",
-		//	"transfer_lines.item_unit_value",
-		//},
-		//"quantity": {
-		//	"quantity",
-		//	"transfer_lines.quantity",
-		//},
 	}
 )

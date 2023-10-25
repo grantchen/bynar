@@ -55,7 +55,6 @@ func main() {
 	inventoryRepository := repository.NewInventoryRepository(db)
 	transferRepository := repository.NewTransferRepository(db, "en")
 	userRepository := repository.NewUserRepository(db)
-	workflowRepository := repository.NewWorkflowRepository()
 
 	transferService := service.NewTransferService(
 		db,
@@ -67,7 +66,6 @@ func main() {
 		db,
 		grTransferRepositoryWithChild,
 		userRepository,
-		workflowRepository,
 		transferRepository,
 		inventoryRepository,
 		documentRepository,

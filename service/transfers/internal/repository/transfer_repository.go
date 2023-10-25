@@ -3,15 +3,10 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"log"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/model"
-	sqlbuilder "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/repository/sql_builder"
 )
 
 type transferRepository struct {
@@ -181,90 +176,12 @@ func (*transferRepository) UpdateStatus(tx *sql.Tx, status int) error {
 
 // GetTransfersPageData implements TransferRepository
 func (t *transferRepository) GetTransfersPageData(tg *treegrid.Treegrid) ([]map[string]string, error) {
-	// Prepare filter for WHERE condition with args
-	sqlbuilder.PrepFilters(tg)
-
-	// items request
-	if tg.BodyParams.GetItemsRequest() {
-		logger.Debug("get items request")
-
-		query := QueryChild + " WHERE parent = " + tg.BodyParams.ID + tg.OrderByChildQuery(model.TransferItemsFields)
-
-		query = sqlbuilder.AddLimit(query)
-		pos, _ := tg.BodyParams.IntPos()
-		query = sqlbuilder.AddOffset(query, pos)
-
-		logger.Debug("query", query)
-
-		return t.getJSON(query, tg.FilterArgs["child"], tg)
-	}
-
-	// GROUP BY
-	if tg.WithGroupBy() {
-		logger.Debug("query with group by clause")
-
-		return t.handleGroupBy(tg)
-	}
-
-	logger.Debug("get without grouping")
-
-	query := QueryParent + tg.FilterWhere["parent"]
-	if tg.FilterWhere["child"] != "" {
-		query += ` AND transfers.id IN ( SELECT Parent FROM transfers_items ` + QueryChildJoins + tg.FilterWhere["child"] + `) `
-	}
-
-	query += tg.SortParams.OrderByQueryExludeChild(model.TransferItemsFields, model.FieldAliases)
-
-	query = sqlbuilder.AddLimit(query)
-	pos, _ := tg.BodyParams.IntPos()
-	query = sqlbuilder.AddOffset(query, pos)
-	mergedArgs := utils.MergeMaps(tg.FilterArgs["parent"], tg.FilterArgs["child"])
-
-	logger.Debug("query", query, "args", mergedArgs)
-
-	return t.getJSON(query, mergedArgs, tg)
+	return nil, nil
 }
 
 // GetTransferCount implements TransferRepository
 func (t *transferRepository) GetTransferCount(treegrid *treegrid.Treegrid) (int, error) {
-	var query string
-
-	column := model.NewColumn(treegrid.GroupCols[0])
-
-	FilterWhere, FilterArgs := sqlbuilder.PrepQuery(treegrid.FilterParams)
-
-	if column.IsItem {
-		if FilterWhere["parent"] != "" {
-			FilterWhere["parent"] = " AND transfers_items.Parent IN (SELECT transfers.id from transfers " +
-				QueryParentJoins +
-				sqlbuilder.DummyWhere +
-				FilterWhere["parent"] + ") "
-		}
-		query = QueryChildCount + FilterWhere["child"] + FilterWhere["parent"]
-		fmt.Printf("query count1: %s\n", query)
-	} else {
-		if FilterWhere["child"] != "" {
-			FilterWhere["child"] = " AND transfers.id IN (SELECT transfers_items.Parent from transfers_items " +
-				QueryChildJoins +
-				sqlbuilder.DummyWhere +
-				FilterWhere["child"] + ") "
-		}
-
-		query = QueryParentCount + FilterWhere["child"] + FilterWhere["parent"]
-		fmt.Printf("filter where[child]: %s\n", FilterWhere["child"])
-		fmt.Printf("query count2: %s\n", query)
-	}
-
-	mergedArgs := utils.MergeMaps(FilterArgs["child"], FilterArgs["parent"])
-
-	rows, err := t.db.Query(query, mergedArgs...)
-	if err != nil {
-		log.Println(err, "query", query, "colData", column)
-		return 0, err
-	}
-
-	return utils.CheckCount(rows), nil
-
+	return 0, nil
 }
 
 func NewTransferRepository(db *sql.DB, language string) TransferRepository {

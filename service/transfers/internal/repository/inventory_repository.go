@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/config"
 )
 
 type (
@@ -146,7 +145,7 @@ func move(tx *sql.Tx, trItem item) error {
 	}
 
 	inBoundFlow := &boundItem{
-		ModuleID:         config.ModuleID,
+		ModuleID:         6, // TODO remove
 		ItemID:           trItem.ItemID,
 		LocationID:       trItem.LocationOriginID,
 		PostingDate:      trItem.PostingDate,
