@@ -38,7 +38,7 @@
   "not-field-update": "no se detectó actualización de campo",
   "no-allow-to update-child-line": "",
   "truncated-incorrect": "Error incorrecto truncado",
-  "positive-number": "El valor debe ser positivo.",
+  "not-negative-number": "El valor no puede ser un número negativo.",
   "failed-fetch-card": "no se pudo recuperar la tarjeta",
   "failed-add-card": "no se pudo agregar la tarjeta",
   "failed-update-card": "no se pudo actualizar la tarjeta",

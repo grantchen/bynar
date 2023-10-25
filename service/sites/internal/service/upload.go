@@ -82,9 +82,9 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		}
 
 		for _, field := range positiveFieldsValidating {
-			err = gr.ValidateOnPositiveNumber(map[string][]string{field: repository.SiteFieldNames[field]})
+			err = gr.ValidateOnNotNegativeNumber(map[string][]string{field: repository.SiteFieldNames[field]})
 			if err != nil {
-				return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodePositiveNumber))
+				return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeNotNegativeNumber))
 			}
 		}
 
@@ -102,9 +102,9 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		}
 
 		for _, field := range positiveFieldsValidating {
-			err = gr.ValidateOnPositiveNumber(map[string][]string{field: repository.SiteFieldNames[field]})
+			err = gr.ValidateOnNotNegativeNumber(map[string][]string{field: repository.SiteFieldNames[field]})
 			if err != nil {
-				return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodePositiveNumber))
+				return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeNotNegativeNumber))
 			}
 		}
 
