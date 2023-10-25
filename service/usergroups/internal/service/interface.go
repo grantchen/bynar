@@ -5,7 +5,7 @@ import (
 )
 
 type UserGroupService interface {
-	GetPageCount(treegrid *treegrid.Treegrid) (int64, error)
+	GetPageCount(tr *treegrid.Treegrid) (int64, error)
 	GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error)
 	GetCellSuggestion(tr *treegrid.Treegrid) (*treegrid.PostResponse, error)
 }

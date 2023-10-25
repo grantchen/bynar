@@ -13,7 +13,12 @@ Page_Url="http://localhost:8010/gettransferspage"> -->
 
 <div class="ExampleBorder">
    <div class="ExampleMain" style="width:100%;height:100%;">
-      <bdo Debug='info' Layout_Url="transfers.xml" Upload_Format="JSON" Upload_Url="http://localhost:8081/test">
+      <bdo Debug='info'
+           Layout_Url="transfers.xml"
+           Data_Url='http://localhost:8081/data' Data_Format='Json'
+           Page_Url='http://localhost:8081/page' Page_Format='Json'
+           Upload_Url='http://localhost:8081/upload' Upload_Format='Json'
+      >
       </bdo>
    </div>
 </div>
@@ -23,7 +28,7 @@ Page_Url="http://localhost:8010/gettransferspage"> -->
    const ADD_KEY = "Added"
    const DELETE_KEY = "Deleted"
    const CHANGE_KEY = "Changed"
-   Grids.OnCustomAjax = function (G, IO, data, func) {
+   window.Grids.OnCustomAjax = function (G, IO, data, func) {
       try {
 
          if (IO == '' || IO.Url != uploadURL)
@@ -95,28 +100,28 @@ Page_Url="http://localhost:8010/gettransferspage"> -->
       return JSON.parse(responseTxt)
    }
 
-   Grids.OnExpand = function (G, row) {
+   window.Grids.OnExpand = function (G, row) {
       if (row.Def.Name == "Node") {
          G.SetAttribute(row, row.parent, "Calculated", 1);
       }
    }
 
-   Grids.OnRowAdd = function (G, row, col, val) {
-
-      if (row.Def.Name == "Node") {
-         G.SetAttribute(row, row.parent, "Calculated", 1);
-      }
-   }
-
-
-   Grids.OnPasteRow = function (G, row, col, val) {
+   window.Grids.OnRowAdd = function (G, row, col, val) {
 
       if (row.Def.Name == "Node") {
          G.SetAttribute(row, row.parent, "Calculated", 1);
       }
    }
 
-   Grids.OnGetMenu = function (G, row, col, M) {
+
+   window.Grids.OnPasteRow = function (G, row, col, val) {
+
+      if (row.Def.Name == "Node") {
+         G.SetAttribute(row, row.parent, "Calculated", 1);
+      }
+   }
+
+   window.Grids.OnGetMenu = function (G, row, col, M) {
       if (row.Fixed || M) return null;
       var I = [], M = { Items: I }, ident = row.Def.Name == "Node" ? " order" : " product";
       I[I.length] = { Name: "Del", Text: (row.Deleted ? "Undelete" : "Delete") + ident };
@@ -133,7 +138,7 @@ Page_Url="http://localhost:8010/gettransferspage"> -->
       if (row.Def.Name == "Node") I[I.length] = { Name: "Check", Text: Get(row, 'X') ? "Uncheck Used" : "Check Used" };
       return M;
    }
-   Grids.OnContextMenu = function (G, row, col, N) {
+   window.Grids.OnContextMenu = function (G, row, col, N) {
       switch (N) {
          case "Del": G.DeleteRow(row); break;
          case "Sel": G.SelectRow(row); break;
@@ -147,19 +152,19 @@ Page_Url="http://localhost:8010/gettransferspage"> -->
       }
    }
 
-   Grids.OnDownloadPage = function (G, Row) {
+   window.Grids.OnDownloadPage = function (G, Row) {
       G.RecalculateRows(G.Rows.Fix1, 1);
    }
 
-   Grids.OnRenderPageFinish = function (G) {
+   window.Grids.OnRenderPageFinish = function (G) {
       G.RecalculateRows(G.Rows.Fix1, 1);
    }
 
-   Grids.OnPageReady = function (G, Row) {
+   window.Grids.OnPageReady = function (G, Row) {
       G.RecalculateRows(G.Rows.Fix1, 1);
    }
 
-   Grids.OnLanguageFinish = function (G, code) {
+   window.Grids.OnLanguageFinish = function (G, code) {
       var row = G.Rows.Fix3;
       G.SetValue(row, "C", Get(row, Get(row, "D") + "Rate"), 1);
    }

@@ -27,11 +27,6 @@ type DocumentRepository interface {
 	Save(tx *sql.Tx, tr *treegrid.MainRow) error
 }
 
-type WorkflowRepository interface {
-	GetModuleID() (int, error)
-	CheckApprovalOrder(accountID, status int) (bool, error)
-}
-
 type UserRepository interface {
 	GetUserID(accountID int) (int, error)
 }
