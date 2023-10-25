@@ -3,9 +3,9 @@ package service
 import (
 	"database/sql"
 	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/repository"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/models"
-	repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/repositories"
 	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 )
 

@@ -12,7 +12,7 @@ type PaymentService interface {
 	//HandleLine(tx *sql.Tx, payment *models.Payment, line *models.PaymentLine) (err error)
 
 	GetTx(tx *sql.Tx, id interface{}) (*models.Payment, error)
-	Handle(tx *sql.Tx, pr *models.Payment, moduleID int) error
+	Handle(tx *sql.Tx, pr *models.Payment) error
 
 	GetPageCount(treegrid *treegrid.Treegrid) (int64, error)
 	GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error)

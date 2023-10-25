@@ -10,7 +10,7 @@ import (
 )
 
 type ApprovalStorage interface {
-	GetWorkflowItem(moduleID, accountID, documentID int) (models.WorkflowItem, error)
+	GetWorkflowItem(accountID, documentID int) (models.WorkflowItem, error)
 	GetStatus(id interface{}) (int, error)
 	GetDocID(id interface{}) (int, error)
 }
@@ -23,14 +23,14 @@ func NewApprovalService(storage ApprovalStorage) ApprovalService {
 	return &approvalService{storage}
 }
 
-func (s *approvalService) Check(tr *treegrid.MainRow, moduleID, accountID int) (bool, error) {
-	logger.Debug("check", moduleID, accountID, tr.Fields.GetActionType())
+func (s *approvalService) Check(tr *treegrid.MainRow, accountID int) (bool, error) {
+	logger.Debug("check", accountID, tr.Fields.GetActionType())
 
 	switch tr.Fields.GetActionType() {
 	case treegrid.GridRowActionAdd:
-		return s.checkActionAdded(tr, moduleID, accountID)
+		return s.checkActionAdded(tr, accountID)
 	case treegrid.GridRowActionChanged:
-		return s.checkActionUpdated(tr, moduleID, accountID)
+		return s.checkActionUpdated(tr, accountID)
 	case treegrid.GridRowActionDeleted:
 		return s.checkActionDeleted(tr)
 	}
@@ -38,7 +38,7 @@ func (s *approvalService) Check(tr *treegrid.MainRow, moduleID, accountID int) (
 	return false, errors.New("undefined action type :" + string(tr.Fields.GetActionType()))
 }
 
-func (s *approvalService) checkActionAdded(tr *treegrid.MainRow, moduleID, accountID int) (bool, error) {
+func (s *approvalService) checkActionAdded(tr *treegrid.MainRow, accountID int) (bool, error) {
 	logger.Debug("check added action")
 
 	docID, ok := tr.Fields.GetValInt("document_id")
@@ -46,7 +46,7 @@ func (s *approvalService) checkActionAdded(tr *treegrid.MainRow, moduleID, accou
 		return false, errors.New("missing document_id")
 	}
 
-	wrkItem, err := s.storage.GetWorkflowItem(moduleID, accountID, docID)
+	wrkItem, err := s.storage.GetWorkflowItem(accountID, docID)
 	if err != nil {
 		return false, fmt.Errorf("get workflow item: [%w]", err)
 	}
@@ -61,7 +61,7 @@ func (s *approvalService) checkActionAdded(tr *treegrid.MainRow, moduleID, accou
 	return wrkItem.ApprovalOrder == 1, nil
 }
 
-func (s *approvalService) checkActionUpdated(tr *treegrid.MainRow, moduleID, accountID int) (bool, error) {
+func (s *approvalService) checkActionUpdated(tr *treegrid.MainRow, accountID int) (bool, error) {
 	logger.Debug("row id", tr.Fields.GetID())
 	currStatus, err := s.storage.GetStatus(tr.Fields.GetID())
 	if err != nil {
@@ -89,14 +89,14 @@ func (s *approvalService) checkActionUpdated(tr *treegrid.MainRow, moduleID, acc
 		return false, fmt.Errorf("get doc id: [%w]", err)
 	}
 
-	nextWrkItem, err := s.storage.GetWorkflowItem(moduleID, accountID, newDocID)
+	nextWrkItem, err := s.storage.GetWorkflowItem(accountID, newDocID)
 	if err != nil {
-		return false, fmt.Errorf("get next workflow items: [%w], moduleID: %d, accountID: %d, docID: %d", err, moduleID, accountID, newDocID)
+		return false, fmt.Errorf("get next workflow items: [%w], accountID: %d, docID: %d", err, accountID, newDocID)
 	}
 
-	currentWrkItem, err := s.storage.GetWorkflowItem(moduleID, accountID, currDocID)
+	currentWrkItem, err := s.storage.GetWorkflowItem(accountID, currDocID)
 	if err != nil {
-		return false, fmt.Errorf("get current workflow item: [%w],moduleID: %d, accountID: %d, docID: %d", err, moduleID, accountID, currDocID)
+		return false, fmt.Errorf("get current workflow item: [%w], accountID: %d, docID: %d", err, accountID, currDocID)
 	}
 
 	logger.Debug("Current approval_order", currentWrkItem.ApprovalOrder, "Next apploval_order", nextWrkItem.ApprovalOrder)

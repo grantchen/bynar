@@ -11,7 +11,8 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
-const ModuleID = 8 //hardcode
+const AccountId = 1
+
 func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGridHandler {
 
 	gridRowDataRepositoryWithChild := treegrid.NewGridRowDataRepositoryWithChild(
@@ -38,7 +39,7 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 	currencyRepository := pkg_repository.NewCurrencyRepository(db)
 	cashManagementRepository := pkg_repository.NewCashManagementRepository(db)
 	// todo refactor moduleId
-	workflowRepository := pkg_repository.NewWorkflowRepository(db, 1)
+	workflowRepository := pkg_repository.NewWorkflowRepository(db)
 	documentRepository := pkg_repository.NewDocuments(db, "procurements")
 	approvalSvc := pkg_service.NewApprovalCashPaymentService(pkg_repository.NewApprovalOrder(
 		workflowRepository,
@@ -66,7 +67,7 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 		1, // arbitrary
 	)
 
-	uploadService := service.NewUploadService(db, grPaymentRepository, grPaymentDataUploadRepositoryWithChild, grPaymentLineRepository, "en", approvalSvc, docSvc, ModuleID, paymentService)
+	uploadService := service.NewUploadService(db, grPaymentRepository, grPaymentDataUploadRepositoryWithChild, grPaymentLineRepository, "en", approvalSvc, docSvc, AccountId, paymentService)
 
 	handler := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,

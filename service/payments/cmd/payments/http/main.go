@@ -79,7 +79,7 @@ func main() {
 		1, // arbitrary
 	)
 	// todo refactor moduleId
-	workflowRepository := pkg_repository.NewWorkflowRepository(db, 1)
+	workflowRepository := pkg_repository.NewWorkflowRepository(db)
 	documentRepository := pkg_repository.NewDocuments(db, "procurements")
 	approvalSvc := pkg_service.NewApprovalCashPaymentService(pkg_repository.NewApprovalOrder(
 		workflowRepository,
@@ -88,7 +88,7 @@ func main() {
 
 	docSvc := pkg_service.NewDocumentService(documentRepository)
 	//todo refactor accountID
-	uploadService := service.NewUploadService(db, grPaymentRepository, grPaymentDataUploadRepositoryWithChild, grPaymentLineRepository, "en", approvalSvc, docSvc, 1, paymentRepository)
+	uploadService := service.NewUploadService(db, grPaymentRepository, grPaymentDataUploadRepositoryWithChild, grPaymentLineRepository, "en", approvalSvc, docSvc, 1, paymentService)
 
 	authProvider, err := gip.NewGIPClient()
 	if err != nil {

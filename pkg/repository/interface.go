@@ -8,8 +8,7 @@ import (
 )
 
 type WorkflowRepository interface {
-	GetWorkflowItem(moduleID, accountID, documentID int) (models.WorkflowItem, error)
-	GetModuleID() int
+	GetWorkflowItem(accountID, documentID int) (models.WorkflowItem, error)
 	CheckApprovalOrder(conn *sql.DB, tr *treegrid.MainRow, accountID int) (bool, error)
 }
 

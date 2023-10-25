@@ -17,9 +17,6 @@ type treegridService struct {
 	accountId      int
 }
 
-// todo
-const moduleID = 1
-
 func newTreeGridService(db *sql.DB, language string, accountId int) treegrid.TreeGridService {
 	gridRowDataRepositoryWithChild := treegrid.NewGridRowDataRepositoryWithChild(
 		db,
@@ -46,7 +43,7 @@ func newTreeGridService(db *sql.DB, language string, accountId int) treegrid.Tre
 	currencyRepository := pkg_repository.NewCurrencyRepository(db)
 	cashManagementRepository := pkg_repository.NewCashManagementRepository(db)
 	documentRepository := pkg_repository.NewDocuments(db, "procurements")
-	workflowRepository := pkg_repository.NewWorkflowRepository(db, moduleID)
+	workflowRepository := pkg_repository.NewWorkflowRepository(db)
 	// init services
 	approvalSvc := pkg_service.NewApprovalCashPaymentService(pkg_repository.NewApprovalOrder(
 		workflowRepository,

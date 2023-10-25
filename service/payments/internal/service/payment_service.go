@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/models"
-	repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/repositories"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/repository"
 	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
@@ -29,7 +29,7 @@ func (u *paymentService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string
 	return u.gridRowDataRepositoryWithChild.GetPageData(tr)
 }
 
-func (u *paymentService) Handle(tx *sql.Tx, m *models.Payment, moduleID int) error {
+func (u *paymentService) Handle(tx *sql.Tx, m *models.Payment) error {
 	if err := u.handlePayment(tx, m); err != nil {
 		return fmt.Errorf("handle payment: [%w]", err)
 	}

@@ -92,8 +92,8 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 
 func (u *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 
-	// Check Approval Order todo refactor moduleID
-	ok, err := u.approvalService.Check(tr, 1, u.accountId)
+	// Check Approval Order
+	ok, err := u.approvalService.Check(tr, u.accountId)
 	if err != nil {
 		return err
 
@@ -114,8 +114,8 @@ func (u *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 		if err != nil {
 			return fmt.Errorf("could not get procurement service: [%w]", err)
 		}
-		// todo refactor moduleID
-		if err := u.paymentService.Handle(tx, entity, 1); err != nil {
+
+		if err := u.paymentService.Handle(tx, entity); err != nil {
 			return fmt.Errorf("could not handle procurement: [%w]", err)
 		}
 		if entity.DocumentNo == "" {

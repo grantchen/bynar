@@ -11,44 +11,37 @@ import (
 )
 
 type workflowRepository struct {
-	conn     *sql.DB
-	moduleID int
+	conn *sql.DB
 }
 
-func NewWorkflowRepository(conn *sql.DB, moduleID int) WorkflowRepository {
+func NewWorkflowRepository(conn *sql.DB) WorkflowRepository {
 	return &workflowRepository{
-		conn:     conn,
-		moduleID: moduleID,
+		conn: conn,
 	}
 }
 
 // TODO: approval order. Using parent_it but need module id
 
-func (s *workflowRepository) GetWorkflowItem(moduleID, accountID, documentID int) (models.WorkflowItem, error) {
+func (s *workflowRepository) GetWorkflowItem(accountID, documentID int) (models.WorkflowItem, error) {
 	query := `
 	SELECT wi.id, wi.approval_order, d.status
 	FROM workflow_items wi
 		INNER JOIN workflows w ON w.id = wi.parent_id
 		INNER JOIN documents d ON wi.document_id = d.id
-	WHERE wi.document_id = ? AND wi.account_id = ? AND w.module_id = ? 
+	WHERE wi.document_id = ? AND wi.account_id = ?
 	`
 
 	wrkItem := models.WorkflowItem{
-		ParentID:   moduleID,
 		DocumentID: documentID,
 		AccountID:  accountID,
 	}
 
-	err := s.conn.QueryRow(query, documentID, accountID, moduleID).Scan(&wrkItem.Id, &wrkItem.ApprovalOrder, &wrkItem.Status)
+	err := s.conn.QueryRow(query, documentID, accountID).Scan(&wrkItem.Id, &wrkItem.ApprovalOrder, &wrkItem.Status)
 	if err != nil {
-		return wrkItem, fmt.Errorf("query row: [%w], query: %s, %d, %d, %d", err, query, documentID, accountID, moduleID)
+		return wrkItem, fmt.Errorf("query row: [%w], query: %s, %d, %d", err, query, documentID, accountID)
 	}
 
 	return wrkItem, nil
-}
-
-func (s *workflowRepository) GetModuleID() int {
-	return s.moduleID
 }
 
 // CheckApprovalOrder
@@ -91,7 +84,7 @@ func (s *workflowRepository) checkActionAdded(conn *sql.DB, tr *treegrid.MainRow
 	INNER JOIN workflows w ON wi.parent_id = w.id
 	INNER JOIN documents d ON wi.document_id = d.id
 	WHERE 
-		w.module_id = ? AND w.store_id = ? AND 
+		w.store_id = ? AND 
 		wi.document_id = ? AND wi.account_id = ? AND
 		d.status = ?
 	ORDER BY approval_order
@@ -100,7 +93,7 @@ func (s *workflowRepository) checkActionAdded(conn *sql.DB, tr *treegrid.MainRow
 
 	var appOrder int
 
-	err := conn.QueryRow(query, s.GetModuleID(), storeID, docID, accountID, tr.Status()).Scan(&appOrder)
+	err := conn.QueryRow(query, storeID, docID, accountID, tr.Status()).Scan(&appOrder)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return false, nil
