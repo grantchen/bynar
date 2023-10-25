@@ -5,12 +5,9 @@ import (
 	"database/sql"
 	stderr "errors"
 	"fmt"
-	"log"
-
 	"github.com/sirupsen/logrus"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/repository"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
@@ -43,7 +40,7 @@ func (s *UserService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse,
 	// Create new transaction
 	tx, err := s.db.BeginTx(context.Background(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("%s: [%w]", i18n.Localize(s.language, errors.ErrCodeBeginTransaction), err)
+		return nil, fmt.Errorf("begin transaction: [%w]", err)
 	}
 	defer tx.Rollback()
 	grList, err := treegrid.ParseRequestUploadSingleRow(req)
@@ -62,7 +59,7 @@ func (s *UserService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse,
 					// If there is the same value, handle it accordingly.
 					isCommit = false
 					resp.IO.Result = -1
-					resp.IO.Message = fmt.Sprintf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), value)
+					resp.IO.Message = i18n.ErrMsgToI18n(fmt.Errorf("%s, duplicate", field), s.language).Error() + "\n"
 					resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
 					break
 				} else {
@@ -76,10 +73,9 @@ func (s *UserService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse,
 	if isCommit == true {
 		for _, gr := range grList {
 			if err = s.handle(tx, gr); err != nil {
-				log.Println("Err", err)
 				isCommit = false
 				resp.IO.Result = -1
-				resp.IO.Message += err.Error() + "\n"
+				resp.IO.Message += i18n.ErrMsgToI18n(err, s.language).Error() + "\n"
 				resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
 				break
 			}
@@ -89,7 +85,7 @@ func (s *UserService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse,
 	}
 	if isCommit == true {
 		if err = tx.Commit(); err != nil {
-			return nil, fmt.Errorf("%s: [%w]", i18n.Localize(s.language, errors.ErrCodeCommitTransaction), err)
+			return nil, fmt.Errorf("commit transaction: [%w]", err)
 		}
 	}
 	return resp, nil
@@ -116,18 +112,18 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	case treegrid.GridRowActionAdd:
 		err1 := gr.ValidateOnRequiredAll(repository.UserFieldNames)
 		if err1 != nil {
-			return i18n.ErrMsgToI18n(err1, s.language)
+			return err1
 		}
 		for _, field := range fieldsValidating {
 			ok, err := s.simpleOrganizationRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr[field])
+				return fmt.Errorf("%s, duplicate", field)
 			}
 		}
 		err = func() error {
 			err = s.simpleOrganizationRepository.Add(tx, gr)
 			if err != nil {
-				return i18n.ErrMsgToI18n(err, s.language)
+				return err
 			}
 			// create user in gip
 			email, _ := gr.GetValString("email")
@@ -136,7 +132,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			status, _ := gr.GetValInt("status")
 			uid, err := s.authProvider.CreateUser(context.Background(), email, fullName, phone, status == 0)
 			if err != nil {
-				return i18n.ErrMsgToI18n(err, s.language)
+				return err
 			}
 			var userID int
 			stmt, err := tx.Prepare("SELECT id FROM users WHERE email=?")
@@ -158,7 +154,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	case treegrid.GridRowActionChanged:
 		err1 := gr.ValidateOnRequired(repository.UserFieldNames)
 		if err1 != nil {
-			return i18n.ErrMsgToI18n(err1, s.language)
+			return err1
 		}
 		err = func() error {
 			id, ok := gr.GetValInt("id")
@@ -166,22 +162,22 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				for _, field := range fieldsValidating {
 					ok, err = s.simpleOrganizationRepository.ValidateOnIntegrity(tx, gr, []string{field})
 					if !ok || err != nil {
-						return fmt.Errorf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr[field])
+						return fmt.Errorf("%s, duplicate", field)
 					}
 				}
 				err = s.simpleOrganizationRepository.Update(tx, gr)
 				if err != nil {
-					return i18n.ErrMsgToI18n(err, s.language)
+					return err
 				}
 
 				var uid string
 				stmt, err := s.accountDB.Prepare(`SELECT organization_user_uid FROM organization_accounts WHERE organization_id = ? AND organization_user_id = ?`)
 				if err != nil {
-					return errors.NewUnknownError("user not found", errors.ErrCodeNoUserFound).WithInternal().WithCause(err)
+					return fmt.Errorf("user not found")
 				}
 				err = stmt.QueryRow(s.organizationID, id).Scan(&uid)
 				if err != nil {
-					return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeGipUser))
+					return fmt.Errorf("gip user not found")
 				}
 				// update user claims in gip
 				params := map[string]interface{}{}
@@ -204,7 +200,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				}
 				u, err := s.authProvider.GetUser(context.Background(), uid)
 				if err != nil {
-					return i18n.ErrMsgToI18n(err, s.language)
+					return err
 				}
 				if u.CustomClaims == nil {
 					u.CustomClaims = map[string]interface{}{}
@@ -245,7 +241,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		}()
 
 	default:
-		return fmt.Errorf("%s: %s", i18n.Localize(s.language, errors.ErrCodeUndefinedTowType), gr.GetActionType())
+		return err
 	}
 
 	if err != nil {

@@ -12,7 +12,7 @@
   "signature-invalid": "La firma no es válida",
   "timestamp-expired": "La marca de tiempo ha expirado",
   "required-fields-blank": "Los campos obligatorios no pueden estar en blanco",
-  "value-duplicate": "Este campo se repite, el valor",
+  "value-duplicate": "El campo está duplicado",
   "undefined-row-type": "El tipo de fila no está definido",
   "begin-transaction": "Error al iniciar transacción",
   "commit-transaction": "cometer error de transacción",

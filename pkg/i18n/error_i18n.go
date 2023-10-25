@@ -13,6 +13,13 @@ func ErrMsgToI18n(err error, language string) error {
 	switch {
 	case strings.Contains(errMsg, "missing required params"):
 		return fmt.Errorf(strings.ReplaceAll(errMsg, "missing required params", Localize(language, "missing-required-params")))
+	case strings.Contains(errMsg, "duplicate"):
+		parts := strings.Split(errMsg, ",")
+		return fmt.Errorf("%s: %s", parts[0], Localize(language, errors.ErrCodeValueDuplicated))
+	case strings.Contains(errMsg, "gip user not found"):
+		return fmt.Errorf(Localize(language, errors.ErrCodeGipUser))
+	case strings.Contains(errMsg, "user not found"):
+		return fmt.Errorf(Localize(language, errors.ErrCodeNoUserFound))
 	case strings.Contains(errMsg, "of range"):
 		return fmt.Errorf(Localize(language, errors.ErrCodeOutRange))
 	case strings.Contains(errMsg, "Truncated incorrect"):
