@@ -80,6 +80,11 @@ func (t *transferRepository) SaveTransfer(tx *sql.Tx, tr *treegrid.MainRow) erro
 		if err != nil {
 			return fmt.Errorf(i18n.Localize(t.language, "", err.Error()))
 		}
+
+		err = t.validateTransferParams(tx, tr)
+		if err != nil {
+			return err
+		}
 	case treegrid.GridRowActionChanged:
 		err := tr.Fields.ValidateOnRequired(requiredFieldsMapping)
 		if err != nil {
@@ -89,6 +94,11 @@ func (t *transferRepository) SaveTransfer(tx *sql.Tx, tr *treegrid.MainRow) erro
 		err = tr.Fields.ValidateOnPositiveNumber(positiveFieldsMapping)
 		if err != nil {
 			return fmt.Errorf(i18n.Localize(t.language, "", err.Error()))
+		}
+
+		err = t.validateTransferParams(tx, tr)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -124,7 +134,7 @@ func (t *transferRepository) SaveTransferLines(tx *sql.Tx, tr *treegrid.MainRow)
 			}
 
 			if err = t.validateAddTransferLine(tx, item); err != nil {
-				return fmt.Errorf("validate TransferLine: [%w]", err)
+				return err
 			}
 			err = t.gridTreeRepository.SaveLineAdd(tx, item)
 			if err != nil {
@@ -141,6 +151,16 @@ func (t *transferRepository) SaveTransferLines(tx *sql.Tx, tr *treegrid.MainRow)
 			err = item.ValidateOnPositiveNumber(positiveFieldsMapping)
 			if err != nil {
 				return fmt.Errorf(i18n.Localize(t.language, "", err.Error()))
+			}
+
+			// check item_id
+			if err = t.validateItemID(tx, item); err != nil {
+				return err
+			}
+
+			// check item_unit_id
+			if err = t.validateItemUintID(tx, item); err != nil {
+				return err
 			}
 
 			err = t.gridTreeRepository.SaveLineUpdate(tx, item)

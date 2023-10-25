@@ -93,7 +93,7 @@ var (
 	}
 
 	TransferLineFieldNames = map[string][]string{
-		"id": {
+		"id-line": {
 			"id",
 			"transfer_lines.id",
 		},
