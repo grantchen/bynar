@@ -21,7 +21,7 @@ func (t *transferRepository) handleGroupBy(tg *treegrid.Treegrid) ([]map[string]
 		return t.getGroupData(tg.BodyParams.GetRowWhere(), tg)
 	}
 
-	parentBuild := sqlbuilder.QueryParent
+	parentBuild := QueryParent
 
 	if tg.FilterWhere["parent"] != "" {
 		logger.Debug("filters transfer", tg.FilterWhere["parent"])
@@ -113,7 +113,7 @@ func (t *transferRepository) prepareNameCountQuery(where string, tg *treegrid.Tr
 	if level == len(tg.GroupCols) {
 		logger.Debug("getting last level data")
 
-		query = sqlbuilder.QueryParent
+		query = QueryParent
 		query = strings.Replace(query, "WHERE 1=1", "", 1)
 		query += where
 
@@ -163,7 +163,7 @@ func (t *transferRepository) prepareNameCountQuery(where string, tg *treegrid.Tr
 		return fmt.Sprintf(query, column.DBName, where, column.DBName), column
 	}
 
-	query = "SELECT " + column.DBName + ", COUNT(*) Count FROM transfers " + sqlbuilder.QueryParentJoins + where + " GROUP BY " + column.DBName
+	query = "SELECT " + column.DBName + ", COUNT(*) Count FROM transfers " + QueryParentJoins + where + " GROUP BY " + column.DBName
 
 	return
 }
@@ -181,7 +181,7 @@ func (t *transferRepository) getCascadingGroupByParentParent(firstCol, secondCol
 	GROUP BY %s
 	`
 
-	return fmt.Sprintf(query, firstCol.DBNameShort, firstCol.DBName, secondCol.DBName, sqlbuilder.QueryParentJoins, where, firstCol.DBName, secondCol.DBName, firstCol.DBNameShort)
+	return fmt.Sprintf(query, firstCol.DBNameShort, firstCol.DBName, secondCol.DBName, QueryParentJoins, where, firstCol.DBName, secondCol.DBName, firstCol.DBNameShort)
 }
 
 // when grouping by two parent (tansfer) columns
@@ -272,7 +272,7 @@ func (t *transferRepository) getParentData(level int, group_cols []string, where
 			"COALESCE(MIN(document_date), '') AS min, " +
 			"COALESCE(MAX(document_date), '') AS max " +
 			// "FROM (SELECT warehouseman_destination_approve, document_date FROM transfers " + where + where2 + ") AS temp"
-			"FROM (SELECT warehouseman_destination_approve, document_date FROM transfers " + sqlbuilder.QueryParentJoins + where + where2 + ") AS temp"
+			"FROM (SELECT warehouseman_destination_approve, document_date FROM transfers " + QueryParentJoins + where + where2 + ") AS temp"
 
 		calcRows, err := t.db.Query(calcQuery)
 		if err != nil {
@@ -353,9 +353,9 @@ func (t *transferRepository) getChildData(level int, groupCols []string, where s
 SELECT COALESCE(sum(item_quantity),'') as value_sums 
 FROM (
 SELECT item_quantity 
-FROM transfers_items ` + sqlbuilder.QueryChildJoins + ` 
+FROM transfers_items ` + QueryChildJoins + ` 
 WHERE Parent in (
-	SELECT transfers.id FROM transfers ` + sqlbuilder.QueryParentJoins + where + `) AND ` + columnData.DBName + "='" + row.GetValue(columnData.DBNameShort) + "') AS temp;"
+	SELECT transfers.id FROM transfers ` + QueryParentJoins + where + `) AND ` + columnData.DBName + "='" + row.GetValue(columnData.DBNameShort) + "') AS temp;"
 		calcRows, err := t.db.Query(calcQuery)
 		if err != nil {
 			return tableData, fmt.Errorf("do query: '%s': [%w]", calcQuery, err)

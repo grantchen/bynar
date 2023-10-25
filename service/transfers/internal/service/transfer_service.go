@@ -3,7 +3,6 @@ package service
 import (
 	"database/sql"
 	stderr "errors"
-	"math"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/repository"
@@ -31,14 +30,16 @@ type transferService struct {
 
 // GetPageData implements TransferService
 func (t *transferService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
-	return t.transferRepository.GetTransfersPageData(tr)
+	//return t.transferRepository.GetTransfersPageData(tr)
+	return t.gridRowDataRepositoryWithChild.GetPageData(tr)
 }
 
 // GetPageCount implements TransferService
 func (t *transferService) GetPageCount(tr *treegrid.Treegrid) (int64, error) {
-	rowsCount, _ := t.transferRepository.GetTransferCount(tr)
-
-	return int64(math.Ceil(float64(rowsCount) / float64(pageSize))), nil
+	return t.gridRowDataRepositoryWithChild.GetPageCount(tr)
+	//rowsCount, _ := t.transferRepository.GetTransferCount(tr)
+	//
+	//return int64(math.Ceil(float64(rowsCount) / float64(pageSize))), nil
 }
 
 func NewTransferService(

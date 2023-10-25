@@ -46,25 +46,109 @@ func (*transferRepository) SaveDocumentID(tx *sql.Tx, tr *treegrid.MainRow, docI
 
 // SaveTransfer implements TransferRepository
 func (t *transferRepository) SaveTransfer(tx *sql.Tx, tr *treegrid.MainRow) error {
+	requiredFieldsMapping := tr.Fields.FilterFieldsMapping(
+		TransferFieldNames,
+		[]string{
+			"document_id",
+			"transaction_no",
+			"store_id",
+		})
+	positiveFieldsMapping := tr.Fields.FilterFieldsMapping(
+		TransferFieldNames,
+		[]string{
+			"document_id",
+			//"item_id",
+			//"item_unit_id",
+			//"project_id",
+			//"area_id",
+			//"department_id",
+			//"in_transit_id",
+			//"shipment_method_id",
+			//"shipping_agent_id",
+			//"shipping_agent_service_id",
+			//"transaction_type_id",
+			//"transaction_specification_id",
+			//"user_group_id",
+			"store_id",
+			//"location_origin_id",
+			//"location_destination_id",
+		})
+
+	switch tr.Fields.GetActionType() {
+	case treegrid.GridRowActionAdd:
+		err := tr.Fields.ValidateOnRequiredAll(requiredFieldsMapping)
+		if err != nil {
+			return err
+		}
+
+		err = tr.Fields.ValidateOnPositiveNumber(positiveFieldsMapping)
+		if err != nil {
+			return fmt.Errorf(i18n.Localize(t.language, "", err.Error()))
+		}
+	case treegrid.GridRowActionChanged:
+		err := tr.Fields.ValidateOnRequired(requiredFieldsMapping)
+		if err != nil {
+			return err
+		}
+
+		err = tr.Fields.ValidateOnPositiveNumber(positiveFieldsMapping)
+		if err != nil {
+			return fmt.Errorf(i18n.Localize(t.language, "", err.Error()))
+		}
+	}
+
 	return t.gridTreeRepository.SaveMainRow(tx, tr)
 }
 
 // SaveTransferLines implements TransferRepository
 func (t *transferRepository) SaveTransferLines(tx *sql.Tx, tr *treegrid.MainRow) error {
+	requiredFieldsMapping := tr.Fields.FilterFieldsMapping(
+		TransferLineFieldNames,
+		[]string{
+			"item_id",
+			"item_unit_id",
+		})
+	positiveFieldsMapping := tr.Fields.FilterFieldsMapping(
+		TransferLineFieldNames,
+		[]string{
+			"item_id",
+			"item_unit_id",
+		})
+
 	for _, item := range tr.Items {
 		switch item.GetActionType() {
 		case treegrid.GridRowActionAdd:
-			if err := t.validateAddTransferLine(tx, item); err != nil {
+			err := item.ValidateOnRequiredAll(requiredFieldsMapping)
+			if err != nil {
+				return err
+			}
+
+			err = item.ValidateOnPositiveNumber(positiveFieldsMapping)
+			if err != nil {
+				return fmt.Errorf(i18n.Localize(t.language, "", err.Error()))
+			}
+
+			if err = t.validateAddTransferLine(tx, item); err != nil {
 				return fmt.Errorf("validate TransferLine: [%w]", err)
 			}
-			err := t.gridTreeRepository.SaveLineAdd(tx, item)
+			err = t.gridTreeRepository.SaveLineAdd(tx, item)
 			if err != nil {
 				return err
 			}
 
 			continue
 		case treegrid.GridRowActionChanged:
-			err := t.gridTreeRepository.SaveLineUpdate(tx, item)
+			err := item.ValidateOnRequired(requiredFieldsMapping)
+			if err != nil {
+				return err
+			}
+
+			err = item.ValidateOnPositiveNumber(positiveFieldsMapping)
+			if err != nil {
+				return fmt.Errorf(i18n.Localize(t.language, "", err.Error()))
+			}
+
+			err = t.gridTreeRepository.SaveLineUpdate(tx, item)
 			if err != nil {
 				return err
 			}
@@ -104,7 +188,7 @@ func (t *transferRepository) GetTransfersPageData(tg *treegrid.Treegrid) ([]map[
 	if tg.BodyParams.GetItemsRequest() {
 		logger.Debug("get items request")
 
-		query := sqlbuilder.QueryChild + " WHERE parent = " + tg.BodyParams.ID + tg.OrderByChildQuery(model.TransferItemsFields)
+		query := QueryChild + " WHERE parent = " + tg.BodyParams.ID + tg.OrderByChildQuery(model.TransferItemsFields)
 
 		query = sqlbuilder.AddLimit(query)
 		pos, _ := tg.BodyParams.IntPos()
@@ -124,9 +208,9 @@ func (t *transferRepository) GetTransfersPageData(tg *treegrid.Treegrid) ([]map[
 
 	logger.Debug("get without grouping")
 
-	query := sqlbuilder.QueryParent + tg.FilterWhere["parent"]
+	query := QueryParent + tg.FilterWhere["parent"]
 	if tg.FilterWhere["child"] != "" {
-		query += ` AND transfers.id IN ( SELECT Parent FROM transfers_items ` + sqlbuilder.QueryChildJoins + tg.FilterWhere["child"] + `) `
+		query += ` AND transfers.id IN ( SELECT Parent FROM transfers_items ` + QueryChildJoins + tg.FilterWhere["child"] + `) `
 	}
 
 	query += tg.SortParams.OrderByQueryExludeChild(model.TransferItemsFields, model.FieldAliases)
@@ -152,21 +236,21 @@ func (t *transferRepository) GetTransferCount(treegrid *treegrid.Treegrid) (int,
 	if column.IsItem {
 		if FilterWhere["parent"] != "" {
 			FilterWhere["parent"] = " AND transfers_items.Parent IN (SELECT transfers.id from transfers " +
-				sqlbuilder.QueryParentJoins +
+				QueryParentJoins +
 				sqlbuilder.DummyWhere +
 				FilterWhere["parent"] + ") "
 		}
-		query = sqlbuilder.QueryChildCount + FilterWhere["child"] + FilterWhere["parent"]
+		query = QueryChildCount + FilterWhere["child"] + FilterWhere["parent"]
 		fmt.Printf("query count1: %s\n", query)
 	} else {
 		if FilterWhere["child"] != "" {
 			FilterWhere["child"] = " AND transfers.id IN (SELECT transfers_items.Parent from transfers_items " +
-				sqlbuilder.QueryChildJoins +
+				QueryChildJoins +
 				sqlbuilder.DummyWhere +
 				FilterWhere["child"] + ") "
 		}
 
-		query = sqlbuilder.QueryParentCount + FilterWhere["child"] + FilterWhere["parent"]
+		query = QueryParentCount + FilterWhere["child"] + FilterWhere["parent"]
 		fmt.Printf("filter where[child]: %s\n", FilterWhere["child"])
 		fmt.Printf("query count2: %s\n", query)
 	}

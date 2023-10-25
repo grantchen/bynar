@@ -27,12 +27,12 @@ func main() {
 	gridRowDataRepositoryWithChild := treegrid.NewGridRowDataRepositoryWithChild(
 		db,
 		"transfers",
-		"transfers_lines",
+		"transfer_lines",
 		repository.TransferFieldNames,
 		repository.TransferLineFieldNames,
 		100,
 		&treegrid.GridRowDataRepositoryWithChildCfg{
-			MainCol:                  "code",
+			MainCol:                  "document_id",
 			QueryParent:              repository.QueryParent,
 			QueryParentCount:         repository.QueryParentCount,
 			QueryParentJoins:         repository.QueryParentJoins,
