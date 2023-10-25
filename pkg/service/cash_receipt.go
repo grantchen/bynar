@@ -21,7 +21,7 @@ func (s *cashReceiptService) GetPaymentTx(tx *sql.Tx, id interface{}) (*models.C
 	return s.cashReceiptRep.Get(tx, id)
 }
 
-func (s *cashReceiptService) Handle(tx *sql.Tx, m *models.CashReceipt, moduleID int) error {
+func (s *cashReceiptService) Handle(tx *sql.Tx, m *models.CashReceipt) error {
 	// todo: handle payment
 	panic("not implemented yet")
 }

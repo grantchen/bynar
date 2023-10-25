@@ -16,6 +16,8 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
+const AccountId = 1
+
 func main() {
 
 	err := godotenv.Load("../main/.env")
@@ -78,7 +80,6 @@ func main() {
 		repository.PaymentFieldNames,
 		1, // arbitrary
 	)
-	// todo refactor moduleId
 	workflowRepository := pkg_repository.NewWorkflowRepository(db)
 	documentRepository := pkg_repository.NewDocuments(db, "procurements")
 	approvalSvc := pkg_service.NewApprovalCashPaymentService(pkg_repository.NewApprovalOrder(
@@ -88,7 +89,7 @@ func main() {
 
 	docSvc := pkg_service.NewDocumentService(documentRepository)
 	//todo refactor accountID
-	uploadService := service.NewUploadService(db, grPaymentRepository, grPaymentDataUploadRepositoryWithChild, grPaymentLineRepository, "en", approvalSvc, docSvc, 1, paymentService)
+	uploadService := service.NewUploadService(db, grPaymentRepository, grPaymentDataUploadRepositoryWithChild, grPaymentLineRepository, "en", approvalSvc, docSvc, AccountId, paymentService)
 
 	authProvider, err := gip.NewGIPClient()
 	if err != nil {

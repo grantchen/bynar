@@ -10,6 +10,11 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
+const (
+	ToApply        = 1
+	SuccessApplied = 2
+)
+
 type paymentService struct {
 	gridRowDataRepositoryWithChild treegrid.GridRowDataRepositoryWithChild
 	db                             *sql.DB

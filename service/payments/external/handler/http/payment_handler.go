@@ -38,7 +38,6 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 	procurementRepository := pkg_repository.NewProcurementRepository(db)
 	currencyRepository := pkg_repository.NewCurrencyRepository(db)
 	cashManagementRepository := pkg_repository.NewCashManagementRepository(db)
-	// todo refactor moduleId
 	workflowRepository := pkg_repository.NewWorkflowRepository(db)
 	documentRepository := pkg_repository.NewDocuments(db, "procurements")
 	approvalSvc := pkg_service.NewApprovalCashPaymentService(pkg_repository.NewApprovalOrder(

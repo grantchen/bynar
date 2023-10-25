@@ -91,7 +91,6 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 }
 
 func (u *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
-
 	// Check Approval Order
 	ok, err := u.approvalService.Check(tr, u.accountId)
 	if err != nil {
