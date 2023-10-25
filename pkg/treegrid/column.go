@@ -1,6 +1,9 @@
 package treegrid
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 type Column struct {
 	DBName      string
@@ -30,5 +33,20 @@ func NewColumn(gridName string, ChildFields map[string][]string, ParentFieldAlia
 		c.DBNameShort = nameParts[len(nameParts)-1]
 	}
 
+	if IsDateCol(c.DBName) {
+		c.IsDate = true
+	}
+
 	return
+}
+
+// WhereSQL return where sql for column
+func (c Column) WhereSQL(val string) (whereSQL string) {
+	if c.IsDate {
+		if val == "" {
+			return fmt.Sprintf("%s IS NULL", c.DBName)
+		}
+	}
+
+	return fmt.Sprintf("%s='%s'", c.DBName, val)
 }
