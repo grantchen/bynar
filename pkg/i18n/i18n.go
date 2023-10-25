@@ -3,10 +3,11 @@ package i18n
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 var locales = map[string]map[string]string{}
@@ -58,7 +59,7 @@ func Localize(language, key string, args ...interface{}) string {
 	msg, ok := locale[key]
 	if !ok {
 		logrus.Errorf("The key is not found: %s", key)
-		return ""
+		return fmt.Sprintf(msg, args...)
 	}
 
 	if msg != "" {
