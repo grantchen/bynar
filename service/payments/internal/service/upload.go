@@ -69,6 +69,11 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	defer tx.Rollback()
 	m := make(map[string]interface{}, 0)
 	for _, tr := range trList.MainRows() {
+		// todo refactor group
+		if tr.Fields["id"] == "Group" {
+			return resp, nil
+		}
+
 		if err := u.handle(tx, tr); err != nil {
 			log.Println("Err", err)
 
@@ -223,8 +228,15 @@ func (u *UploadService) savePaymentLine(tx *sql.Tx, tr *treegrid.MainRow, parent
 				return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "failed-to-add", "payment-line"), err)
 			}
 		case treegrid.GridRowActionChanged:
-			// DO NOTHING WITH ACTION UPDATE, NOT ALLOW UPDATE LINES TABLE
-			return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeNoAllowToUpdateChildLine))
+			err = tr.Fields.ValidateOnRequired(repository.PaymentLineFieldUploadNames)
+			if err != nil {
+				return err
+			}
+
+			err = u.updateGRPaymentRepositoryWithChild.SaveLineUpdate(tx, item)
+			if err != nil {
+				return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "failed-to-update", "payment-line"), err)
+			}
 		case treegrid.GridRowActionDeleted:
 			logger.Debug("delete child")
 

@@ -3,9 +3,9 @@ package service
 import (
 	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
-
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
+	"strings"
 
 	errpkg "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 )
@@ -26,7 +26,11 @@ func (s *approvalCashPaymentService) Check(tr *treegrid.MainRow, accountID int, 
 	case treegrid.GridRowActionChanged:
 		return s.checkActionUpdated(tr, accountID, language)
 	case treegrid.GridRowActionDeleted:
-		return s.checkActionDeleted(tr, language)
+		strID := tr.Fields.GetIDStr()
+		if !strings.HasPrefix(strID, "CR") {
+			return s.checkActionDeleted(tr, language)
+		}
+		return true, nil
 	}
 
 	return false, fmt.Errorf("%s : %s",
