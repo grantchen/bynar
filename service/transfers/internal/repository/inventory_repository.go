@@ -22,7 +22,7 @@ type (
 		LocationOriginID int
 		LocationDestID   int
 		PostingDate      string
-		Quantity         int
+		Quantity         float64
 		ItemID           int
 	}
 )
@@ -118,7 +118,7 @@ func getLocations(tx *sql.Tx, tr *treegrid.MainRow) (locationOrigin, locationDes
 
 func (ir *inventoryRepository) Save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	query := `
-	SELECT  tl.quantity, tl.item_id, t.location_origin_id, t.location_destination_id, t.posting_date
+	SELECT  tl.quantity, tl.item_id, t.location_origin_id, t.location_destination_id, COALESCE(t.posting_date, '')
 	FROM transfers t
 	INNER JOIN transfer_lines tl ON t.id = tl.parent_id
 	WHERE tl.id = ?
@@ -131,7 +131,7 @@ func (ir *inventoryRepository) Save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	items := make([]item, 0, 10)
 	for rows.Next() {
 		var trItem item
-		if err := rows.Scan(&trItem.ItemID, &trItem.Quantity, &trItem.LocationOriginID, &trItem.LocationDestID, &trItem.PostingDate); err != nil {
+		if err := rows.Scan(&trItem.Quantity, &trItem.ItemID, &trItem.LocationOriginID, &trItem.LocationDestID, &trItem.PostingDate); err != nil {
 			return fmt.Errorf("rows scan: [%w]", err)
 		}
 
@@ -169,11 +169,11 @@ func move(tx *sql.Tx, trItem item) error {
 		PostingDate:      trItem.PostingDate,
 		Quantity:         invOrigin.Quantity,
 		Value:            invOrigin.Value,
-		OutboundQuantity: trItem.Quantity,
+		OutboundQuantity: int(trItem.Quantity),
 	}
 
 	invOrigin.IsOrigin = true
-	if err := calcInventory(tx, invOrigin, trItem.Quantity, inBoundFlow); err != nil {
+	if err := calcInventory(tx, invOrigin, int(trItem.Quantity), inBoundFlow); err != nil {
 		return fmt.Errorf("calc inventory: [%w]", err)
 	}
 
@@ -205,7 +205,7 @@ func move(tx *sql.Tx, trItem item) error {
 		return nil
 	}
 
-	if err := calcInventory(tx, invDest, trItem.Quantity, nil); err != nil {
+	if err := calcInventory(tx, invDest, int(trItem.Quantity), nil); err != nil {
 		return fmt.Errorf("calc inventory destination: [%w]", err)
 	}
 
