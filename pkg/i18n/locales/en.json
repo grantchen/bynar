@@ -50,6 +50,17 @@
   "payment-line": "payment line",
   "undefined-action-type": "undefined action type",
   "missing": "missing",
-  "failed-to-get-data": "",
-  "forbidden-action": "forbidden action"
+  "failed-to-get-data-from": "failed to get data from %s",
+  "forbidden-action": "forbidden action",
+  "workflow-item": "workflow item",
+  "failed-to-get-by": "failed to get %s by %s",
+  "only-document_id-can-be-updated": "only document_id can be updated",
+  "items-length": "items length",
+  "received-fields-to-update": "Received fields to update",
+  "only-lines-can-be-updated": "Only lines can be updated",
+  "data-is": "%s is %s",
+  "current-status": "current status",
+  "failed-to-delete": "failed to delete %s",
+  "failed-to-add": "failed to add %s",
+  "failed-to-handle": "failed to handle %s"
 }

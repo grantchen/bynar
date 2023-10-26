@@ -91,16 +91,16 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 }
 
 func (u *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
-	// Check Approval Order todo test
-	//ok, err := u.approvalService.Check(tr, u.accountId, u.language)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//if !ok {
-	//	return fmt.Errorf("%s",
-	//		i18n.Localize(u.language, "forbidden-action"))
-	//}
+	//Check Approval Order
+	ok, err := u.approvalService.Check(tr, u.accountId, u.language)
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+		return fmt.Errorf("%s",
+			i18n.Localize(u.language, "forbidden-action"))
+	}
 	if err := u.save(tx, tr); err != nil {
 		return err
 	}
@@ -111,22 +111,22 @@ func (u *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 		// working with procurement - calculating and updating.
 		entity, err := u.paymentService.GetTx(tx, tr.Fields.GetID())
 		if err != nil {
-			return fmt.Errorf("could not get procurement service: [%w]", err)
+			return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "failed-to-get-data-from", "procurement"), err)
 		}
 
 		if err := u.paymentService.Handle(tx, entity); err != nil {
-			return fmt.Errorf("could not handle procurement: [%w]", err)
+			return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "failed-to-handle", "procurement"), err)
 		}
 		if entity.DocumentNo == "" {
 			if err := u.docSvc.Handle(tx, entity.ID, entity.DocumentID, entity.DocumentNo); err != nil {
-				return err
+				return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "failed-to-handle", "document"), err)
 			}
 		}
 
 	}
 
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit transaction: [%w]", err)
+		return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "commit-transaction"), err)
 	}
 
 	return nil
@@ -220,7 +220,7 @@ func (u *UploadService) savePaymentLine(tx *sql.Tx, tr *treegrid.MainRow, parent
 			logger.Debug("add child row")
 			err = u.updateGRPaymentRepositoryWithChild.SaveLineAdd(tx, item)
 			if err != nil {
-				return fmt.Errorf("add child user groups line error: [%w]", err)
+				return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "failed-to-add", "payment-line"), err)
 			}
 		case treegrid.GridRowActionChanged:
 			// DO NOTHING WITH ACTION UPDATE, NOT ALLOW UPDATE LINES TABLE
@@ -232,10 +232,10 @@ func (u *UploadService) savePaymentLine(tx *sql.Tx, tr *treegrid.MainRow, parent
 			item["id"] = item.GetID()
 			err = u.updateGRPaymentRepositoryWithChild.SaveLineDelete(tx, item)
 			if err != nil {
-				return fmt.Errorf("delete child user group line error: [%w]", err)
+				return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "failed-to-delete", "payment-line"), err)
 			}
 		default:
-			return fmt.Errorf("undefined row type: %s", tr.Fields.GetActionType())
+			return fmt.Errorf("%s: %s", i18n.Localize(u.language, "undefined-action-type"), tr.Fields.GetActionType())
 
 		}
 	}

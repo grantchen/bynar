@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 
@@ -41,12 +40,13 @@ func (s *approvalCashPaymentService) checkActionAdded(tr *treegrid.MainRow, acco
 	docID, ok := tr.Fields.GetValInt("document_id")
 	if !ok {
 		return false, fmt.Errorf("%s : %s",
-			i18n.Localize(language, "missing"), errors.New("missing "))
+			i18n.Localize(language, "missing"), "document_id")
 	}
 
 	wrkItem, err := s.storage.GetWorkflowItem(accountID, docID)
 	if err != nil {
-		return false, fmt.Errorf("get workflow item: [%w]", err)
+		return false, fmt.Errorf("%s : %s",
+			i18n.Localize(language, "failed-to-get-data-from"), "workflow-item")
 	}
 	tr.Fields["status"] = wrkItem.Status
 
@@ -63,13 +63,13 @@ func (s *approvalCashPaymentService) checkActionUpdated(tr *treegrid.MainRow, ac
 	logger.Debug("row id", tr.Fields.GetID())
 	currStatus, err := s.storage.GetStatus(tr.Fields.GetID())
 	if err != nil {
-		return false, fmt.Errorf("get status by id: %v, [%w]", tr.Fields.GetID(), err)
+		return false, fmt.Errorf("%s : %v, [%w]", i18n.Localize(language, "failed-to-get-by", "status", "id"), tr.Fields.GetID(), err)
 	}
 
 	// can be updated only lines
 	if currStatus == 1 && len(tr.Fields.UpdatedFields()) > 0 {
 		if len(tr.Fields.UpdatedFields()) > 0 {
-			return false, errors.New("current status is 1. Only lines can be updated")
+			return false, fmt.Errorf("%s.%s", i18n.Localize("data-is", "current-status", "1"), i18n.Localize(language, "only-lines-can-be-updated"))
 		}
 		tr.Fields["status"] = currStatus
 
@@ -90,17 +90,19 @@ func (s *approvalCashPaymentService) checkActionUpdated(tr *treegrid.MainRow, ac
 
 	currDocID, err := s.storage.GetDocID(tr.Fields.GetID())
 	if err != nil {
-		return false, fmt.Errorf("get doc id: [%w]", err)
+		return false, fmt.Errorf("%s : %v, [%w]", i18n.Localize(language, "failed-to-get-by", "document_id", "id"), tr.Fields.GetID(), err)
 	}
 
 	nextWrkItem, err := s.storage.GetWorkflowItem(accountID, newDocID)
 	if err != nil {
-		return false, fmt.Errorf("get next workflow items: [%w], accountID: %d, docID: %d", err, accountID, newDocID)
+		return false, fmt.Errorf("%s : %s:%d,%s:%d,[%w]",
+			i18n.Localize(language, "failed-to-get-data-from", "next-workflow-item"), "account_id", accountID, "document_id", newDocID, err)
 	}
 
 	currentWrkItem, err := s.storage.GetWorkflowItem(accountID, currDocID)
 	if err != nil {
-		return false, fmt.Errorf("get current workflow item: [%w], accountID: %d, docID: %d", err, accountID, currDocID)
+		return false, fmt.Errorf("%s : %s:%d,%s:%d,[%w]",
+			i18n.Localize(language, "failed-to-get-data-from", "current-workflow-item"), "account_id", accountID, "document_id", currDocID, err)
 	}
 
 	logger.Debug("Current approval_order", currentWrkItem.ApprovalOrder, "Next apploval_order", nextWrkItem.ApprovalOrder)
@@ -113,12 +115,12 @@ func (s *approvalCashPaymentService) checkActionUpdated(tr *treegrid.MainRow, ac
 	if len(tr.Items) > 0 {
 		logger.Debug(tr.Items)
 
-		return false, fmt.Errorf("only document_id can be updated. Len items: %d", len(tr.Items))
+		return false, fmt.Errorf("%s. %s: %d", i18n.Localize(language, "only-document_id-can-be-updated"), i18n.Localize(language, "items-length"), len(tr.Items))
 	}
 
 	updatedFields := tr.Fields.UpdatedFields()
 	if len(updatedFields) != 1 {
-		return false, fmt.Errorf("only document_id can be updated. Received fields to update: [+%v]", updatedFields)
+		return false, fmt.Errorf("%s. %s: [+%v]", i18n.Localize(language, "only-document_id-can-be-updated"), i18n.Localize(language, "received-fields-to-update"), updatedFields)
 	}
 
 	for _, v := range updatedFields {
@@ -126,7 +128,7 @@ func (s *approvalCashPaymentService) checkActionUpdated(tr *treegrid.MainRow, ac
 			continue
 		}
 
-		return false, fmt.Errorf("only document_id can be updated. Received fields to update: [+%v]", updatedFields)
+		return false, fmt.Errorf("%s. %s: [+%v]", i18n.Localize(language, "only-document_id-can-be-updated"), i18n.Localize(language, "received-fields-to-update"), updatedFields)
 	}
 
 	tr.Fields["status"] = nextWrkItem.Status
@@ -137,7 +139,7 @@ func (s *approvalCashPaymentService) checkActionUpdated(tr *treegrid.MainRow, ac
 func (s *approvalCashPaymentService) checkActionDeleted(tr *treegrid.MainRow, language string) (bool, error) {
 	status, err := s.storage.GetStatus(tr.Fields.GetID())
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("%s : %v, [%w]", i18n.Localize(language, "failed-to-get-by", "status", "id"), tr.Fields.GetID(), err)
 	}
 
 	return status != 1, nil
