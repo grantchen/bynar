@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/config"
 )
 
 type (
@@ -86,12 +85,15 @@ func (ir *inventoryRepository) CheckQuantityAndValue(tx *sql.Tx, tr *treegrid.Ma
 	return false, nil
 }
 
-func getLocations(tx *sql.Tx, tr *treegrid.MainRow) (locationOrigin int, locationDest, err error) {
+func getLocations(tx *sql.Tx, tr *treegrid.MainRow) (locationOrigin, locationDest int, err error) {
 	err = tx.QueryRow(`
 	SELECT location_origin_id, location_destination_id
 	FROM transfer
 	WHERE id = ?
 	`, tr.Fields.GetID()).Scan(&locationOrigin, &locationDest)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, 0, errors.New("transfer not found of id: " + tr.Fields.GetIDStr())
+	}
 
 	return
 }
@@ -143,7 +145,7 @@ func move(tx *sql.Tx, trItem item) error {
 	}
 
 	inBoundFlow := &boundItem{
-		ModuleID:         config.ModuleID,
+		ModuleID:         6, // TODO remove
 		ItemID:           trItem.ItemID,
 		LocationID:       trItem.LocationOriginID,
 		PostingDate:      trItem.PostingDate,

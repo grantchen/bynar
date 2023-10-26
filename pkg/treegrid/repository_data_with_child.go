@@ -449,7 +449,7 @@ func (g *gridRowDataRepositoryWithChild) getParentData(level int, group_cols []s
 		// name = document_type
 		// val = DB
 		val := docType
-		where2 := " AND " + colData.DBName + "='" + val + "'"
+		where2 := " AND " + colData.WhereSQL(val)
 
 		// Builds new attribute Rows for identification
 		tempObj["Rows"] = strconv.Itoa(level+1) + where + where2

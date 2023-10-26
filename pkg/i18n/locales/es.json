@@ -28,6 +28,8 @@
   "save": "ahorrar",
   "user-group": "grupo de usuario",
   "user-group-line": "línea de grupo de usuarios",
+  "transfer": "transfer",
+  "transfer-line": "transfer line",
   "archived-update": "archivado = 1, no se puede actualizar",
   "archived-delete": "Archivada = 1, no se puede eliminar",
   "not-valid-archived": "valor archivado no válido",

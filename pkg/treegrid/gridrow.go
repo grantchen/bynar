@@ -78,6 +78,24 @@ func (f GridRow) ValidateOnNotNegativeNumber(fieldsMapping map[string][]string) 
 	return nil
 }
 
+// used to check A positive number.
+func (f GridRow) ValidateOnPositiveNumber(fieldsMapping map[string][]string) error {
+	for key, _ := range fieldsMapping {
+		if key == "Changed" || key == "id" {
+			continue
+		}
+		val, ok := f[key]
+		if intValue, ok1 := val.(string); ok1 {
+			intVal, _ := strconv.Atoi(intValue)
+			if ok && ok1 && intVal <= 0 {
+				return fmt.Errorf("[%s]: %s", key, "field must be not positive")
+			}
+		}
+
+	}
+	return nil
+}
+
 func (f GridRow) MakeValidateOnIntegrityQuery(tableName string, fieldsMapping map[string][]string, fieldsValidating []string) (query string, args []interface{}) {
 	queryFormat := `select COUNT(*) as Count
 	FROM %s
@@ -111,9 +129,9 @@ func (f GridRow) MakeInsertQuery(tableName string, fieldsMapping map[string][]st
 			continue
 		}
 
-		if treegridName == "transaction_no" {
-			continue
-		}
+		//if treegridName == "transaction_no" {
+		//	continue
+		//}
 
 		if strVal, ok := val.(string); ok && strVal == "" {
 			continue
@@ -125,17 +143,17 @@ func (f GridRow) MakeInsertQuery(tableName string, fieldsMapping map[string][]st
 		}
 	}
 
-	if len(fieldsMapping["transaction_no"]) > 0 {
-		columnNames = append(columnNames, "transaction_no")
-	}
+	//if len(fieldsMapping["transaction_no"]) > 0 {
+	//	columnNames = append(columnNames, "transaction_no")
+	//}
 
 	vals := ""
 	colNamesStr := strings.Join(columnNames, ",")
 	for _, v := range columnNames {
-		if v == "transaction_no" {
-			vals += "UUID_SHORT(),"
-			continue
-		}
+		//if v == "transaction_no" {
+		//	vals += "UUID_SHORT(),"
+		//	continue
+		//}
 
 		if !strings.Contains(v, "_date") {
 			vals += "?,"
@@ -366,20 +384,6 @@ func (g GridRow) UpdatedFields() []string {
 	return updatedFields
 }
 
-func (g GridRow) GetStrInt(name string) (int, bool) {
-	val, ok := g[name]
-	if !ok {
-		return 0, false
-	}
-
-	valInt, ok := val.(int)
-	if !ok {
-		return 0, false
-	}
-
-	return valInt, true
-}
-
 func (g GridRow) MergeWithMap(m map[string]interface{}) GridRow {
 	newG := make(map[string]interface{})
 
@@ -392,4 +396,15 @@ func (g GridRow) MergeWithMap(m map[string]interface{}) GridRow {
 	}
 
 	return newG
+}
+
+// FilterFieldsMapping return new fieldsMapping with only fields in fields
+func (f GridRow) FilterFieldsMapping(fieldsMapping map[string][]string, fields []string) map[string][]string {
+	newFieldsMapping := make(map[string][]string)
+	for _, field := range fields {
+		if _, ok := fieldsMapping[field]; ok {
+			newFieldsMapping[field] = fieldsMapping[field]
+		}
+	}
+	return newFieldsMapping
 }
