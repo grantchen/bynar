@@ -45,8 +45,8 @@ func (s *approvalCashPaymentService) checkActionAdded(tr *treegrid.MainRow, acco
 
 	wrkItem, err := s.storage.GetWorkflowItem(accountID, docID)
 	if err != nil {
-		return false, fmt.Errorf("%s : %s",
-			i18n.Localize(language, "failed-to-get-data-from"), "workflow-item")
+		return false, fmt.Errorf("%s",
+			i18n.Localize(language, "failed-to-get-data-from", i18n.Localize(language, "workflow-item")))
 	}
 	tr.Fields["status"] = wrkItem.Status
 
@@ -69,7 +69,7 @@ func (s *approvalCashPaymentService) checkActionUpdated(tr *treegrid.MainRow, ac
 	// can be updated only lines
 	if currStatus == 1 && len(tr.Fields.UpdatedFields()) > 0 {
 		if len(tr.Fields.UpdatedFields()) > 0 {
-			return false, fmt.Errorf("%s.%s", i18n.Localize("data-is", "current-status", "1"), i18n.Localize(language, "only-lines-can-be-updated"))
+			return false, fmt.Errorf("%s.%s", i18n.Localize(language, "data-is", i18n.Localize(language, "current-status"), "1"), i18n.Localize(language, "only-lines-can-be-updated"))
 		}
 		tr.Fields["status"] = currStatus
 
