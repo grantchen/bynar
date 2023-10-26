@@ -133,12 +133,16 @@ func (f GridRow) MakeInsertQuery(tableName string, fieldsMapping map[string][]st
 		//	continue
 		//}
 
-		if strVal, ok := val.(string); ok && strVal == "" {
-			continue
-		}
-
 		if dbNames, ok := fieldsMapping[treegridName]; ok {
-			columnNames = append(columnNames, dbNames[0])
+			columnName := dbNames[0]
+			if strVal, ok := val.(string); ok && strVal == "" {
+				// date column should insert with null
+				if IsDateCol(columnName) {
+					continue
+				}
+			}
+
+			columnNames = append(columnNames, columnName)
 			args = append(args, f[treegridName])
 		}
 	}
