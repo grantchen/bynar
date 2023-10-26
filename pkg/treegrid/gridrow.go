@@ -40,7 +40,7 @@ func (f GridRow) ValidateOnRequiredAll(fieldsMapping map[string][]string) error 
 	for key, _ := range fieldsMapping {
 		val, ok := f[key]
 		if !ok || val == "" {
-			return fmt.Errorf("[%w]: %s", errors.ErrMissingRequiredParams, key)
+			return fmt.Errorf("%w, %s", errors.ErrMissingRequiredParams, key)
 		}
 	}
 	return nil
@@ -60,7 +60,7 @@ func (f GridRow) ValidateOnRequired(fieldsMapping map[string][]string) error {
 	return nil
 }
 
-// used to check A positive number.
+// used to check not negative number.
 func (f GridRow) ValidateOnNotNegativeNumber(fieldsMapping map[string][]string) error {
 	for key, _ := range fieldsMapping {
 		if key == "Changed" || key == "id" {
