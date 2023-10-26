@@ -3,7 +3,7 @@ package repository
 // tables: transfers, documents, stores
 const (
 	QueryParentCount = `
-	SELECT COUNT(transfers.id) as rowCount 
+	SELECT COUNT(transfers.id) as Count 
 	FROM transfers 
 	INNER JOIN documents ON transfers.document_id = documents.id  
 	INNER JOIN stores ON transfers.store_id = stores.id 

@@ -2,7 +2,7 @@ package repository
 
 const (
 	QueryChildCount = `
-SELECT COUNT(*) as rowCount 
+SELECT COUNT(*) as Count 
 FROM transfer_lines 
 	INNER JOIN items ON transfer_lines.item_id = items.id  
 	INNER JOIN units ON transfer_lines.item_unit_id = units.id`
