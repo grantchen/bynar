@@ -154,6 +154,7 @@ func (t *transferRepository) SaveTransferLines(tx *sql.Tx, tr *treegrid.MainRow)
 			if err = t.validateAddTransferLine(tx, item); err != nil {
 				return err
 			}
+
 			err = t.gridTreeRepository.SaveLineAdd(tx, item)
 			if err != nil {
 				return err

@@ -66,12 +66,10 @@ func (f GridRow) ValidateOnNotNegativeNumber(fieldsMapping map[string][]string) 
 		if key == "Changed" || key == "id" {
 			continue
 		}
-		val, ok := f[key]
-		if intValue, ok1 := val.(string); ok1 {
-			intVal, _ := strconv.Atoi(intValue)
-			if ok && ok1 && intVal < 0 {
-				return fmt.Errorf("[%s]: %s", key, "field must be not negative")
-			}
+		_, ok := f[key]
+		numberVal, _ := f.GetValFloat64(key)
+		if ok && numberVal < 0 {
+			return fmt.Errorf("[%s]: %s", key, "field must be not negative")
 		}
 
 	}
@@ -84,12 +82,10 @@ func (f GridRow) ValidateOnPositiveNumber(fieldsMapping map[string][]string) err
 		if key == "Changed" || key == "id" {
 			continue
 		}
-		val, ok := f[key]
-		if intValue, ok1 := val.(string); ok1 {
-			intVal, _ := strconv.Atoi(intValue)
-			if ok && ok1 && intVal <= 0 {
-				return fmt.Errorf("[%s]: %s", key, "field must be positive")
-			}
+		_, ok := f[key]
+		numberVal, _ := f.GetValFloat64(key)
+		if ok && numberVal <= 0 {
+			return fmt.Errorf("[%s]: %s", key, "field must be positive")
 		}
 
 	}

@@ -75,7 +75,7 @@ func (t *transferRepository) validateAddTransferLine(tx *sql.Tx, item treegrid.G
 }
 
 func (t *transferRepository) afterChangeTransferLine(tx *sql.Tx, item treegrid.GridRow) error {
-	if _, ok := item["input_quantaty"]; ok {
+	if _, ok := item["input_quantity"]; ok {
 		return t.updateTransferLineQuantityVals(tx, item)
 	}
 
@@ -92,9 +92,9 @@ func (t *transferRepository) updateTransferLineQuantityVals(tx *sql.Tx, item tre
 UPDATE transfer_lines trl
 SET item_unit_value = (SELECT value FROM units WHERE id = trl.item_unit_id),
 quantity = input_quantity * (SELECT value FROM units WHERE id = trl.item_unit_id)
-WHERE id = 1
+WHERE id = ?
 	`
-	_, err := tx.Exec(query, item.GetID())
+	_, err := tx.Exec(query, item.GetLineID())
 
 	return err
 }
