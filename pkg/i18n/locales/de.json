@@ -49,5 +49,20 @@
   "user-not-allowed": "Der Benutzer darf den Vorgang nicht ausführen",
   "code-same": "code: %s ist bei der Anfrage gleich",
   "payment": "Zahlung",
-  "payment-line": "Zahlungszeile"
+  "payment-line": "Zahlungszeile",
+  "undefined-action-type": "undefinierter Aktionstyp",
+  "missing": "verschollen",
+  "failed-to-get-data-from": "Es konnten keine Daten abgerufen werden %s",
+  "forbidden-action": "verbotene Handlung",
+  "workflow-item": "Workflowelement",
+  "failed-to-get-by": "konnte nicht bekommen %s über %s",
+  "only-document_id-can-be-updated": "Nur document_id kann aktualisiert werden",
+  "items-length": "Artikellänge",
+  "received-fields-to-update": "Empfangene Felder zum Aktualisieren",
+  "only-lines-can-be-updated": "Es können nur Zeilen aktualisiert werden",
+  "data-is": "%s Ist %s",
+  "current-status": "aktueller Status",
+  "failed-to-delete": "konnte nicht gelöscht werden %s",
+  "failed-to-add": "konnte nicht hinzugefügt werden %s",
+  "failed-to-handle": "nicht zu bewältigen %s"
 }
