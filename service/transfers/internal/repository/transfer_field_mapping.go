@@ -125,5 +125,15 @@ var (
 			"transfer_lines.receipt_date",
 			"transfer_lines.receipt_date",
 		},
+
+		// need to insert, not in treegrid cols
+		"item_unit_value": {
+			"item_unit_value",
+			"transfer_lines.item_unit_value",
+		},
+		"quantity": {
+			"quantity",
+			"transfer_lines.quantity",
+		},
 	}
 )

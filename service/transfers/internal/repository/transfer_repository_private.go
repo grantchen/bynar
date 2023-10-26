@@ -44,27 +44,27 @@ func (t *transferRepository) validateAddTransferLine(tx *sql.Tx, item treegrid.G
 		return fmt.Errorf("query row: [%w], query: %s", err, query)
 	}
 
-	unitVal := int(value)
+	unitIntValue := int(value)
 
 	// check item unit val
 	itemUnitVal, ok := item["item_unit_value"]
 	if !ok {
-		item["item_unit_value"] = unitVal
+		item["item_unit_value"] = unitIntValue
 	} else {
 		itemUnitValInt, _ := item.GetValInt("item_unit_value")
 
-		if itemUnitValInt != unitVal {
+		if itemUnitValInt != unitIntValue {
 			return fmt.Errorf("invalid item_unit_value: got '%d', want '%d'", itemUnitValInt, itemUnitVal)
 		}
 	}
 
 	// check calculated quantity
-	inputQuantity, _ := item.GetValInt("input_quantity")
+	inputQuantity, _ := item.GetValFloat64("input_quantity")
 	if inputQuantity == 0 {
-		return fmt.Errorf("invalid input quantity: '%d'", inputQuantity)
+		return fmt.Errorf("invalid input quantity: '%v'", inputQuantity)
 	}
 
-	item["quantity"] = inputQuantity * unitVal
+	item["quantity"] = inputQuantity * float64(unitIntValue)
 	if _, ok := item["Parent"]; !ok {
 		return fmt.Errorf("absent 'Parent' value ")
 	}

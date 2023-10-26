@@ -370,6 +370,31 @@ func (g GridRow) GetValInt(name string) (int, bool) {
 	return 0, false
 }
 
+// GetValFloat64 return float64 value of field name
+func (g GridRow) GetValFloat64(name string) (float64, bool) {
+	val, ok := g[name]
+	if !ok {
+		return 0, false
+	}
+
+	switch v := val.(type) {
+	case int:
+		return float64(v), true
+	case int64:
+		return float64(v), true
+	case float64:
+		return v, true
+	case string:
+		floatVal, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			return 0, false
+		}
+		return floatVal, true
+	}
+
+	return 0, false
+}
+
 func (g GridRow) UpdatedFields() []string {
 	updatedFields := make([]string, 0, len(g))
 	for key := range g {
