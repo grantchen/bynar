@@ -8,7 +8,6 @@ import (
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/sites/internal/repository"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
@@ -43,7 +42,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 
 	tx, err := u.db.BeginTx(context.Background(), nil)
 	if err != nil {
-		return nil, fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeBeginTransaction))
+		return nil, fmt.Errorf("begin transaction: [%w]", err)
 	}
 	defer tx.Rollback()
 
@@ -52,17 +51,18 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 			log.Println("Err", err)
 
 			resp.IO.Result = -1
-			resp.IO.Message += i18n.ErrMsgToI18n(err, u.language).Error() + "\n"
+			a := i18n.ErrMsgToI18n(err, u.language).Error()
+			resp.IO.Message += a + "\n"
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
-
-			// rollback
-			return resp, err
+			break
+			//rollback
+			//return resp, err
 		}
 		resp.Changes = append(resp.Changes, gr)
 		resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
 	}
 	if err = tx.Commit(); err != nil {
-		return nil, fmt.Errorf("%s: [%w]", i18n.Localize(u.language, errors.ErrCodeCommitTransaction), err)
+		return nil, fmt.Errorf("commit transaction: [%w]", err)
 	}
 
 	return resp, nil
@@ -84,14 +84,14 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		for _, field := range positiveFieldsValidating {
 			err = gr.ValidateOnNotNegativeNumber(map[string][]string{field: repository.SiteFieldNames[field]})
 			if err != nil {
-				return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeNotNegativeNumber))
+				return err
 			}
 		}
 
 		for _, field := range fieldsValidating {
 			ok, err := s.siteSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr[field])
+				return fmt.Errorf("%s, duplicate", field)
 			}
 		}
 		err = s.siteSimpleRepository.Add(tx, gr)
@@ -104,14 +104,14 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		for _, field := range positiveFieldsValidating {
 			err = gr.ValidateOnNotNegativeNumber(map[string][]string{field: repository.SiteFieldNames[field]})
 			if err != nil {
-				return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeNotNegativeNumber))
+				return err
 			}
 		}
 
 		for _, field := range fieldsValidating {
 			ok, err := s.siteSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), gr[field])
+				return fmt.Errorf("%s, duplicate", field)
 			}
 		}
 		err = s.siteSimpleRepository.Update(tx, gr)

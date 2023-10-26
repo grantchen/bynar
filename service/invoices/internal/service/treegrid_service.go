@@ -52,38 +52,19 @@ func (u *TreeGridService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespo
 		return nil, fmt.Errorf("parse requst: [%w]", err)
 	}
 	isCommit := true
-	seenInvoiceNos := make(map[string]bool)
-
-	for _, gr := range grList {
-		if gr["invoice_no"] != nil {
-			invoiceNo := gr["invoice_no"].(string)
-			//Check if the value is already in the map
-			if seenInvoiceNos[invoiceNo] {
-				//If there is the same invoice_no, handle it accordingly.
-				isCommit = false
-				resp.IO.Result = -1
-				resp.IO.Message = i18n.ErrMsgToI18n(fmt.Errorf("%s, duplicate", "invoice_no"), u.language).Error() + "\n"
-				resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
-			} else {
-				seenInvoiceNos[invoiceNo] = true
-			}
-		}
-	}
 	// If no errors occurred, commit the transaction
-	if isCommit == true {
-		for _, gr := range grList {
-			if err = u.handle(tx, gr); err != nil {
-				log.Println("Err", err)
-				isCommit = false
-				resp.IO.Result = -1
-				resp.IO.Message += i18n.ErrMsgToI18n(err, u.language).Error() + "\n"
-				resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
-				break
-			}
-			resp.Changes = append(resp.Changes, gr)
-			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
+	for _, gr := range grList {
+		if err = u.handle(tx, gr); err != nil {
+			log.Println("Err", err)
+			isCommit = false
+			resp.IO.Result = -1
+			resp.IO.Message += i18n.ErrMsgToI18n(err, u.language).Error() + "\n"
+			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
+			isCommit = false
+			break
 		}
-
+		resp.Changes = append(resp.Changes, gr)
+		resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
 	}
 	if isCommit == true {
 		if err = tx.Commit(); err != nil {

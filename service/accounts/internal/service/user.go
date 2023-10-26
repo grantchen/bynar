@@ -48,40 +48,18 @@ func (s *UserService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse,
 		return nil, fmt.Errorf("parse requst: [%w]", err)
 	}
 	isCommit := true
-	fieldsCombinationValidating := []string{"email", "phone"}
-	for _, field := range fieldsCombinationValidating {
-		seenMap := make(map[string]bool)
-		for _, gr := range grList {
-			if gr[field] != nil {
-				value := gr[field].(string)
-				// Check if the value is already in the map
-				if seenMap[value] {
-					// If there is the same value, handle it accordingly.
-					isCommit = false
-					resp.IO.Result = -1
-					resp.IO.Message = i18n.ErrMsgToI18n(fmt.Errorf("%s, duplicate", field), s.language).Error() + "\n"
-					resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
-					break
-				} else {
-					seenMap[value] = true
-				}
-			}
-		}
-	}
-
 	// If no errors occurred, commit the transaction
-	if isCommit == true {
-		for _, gr := range grList {
-			if err = s.handle(tx, gr); err != nil {
-				isCommit = false
-				resp.IO.Result = -1
-				resp.IO.Message += i18n.ErrMsgToI18n(err, s.language).Error() + "\n"
-				resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
-				break
-			}
-			resp.Changes = append(resp.Changes, gr)
-			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
+	for _, gr := range grList {
+		if err = s.handle(tx, gr); err != nil {
+			isCommit = false
+			resp.IO.Result = -1
+			resp.IO.Message += i18n.ErrMsgToI18n(err, s.language).Error() + "\n"
+			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
+			isCommit = false
+			break
 		}
+		resp.Changes = append(resp.Changes, gr)
+		resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
 	}
 	if isCommit == true {
 		if err = tx.Commit(); err != nil {

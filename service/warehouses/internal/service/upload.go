@@ -47,23 +47,13 @@ func (u *uploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 		return nil, fmt.Errorf("begin transaction: [%w]", err)
 	}
 	defer tx.Rollback()
-	existsMap := map[string]bool{}
-	for _, gr := range grList {
-		if existsMap[gr["code"].(string)] {
-			resp.IO.Result = -1
-			resp.IO.Message += i18n.Localize(u.language, "code-same", gr["code"].(string)) + "\n"
-			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
-			return resp, nil
-		} else {
-			existsMap[gr["code"].(string)] = true
-		}
-	}
+
 	for _, gr := range grList {
 		if err = u.handle(tx, gr); err != nil {
 			log.Println("Err", err)
 
 			resp.IO.Result = -1
-			resp.IO.Message += err.Error() + "\n"
+			resp.IO.Message += i18n.ErrMsgToI18n(err, u.language).Error() + "\n"
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
 			break
 		}
@@ -87,7 +77,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	case treegrid.GridRowActionAdd:
 		err1 := gr.ValidateOnRequiredAll(repository.WarehousesFieldNames)
 		if err1 != nil {
-			return i18n.ErrMsgToI18n(err1, u.language)
+			return err1
 		}
 		err = gr.ValidateOnNotNegativeNumber(repository.WarehousesFieldNames)
 		if err != nil {
@@ -96,7 +86,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		for _, field := range fieldsCombinationValidating {
 			ok, err := u.tgWarehousesSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(u.language, errors.ErrCodeValueDuplicated), gr[field])
+				return fmt.Errorf("%s, duplicate", field)
 			}
 		}
 		err = u.tgWarehousesSimpleRepository.Add(tx, gr)
@@ -112,7 +102,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		for _, field := range fieldsCombinationValidating {
 			ok, err := u.tgWarehousesSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(u.language, errors.ErrCodeValueDuplicated), gr[field])
+				return fmt.Errorf("%s, duplicate", field)
 			}
 		}
 		_, ok := gr.GetValInt("id")
@@ -136,11 +126,11 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			return nil
 		}
 	default:
-		return fmt.Errorf("%s: %s", i18n.Localize(u.language, errors.ErrCodeUndefinedTowType), gr.GetActionType())
+		return err
 	}
 
 	if err != nil {
-		return i18n.ErrMsgToI18n(err, u.language)
+		return err
 	}
 
 	return err

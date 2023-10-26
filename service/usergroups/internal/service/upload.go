@@ -57,7 +57,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 			log.Println("Err", err)
 
 			resp.IO.Result = -1
-			resp.IO.Message += err.Error() + "\n"
+			resp.IO.Message += i18n.ErrMsgToI18n(err, u.language).Error() + "\n"
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(tr.Fields))
 			break
 		}
@@ -124,7 +124,7 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 		for _, field := range fieldsValidating {
 			ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), tr.Fields[field])
+				return fmt.Errorf("%s, duplicate", field)
 			}
 		}
 	case treegrid.GridRowActionChanged:
@@ -136,7 +136,7 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 		for _, field := range fieldsValidating {
 			ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(s.language, errors.ErrCodeValueDuplicated), tr.Fields[field])
+				return fmt.Errorf("%s, duplicate", field)
 			}
 		}
 	case treegrid.GridRowActionDeleted:
