@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
@@ -99,6 +100,22 @@ func (t *transferRepository) SaveTransfer(tx *sql.Tx, tr *treegrid.MainRow) erro
 		err = t.validateTransferParams(tx, tr)
 		if err != nil {
 			return err
+		}
+	case treegrid.GridRowActionDeleted:
+		// ignore id start with CR
+		idStr := tr.Fields.GetIDStr()
+		if !strings.HasPrefix(idStr, "CR") {
+			stmt, err := tx.Prepare("DELETE FROM transfer_lines WHERE parent_id = ?")
+			if err != nil {
+				return err
+			}
+
+			defer stmt.Close()
+
+			_, err = stmt.Exec(idStr)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

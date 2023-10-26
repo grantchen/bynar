@@ -155,8 +155,6 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 				return err
 			}
 		}
-
-		fmt.Println(tr.Fields.GetID())
 	}
 
 	return s.updateGRUserGroupRepositoryWithChild.SaveMainRow(tx, tr)
