@@ -48,6 +48,8 @@ func (t *transferRepository) SaveTransfer(tx *sql.Tx, tr *treegrid.MainRow) erro
 			"document_id",
 			"transaction_no",
 			"store_id",
+			"location_origin_id",
+			"location_destination_id",
 		})
 	positiveFieldsMapping := tr.Fields.FilterFieldsMapping(
 		TransferFieldNames,
@@ -66,8 +68,8 @@ func (t *transferRepository) SaveTransfer(tx *sql.Tx, tr *treegrid.MainRow) erro
 			//"transaction_specification_id",
 			//"user_group_id",
 			"store_id",
-			//"location_origin_id",
-			//"location_destination_id",
+			"location_origin_id",
+			"location_destination_id",
 		})
 
 	switch tr.Fields.GetActionType() {

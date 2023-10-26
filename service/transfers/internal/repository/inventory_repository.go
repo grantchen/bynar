@@ -46,9 +46,7 @@ func (ir *inventoryRepository) CheckQuantityAndValue(tx *sql.Tx, tr *treegrid.Ma
 	LEFT JOIN inventory i ON tl.item_id = i.id  
 	WHERE 
 		(tl.quantity > i.quantity OR i.id IS NULL)
-		AND i.location = ?
-		AND tl.id IN (%s)
-	`
+		AND i.location_id = ?`
 
 	args := make([]interface{}, 0, len(tr.Items))
 	args = append(args, locOrigin)
@@ -59,9 +57,9 @@ func (ir *inventoryRepository) CheckQuantityAndValue(tx *sql.Tx, tr *treegrid.Ma
 	exclaims := strings.Repeat("?,", len(tr.Items))
 	if len(exclaims) > 0 {
 		exclaims = strings.Trim(exclaims, ",")
+		query += ` AND tl.id IN (%s)`
+		query = fmt.Sprintf(query, exclaims)
 	}
-
-	query = fmt.Sprintf(query, exclaims)
 
 	rows, err := tx.Query(query, args...)
 	if err != nil {
@@ -82,17 +80,37 @@ func (ir *inventoryRepository) CheckQuantityAndValue(tx *sql.Tx, tr *treegrid.Ma
 		return false, errors.New(errStr)
 	}
 
-	return false, nil
+	return true, nil
 }
 
 func getLocations(tx *sql.Tx, tr *treegrid.MainRow) (locationOrigin, locationDest int, err error) {
-	err = tx.QueryRow(`
-	SELECT location_origin_id, location_destination_id
-	FROM transfer
-	WHERE id = ?
-	`, tr.Fields.GetID()).Scan(&locationOrigin, &locationDest)
-	if errors.Is(err, sql.ErrNoRows) {
-		return 0, 0, errors.New("transfer not found of id: " + tr.Fields.GetIDStr())
+	if tr.Fields.GetActionType() == treegrid.GridRowActionAdd {
+		var ok bool
+		if locationOrigin, ok = tr.Fields.GetValInt("location_origin_id"); !ok {
+			return 0, 0, errors.New("location_origin_id not valid")
+		}
+
+		if locationDest, ok = tr.Fields.GetValInt("location_destination_id"); !ok {
+			return 0, 0, errors.New("location_destination_id not valid")
+		}
+	} else {
+		err = tx.QueryRow(`
+			SELECT location_origin_id, location_destination_id
+			FROM transfers
+			WHERE id = ?`,
+			tr.Fields.GetIDStr(),
+		).Scan(&locationOrigin, &locationDest)
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, 0, errors.New("location_origin_id or location_destination_id not valid")
+		}
+
+		if locationOriginTmp, ok := tr.Fields.GetValInt("location_origin_id"); ok {
+			locationOrigin = locationOriginTmp
+		}
+
+		if locationDestTmp, ok := tr.Fields.GetValInt("location_destination_id"); ok {
+			locationDest = locationDestTmp
+		}
 	}
 
 	return
