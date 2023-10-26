@@ -86,7 +86,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		for _, field := range fieldsCombinationValidating {
 			ok, err := u.tgWarehousesSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("%s, duplicate", field)
+				return fmt.Errorf("duplicate, %s", field)
 			}
 		}
 		err = u.tgWarehousesSimpleRepository.Add(tx, gr)
@@ -102,7 +102,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		for _, field := range fieldsCombinationValidating {
 			ok, err := u.tgWarehousesSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("%s, duplicate", field)
+				return fmt.Errorf("duplicate, %s", field)
 			}
 		}
 		_, ok := gr.GetValInt("id")

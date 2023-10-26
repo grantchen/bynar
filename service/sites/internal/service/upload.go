@@ -91,7 +91,7 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		for _, field := range fieldsValidating {
 			ok, err := s.siteSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("%s, duplicate", field)
+				return fmt.Errorf("duplicate, %s", field)
 			}
 		}
 		err = s.siteSimpleRepository.Add(tx, gr)
@@ -111,7 +111,7 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		for _, field := range fieldsValidating {
 			ok, err := s.siteSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("%s, duplicate", field)
+				return fmt.Errorf("duplicate, %s", field)
 			}
 		}
 		err = s.siteSimpleRepository.Update(tx, gr)

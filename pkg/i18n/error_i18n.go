@@ -28,10 +28,10 @@ func ErrMsgToI18n(err error, language string) error {
 	errMsg := err.Error()
 	for key, code := range errMsgToCodeMap {
 		if strings.Contains(errMsg, key) {
-			parts := strings.SplitN(errMsg, ",", 2)
+			parts := strings.Split(errMsg, ",")
 			message := Localize(language, code)
 			if len(parts) > 1 {
-				message += ": " + strings.TrimSpace(parts[0])
+				message += ": " + strings.Join(parts[1:], ": ")
 			}
 			return fmt.Errorf(message)
 		}

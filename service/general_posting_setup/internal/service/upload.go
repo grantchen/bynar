@@ -94,7 +94,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			for _, field := range fieldsCombinationValidating {
 				ok, err := u.tgGeneralPostingSetupSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 				if !ok || err != nil {
-					return fmt.Errorf("%s, duplicate", field)
+					return fmt.Errorf("duplicate, %s", field)
 				}
 			}
 		}
@@ -138,7 +138,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			for _, field := range fieldsCombinationValidating {
 				ok, err := u.tgGeneralPostingSetupSimpleRepository.ValidateOnIntegrity(tx, newGr, []string{field})
 				if !ok || err != nil {
-					return fmt.Errorf("%s, duplicate", field)
+					return fmt.Errorf("duplicate, %s", field)
 				}
 			}
 		}

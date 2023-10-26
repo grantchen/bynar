@@ -124,7 +124,7 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 		for _, field := range fieldsValidating {
 			ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("%s, duplicate", field)
+				return fmt.Errorf("duplicate, %s", field)
 			}
 		}
 	case treegrid.GridRowActionChanged:
@@ -136,7 +136,7 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 		for _, field := range fieldsValidating {
 			ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("%s, duplicate", field)
+				return fmt.Errorf("duplicate, %s", field)
 			}
 		}
 	case treegrid.GridRowActionDeleted:

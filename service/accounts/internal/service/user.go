@@ -95,7 +95,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		for _, field := range fieldsValidating {
 			ok, err := s.simpleOrganizationRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("%s, duplicate", field)
+				return fmt.Errorf("duplicate, %s", field)
 			}
 		}
 		err = func() error {
@@ -140,7 +140,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				for _, field := range fieldsValidating {
 					ok, err = s.simpleOrganizationRepository.ValidateOnIntegrity(tx, gr, []string{field})
 					if !ok || err != nil {
-						return fmt.Errorf("%s, duplicate", field)
+						return fmt.Errorf("duplicate, %s", field)
 					}
 				}
 				err = s.simpleOrganizationRepository.Update(tx, gr)

@@ -89,7 +89,7 @@ func (s *TreeGridService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		}
 		ok, err1 := s.invoiceSimpleRepository.ValidateOnIntegrity(tx, gr, fieldsValidating)
 		if !ok || err1 != nil {
-			return fmt.Errorf("%s, duplicate", "invoice_no")
+			return fmt.Errorf("duplicate, %s", "invoice_no")
 		}
 		err = s.invoiceSimpleRepository.Add(tx, gr)
 	case treegrid.GridRowActionChanged:
@@ -105,7 +105,7 @@ func (s *TreeGridService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		}
 		ok, err1 = s.invoiceSimpleRepository.ValidateOnIntegrity(tx, gr, fieldsValidating)
 		if !ok || err1 != nil {
-			return fmt.Errorf("%s, duplicate", "invoice_no")
+			return fmt.Errorf("duplicate, %s", "invoice_no")
 		}
 		err = s.invoiceSimpleRepository.Update(tx, gr)
 	case treegrid.GridRowActionDeleted:
