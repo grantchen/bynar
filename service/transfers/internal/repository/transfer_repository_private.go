@@ -35,8 +35,8 @@ func (t *transferRepository) validateAddTransferLine(tx *sql.Tx, item treegrid.G
 	}
 
 	query := `SELECT value FROM units WHERE id = ?`
-	var value float64
-	if err := tx.QueryRow(query, unitID).Scan(&value); err != nil {
+	var unitValue float64
+	if err := tx.QueryRow(query, unitID).Scan(&unitValue); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return fmt.Errorf("unit not found with item_unit_id: %s", unitID)
 		}
@@ -44,17 +44,15 @@ func (t *transferRepository) validateAddTransferLine(tx *sql.Tx, item treegrid.G
 		return fmt.Errorf("query row: [%w], query: %s", err, query)
 	}
 
-	unitIntValue := int(value)
-
 	// check item unit val
 	itemUnitVal, ok := item["item_unit_value"]
 	if !ok {
-		item["item_unit_value"] = unitIntValue
+		item["item_unit_value"] = unitValue
 	} else {
-		itemUnitValInt, _ := item.GetValInt("item_unit_value")
+		itemUnitValFloat, _ := item.GetValFloat64("item_unit_value")
 
-		if itemUnitValInt != unitIntValue {
-			return fmt.Errorf("invalid item_unit_value: got '%d', want '%d'", itemUnitValInt, itemUnitVal)
+		if itemUnitValFloat != unitValue {
+			return fmt.Errorf("invalid item_unit_value: got '%v', want '%d'", itemUnitValFloat, itemUnitVal)
 		}
 	}
 
@@ -64,7 +62,7 @@ func (t *transferRepository) validateAddTransferLine(tx *sql.Tx, item treegrid.G
 		return fmt.Errorf("invalid input quantity: '%v'", inputQuantity)
 	}
 
-	item["quantity"] = inputQuantity * float64(unitIntValue)
+	item["quantity"] = inputQuantity * unitValue
 	if _, ok := item["Parent"]; !ok {
 		return fmt.Errorf("absent 'Parent' value ")
 	}
