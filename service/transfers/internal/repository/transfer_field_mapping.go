@@ -42,6 +42,10 @@ var (
 			"area_id",
 			"transfers.area_id",
 		},
+		"entry_exit_point_id": {
+			"entry_exit_point_id",
+			"transfers.entry_exit_point_id",
+		},
 		"department_id": {
 			"department_id",
 			"transfers.department_id",
