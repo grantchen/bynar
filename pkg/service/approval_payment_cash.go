@@ -46,7 +46,7 @@ func (s *approvalCashPaymentService) checkActionAdded(tr *treegrid.MainRow, acco
 	wrkItem, err := s.storage.GetWorkflowItem(accountID, docID)
 	if err != nil {
 		return false, fmt.Errorf("%s",
-			i18n.Localize(language, "failed-to-get-data-from", i18n.Localize(language, "workflow-item")))
+			i18n.Localize(language, "failed-to-get-by", i18n.Localize(language, "workflow-item"), "document_id"))
 	}
 	tr.Fields["status"] = wrkItem.Status
 
