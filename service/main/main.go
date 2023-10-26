@@ -31,7 +31,7 @@ import (
 	procurements_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/procurements/external/handler/http"
 	sales_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/external/handler/http"
 	sites_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/sites/external/handler/service"
-	transfers_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/external/handler/http"
+	transfers_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/external/handler/service"
 	user_group_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/external/service"
 	warehouses_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/warehouses/external/service"
 )
@@ -146,9 +146,6 @@ func main() {
 	//	&HandlerMapping{handler: payments_handler.NewHTTPHandler(appConfig, db),
 	//		prefixPath: "/payments"})
 	lsHandlerMapping = append(lsHandlerMapping,
-		&HandlerMapping{handler: transfers_handler.NewHTTPHandler(appConfig, db),
-			prefixPath: "/transfers"})
-	lsHandlerMapping = append(lsHandlerMapping,
 		&HandlerMapping{handler: procurements_handler.NewHTTPHandler(appConfig, db),
 			prefixPath: "/procurements"})
 
@@ -165,6 +162,7 @@ func main() {
 	lsHandlerMappingWithPermission = append(lsHandlerMappingWithPermission,
 		&HandlerMappingWithPermission{factoryFunc: organizations_service.NewTreeGridServiceFactory(), prefixPath: "/organizations"},
 		&HandlerMappingWithPermission{factoryFunc: sites_service.NewTreeGridServiceFactory(), prefixPath: "/sites"},
+		&HandlerMappingWithPermission{factoryFunc: transfers_service.NewTreeGridServiceFactory(), prefixPath: "/transfers"},
 		&HandlerMappingWithPermission{factoryFunc: accounts_service.NewTreeGridServiceFactory(), prefixPath: "/user_list"},
 		&HandlerMappingWithPermission{factoryFunc: general_posting_setup_service.NewTreeGridServiceFactory(), prefixPath: "/general_posting_setup"},
 		&HandlerMappingWithPermission{factoryFunc: user_group_service.NewTreeGridServiceFactory(), prefixPath: "/user_groups"},

@@ -103,9 +103,9 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		if err != nil {
 			return i18n.ErrMsgToI18n(err, u.language)
 		}
-		err = gr.ValidateOnPositiveNumber(repository.GeneralPostingSetupFieldNames)
+		err = gr.ValidateOnNotNegativeNumber(repository.GeneralPostingSetupFieldNames)
 		if err != nil {
-			return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodePositiveNumber))
+			return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeNotNegativeNumber))
 		}
 		generalPostingSetup, _ := model.ParseGridRow(gr)
 		err = u.checkGeneralPostSetupCondition(generalPostingSetup)
@@ -127,9 +127,9 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		if err != nil {
 			return i18n.ErrMsgToI18n(err, u.language)
 		}
-		err = gr.ValidateOnPositiveNumber(repository.GeneralPostingSetupFieldNames)
+		err = gr.ValidateOnNotNegativeNumber(repository.GeneralPostingSetupFieldNames)
 		if err != nil {
-			return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodePositiveNumber))
+			return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeNotNegativeNumber))
 		}
 		//id := gr.GetIDInt()
 		var generalPostingSetup *model.GeneralPostingSetup

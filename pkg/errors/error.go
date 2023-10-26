@@ -47,6 +47,8 @@ var (
 	ErrCodeSave          = "save"
 	ErrCodeUserGroup     = "user-group"
 	ErrCodeUserGroupLine = "user-group-line"
+	ErrCodeTransfer      = "transfer"
+	ErrCodeTransferLine  = "transfer-line"
 
 	ErrCodePayment     = "payment"
 	ErrCodePaymentLine = "payment-line"
@@ -63,5 +65,5 @@ var (
 	ErrCodeNotField                 = "not-field-update"
 	ErrCodeNoAllowToUpdateChildLine = "no-allow-to update-child-line"
 	ErrCodeTruncatedIncorrect       = "truncated-incorrect"
-	ErrCodePositiveNumber           = "positive-number"
+	ErrCodeNotNegativeNumber        = "not-negative-number"
 )

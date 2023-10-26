@@ -61,7 +61,7 @@ func (f GridRow) ValidateOnRequired(fieldsMapping map[string][]string) error {
 }
 
 // used to check A positive number.
-func (f GridRow) ValidateOnPositiveNumber(fieldsMapping map[string][]string) error {
+func (f GridRow) ValidateOnNotNegativeNumber(fieldsMapping map[string][]string) error {
 	for key, _ := range fieldsMapping {
 		if key == "Changed" || key == "id" {
 			continue
@@ -70,7 +70,25 @@ func (f GridRow) ValidateOnPositiveNumber(fieldsMapping map[string][]string) err
 		if intValue, ok1 := val.(string); ok1 {
 			intVal, _ := strconv.Atoi(intValue)
 			if ok && ok1 && intVal < 0 {
-				return fmt.Errorf("[%s]: %s", key, "field must be positive")
+				return fmt.Errorf("[%s]: %s", key, "field must be not negative")
+			}
+		}
+
+	}
+	return nil
+}
+
+// used to check A positive number.
+func (f GridRow) ValidateOnPositiveNumber(fieldsMapping map[string][]string) error {
+	for key, _ := range fieldsMapping {
+		if key == "Changed" || key == "id" {
+			continue
+		}
+		val, ok := f[key]
+		if intValue, ok1 := val.(string); ok1 {
+			intVal, _ := strconv.Atoi(intValue)
+			if ok && ok1 && intVal <= 0 {
+				return fmt.Errorf("[%s]: %s", key, "field must be not positive")
 			}
 		}
 
@@ -366,20 +384,6 @@ func (g GridRow) UpdatedFields() []string {
 	return updatedFields
 }
 
-func (g GridRow) GetStrInt(name string) (int, bool) {
-	val, ok := g[name]
-	if !ok {
-		return 0, false
-	}
-
-	valInt, ok := val.(int)
-	if !ok {
-		return 0, false
-	}
-
-	return valInt, true
-}
-
 func (g GridRow) MergeWithMap(m map[string]interface{}) GridRow {
 	newG := make(map[string]interface{})
 
@@ -392,4 +396,15 @@ func (g GridRow) MergeWithMap(m map[string]interface{}) GridRow {
 	}
 
 	return newG
+}
+
+// FilterFieldsMapping return new fieldsMapping with only fields in fields
+func (f GridRow) FilterFieldsMapping(fieldsMapping map[string][]string, fields []string) map[string][]string {
+	newFieldsMapping := make(map[string][]string)
+	for _, field := range fields {
+		if _, ok := fieldsMapping[field]; ok {
+			newFieldsMapping[field] = fieldsMapping[field]
+		}
+	}
+	return newFieldsMapping
 }

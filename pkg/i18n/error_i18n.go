@@ -14,7 +14,7 @@ func ErrMsgToI18n(err error, language string) error {
 	case strings.Contains(errMsg, "missing required params"):
 		return fmt.Errorf(strings.ReplaceAll(errMsg, "missing required params", Localize(language, "missing-required-params")))
 	case strings.Contains(errMsg, "of range"):
-		return fmt.Errorf(Localize(language, errors.ErrCodeOutRange))
+		return fmt.Errorf(Localize(language, errors.ErrCodeOutRange, errMsg))
 	case strings.Contains(errMsg, "Truncated incorrect"):
 		return fmt.Errorf(Localize(language, errors.ErrCodeTruncatedIncorrect))
 	case strings.Contains(errMsg, "not field"):
