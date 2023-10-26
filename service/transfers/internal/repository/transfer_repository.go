@@ -134,6 +134,7 @@ func (t *transferRepository) SaveTransferLines(tx *sql.Tx, tr *treegrid.MainRow)
 		TransferLineFieldNames,
 		[]string{
 			"item_id",
+			"input_quantity",
 			"item_unit_id",
 		})
 
