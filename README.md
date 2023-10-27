@@ -133,3 +133,12 @@ Current avaliable sevices are:
  * user_list
  * general_posting_setup
  * user_groups
+
+## How to config domain
+* DNS A address set
+
+A address set to ip 34.160.127.53
+
+* Upload https Certificate
+
+Network services -> Load balancing -> bynar-backend -> EDIT -> Frontend configuration -> Add Frontend IP and protocol -> Upload https certificate.
