@@ -57,10 +57,9 @@ steps:
   # [END cloudbuild_go_deploy_yaml]
 
   # Delete docker image
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['images', 'delete',
-           'europe-west1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/$REPO_NAME:$SHORT_SHA',
-           '--delete-tags']
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: ['artifacts', 'docker', 'images', 'delete',
+          'europe-west1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/$REPO_NAME:$SHORT_SHA']
 
   # Deploy to Cloud Run
   # - name: 'gcr.io/cloud-builders/gcloud'
