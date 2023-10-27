@@ -12,7 +12,7 @@
   "signature-invalid": "Signature non valide",
   "timestamp-expired": "L'horodatage a expiré",
   "required-fields-blank": "Les champs obligatoires ne peuvent pas être vides",
-  "value-duplicate": "Ce champ est répété, la valeur",
+  "value-duplicate": "Le champ est en double",
   "undefined-row-type": "Le type de ligne n'est pas défini",
   "begin-transaction": "Erreur de début de transaction",
   "commit-transaction": "Erreur de transaction de validation",

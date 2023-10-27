@@ -117,9 +117,7 @@ func (s *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 		}
 
 		if !ok {
-			if err := tx.Commit(); err != nil {
-				return fmt.Errorf("commit transaction: [%w]", err)
-			}
+			return nil
 		}
 
 		docIdStr, err := s.documentRepository.Generate(tx, tr)

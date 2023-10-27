@@ -22,7 +22,7 @@ type (
 		LocationOriginID int
 		LocationDestID   int
 		PostingDate      string
-		Quantity         int
+		Quantity         float64
 		ItemID           int
 	}
 )
@@ -46,9 +46,7 @@ func (ir *inventoryRepository) CheckQuantityAndValue(tx *sql.Tx, tr *treegrid.Ma
 	LEFT JOIN inventory i ON tl.item_id = i.id  
 	WHERE 
 		(tl.quantity > i.quantity OR i.id IS NULL)
-		AND i.location = ?
-		AND tl.id IN (%s)
-	`
+		AND i.location_id = ?`
 
 	args := make([]interface{}, 0, len(tr.Items))
 	args = append(args, locOrigin)
@@ -59,9 +57,9 @@ func (ir *inventoryRepository) CheckQuantityAndValue(tx *sql.Tx, tr *treegrid.Ma
 	exclaims := strings.Repeat("?,", len(tr.Items))
 	if len(exclaims) > 0 {
 		exclaims = strings.Trim(exclaims, ",")
+		query += ` AND tl.id IN (%s)`
+		query = fmt.Sprintf(query, exclaims)
 	}
-
-	query = fmt.Sprintf(query, exclaims)
 
 	rows, err := tx.Query(query, args...)
 	if err != nil {
@@ -82,17 +80,37 @@ func (ir *inventoryRepository) CheckQuantityAndValue(tx *sql.Tx, tr *treegrid.Ma
 		return false, errors.New(errStr)
 	}
 
-	return false, nil
+	return true, nil
 }
 
 func getLocations(tx *sql.Tx, tr *treegrid.MainRow) (locationOrigin, locationDest int, err error) {
-	err = tx.QueryRow(`
-	SELECT location_origin_id, location_destination_id
-	FROM transfer
-	WHERE id = ?
-	`, tr.Fields.GetID()).Scan(&locationOrigin, &locationDest)
-	if errors.Is(err, sql.ErrNoRows) {
-		return 0, 0, errors.New("transfer not found of id: " + tr.Fields.GetIDStr())
+	if tr.Fields.GetActionType() == treegrid.GridRowActionAdd {
+		var ok bool
+		if locationOrigin, ok = tr.Fields.GetValInt("location_origin_id"); !ok {
+			return 0, 0, errors.New("location_origin_id not valid")
+		}
+
+		if locationDest, ok = tr.Fields.GetValInt("location_destination_id"); !ok {
+			return 0, 0, errors.New("location_destination_id not valid")
+		}
+	} else {
+		err = tx.QueryRow(`
+			SELECT location_origin_id, location_destination_id
+			FROM transfers
+			WHERE id = ?`,
+			tr.Fields.GetIDStr(),
+		).Scan(&locationOrigin, &locationDest)
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, 0, errors.New("location_origin_id or location_destination_id not valid")
+		}
+
+		if locationOriginTmp, ok := tr.Fields.GetValInt("location_origin_id"); ok {
+			locationOrigin = locationOriginTmp
+		}
+
+		if locationDestTmp, ok := tr.Fields.GetValInt("location_destination_id"); ok {
+			locationDest = locationDestTmp
+		}
 	}
 
 	return
@@ -100,7 +118,7 @@ func getLocations(tx *sql.Tx, tr *treegrid.MainRow) (locationOrigin, locationDes
 
 func (ir *inventoryRepository) Save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	query := `
-	SELECT  tl.quantity, tl.item_id, t.location_origin_id, t.location_destination_id, t.posting_date
+	SELECT  tl.quantity, tl.item_id, t.location_origin_id, t.location_destination_id, COALESCE(t.posting_date, '')
 	FROM transfers t
 	INNER JOIN transfer_lines tl ON t.id = tl.parent_id
 	WHERE tl.id = ?
@@ -113,7 +131,7 @@ func (ir *inventoryRepository) Save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	items := make([]item, 0, 10)
 	for rows.Next() {
 		var trItem item
-		if err := rows.Scan(&trItem.ItemID, &trItem.Quantity, &trItem.LocationOriginID, &trItem.LocationDestID, &trItem.PostingDate); err != nil {
+		if err := rows.Scan(&trItem.Quantity, &trItem.ItemID, &trItem.LocationOriginID, &trItem.LocationDestID, &trItem.PostingDate); err != nil {
 			return fmt.Errorf("rows scan: [%w]", err)
 		}
 
@@ -151,11 +169,11 @@ func move(tx *sql.Tx, trItem item) error {
 		PostingDate:      trItem.PostingDate,
 		Quantity:         invOrigin.Quantity,
 		Value:            invOrigin.Value,
-		OutboundQuantity: trItem.Quantity,
+		OutboundQuantity: int(trItem.Quantity),
 	}
 
 	invOrigin.IsOrigin = true
-	if err := calcInventory(tx, invOrigin, trItem.Quantity, inBoundFlow); err != nil {
+	if err := calcInventory(tx, invOrigin, int(trItem.Quantity), inBoundFlow); err != nil {
 		return fmt.Errorf("calc inventory: [%w]", err)
 	}
 
@@ -187,7 +205,7 @@ func move(tx *sql.Tx, trItem item) error {
 		return nil
 	}
 
-	if err := calcInventory(tx, invDest, trItem.Quantity, nil); err != nil {
+	if err := calcInventory(tx, invDest, int(trItem.Quantity), nil); err != nil {
 		return fmt.Errorf("calc inventory destination: [%w]", err)
 	}
 

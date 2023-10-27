@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
@@ -47,6 +48,8 @@ func (t *transferRepository) SaveTransfer(tx *sql.Tx, tr *treegrid.MainRow) erro
 			"document_id",
 			"transaction_no",
 			"store_id",
+			"location_origin_id",
+			"location_destination_id",
 		})
 	positiveFieldsMapping := tr.Fields.FilterFieldsMapping(
 		TransferFieldNames,
@@ -65,8 +68,8 @@ func (t *transferRepository) SaveTransfer(tx *sql.Tx, tr *treegrid.MainRow) erro
 			//"transaction_specification_id",
 			//"user_group_id",
 			"store_id",
-			//"location_origin_id",
-			//"location_destination_id",
+			"location_origin_id",
+			"location_destination_id",
 		})
 
 	switch tr.Fields.GetActionType() {
@@ -100,6 +103,22 @@ func (t *transferRepository) SaveTransfer(tx *sql.Tx, tr *treegrid.MainRow) erro
 		if err != nil {
 			return err
 		}
+	case treegrid.GridRowActionDeleted:
+		// ignore id start with CR
+		idStr := tr.Fields.GetIDStr()
+		if !strings.HasPrefix(idStr, "CR") {
+			stmt, err := tx.Prepare("DELETE FROM transfer_lines WHERE parent_id = ?")
+			if err != nil {
+				return err
+			}
+
+			defer stmt.Close()
+
+			_, err = stmt.Exec(idStr)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return t.gridTreeRepository.SaveMainRow(tx, tr)
@@ -117,6 +136,7 @@ func (t *transferRepository) SaveTransferLines(tx *sql.Tx, tr *treegrid.MainRow)
 		TransferLineFieldNames,
 		[]string{
 			"item_id",
+			"input_quantity",
 			"item_unit_id",
 		})
 
@@ -136,6 +156,7 @@ func (t *transferRepository) SaveTransferLines(tx *sql.Tx, tr *treegrid.MainRow)
 			if err = t.validateAddTransferLine(tx, item); err != nil {
 				return err
 			}
+
 			err = t.gridTreeRepository.SaveLineAdd(tx, item)
 			if err != nil {
 				return err

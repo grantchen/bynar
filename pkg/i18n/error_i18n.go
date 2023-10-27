@@ -7,32 +7,34 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 )
 
-// Convert to 18 pieces of information based on err
+var errMsgToCodeMap = map[string]string{
+	"duplicate":               errors.ErrCodeValueDuplicated,
+	"gip user not found":      errors.ErrCodeGipUser,
+	"user not found":          errors.ErrCodeNoUserFound,
+	"not negative":            errors.ErrCodeNotNegativeNumber,
+	"of range":                errors.ErrCodeOutRange,
+	"Truncated incorrect":     errors.ErrCodeTruncatedIncorrect,
+	"not field":               errors.ErrCodeNotField,
+	"too long":                errors.ErrCodeTooLong,
+	"Too Long":                errors.ErrCodeTooLong,
+	"INVALID_PHONE_NUMBER":    errors.ErrCodePhoneNumber,
+	"phone number":            errors.ErrCodePhoneNumber,
+	"INVALID_EMAIL":           errors.ErrCodeEmail,
+	"email":                   errors.ErrCodeEmail,
+	"missing required params": errors.ErrCodeRequiredFieldsBlank,
+}
+
 func ErrMsgToI18n(err error, language string) error {
 	errMsg := err.Error()
-	switch {
-	case strings.Contains(errMsg, "missing required params"):
-		return fmt.Errorf(strings.ReplaceAll(errMsg, "missing required params", Localize(language, "missing-required-params")))
-	case strings.Contains(errMsg, "of range"):
-		return fmt.Errorf(Localize(language, errors.ErrCodeOutRange, errMsg))
-	case strings.Contains(errMsg, "Truncated incorrect"):
-		return fmt.Errorf(Localize(language, errors.ErrCodeTruncatedIncorrect))
-	case strings.Contains(errMsg, "not field"):
-		return fmt.Errorf(Localize(language, errors.ErrCodeNotField))
-	case strings.Contains(errMsg, "too long") || strings.Contains(errMsg, "Too Long"):
-		return fmt.Errorf(Localize(language, errors.ErrCodeTooLong))
-	case strings.Contains(errMsg, "INVALID_PHONE_NUMBER") || strings.Contains(errMsg, "phone number"):
-		return fmt.Errorf(Localize(language, errors.ErrCodePhoneNumber))
-	case strings.Contains(errMsg, "INVALID_EMAIL") || strings.Contains(errMsg, "email"):
-		return fmt.Errorf(Localize(language, errors.ErrCodeEmail))
-	case strings.Contains(errMsg, "missing required params"):
-		index := strings.Index(errMsg, ":")
-		result := ""
-		if index != -1 && index+1 < len(errMsg) {
-			result = err.Error()[index+1:]
+	for key, code := range errMsgToCodeMap {
+		if strings.Contains(errMsg, key) {
+			parts := strings.Split(errMsg, ",")
+			message := Localize(language, code)
+			if len(parts) > 1 {
+				message += ": " + strings.Join(parts[1:], ": ")
+			}
+			return fmt.Errorf(message)
 		}
-		return fmt.Errorf("%s: %s", Localize(language, errors.ErrCodeRequiredFieldsBlank), result)
-	default:
-		return err
 	}
+	return err
 }
