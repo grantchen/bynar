@@ -4,7 +4,6 @@ const (
 	QueryChildCount = `
 		SELECT COUNT(*) as Count
 		FROM payment_lines 
-		INNER JOIN payments ON payment_lines.parent_id = payments.id
 		`
 
 	QueryChild = `
@@ -16,10 +15,7 @@ const (
 	payment_lines.amount,
 	payment_lines.amount_lcy,
 	payment_lines.applied
-	FROM payment_lines 
-		INNER JOIN payments ON payment_lines.parent_id = payments.id`
+	FROM payment_lines `
 
-	QueryChildJoins = `
-	INNER JOIN payments ON payment_lines.parent_id = payments.id
-	`
+	QueryChildJoins = ` INNER JOIN payments ON payment_lines.parent_id = payments.id `
 )

@@ -3,8 +3,8 @@ package repository
 const (
 	QueryParentCount = `
 	SELECT COUNT(payments.id) as Count 
-	FROM payments 
-	WHERE 1=1 `
+	FROM payments
+	`
 
 	QueryParent = `
 	SELECT payments.id,
@@ -37,16 +37,9 @@ const (
 	payments.paid_status,
 	payments.status
 	FROM payments
-	WHERE 1=1 
 	`
 
 	// empty
 	QueryParentJoins = `
 	`
-
-	QueryParentBuild = `
-	SELECT * FROM payments
-	`
-
-	QueryPermissionFormat = ` AND payments.account_id = %d `
 )
