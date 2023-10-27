@@ -40,7 +40,7 @@ func (f GridRow) ValidateOnRequiredAll(fieldsMapping map[string][]string) error 
 	for key, _ := range fieldsMapping {
 		val, ok := f[key]
 		if !ok || val == "" {
-			return fmt.Errorf("[%w]: %s", errors.ErrMissingRequiredParams, key)
+			return fmt.Errorf("%w, %s", errors.ErrMissingRequiredParams, key)
 		}
 	}
 	return nil
@@ -60,18 +60,16 @@ func (f GridRow) ValidateOnRequired(fieldsMapping map[string][]string) error {
 	return nil
 }
 
-// used to check A positive number.
+// used to check not negative number.
 func (f GridRow) ValidateOnNotNegativeNumber(fieldsMapping map[string][]string) error {
 	for key, _ := range fieldsMapping {
 		if key == "Changed" || key == "id" {
 			continue
 		}
-		val, ok := f[key]
-		if intValue, ok1 := val.(string); ok1 {
-			intVal, _ := strconv.Atoi(intValue)
-			if ok && ok1 && intVal < 0 {
-				return fmt.Errorf("[%s]: %s", key, "field must be not negative")
-			}
+		_, ok := f[key]
+		numberVal, _ := f.GetValFloat64(key)
+		if ok && numberVal < 0 {
+			return fmt.Errorf("[%s]: %s", key, "field must be not negative")
 		}
 
 	}
@@ -84,12 +82,10 @@ func (f GridRow) ValidateOnPositiveNumber(fieldsMapping map[string][]string) err
 		if key == "Changed" || key == "id" {
 			continue
 		}
-		val, ok := f[key]
-		if intValue, ok1 := val.(string); ok1 {
-			intVal, _ := strconv.Atoi(intValue)
-			if ok && ok1 && intVal <= 0 {
-				return fmt.Errorf("[%s]: %s", key, "field must be not positive")
-			}
+		_, ok := f[key]
+		numberVal, _ := f.GetValFloat64(key)
+		if ok && numberVal <= 0 {
+			return fmt.Errorf("[%s]: %s", key, "field must be positive")
 		}
 
 	}
@@ -133,12 +129,16 @@ func (f GridRow) MakeInsertQuery(tableName string, fieldsMapping map[string][]st
 		//	continue
 		//}
 
-		if strVal, ok := val.(string); ok && strVal == "" {
-			continue
-		}
-
 		if dbNames, ok := fieldsMapping[treegridName]; ok {
-			columnNames = append(columnNames, dbNames[0])
+			columnName := dbNames[0]
+			if strVal, ok := val.(string); ok && strVal == "" {
+				// date column should insert with null
+				if IsDateCol(columnName) {
+					continue
+				}
+			}
+
+			columnNames = append(columnNames, columnName)
 			args = append(args, f[treegridName])
 		}
 	}
@@ -361,6 +361,31 @@ func (g GridRow) GetValInt(name string) (int, bool) {
 		}
 
 		return intVal, true
+	}
+
+	return 0, false
+}
+
+// GetValFloat64 return float64 value of field name
+func (g GridRow) GetValFloat64(name string) (float64, bool) {
+	val, ok := g[name]
+	if !ok {
+		return 0, false
+	}
+
+	switch v := val.(type) {
+	case int:
+		return float64(v), true
+	case int64:
+		return float64(v), true
+	case float64:
+		return v, true
+	case string:
+		floatVal, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			return 0, false
+		}
+		return floatVal, true
 	}
 
 	return 0, false

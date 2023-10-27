@@ -12,7 +12,7 @@
   "signature-invalid": "Signature invalid",
   "timestamp-expired": "Timestamp expired",
   "required-fields-blank": "Required fields cannot be blank",
-  "value-duplicate": "Field is duplicate, value",
+  "value-duplicate": "Field is duplicate",
   "undefined-row-type": "The row type is undefined",
   "begin-transaction": "Begin transaction error",
   "commit-transaction": "Commit transaction error",
