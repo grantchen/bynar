@@ -67,17 +67,18 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	}
 	defer tx.Rollback()
 	m := make(map[string]interface{}, 0)
+	var handleErr error
 	for _, tr := range trList.MainRows() {
 		// todo refactor group
 		if tr.Fields["id"] == "Group" {
 			continue
 		}
 
-		if err := u.handle(tx, tr); err != nil {
-			log.Println("Err", err)
+		if handleErr = u.handle(tx, tr); handleErr != nil {
+			log.Println("Err", handleErr)
 
 			resp.IO.Result = -1
-			resp.IO.Message += err.Error() + "\n"
+			resp.IO.Message += handleErr.Error() + "\n"
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(tr.Fields))
 			break
 		}
@@ -90,8 +91,10 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(tr.Items[k]))
 		}
 	}
-	if err := tx.Commit(); err != nil {
-		return nil, fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "commit-transaction"), err)
+	if handleErr == nil {
+		if err := tx.Commit(); err != nil {
+			return nil, fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "commit-transaction"), err)
+		}
 	}
 	return resp, nil
 }
