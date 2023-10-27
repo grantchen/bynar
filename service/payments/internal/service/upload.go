@@ -142,14 +142,14 @@ func (u *UploadService) save(tx *sql.Tx, tr *treegrid.MainRow) error {
 		return fmt.Errorf("%s %s: [%w]",
 			i18n.Localize(u.language, errors.ErrCodeSave),
 			i18n.Localize(u.language, errors.ErrCodePayment),
-			i18n.ErrMsgToI18n(err, u.language))
+			err)
 	}
 
 	if err := u.savePaymentLine(tx, tr, tr.Fields.GetID()); err != nil {
 		return fmt.Errorf("%s %s: [%w]",
 			i18n.Localize(u.language, errors.ErrCodeSave),
 			i18n.Localize(u.language, errors.ErrCodePaymentLine),
-			i18n.ErrMsgToI18n(err, u.language))
+			err)
 	}
 
 	return nil
@@ -193,14 +193,14 @@ func (u *UploadService) savePayment(tx *sql.Tx, tr *treegrid.MainRow) error {
 		if !strings.HasPrefix(idStr, "CR") {
 			stmt, err := tx.Prepare("DELETE FROM payment_lines WHERE parent_id = ?")
 			if err != nil {
-				return err
+				return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "failed-to-delete", "payment_lines"), err)
 			}
 
 			defer stmt.Close()
 
 			_, err = stmt.Exec(idStr)
 			if err != nil {
-				return err
+				return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "failed-to-delete", "payment_lines"), err)
 			}
 		}
 
