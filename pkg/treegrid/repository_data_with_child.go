@@ -444,6 +444,11 @@ func (g *gridRowDataRepositoryWithChild) getParentData(level int, group_cols []s
 		}
 
 		tempObj[g.cfg.MainCol] = docType
+		tempObj[g.cfg.MainCol+"Type"] = colData.Type()
+		// TODO get from treegrid config
+		if colData.IsDate {
+			tempObj[g.cfg.MainCol+"Format"] = "yyyy-MM-dd"
+		}
 
 		// if grouping by document_type => DB, OPT, DT...
 		// name = document_type

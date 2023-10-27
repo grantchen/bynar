@@ -205,3 +205,8 @@ func PrepareFilters(operator int, colName, val string) (whereSql string, args []
 func IsDateCol(colName string) bool {
 	return strings.Contains(colName, "_date")
 }
+
+// IsIntCol check if a column type is int
+func IsIntCol(colName string) bool {
+	return strings.Contains(colName, "_id")
+}
