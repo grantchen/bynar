@@ -24,7 +24,11 @@ func (s *approvalCashPaymentService) Check(tr *treegrid.MainRow, accountID int, 
 	case treegrid.GridRowActionAdd:
 		return s.checkActionAdded(tr, accountID, language)
 	case treegrid.GridRowActionChanged:
-		return s.checkActionUpdated(tr, accountID, language)
+		strID := tr.Fields.GetIDStr()
+		if !strings.HasPrefix(strID, "AR") {
+			return s.checkActionUpdated(tr, accountID, language)
+		}
+		return true, nil
 	case treegrid.GridRowActionDeleted:
 		strID := tr.Fields.GetIDStr()
 		if !strings.HasPrefix(strID, "CR") {
@@ -143,6 +147,9 @@ func (s *approvalCashPaymentService) checkActionUpdated(tr *treegrid.MainRow, ac
 func (s *approvalCashPaymentService) checkActionDeleted(tr *treegrid.MainRow, language string) (bool, error) {
 	status, err := s.storage.GetStatus(tr.Fields.GetID())
 	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return true, nil
+		}
 		return false, fmt.Errorf("%s : %v, [%w]", i18n.Localize(language, "failed-to-get-by", "status", "id"), tr.Fields.GetID(), err)
 	}
 

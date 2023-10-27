@@ -6,14 +6,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/repository"
-	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
-	"log"
-	"strings"
-
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
+	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
+	"log"
+	"strings"
 )
 
 type UploadService struct {
@@ -64,14 +63,14 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 
 	tx, err := u.db.BeginTx(context.Background(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("begin transaction: [%w]", err)
+		return nil, fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeBeginTransaction))
 	}
 	defer tx.Rollback()
 	m := make(map[string]interface{}, 0)
 	for _, tr := range trList.MainRows() {
 		// todo refactor group
 		if tr.Fields["id"] == "Group" {
-			return resp, nil
+			continue
 		}
 
 		if err := u.handle(tx, tr); err != nil {
@@ -91,7 +90,9 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(tr.Items[k]))
 		}
 	}
-
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "commit-transaction"), err)
+	}
 	return resp, nil
 }
 
@@ -128,10 +129,6 @@ func (u *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 			}
 		}
 
-	}
-
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "commit-transaction"), err)
 	}
 
 	return nil
