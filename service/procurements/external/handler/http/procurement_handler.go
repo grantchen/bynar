@@ -25,7 +25,7 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 		repository.ProcurementLineFieldNames)
 
 	procurementRepository := pkg_repository.NewProcurementRepository(db)
-	workflowRepository := pkg_repository.NewWorkflowRepository(db, ModuleID)
+	workflowRepository := pkg_repository.NewWorkflowRepository(db)
 	unitRepository := pkg_repository.NewUnitRepository(db)
 	currencyRepository := pkg_repository.NewCurrencyRepository(db)
 	inventoryRepository := pkg_repository.NewInventoryRepository(db)
