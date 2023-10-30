@@ -77,7 +77,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	case treegrid.GridRowActionAdd:
 		err = gr.ValidateOnRequired(repository.GeneralPostingSetupFieldNames)
 		if err != nil {
-			return i18n.SimpleTranslation(u.language, "RequiredFieldsBlank", nil)
+			return i18n.TranslationI18n(u.language, "RequiredFieldsBlank", nil, map[string]string{})
 		}
 		err = gr.ValidateOnNotNegativeNumber(repository.GeneralPostingSetupFieldNames, u.language)
 		if err != nil {
@@ -86,7 +86,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		generalPostingSetup, _ := model.ParseGridRow(gr)
 		err = u.checkGeneralPostSetupCondition(generalPostingSetup)
 		if err != nil {
-			return i18n.SimpleTranslation(u.language, "", err)
+			return i18n.TranslationI18n(u.language, "", err, map[string]string{})
 		}
 		status, _ := gr.GetValInt("status")
 		if status == 1 {
@@ -96,7 +96,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 					templateData := map[string]string{
 						"Field": field,
 					}
-					return i18n.ParametersTranslation(u.language, "ValueDuplicated", templateData)
+					return i18n.TranslationI18n(u.language, "ValueDuplicated", nil, templateData)
 				}
 			}
 		}
@@ -104,7 +104,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	case treegrid.GridRowActionChanged:
 		err = gr.ValidateOnRequired(repository.GeneralPostingSetupFieldNames)
 		if err != nil {
-			return i18n.SimpleTranslation(u.language, "RequiredFieldsBlank", nil)
+			return i18n.TranslationI18n(u.language, "RequiredFieldsBlank", nil, map[string]string{})
 		}
 		err = gr.ValidateOnNotNegativeNumber(repository.GeneralPostingSetupFieldNames, u.language)
 		if err != nil {
@@ -114,22 +114,22 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		var generalPostingSetup *model.GeneralPostingSetup
 		generalPostingSetup, err = u.generalPostingSetupRepository.GetGeneralPostingSetup(gr.GetIDInt())
 		if err != nil {
-			return i18n.SimpleTranslation(u.language, "", err)
+			return i18n.TranslationI18n(u.language, "", err, map[string]string{})
 		}
 
 		if generalPostingSetup.Archived == 1 {
-			return i18n.SimpleTranslation(u.language, "ArchivedUpdate", nil)
+			return i18n.TranslationI18n(u.language, "ArchivedUpdate", nil, map[string]string{})
 		}
 
 		// merge request data and current
 		generalPostingSetup, err = model.ParseWithDefaultValue(gr, *generalPostingSetup)
 		if err != nil {
-			return i18n.SimpleTranslation(u.language, "MergeFail", nil)
+			return i18n.TranslationI18n(u.language, "MergeFail", nil, map[string]string{})
 		}
 
 		err = u.checkGeneralPostSetupCondition(generalPostingSetup)
 		if err != nil {
-			return i18n.SimpleTranslation(u.language, "InvalidCondition", nil)
+			return i18n.TranslationI18n(u.language, "InvalidCondition", nil, map[string]string{})
 		}
 
 		logger.Debug("status: ", generalPostingSetup.Status, "check: ", generalPostingSetup.Status == 1)
@@ -143,7 +143,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 					templateData := map[string]string{
 						"Field": field,
 					}
-					return i18n.ParametersTranslation(u.language, "ValueDuplicated", templateData)
+					return i18n.TranslationI18n(u.language, "ValueDuplicated", nil, templateData)
 				}
 			}
 		}
@@ -154,11 +154,11 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		generalPostingSetup, err = u.generalPostingSetupRepository.GetGeneralPostingSetup(gr.GetIDInt())
 		if err == nil {
 			if generalPostingSetup.Archived == 1 {
-				return i18n.SimpleTranslation(u.language, "ArchivedDelete", nil)
+				return i18n.TranslationI18n(u.language, "ArchivedDelete", nil, map[string]string{})
 			}
 			err = u.tgGeneralPostingSetupSimpleRepository.Delete(tx, gr)
 			if err != nil {
-				return i18n.SimpleTranslation(u.language, "", err)
+				return i18n.TranslationI18n(u.language, "", err, map[string]string{})
 			}
 		} else {
 			return nil
@@ -168,7 +168,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	}
 
 	if err != nil {
-		return i18n.SimpleTranslation(u.language, "", err)
+		return i18n.TranslationI18n(u.language, "", err, map[string]string{})
 	}
 
 	return err
@@ -178,15 +178,15 @@ func (u *uploadService) checkGeneralPostSetupCondition(gps *model.GeneralPosting
 
 	if gps.Archived != 0 && gps.Archived != 1 {
 		logger.Debug("gps: ", gps.Archived)
-		return i18n.SimpleTranslation(u.language, "NotValidArchived", nil)
+		return i18n.TranslationI18n(u.language, "NotValidArchived", nil, map[string]string{})
 	}
 
 	if gps.Status != 0 && gps.Status != 1 {
-		return i18n.SimpleTranslation(u.language, "NotValidStatus", nil)
+		return i18n.TranslationI18n(u.language, "NotValidStatus", nil, map[string]string{})
 	}
 
 	if gps.Status == 1 && gps.Status == gps.Archived {
-		return i18n.SimpleTranslation(u.language, "StatusAndArchivedSame", nil)
+		return i18n.TranslationI18n(u.language, "StatusAndArchivedSame", nil, map[string]string{})
 	}
 
 	return nil

@@ -93,7 +93,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	case treegrid.GridRowActionAdd:
 		err1 := gr.ValidateOnRequiredAll(repository.UserFieldNames)
 		if err1 != nil {
-			return i18n.SimpleTranslation(s.language, "RequiredFieldsBlank", nil)
+			return i18n.TranslationI18n(s.language, "RequiredFieldsBlank", nil, map[string]string{})
 		}
 		for _, field := range fieldsValidating {
 			ok, err := s.simpleOrganizationRepository.ValidateOnIntegrity(tx, gr, []string{field})
@@ -101,7 +101,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				templateData := map[string]string{
 					"Field": field,
 				}
-				return i18n.ParametersTranslation(s.language, "ValueDuplicated", templateData)
+				return i18n.TranslationI18n(s.language, "ValueDuplicated", nil, templateData)
 			}
 		}
 		err = func() error {
@@ -116,29 +116,29 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			status, _ := gr.GetValInt("status")
 			uid, err := s.authProvider.CreateUser(context.Background(), email, fullName, phone, status == 0)
 			if err != nil {
-				return i18n.SimpleTranslation(s.language, "", err)
+				return i18n.TranslationI18n(s.language, "", err, map[string]string{})
 			}
 			var userID int
 			stmt, err := tx.Prepare("SELECT id FROM users WHERE email=?")
 			if err != nil {
-				return i18n.SimpleTranslation(s.language, "", err)
+				return i18n.TranslationI18n(s.language, "", err, map[string]string{})
 			}
 			err = stmt.QueryRow(email).Scan(&userID)
 			if err != nil {
-				return i18n.SimpleTranslation(s.language, "", err)
+				return i18n.TranslationI18n(s.language, "", err, map[string]string{})
 			}
 			// insert into organization_accounts
 			stmt, err = s.accountDB.Prepare(`INSERT INTO organization_accounts (organization_id, organization_user_uid, organization_user_id, oraginzation_main_account) VALUES(?, ?, ?, ?)`)
 			if err != nil {
-				return i18n.SimpleTranslation(s.language, "", err)
+				return i18n.TranslationI18n(s.language, "", err, map[string]string{})
 			}
 			_, err = stmt.Exec(s.organizationID, uid, userID, 0)
-			return i18n.SimpleTranslation(s.language, "", err)
+			return i18n.TranslationI18n(s.language, "", err, map[string]string{})
 		}()
 	case treegrid.GridRowActionChanged:
 		err1 := gr.ValidateOnRequired(repository.UserFieldNames)
 		if err1 != nil {
-			return i18n.SimpleTranslation(s.language, "RequiredFieldsBlank", nil)
+			return i18n.TranslationI18n(s.language, "RequiredFieldsBlank", nil, map[string]string{})
 		}
 		err = func() error {
 			id, ok := gr.GetValInt("id")
@@ -149,22 +149,22 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 						templateData := map[string]string{
 							"Field": field,
 						}
-						return i18n.ParametersTranslation(s.language, "ValueDuplicated", templateData)
+						return i18n.TranslationI18n(s.language, "ValueDuplicated", nil, templateData)
 					}
 				}
 				err = s.simpleOrganizationRepository.Update(tx, gr)
 				if err != nil {
-					return i18n.SimpleTranslation(s.language, "", err)
+					return i18n.TranslationI18n(s.language, "", err, map[string]string{})
 				}
 
 				var uid string
 				stmt, err := s.accountDB.Prepare(`SELECT organization_user_uid FROM organization_accounts WHERE organization_id = ? AND organization_user_id = ?`)
 				if err != nil {
-					return i18n.SimpleTranslation(s.language, "NoUserFound", nil)
+					return i18n.TranslationI18n(s.language, "NoUserFound", nil, map[string]string{})
 				}
 				err = stmt.QueryRow(s.organizationID, id).Scan(&uid)
 				if err != nil {
-					return i18n.SimpleTranslation(s.language, "GipUserNotFound", nil)
+					return i18n.TranslationI18n(s.language, "GipUserNotFound", nil, map[string]string{})
 				}
 				// update user claims in gip
 				params := map[string]interface{}{}
@@ -187,7 +187,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				}
 				u, err := s.authProvider.GetUser(context.Background(), uid)
 				if err != nil {
-					return i18n.SimpleTranslation(s.language, "", err)
+					return i18n.TranslationI18n(s.language, "", err, map[string]string{})
 				}
 				if u.CustomClaims == nil {
 					u.CustomClaims = map[string]interface{}{}
@@ -197,7 +197,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				}
 				params["customClaims"] = u.CustomClaims
 				err = s.authProvider.UpdateUser(context.Background(), uid, params)
-				return i18n.SimpleTranslation(s.language, "", err)
+				return i18n.TranslationI18n(s.language, "", err, map[string]string{})
 			}
 			return nil
 		}()
@@ -207,11 +207,11 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			var email string
 			stmt, err := tx.Prepare(`SELECT email FROM users WHERE id=?`)
 			if err != nil {
-				return i18n.SimpleTranslation(s.language, "", err)
+				return i18n.TranslationI18n(s.language, "", err, map[string]string{})
 			}
 			err = stmt.QueryRow(id).Scan(&email)
 			if err != nil {
-				return i18n.SimpleTranslation(s.language, "", err)
+				return i18n.TranslationI18n(s.language, "", err, map[string]string{})
 			}
 			// delete user in gip
 			err = s.authProvider.DeleteUserByEmail(context.Background(), email)
@@ -219,7 +219,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				if stderr.Is(err, gip.ErrUserNotFound) {
 					logrus.Error("delete user by email from gip ", email, err)
 				} else {
-					return i18n.SimpleTranslation(s.language, "", err)
+					return i18n.TranslationI18n(s.language, "", err, map[string]string{})
 				}
 
 			}
@@ -232,7 +232,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				}
 			}
 			err = s.simpleOrganizationRepository.Delete(tx, gr)
-			return i18n.SimpleTranslation(s.language, "", err)
+			return i18n.TranslationI18n(s.language, "", err, map[string]string{})
 		}()
 
 	default:
@@ -240,7 +240,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	}
 
 	if err != nil {
-		return i18n.SimpleTranslation(s.language, "", err)
+		return i18n.TranslationI18n(s.language, "", err, map[string]string{})
 	}
 
 	return err
