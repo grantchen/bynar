@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/repository"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
@@ -25,13 +26,15 @@ type UserService struct {
 	db                           *sql.DB
 	accountDB                    *sql.DB
 	organizationID               int
+	customerID                   string
 	authProvider                 gip.AuthProvider
+	paymentProvider              checkout.PaymentClient
 	simpleOrganizationRepository treegrid.SimpleGridRowRepository
 	language                     string
 }
 
-func NewUserService(db *sql.DB, accountDB *sql.DB, organizationID int, authProvider gip.AuthProvider, simpleOrganizationService treegrid.SimpleGridRowRepository, language string) *UserService {
-	return &UserService{db, accountDB, organizationID, authProvider, simpleOrganizationService, language}
+func NewUserService(db *sql.DB, accountDB *sql.DB, organizationID int, customerID string, authProvider gip.AuthProvider, paymentProvider checkout.PaymentClient, simpleOrganizationService treegrid.SimpleGridRowRepository, language string) *UserService {
+	return &UserService{db, accountDB, organizationID, customerID, authProvider, paymentProvider, simpleOrganizationService, language}
 }
 
 // Handle implements treegrid.TreeGridService
@@ -219,6 +222,14 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 					return i18n.SimpleTranslation(s.language, "", err)
 				}
 
+			}
+			if s.customerID != "" {
+				resp, err := s.paymentProvider.FetchCustomerDetails(s.customerID)
+				if err == nil {
+					for _, i := range resp.Instruments {
+						s.paymentProvider.DeleteCard(i.ID)
+					}
+				}
 			}
 			err = s.simpleOrganizationRepository.Delete(tx, gr)
 			return i18n.SimpleTranslation(s.language, "", err)

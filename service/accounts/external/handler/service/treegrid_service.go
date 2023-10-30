@@ -6,6 +6,7 @@ import (
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/service"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
@@ -30,6 +31,11 @@ func newTreeGridService(db *sql.DB, accountID int, organizationUuid, language st
 	if err != nil {
 		logrus.Error(err)
 	}
+
+	paymentProvider, err := checkout.NewPaymentClient()
+	if err != nil {
+		logrus.Error(err)
+	}
 	appConfig := config.NewLocalConfig()
 	accountDB, err := sql_db.NewConnection(appConfig.GetAccountManagementConnection())
 	if err != nil {
@@ -37,7 +43,9 @@ func newTreeGridService(db *sql.DB, accountID int, organizationUuid, language st
 	}
 	var oid int
 	accountDB.QueryRow("SELECT organizations.id FROM organizations WHERE organization_uuid = ?", organizationUuid).Scan(&oid)
-	userService := service.NewUserService(db, accountDB, oid, authProvider, simpleOrganizationRepository, language)
+	var customerID string
+	accountDB.QueryRow(`SELECT user_payment_gateway_id FROM accounts_cards ac JOIN accounts a on ac.user_id = a.id WHERE ac.user_id = ? AND is_default = ?`, accountID, true).Scan(&customerID)
+	userService := service.NewUserService(db, accountDB, oid, customerID, authProvider, paymentProvider, simpleOrganizationRepository, language)
 
 	return &treegridService{
 		db:          db,
