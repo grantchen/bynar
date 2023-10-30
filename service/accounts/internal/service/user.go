@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	stderr "errors"
 	"fmt"
+	"strings"
+
 	"github.com/sirupsen/logrus"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/repository"
@@ -88,6 +90,14 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	// add addition here
 	switch gr.GetActionType() {
 	case treegrid.GridRowActionAdd:
+		for _, i := range gr.UpdatedFields() {
+			if i == "phone" {
+				phone := strings.TrimSpace(gr["phone"].(string))
+				if phone[0] != '+' {
+					gr["phone"] = "+" + phone
+				}
+			}
+		}
 		err1 := gr.ValidateOnRequiredAll(repository.UserFieldNames)
 		if err1 != nil {
 			return err1
@@ -108,6 +118,9 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			fullName, _ := gr.GetValString("full_name")
 			phone, _ := gr.GetValString("phone")
 			status, _ := gr.GetValInt("status")
+			if phone[0] != '+' {
+				phone = "+" + phone
+			}
 			uid, err := s.authProvider.CreateUser(context.Background(), email, fullName, phone, status == 0)
 			if err != nil {
 				return err
@@ -130,6 +143,14 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			return err
 		}()
 	case treegrid.GridRowActionChanged:
+		for _, i := range gr.UpdatedFields() {
+			if i == "phone" {
+				phone := strings.TrimSpace(gr["phone"].(string))
+				if phone[0] != '+' {
+					gr["phone"] = "+" + phone
+				}
+			}
+		}
 		err1 := gr.ValidateOnRequired(repository.UserFieldNames)
 		if err1 != nil {
 			return err1
