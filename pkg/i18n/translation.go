@@ -39,7 +39,7 @@ func initBundle() *i18n.Bundle {
 	return bundle
 }
 
-func SimpleTranslation(language, messageId string, err error) error {
+func TranslationI18n(language, messageId string, err error, templateData map[string]string) error {
 	bundle := initBundle()
 	localizer := i18n.NewLocalizer(bundle, language)
 	translationMessage := ""
@@ -48,6 +48,7 @@ func SimpleTranslation(language, messageId string, err error) error {
 			DefaultMessage: &i18n.Message{
 				ID: messageId,
 			},
+			TemplateData: templateData,
 		})
 	} else {
 		translationMessage = err.Error()
@@ -61,18 +62,5 @@ func SimpleTranslation(language, messageId string, err error) error {
 			}
 		}
 	}
-	return fmt.Errorf(translationMessage)
-}
-
-func ParametersTranslation(language, messageId string, templateData map[string]string) error {
-	bundle := initBundle()
-	localizer := i18n.NewLocalizer(bundle, language)
-	translationMessage := localizer.MustLocalize(&i18n.LocalizeConfig{
-		DefaultMessage: &i18n.Message{
-			ID:    messageId,
-			Other: "",
-		},
-		TemplateData: templateData,
-	})
 	return fmt.Errorf(translationMessage)
 }

@@ -73,7 +73,7 @@ func (f GridRow) ValidateOnNotNegativeNumber(fieldsMapping map[string][]string, 
 			templateData := map[string]string{
 				"Field": key,
 			}
-			return i18n.ParametersTranslation(language, "ValidateOnNotNegativeNumber", templateData)
+			return i18n.TranslationI18n(language, "ValidateOnNotNegativeNumber", nil, templateData)
 		}
 
 	}
@@ -92,7 +92,7 @@ func (f GridRow) ValidateOnPositiveNumber(fieldsMapping map[string][]string, lan
 			templateData := map[string]string{
 				"Field": key,
 			}
-			return i18n.ParametersTranslation(language, "ValidateOnPositiveNumber", templateData)
+			return i18n.TranslationI18n(language, "ValidateOnPositiveNumber", nil, templateData)
 		}
 
 	}
