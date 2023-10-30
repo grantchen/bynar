@@ -32,7 +32,7 @@ func (s *saleService) GetSaleTx(tx *sql.Tx, id interface{}) (*models.Sale, error
 	return s.saleRep.GetSale(tx, id)
 }
 
-func (s *saleService) Handle(tx *sql.Tx, m *models.Sale, moduleID int) error {
+func (s *saleService) Handle(tx *sql.Tx, m *models.Sale) error {
 	// update quantity
 	lines, err := s.saleRep.GetSaleLines(tx, m.ID)
 	if err != nil {
@@ -84,7 +84,7 @@ func (s *saleService) Handle(tx *sql.Tx, m *models.Sale, moduleID int) error {
 			return fmt.Errorf("handle inventory: [%w], id: %d", err, v.ID)
 		}
 
-		if err := s.handleBoundFlows(tx, m, v, moduleID, currInv, newInv); err != nil {
+		if err := s.handleBoundFlows(tx, m, v, 0, currInv, newInv); err != nil {
 			return fmt.Errorf("handle inventory: [%w], id: %d", err, v.ID)
 		}
 

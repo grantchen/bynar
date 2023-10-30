@@ -49,6 +49,8 @@ var (
 	ErrCodeUserGroupLine = "user-group-line"
 	ErrCodeTransfer      = "transfer"
 	ErrCodeTransferLine  = "transfer-line"
+	ErrCodeSale          = "sale"
+	ErrCodeSaleLine      = "sale-line"
 
 	ErrCodePayment     = "payment"
 	ErrCodePaymentLine = "payment-line"

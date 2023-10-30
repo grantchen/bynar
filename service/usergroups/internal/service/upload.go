@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"log"
 	"strconv"
 	"strings"
@@ -50,9 +51,15 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 		return nil, fmt.Errorf("parse request: [%w]", err)
 	}
 
+	tx, err := u.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		return nil, fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeBeginTransaction))
+	}
+	defer tx.Rollback()
+
 	m := make(map[string]interface{}, 0)
 	for _, tr := range trList.MainRows() {
-		if err := u.handle(tr); err != nil {
+		if err := u.handle(tx, tr); err != nil {
 			log.Println("Err", err)
 
 			resp.IO.Result = -1
@@ -70,24 +77,17 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 		}
 	}
 
+	if err = tx.Commit(); err != nil {
+		return nil, fmt.Errorf("%s: [%w]", i18n.Localize(u.language, errors.ErrCodeCommitTransaction), err)
+	}
+
 	return resp, nil
 }
 
-func (s *UploadService) handle(tr *treegrid.MainRow) error {
-	tx, err := s.db.BeginTx(context.Background(), nil)
-	if err != nil {
-		return fmt.Errorf("begin transaction: [%w]", err)
-	}
-	defer tx.Rollback()
-
+func (s *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 	if err := s.save(tx, tr); err != nil {
 		return i18n.TranslationI18n(s.language, "", err, map[string]string{})
 	}
-
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit transaction: [%w]", err)
-	}
-
 	return nil
 }
 

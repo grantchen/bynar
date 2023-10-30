@@ -5,59 +5,58 @@ import (
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
-	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
-	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/internal/service"
 )
 
-// TODO: get throug request
-var (
-	ModuleID  int = 4
-	AccountID int = 123456
-)
-
 func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGridHandler {
 
-	gridRowRep := treegrid.NewGridRepository(db, "sales",
+	gridRowDataRepositoryWithChild := treegrid.NewGridRowDataRepositoryWithChild(
+		db,
+		"sales",
+		"sale_lines",
+		repository.SaleFieldNames,
+		repository.SaleLineFieldNames,
+		100,
+		&treegrid.GridRowDataRepositoryWithChildCfg{
+			MainCol:                  "document_id",
+			QueryParent:              repository.QueryParent,
+			QueryParentCount:         repository.QueryParentCount,
+			QueryParentJoins:         repository.QueryParentJoins,
+			QueryChild:               repository.QueryChild,
+			QueryChildCount:          repository.QueryChildCount,
+			QueryChildJoins:          repository.QueryChildJoins,
+			QueryChildSuggestion:     repository.QueryChildSuggestion,
+			ChildJoinFieldWithParent: "parent_id",
+			ParentIdField:            "id",
+		},
+	)
+	saleService := service.NewSaleService(db, gridRowDataRepositoryWithChild)
+
+	grSaleDataUploadRepositoryWithChild := treegrid.NewGridRepository(db, "sales",
 		"sale_lines",
 		repository.SaleFieldNames,
 		repository.SaleLineFieldNames)
 
-	saleRepository := repository.NewSaleRepository(db)
-	workflowRepository := pkg_repository.NewWorkflowRepository(db)
-	unitRepository := pkg_repository.NewUnitRepository(db)
-	currencyRepository := pkg_repository.NewCurrencyRepository(db)
-	inventoryRepository := pkg_repository.NewInventoryRepository(db)
-
-	documentRepository := pkg_repository.NewDocuments(db, "procurements")
-
-	approvalSvc := pkg_service.NewApprovalCashPaymentService(pkg_repository.NewApprovalOrder(
-		workflowRepository,
-		saleRepository),
-	)
-
-	saleService := service.NewSaleService(
-		saleRepository,
-		unitRepository,
-		currencyRepository,
-		inventoryRepository)
-
-	docSvc := pkg_service.NewDocumentService(documentRepository)
-
-	uploadSvc, _ := service.NewService(
+	grSaleRepository := treegrid.NewSimpleGridRowRepository(
 		db,
-		approvalSvc,
-		gridRowRep,
-		saleService,
-		ModuleID,
-		AccountID,
-		docSvc,
+		"sales",
+		repository.SaleFieldNames,
+		1, // arbitrary
 	)
+
+	uploadService := service.NewUploadService(db, grSaleRepository, grSaleDataUploadRepositoryWithChild, "en")
 
 	handler := &handler.HTTPTreeGridHandler{
-		CallbackUploadDataFunc: uploadSvc.Handle,
+		CallbackUploadDataFunc:  uploadService.Handle,
+		CallbackGetPageDataFunc: saleService.GetPageData,
+		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) (float64, error) {
+			count, err := saleService.GetPageCount(tr)
+			return float64(count), err
+		},
+		CallBackGetCellDataFunc: saleService.GetCellSuggestion,
 	}
+
 	return handler
 }
