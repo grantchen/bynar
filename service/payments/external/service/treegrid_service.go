@@ -33,6 +33,7 @@ func newTreeGridService(db *sql.DB, language string, accountId int) treegrid.Tre
 			QueryChild:               repository.QueryChild,
 			QueryChildCount:          repository.QueryChildCount,
 			QueryChildJoins:          repository.QueryChildJoins,
+			QueryChildSuggestion:     repository.QueryChildSuggestion,
 			ChildJoinFieldWithParent: "parent_id",
 			ParentIdField:            "id",
 		},
@@ -54,7 +55,8 @@ func newTreeGridService(db *sql.DB, language string, accountId int) treegrid.Tre
 
 	paymentService := service.NewPaymentService(db, gridRowDataRepositoryWithChild, paymentRepository, procurementRepository, currencyRepository, cashManagementRepository)
 
-	grPaymentDataUploadRepositoryWithChild := treegrid.NewGridRepository(db, "payments",
+	grPaymentDataUploadRepositoryWithChild := treegrid.NewGridRepository(db,
+		"payments",
 		"payment_lines",
 		repository.PaymentFieldNames,
 		repository.PaymentLineFieldNames)
