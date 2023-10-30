@@ -14,9 +14,18 @@ StatusAndArchivedSame = "estado y archivado tiene el mismo valor 1."
 InvalidCondition = "condición no válida al actualizar los datos."
 MergeFail = "Error al fusionar con los datos actuales."
 NoUserGroupLineFound = "No estás en ningún grupo de usuarios y no puedes crear una organización."
+UpdateChildLine =  "no se permite actualizar la línea secundaria."
 [ValueDuplicated]
 other = "El campo está duplicado: {{.Field}}."
 [ValidateOnNotNegativeNumber]
 other = "{{.Field}} : El campo no debe ser negativo."
 [ValidateOnPositiveNumber]
 other = "{{.Field}} : El campo debe ser positivo."
+[SaveUserGroup]
+other = "Guardar grupo de usuarios : {{.Message}} "
+[SaveUserLine]
+other = "Guardar línea de grupo de usuarios : {{.Message}}"
+[UserNotExist]
+other = "La usuario no existe! user_id: {{.UserId}}"
+[UserBelongSpecificUserGroupLines]
+other = "El usuario pertenece a un grupo de usuarios específico. user_id: {{.UserId}}"

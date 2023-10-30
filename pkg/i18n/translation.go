@@ -46,7 +46,8 @@ func TranslationI18n(language, messageId string, err error, templateData map[str
 	if messageId != "" {
 		translationMessage = localizer.MustLocalize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
-				ID: messageId,
+				ID:    messageId,
+				Other: "",
 			},
 			TemplateData: templateData,
 		})

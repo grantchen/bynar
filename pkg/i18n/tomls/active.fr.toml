@@ -14,9 +14,18 @@ StatusAndArchivedSame = "statut et archivé est la même valeur 1."
 InvalidCondition = "condition invalide lors de la mise à jour des données."
 MergeFail = "La fusion avec les données actuelles échoue."
 NoUserGroupLineFound = "La fusion avec les données actuelles échoue."
+UpdateChildLine =  "non autorisé à mettre à jour la ligne enfant."
 [ValueDuplicated]
 other = "Le champ est en double: {{.Field}} ."
 [ValidateOnNotNegativeNumber]
 other = "{{.Field}} : le champ ne doit pas être négatif."
 [ValidateOnPositiveNumber]
 other = "{{.Field}} : le champ doit être positif."
+[SaveUserGroup]
+other = "Enregistrer le groupe d'utilisateurs : {{.Message}} "
+[SaveUserLine]
+other = "Enregistrer la ligne du groupe d'utilisateurs : {{.Message}}"
+[UserNotExist]
+other = "l'utilisateur n'existe pas! user_id: {{.UserId}}"
+[UserBelongSpecificUserGroupLines]
+other = "l'utilisateur appartient à un groupe d'utilisateurs spécifique user_id: {{.UserId}}"
