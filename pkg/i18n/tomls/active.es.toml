@@ -1,0 +1,22 @@
+RequiredFieldsBlank = "Los campos obligatorios no pueden estar en blanco."
+FieldOutRange = "Valor fuera de rango para el campo."
+TruncatedIncorrect = "Error incorrecto truncado."
+FieldTooLong = "Datos demasiado largos para el campo."
+PhoneNumberError = "Error de formato del número de teléfono."
+EmailError = "Error de formato de correo electrónico."
+GipUserNotFound = "El usuario en gip no existe, primero elimine este usuario y luego agréguelo nuevamente."
+NoUserFound = "Ninguna usuario encontrada."
+ArchivedUpdate = "archivado = 1, no se puede actualizar."
+ArchivedDelete = "Archivada = 1, no se puede eliminar."
+NotValidArchived = "Valor archivado no válido."
+NotValidStatus = "valor de estado no válido."
+StatusAndArchivedSame = "estado y archivado tiene el mismo valor 1."
+InvalidCondition = "condición no válida al actualizar los datos."
+MergeFail = "Error al fusionar con los datos actuales."
+NoUserGroupLineFound = "No estás en ningún grupo de usuarios y no puedes crear una organización."
+[ValueDuplicated]
+other = "El campo está duplicado: {{.Field}}."
+[ValidateOnNotNegativeNumber]
+other = "{{.Field}} : El campo no debe ser negativo."
+[ValidateOnPositiveNumber]
+other = "{{.Field}} : El campo debe ser positivo."

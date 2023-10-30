@@ -79,7 +79,7 @@ func (t *transferRepository) SaveTransfer(tx *sql.Tx, tr *treegrid.MainRow) erro
 			return err
 		}
 
-		err = tr.Fields.ValidateOnPositiveNumber(positiveFieldsMapping)
+		err = tr.Fields.ValidateOnPositiveNumber(positiveFieldsMapping, t.language)
 		if err != nil {
 			return fmt.Errorf(i18n.Localize(t.language, "", err.Error()))
 		}
@@ -94,7 +94,7 @@ func (t *transferRepository) SaveTransfer(tx *sql.Tx, tr *treegrid.MainRow) erro
 			return err
 		}
 
-		err = tr.Fields.ValidateOnPositiveNumber(positiveFieldsMapping)
+		err = tr.Fields.ValidateOnPositiveNumber(positiveFieldsMapping, t.language)
 		if err != nil {
 			return fmt.Errorf(i18n.Localize(t.language, "", err.Error()))
 		}
@@ -148,7 +148,7 @@ func (t *transferRepository) SaveTransferLines(tx *sql.Tx, tr *treegrid.MainRow)
 				return err
 			}
 
-			err = item.ValidateOnPositiveNumber(positiveFieldsMapping)
+			err = item.ValidateOnPositiveNumber(positiveFieldsMapping, t.language)
 			if err != nil {
 				return fmt.Errorf(i18n.Localize(t.language, "", err.Error()))
 			}
@@ -169,7 +169,7 @@ func (t *transferRepository) SaveTransferLines(tx *sql.Tx, tr *treegrid.MainRow)
 				return err
 			}
 
-			err = item.ValidateOnPositiveNumber(positiveFieldsMapping)
+			err = item.ValidateOnPositiveNumber(positiveFieldsMapping, t.language)
 			if err != nil {
 				return fmt.Errorf(i18n.Localize(t.language, "", err.Error()))
 			}

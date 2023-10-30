@@ -57,7 +57,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 			log.Println("Err", err)
 
 			resp.IO.Result = -1
-			resp.IO.Message += i18n.ErrMsgToI18n(err, u.language).Error() + "\n"
+			resp.IO.Message += err.Error() + "\n"
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(tr.Fields))
 			break
 		}
@@ -82,7 +82,7 @@ func (s *UploadService) handle(tr *treegrid.MainRow) error {
 	defer tx.Rollback()
 
 	if err := s.save(tx, tr); err != nil {
-		return err
+		return i18n.SimpleTranslation(s.language, "", err)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -118,25 +118,31 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 	case treegrid.GridRowActionAdd:
 		err = tr.Fields.ValidateOnRequiredAll(repository.UserGroupFieldNames)
 		if err != nil {
-			return err
+			return i18n.SimpleTranslation(s.language, "RequiredFieldsBlank", nil)
 		}
 
 		for _, field := range fieldsValidating {
 			ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("duplicate, %s", field)
+				templateData := map[string]string{
+					"Field": field,
+				}
+				return i18n.ParametersTranslation(s.language, "ValueDuplicated", templateData)
 			}
 		}
 	case treegrid.GridRowActionChanged:
 		err = tr.Fields.ValidateOnRequired(repository.UserGroupFieldNames)
 		if err != nil {
-			return err
+			return i18n.SimpleTranslation(s.language, "RequiredFieldsBlank", nil)
 		}
 
 		for _, field := range fieldsValidating {
 			ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("duplicate, %s", field)
+				templateData := map[string]string{
+					"Field": field,
+				}
+				return i18n.ParametersTranslation(s.language, "ValueDuplicated", templateData)
 			}
 		}
 	case treegrid.GridRowActionDeleted:
@@ -152,7 +158,7 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 
 			_, err = stmt.Exec(idStr)
 			if err != nil {
-				return err
+				return i18n.SimpleTranslation(s.language, "", err)
 			}
 		}
 	}
@@ -169,7 +175,7 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, pare
 		case treegrid.GridRowActionAdd:
 			err = item.ValidateOnRequiredAll(map[string][]string{"user_id": repository.UserGroupLineFieldNames["user_id"]})
 			if err != nil {
-				return err
+				return i18n.SimpleTranslation(s.language, "RequiredFieldsBlank", nil)
 			}
 
 			logger.Debug("add child row")
