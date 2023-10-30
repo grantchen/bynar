@@ -43,7 +43,7 @@ func main() {
 		repository.SaleLineFieldNames)
 
 	saleRepository := repository.NewSaleRepository(db)
-	workflowRepository := pkg_repository.NewWorkflowRepository(db, ModuleID)
+	workflowRepository := pkg_repository.NewWorkflowRepository(db)
 	unitRepository := pkg_repository.NewUnitRepository(db)
 	currencyRepository := pkg_repository.NewCurrencyRepository(db)
 	inventoryRepository := pkg_repository.NewInventoryRepository(db)

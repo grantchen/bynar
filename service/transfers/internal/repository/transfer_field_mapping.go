@@ -42,6 +42,10 @@ var (
 			"area_id",
 			"transfers.area_id",
 		},
+		"entry_exit_point_id": {
+			"entry_exit_point_id",
+			"transfers.entry_exit_point_id",
+		},
 		"department_id": {
 			"department_id",
 			"transfers.department_id",
@@ -120,6 +124,16 @@ var (
 		"receipt_date": {
 			"transfer_lines.receipt_date",
 			"transfer_lines.receipt_date",
+		},
+
+		// need to insert, not in treegrid cols
+		"item_unit_value": {
+			"item_unit_value",
+			"transfer_lines.item_unit_value",
+		},
+		"quantity": {
+			"quantity",
+			"transfer_lines.quantity",
 		},
 	}
 )

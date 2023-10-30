@@ -273,7 +273,7 @@ func (g *gridRowDataRepositoryWithChild) handleGroupBy(tg *Treegrid) ([]map[stri
 		// 	tg.OrderByChildQuery(model.TransferItemsFields) + ") "
 
 		parentBuild = parentBuild +
-			fmt.Sprintf("AND %s.%s IN (SELECT %s FROM %s", g.tableName, g.cfg.ParentIdField, g.cfg.ChildJoinFieldWithParent, g.lineTableName) +
+			fmt.Sprintf(" AND %s.%s IN (SELECT %s FROM %s", g.tableName, g.cfg.ParentIdField, g.cfg.ChildJoinFieldWithParent, g.lineTableName) +
 			g.cfg.QueryChildJoins +
 			DummyWhere +
 			tg.FilterWhere["child"] +
@@ -444,6 +444,11 @@ func (g *gridRowDataRepositoryWithChild) getParentData(level int, group_cols []s
 		}
 
 		tempObj[g.cfg.MainCol] = docType
+		tempObj[g.cfg.MainCol+"Type"] = colData.Type()
+		// TODO get from treegrid config
+		if colData.IsDate {
+			tempObj[g.cfg.MainCol+"Format"] = "yyyy-MM-dd"
+		}
 
 		// if grouping by document_type => DB, OPT, DT...
 		// name = document_type
@@ -575,7 +580,7 @@ func (g *gridRowDataRepositoryWithChild) addChildCondition(orignal_query string,
 		// INNER JOIN item_types ON items.type_uuid = item_types.id
 		// WHERE ` + col_name + "='" + col_value + "' ) "
 
-		orignal_query += fmt.Sprintf(`AND %s.%s IN ( SELECT %s FROM %s `, g.tableName, g.cfg.ParentIdField, g.cfg.ChildJoinFieldWithParent, g.lineTableName) +
+		orignal_query += fmt.Sprintf(` AND %s.%s IN ( SELECT %s FROM %s `, g.tableName, g.cfg.ParentIdField, g.cfg.ChildJoinFieldWithParent, g.lineTableName) +
 			g.cfg.QueryChildJoins +
 			" WHERE " + col_name + "='" + col_value + "' ) "
 	}

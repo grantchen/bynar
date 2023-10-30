@@ -37,6 +37,7 @@ var (
 	ErrCodeTooLong                  = "too-long"
 	ErrCodeGipUser                  = "gip-user-not-found"
 	ErrCodeUserNotExist             = "user-not-exist"
+	ErrCodeUndefinedActionType      = "undefined-action-type"
 
 	ErrCodeUserBelongSpecificUserGroupLines = "user-belong-specific-user-group-lines"
 	ErrCodeNoUserGroupLineFound             = "no-user-group-line-found"
@@ -48,6 +49,9 @@ var (
 	ErrCodeUserGroupLine = "user-group-line"
 	ErrCodeTransfer      = "transfer"
 	ErrCodeTransferLine  = "transfer-line"
+
+	ErrCodePayment     = "payment"
+	ErrCodePaymentLine = "payment-line"
 )
 
 var (

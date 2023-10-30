@@ -4044,27 +4044,48 @@ CREATE TABLE `payment_terms` (
 
 CREATE TABLE `payments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `document_id` int(11) DEFAULT NULL,
-  `document_no` varchar(255) DEFAULT NULL,
-  `transaction_no` bigint(20) DEFAULT NULL,
-  `store_id` int(11) DEFAULT NULL,
-  `document_date` datetime DEFAULT NULL,
-  `posting_date` datetime DEFAULT NULL,
-  `project_code` int(11) DEFAULT NULL,
-  `department_code` int(11) DEFAULT NULL,
-  `user_group_id` int(11) DEFAULT NULL,
-  `status` int(11) DEFAULT NULL,
-  `batch_id` int(11) DEFAULT NULL,
-  `account_type` int(11) DEFAULT NULL,
-  `account_no` int(11) DEFAULT NULL,
-  `description` varchar(255) DEFAULT NULL,
-  `amount` decimal(20,5) DEFAULT NULL,
-  `amount_lcy` decimal(20,5) DEFAULT NULL,
-  `applies_to_document_type` int(11) DEFAULT NULL,
-  `applies_to_document_no` int(11) DEFAULT NULL,
-  `balance_account_type` int(11) DEFAULT NULL,
-  `balance_account_number` int(11) DEFAULT NULL,
+    `batch_id`                  int            null,
+    `document_id`               int            not null,
+    `document_no`               varchar(255)   not null,
+    `external_document_no`      varchar(255)   null,
+    `transaction_no`            int            not null,
+    `store_id`                  int            not null,
+    `document_date`             datetime       not null,
+    `posting_date`              datetime       not null,
+    `entry_date`                datetime       not null,
+    `account_type`              tinyint        null,
+    `account_id`                int            not null,
+    `recipient_bank_account_id` int            null,
+    `balance_account_type`      tinyint        not null,
+    `balance_account_id`        int            null,
+    `amount`                    decimal(20, 5) not null,
+    `amount_lcy`                decimal(20, 5) not null,
+    `currency_id`               int            null,
+    `currency_value`            decimal(15, 5) not null,
+    `user_group_id`             int            not null,
+    `status`                    tinyint        not null,
+    `payment_method_id`         int            null,
+    `payment_reference`         varchar(255)   null,
+    `creditor_no`               varchar(255)   null,
+    `bank_payment_type_id`      int            null,
+    `bank_id`                   int            not null,
+    `paid`                      decimal(20, 5) not null,
+    `remaining`                 decimal(20, 5) not null,
+    `paid_status`               tinyint        not null,
   PRIMARY KEY (`id`) /*T![clustered_index] CLUSTERED */
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+create table `payment_lines`
+(
+    `id`   int(11) NOT NULL AUTO_INCREMENT,
+    `parent_id`             int            not null,
+    `applies_document_type` tinyint        not null,
+    `applies_document_id`   int            not null,
+    `payment_type_id`       int            null,
+    `amount`                decimal(20, 5) not null,
+    `amount_lcy`            decimal(20, 5) not null,
+    `applied`               tinyint        not null,
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 
@@ -5298,34 +5319,42 @@ CREATE TABLE `transfer_lines` (
 
 
 -- bynar.transfers definition
-
-CREATE TABLE `transfers` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `document_no` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `document_uuid` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `document_date` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `posting_date` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `delivery_date` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `entry_date` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `document_type_uuid` int(11) DEFAULT NULL,
-  `store_origin_uuid` int(11) DEFAULT NULL,
-  `store_destination_uuid` int(11) DEFAULT NULL,
-  `warehouse_origin_uuid` int(11) DEFAULT NULL,
-  `warehouse_destination_uuid` int(11) DEFAULT NULL,
-  `responsibility_center_uuid` int(11) DEFAULT NULL,
-  `warehouseman_destination_approve` int(11) DEFAULT NULL,
-  `has_child` tinyint(1) DEFAULT NULL,
-  `group_id` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`) /*T![clustered_index] CLUSTERED */,
-  KEY `transfers_document_no` (`document_no`),
-  KEY `transfers_document_type_uuid` (`document_type_uuid`),
-  KEY `transfers_responsibility_center_uuidd` (`warehouse_destination_uuid`),
-  KEY `transfers_store_destination_uuid` (`store_destination_uuid`),
-  KEY `transfers_store_origin_uuid` (`store_origin_uuid`),
-  KEY `transfers_warehouse_destination_uuid` (`warehouse_destination_uuid`),
-  KEY `transfers_warehouse_origin_uuid` (`warehouse_origin_uuid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
+CREATE TABLE `transfers`
+(
+  `id`                           int(11) NOT NULL AUTO_INCREMENT,
+  `document_id`                  int(11)      DEFAULT NULL,
+  `document_no`                  varchar(255) DEFAULT NULL,
+  `transaction_no`               int(11)      DEFAULT NULL,
+  `store_id`                     int(11)      DEFAULT NULL,
+  `document_date`                datetime     DEFAULT NULL,
+  `posting_date`                 datetime     DEFAULT NULL,
+  `entry_date`                   datetime     DEFAULT NULL,
+  `shipment_date`                datetime     DEFAULT NULL,
+  `project_id`                   int(11)      DEFAULT NULL,
+  `department_id`                int(11)      DEFAULT NULL,
+  `in_transit_id`                int(11)      DEFAULT NULL,
+  `shipment_method_id`           int(11)      DEFAULT NULL,
+  `shipping_agent_id`            int(11)      DEFAULT NULL,
+  `shipping_agent_service_id`    int(11)      DEFAULT NULL,
+  `transaction_type_id`          int(11)      DEFAULT NULL,
+  `transaction_specification_id` int(11)      DEFAULT NULL,
+  `area_id`                      int(11)      DEFAULT NULL,
+  `entry_exit_point_id`          int(11)      DEFAULT NULL,
+  `user_group_id`                int(11)      DEFAULT NULL,
+  `location_origin_id`           int(11)      DEFAULT NULL,
+  `location_destination_id`      int(11)      DEFAULT NULL,
+  `status`                       tinyint(4)   DEFAULT NULL,
+  `payment_reference`            varchar(255) DEFAULT NULL,
+  `creditor_no`                  varchar(255) DEFAULT NULL,
+  `on_hold`                      varchar(255) DEFAULT NULL,
+  `expected_receipt_date`        datetime     DEFAULT NULL,
+  `payment_terms_id`             int(11)      DEFAULT NULL,
+  `payment_method_id`            int(11)      DEFAULT NULL,
+  `pmt_discount_date`            datetime     DEFAULT NULL,
+  PRIMARY KEY (`id`) /*T![clustered_index] CLUSTERED */
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_bin;
 
 -- bynar.transfers_items definition
 
