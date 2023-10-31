@@ -56,6 +56,7 @@ func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.Tre
 	unitRepository := pkg_repository.NewUnitRepository(db)
 	currencyRepository := pkg_repository.NewCurrencyRepository(db)
 	inventoryRepository := pkg_repository.NewInventoryRepository(db)
+	boundFlowRepository := pkg_repository.NewBoundFlows()
 
 	documentRepository := pkg_repository.NewDocuments(db, "procurements")
 
@@ -77,6 +78,7 @@ func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.Tre
 		unitRepository,
 		currencyRepository,
 		inventoryRepository,
+		boundFlowRepository,
 	)
 	return &treegridService{
 		db:            db,

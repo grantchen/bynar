@@ -18,6 +18,9 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/internal/service"
 )
 
+// for test
+const accountId = 6
+
 func main() {
 	// secretmanager, err := utils.GetSecretManager()
 
@@ -83,7 +86,35 @@ func main() {
 		1, // arbitrary
 	)
 
-	uploadService := service.NewUploadService(db, grSaleRepository, grSaleDataUploadRepositoryWithChild, "en")
+	saleRepository := repository.NewSaleRepository(db)
+	workflowRepository := pkg_repository.NewWorkflowRepository(db)
+	unitRepository := pkg_repository.NewUnitRepository(db)
+	currencyRepository := pkg_repository.NewCurrencyRepository(db)
+	inventoryRepository := pkg_repository.NewInventoryRepository(db)
+	boundFlowRepository := pkg_repository.NewBoundFlows()
+
+	documentRepository := pkg_repository.NewDocuments(db, "procurements")
+
+	approvalSvc := pkg_service.NewApprovalCashPaymentService(pkg_repository.NewApprovalOrder(
+		workflowRepository,
+		saleRepository),
+	)
+	docSvc := pkg_service.NewDocumentService(documentRepository)
+
+	uploadService := service.NewUploadService(
+		db,
+		grSaleRepository,
+		grSaleDataUploadRepositoryWithChild,
+		"en",
+		accountId,
+		approvalSvc,
+		docSvc,
+		saleRepository,
+		unitRepository,
+		currencyRepository,
+		inventoryRepository,
+		boundFlowRepository,
+	)
 
 	authProvider, err := gip.NewGIPClient()
 	if err != nil {

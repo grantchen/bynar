@@ -69,6 +69,12 @@ func (s *approvalCashPaymentService) checkActionAdded(tr *treegrid.MainRow, acco
 
 func (s *approvalCashPaymentService) checkActionUpdated(tr *treegrid.MainRow, accountID int, language string) (bool, error) {
 	logger.Debug("row id", tr.Fields.GetID())
+
+	// nothing changed
+	if len(tr.Fields.UpdatedFields()) == 0 {
+		return true, nil
+	}
+
 	currStatus, err := s.storage.GetStatus(tr.Fields.GetID())
 	if err != nil {
 		return false, fmt.Errorf("%s : %v, [%w]", i18n.Localize(language, "failed-to-get-by", "status", "id"), tr.Fields.GetID(), err)

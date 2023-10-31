@@ -103,7 +103,7 @@ func (s *UploadService) save(tx *sql.Tx, tr *treegrid.MainRow) error {
 		userGroupLineTemplateData := map[string]string{
 			"Message": err.Error(),
 		}
-		return i18n.TranslationI18n(s.language, "SaveUserLine", err, userGroupLineTemplateData)
+		return i18n.TranslationI18n(s.language, "SaveUserGroupLine", err, userGroupLineTemplateData)
 	}
 
 	return nil

@@ -784,7 +784,7 @@ CREATE TABLE `bynar_currencies` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `code` varchar(5) NOT NULL,
   `name` varchar(55) NOT NULL,
-  `rate` decimal(12,4) NOT NULL,
+  `exchange_rate` decimal(25,4) NOT NULL,
   `auto_update` tinyint(1) NOT NULL DEFAULT '0',
   `symbol` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`) /*T![clustered_index] CLUSTERED */
@@ -2558,7 +2558,7 @@ CREATE TABLE `currencies` (
   `description` varchar(30) DEFAULT NULL,
   `code` varchar(5) DEFAULT NULL,
   `no_code` int(11) DEFAULT NULL,
-  `rate` decimal(12,4) NOT NULL,
+  `exchange_rate` decimal(25, 4)  NOT NULL,
   `exchange_rate_date` varchar(20) DEFAULT NULL,
   `symbol` varchar(3) DEFAULT NULL,
   `responsibility_center` varchar(20) DEFAULT NULL,
@@ -2902,6 +2902,7 @@ CREATE TABLE `discounts` (
   `operation` varchar(255) DEFAULT NULL,
   `transaction_code` varchar(255) DEFAULT NULL,
   `responsibility_center_uuid` int(11) DEFAULT NULL,
+  `percentage` tinyint not null,
   PRIMARY KEY (`id`) /*T![clustered_index] CLUSTERED */,
   UNIQUE KEY `discounts_id_uindex` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
@@ -3330,7 +3331,7 @@ CREATE TABLE `hr_units` (
 
 -- bynar.inbound_flow definition
 
-CREATE TABLE `inbound_flow` (
+CREATE TABLE `inbound_flows` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `module_id` int(11) DEFAULT NULL,
   `item_id` int(11) DEFAULT NULL,
@@ -3470,9 +3471,9 @@ CREATE TABLE `inventiry_exit_items` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 
--- bynar.inventory definition
+-- bynar.inventories definition
 
-CREATE TABLE `inventory` (
+CREATE TABLE `inventories` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `location_id` int(11) DEFAULT NULL,
   `item_id` int(11) DEFAULT NULL,
@@ -3989,7 +3990,7 @@ CREATE TABLE `organizations` (
 
 -- bynar.outbound_flow definition
 
-CREATE TABLE `outbound_flow` (
+CREATE TABLE `outbound_flows` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `module_id` int(11) DEFAULT NULL,
   `location_id` int(11) DEFAULT NULL,
@@ -4705,7 +4706,7 @@ create table sales
   transaction_type_id          int            not null,
   payment_discount             decimal(20, 5) not null,
   shipment_method_id           int            not null,
-  payment_reference            int            not null,
+  payment_reference            varchar(255)   not null,
   transaction_specification_id int            not null,
   transport_method_id          int            not null,
   exit_point_id                int            not null,

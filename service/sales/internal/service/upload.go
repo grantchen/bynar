@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	stderr "errors"
 	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
 	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
@@ -44,6 +45,7 @@ func NewUploadService(db *sql.DB,
 	unitRep pkg_repository.UnitRepository,
 	currencyRep pkg_repository.CurrencyRepository,
 	inventoryRep pkg_repository.InventoryRepository,
+	boundFlowRep pkg_repository.BoundFlowRepository,
 ) *UploadService {
 	return &UploadService{
 		db:                              db,
@@ -57,6 +59,7 @@ func NewUploadService(db *sql.DB,
 		unitRep:                         unitRep,
 		currencyRep:                     currencyRep,
 		inventoryRep:                    inventoryRep,
+		boundFlowRep:                    boundFlowRep,
 	}
 }
 
@@ -83,7 +86,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 			log.Println("Err", err)
 
 			resp.IO.Result = -1
-			resp.IO.Message += i18n.ErrMsgToI18n(err, u.language).Error() + "\n"
+			resp.IO.Message += err.Error() + "\n"
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(tr.Fields))
 			break
 		}
@@ -108,11 +111,12 @@ func (s *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 	// Check Approval Order
 	ok, err := s.approvalService.Check(tr, s.accountID, s.language)
 	if err != nil {
-		return fmt.Errorf("check order: [%w], transfer id: %s", err, tr.IDString())
+		return i18n.TranslationI18n(s.language, "", err, map[string]string{})
 	}
 
 	if !ok {
-		return fmt.Errorf("invalid approval order: [%w]: status: %d", errors.ErrForbiddenAction, tr.Status())
+		return fmt.Errorf("%s",
+			i18n.Localize(s.language, "forbidden-action"))
 	}
 
 	if err := s.save(tx, tr); err != nil {
@@ -146,50 +150,64 @@ func (s *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 
 func (s *UploadService) save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	if err := s.saveSale(tx, tr); err != nil {
-		return fmt.Errorf("%s %s: [%w]",
-			i18n.Localize(s.language, errors.ErrCodeSave),
-			i18n.Localize(s.language, errors.ErrCodeSale),
-			i18n.ErrMsgToI18n(err, s.language))
+		return i18n.TranslationI18n(s.language, "SaveSale", err, map[string]string{
+			"Message": err.Error(),
+		})
 	}
 
 	if err := s.saveSaleLine(tx, tr, tr.Fields.GetID()); err != nil {
-		return fmt.Errorf("%s %s: [%w]",
-			i18n.Localize(s.language, errors.ErrCodeSave),
-			i18n.Localize(s.language, errors.ErrCodeSaleLine),
-			i18n.ErrMsgToI18n(err, s.language))
+		return i18n.TranslationI18n(s.language, "SaveSaleLine", err, map[string]string{
+			"Message": err.Error(),
+		})
 	}
 
 	return nil
 }
 
 func (s *UploadService) saveSale(tx *sql.Tx, tr *treegrid.MainRow) error {
-	fieldsValidating := []string{"code"}
+	requiredFieldsMapping := tr.Fields.FilterFieldsMapping(
+		repository.SaleFieldNames,
+		[]string{
+			"document_id",
+			"document_no",
+			"transaction_no",
+			"document_date",
+			"posting_date",
+			"entry_date",
+			"shipment_date",
+			"store_id",
+		})
+	positiveFieldsMapping := tr.Fields.FilterFieldsMapping(
+		repository.SaleFieldNames,
+		[]string{
+			"document_id",
+			"store_id",
+		})
 
 	var err error
 	switch tr.Fields.GetActionType() {
 	case treegrid.GridRowActionAdd:
-		err = tr.Fields.ValidateOnRequiredAll(repository.SaleFieldNames)
+		err = tr.Fields.ValidateOnRequiredAll(requiredFieldsMapping)
 		if err != nil {
 			return err
 		}
 
-		for _, field := range fieldsValidating {
-			ok, err := s.updateGRSaleRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
-			if !ok || err != nil {
-				return fmt.Errorf("duplicate, %s", field)
-			}
+		err = tr.Fields.ValidateOnPositiveNumber(positiveFieldsMapping, s.language)
+		if err != nil {
+			return fmt.Errorf(i18n.Localize(s.language, "", err.Error()))
 		}
+
+		tr.Fields["currency_value"] = 0
+		tr.Fields["direct_debit_mandate_id"] = 0
 	case treegrid.GridRowActionChanged:
-		err = tr.Fields.ValidateOnRequired(repository.SaleFieldNames)
+		err = tr.Fields.ValidateOnRequired(requiredFieldsMapping)
 		if err != nil {
 			return err
 		}
 
-		for _, field := range fieldsValidating {
-			ok, err := s.updateGRSaleRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
-			if !ok || err != nil {
-				return fmt.Errorf("duplicate, %s", field)
-			}
+		err = tr.Fields.ValidateOnPositiveNumber(positiveFieldsMapping, s.language)
+		if err != nil {
+			return fmt.Errorf(i18n.Localize(s.language, "", err.Error()))
 		}
 	case treegrid.GridRowActionDeleted:
 		// ignore id start with CR
@@ -213,32 +231,65 @@ func (s *UploadService) saveSale(tx *sql.Tx, tr *treegrid.MainRow) error {
 }
 
 func (s *UploadService) saveSaleLine(tx *sql.Tx, tr *treegrid.MainRow, parentID interface{}) error {
-	for _, item := range tr.Items {
-		logger.Debug("save group line: ", tr, "parentID: ", parentID)
+	requiredFieldsMapping := tr.Fields.FilterFieldsMapping(
+		repository.SaleLineFieldNames,
+		[]string{
+			"item_id",
+			"item_unit_id",
+		})
+	positiveFieldsMapping := tr.Fields.FilterFieldsMapping(
+		repository.SaleLineFieldNames,
+		[]string{
+			"item_id",
+			"input_quantity",
+			"item_unit_id",
+		})
 
-		var err error
+	for _, item := range tr.Items {
 		switch item.GetActionType() {
 		case treegrid.GridRowActionAdd:
-			err = item.ValidateOnRequiredAll(map[string][]string{"user_id": repository.SaleLineFieldNames["user_id"]})
+			err := item.ValidateOnRequiredAll(requiredFieldsMapping)
 			if err != nil {
 				return err
 			}
+
+			err = item.ValidateOnPositiveNumber(positiveFieldsMapping, s.language)
+			if err != nil {
+				return fmt.Errorf(i18n.Localize(s.language, "", err.Error()))
+			}
+
+			item["item_unit_value"] = 0
+			item["quantity"] = 0
+			item["quantity_assign"] = 0
+			item["quantity_assigned"] = 0
+			item["total_exclusive_vat"] = 0
+			item["total_vat"] = 0
+			item["subtotal_exclusive_vat_lcy"] = 0
+			item["total_discount_lcy"] = 0
+			item["total_exclusive_vat_lcy"] = 0
+			item["total_vat_lcy"] = 0
+			item["total_inclusive_vat_lcy"] = 0
 
 			err = s.updateGRSaleRepositoryWithChild.SaveLineAdd(tx, item)
 			if err != nil {
 				return fmt.Errorf("add child user groups line error: [%w]", err)
 			}
 		case treegrid.GridRowActionChanged:
-			// DO NOTHING WITH ACTION UPDATE, NOT ALLOW UPDATE LINES TABLE
-			return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeNoAllowToUpdateChildLine))
-		case treegrid.GridRowActionDeleted:
-			logger.Debug("delete child")
-
-			// re-assign sale_lines id
-			item["id"] = item.GetID()
-			err = s.updateGRSaleRepositoryWithChild.SaveLineDelete(tx, item)
+			err := item.ValidateOnRequired(requiredFieldsMapping)
 			if err != nil {
-				return fmt.Errorf("delete child user group line error: [%w]", err)
+				return err
+			}
+
+			err = item.ValidateOnPositiveNumber(positiveFieldsMapping, s.language)
+			if err != nil {
+				return fmt.Errorf(i18n.Localize(s.language, "", err.Error()))
+			}
+
+			return s.updateGRSaleRepositoryWithChild.SaveLineUpdate(tx, item)
+		case treegrid.GridRowActionDeleted:
+			err := s.updateGRSaleRepositoryWithChild.SaveLineDelete(tx, item)
+			if err != nil {
+				return err
 			}
 		default:
 			return fmt.Errorf("undefined row type: %s", tr.Fields.GetActionType())
@@ -269,6 +320,9 @@ func (s *UploadService) HandleSale(tx *sql.Tx, m *models.Sale) error {
 
 	currency, err := s.currencyRep.GetCurrency(m.CurrencyID)
 	if err != nil {
+		if stderr.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("currency not found with currency_id: %d", m.CurrencyID)
+		}
 		return fmt.Errorf("get currency: [%w]", err)
 	}
 	logger.Debug("currency.ExchangeRate", currency.ExchangeRate)

@@ -23,8 +23,12 @@ other = "{{.Field}} : Feld darf nicht negativ sein."
 other = "{{.Field}} : Feld muss positiv sein."
 [SaveUserGroup]
 other = "Benutzergruppe speichern : {{.Message}} "
-[SaveUserLine]
+[SaveUserGroupLine]
 other = "Benutzergruppenzeile speichern : {{.Message}}"
+[SaveSale]
+other = "Verkauf sparen : {{.Message}} "
+[SaveSaleLine]
+other = "Verkaufszeile speichern : {{.Message}}"
 [UserNotExist]
 other = "Benutzer existiert nicht! user_id: {{.UserId}}"
 [UserBelongSpecificUserGroupLines]

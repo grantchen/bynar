@@ -2,6 +2,8 @@ package http_handler
 
 import (
 	"database/sql"
+	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
+	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
@@ -9,6 +11,9 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/internal/service"
 )
+
+// for test
+const accountId = 6
 
 func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGridHandler {
 
@@ -46,7 +51,35 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 		1, // arbitrary
 	)
 
-	uploadService := service.NewUploadService(db, grSaleRepository, grSaleDataUploadRepositoryWithChild, "en")
+	saleRepository := repository.NewSaleRepository(db)
+	workflowRepository := pkg_repository.NewWorkflowRepository(db)
+	unitRepository := pkg_repository.NewUnitRepository(db)
+	currencyRepository := pkg_repository.NewCurrencyRepository(db)
+	inventoryRepository := pkg_repository.NewInventoryRepository(db)
+	boundFlowRepository := pkg_repository.NewBoundFlows()
+
+	documentRepository := pkg_repository.NewDocuments(db, "procurements")
+
+	approvalSvc := pkg_service.NewApprovalCashPaymentService(pkg_repository.NewApprovalOrder(
+		workflowRepository,
+		saleRepository),
+	)
+	docSvc := pkg_service.NewDocumentService(documentRepository)
+
+	uploadService := service.NewUploadService(
+		db,
+		grSaleRepository,
+		grSaleDataUploadRepositoryWithChild,
+		"en",
+		accountId,
+		approvalSvc,
+		docSvc,
+		saleRepository,
+		unitRepository,
+		currencyRepository,
+		inventoryRepository,
+		boundFlowRepository,
+	)
 
 	handler := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,
