@@ -51,7 +51,7 @@ func TranslationI18n(language, messageId string, err error, templateData map[str
 			},
 			TemplateData: templateData,
 		})
-	} else {
+	} else if err != nil {
 		translationMessage = err.Error()
 		for key, code := range errMsgToTranslationMap {
 			if strings.Contains(translationMessage, key) {
@@ -62,6 +62,8 @@ func TranslationI18n(language, messageId string, err error, templateData map[str
 				})
 			}
 		}
+	} else {
+		return nil
 	}
 	return fmt.Errorf(translationMessage)
 }

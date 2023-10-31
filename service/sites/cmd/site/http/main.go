@@ -14,21 +14,6 @@ import (
 
 // use for test only this module without permission
 func main() {
-	// gr := &treegrid.GridRow{}
-	// (*gr)["id"] = "1"
-	// (*gr)["name"] = "linh"
-	// (*gr)["vat_number"] = "123"
-	// (*gr)["state"] = "1123"
-	// (*gr)["code"] = "abc"
-	// s, _ := gr.MakeUpdateQuery("sites", repository.SiteFieldNames)
-	// fmt.Println(s)
-
-	// secretmanager, err := utils.GetSecretManager()
-	// if err != nil {
-	// 	log.Panic(err)
-	// }
-
-	// appConfig := config.NewAWSSecretsManagerConfig(secretmanager)
 	// connString := appConfig.GetDBConnection()
 	connString := "root:123456@tcp(localhost:3306)/bynar"
 	// connString := "root:Munrfe2020@tcp(bynar-cet.ccwuyxj7ucnd.eu-central-1.rds.amazonaws.com:3306)/bynar"

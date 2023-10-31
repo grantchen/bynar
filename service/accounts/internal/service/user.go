@@ -232,7 +232,10 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				}
 			}
 			err = s.simpleOrganizationRepository.Delete(tx, gr)
-			return i18n.TranslationI18n(s.language, "", err, map[string]string{})
+			if err != nil {
+				return i18n.TranslationI18n(s.language, "", err, map[string]string{})
+			}
+			return err
 		}()
 
 	default:

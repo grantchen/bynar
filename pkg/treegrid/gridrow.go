@@ -408,6 +408,10 @@ func (g GridRow) UpdatedFields() []string {
 			continue
 		case "id":
 			continue
+		case "reqID":
+			continue
+		case "Custom":
+			continue
 		default:
 			updatedFields = append(updatedFields, key)
 		}

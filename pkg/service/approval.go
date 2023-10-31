@@ -63,6 +63,12 @@ func (s *approvalService) checkActionAdded(tr *treegrid.MainRow, accountID int) 
 
 func (s *approvalService) checkActionUpdated(tr *treegrid.MainRow, accountID int) (bool, error) {
 	logger.Debug("row id", tr.Fields.GetID())
+
+	// nothing changed
+	if len(tr.Fields.UpdatedFields()) == 0 {
+		return true, nil
+	}
+
 	currStatus, err := s.storage.GetStatus(tr.Fields.GetID())
 	if err != nil {
 		return false, fmt.Errorf("get status by id: %v, [%w]", tr.Fields.GetID(), err)

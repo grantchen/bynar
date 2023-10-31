@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
 )
 

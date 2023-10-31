@@ -1,22 +1,23 @@
-package http_handler
+package service
 
 import (
+	"context"
 	"database/sql"
 	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/internal/service"
 )
 
-// for test
-const accountId = 6
+type treegridService struct {
+	db            *sql.DB
+	saleService   service.SaleService
+	uploadService *service.UploadService
+}
 
-func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGridHandler {
-
+func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.TreeGridService {
 	gridRowDataRepositoryWithChild := treegrid.NewGridRowDataRepositoryWithChild(
 		db,
 		"sales",
@@ -43,7 +44,6 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 		"sale_lines",
 		repository.SaleFieldNames,
 		repository.SaleLineFieldNames)
-
 	grSaleRepository := treegrid.NewSimpleGridRowRepository(
 		db,
 		"sales",
@@ -70,8 +70,8 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 		db,
 		grSaleRepository,
 		grSaleDataUploadRepositoryWithChild,
-		"en",
-		accountId,
+		language,
+		accountID,
 		approvalSvc,
 		docSvc,
 		saleRepository,
@@ -80,16 +80,36 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 		inventoryRepository,
 		boundFlowRepository,
 	)
-
-	handler := &handler.HTTPTreeGridHandler{
-		CallbackUploadDataFunc:  uploadService.Handle,
-		CallbackGetPageDataFunc: saleService.GetPageData,
-		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) (float64, error) {
-			count, err := saleService.GetPageCount(tr)
-			return float64(count), err
-		},
-		CallBackGetCellDataFunc: saleService.GetCellSuggestion,
+	return &treegridService{
+		db:            db,
+		saleService:   saleService,
+		uploadService: uploadService,
 	}
+}
 
-	return handler
+func NewTreeGridServiceFactory() treegrid.TreeGridServiceFactoryFunc {
+	return func(db *sql.DB, accountID int, organizationUuid string, permissionInfo *treegrid.PermissionInfo, language string) treegrid.TreeGridService {
+		return newTreeGridService(db, accountID, language)
+	}
+}
+
+// GetCellData implements treegrid.TreeGridService
+func (s *treegridService) GetCellData(ctx context.Context, req *treegrid.Treegrid) (*treegrid.PostResponse, error) {
+	return s.saleService.GetCellSuggestion(req)
+}
+
+// GetPageCount implements treegrid.TreeGridService
+func (s *treegridService) GetPageCount(tr *treegrid.Treegrid) (float64, error) {
+	count, err := s.saleService.GetPageCount(tr)
+	return float64(count), err
+}
+
+// GetPageData implements treegrid.TreeGridService
+func (s *treegridService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
+	return s.saleService.GetPageData(tr)
+}
+
+// Upload implements treegrid.TreeGridService
+func (s *treegridService) Upload(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
+	return s.uploadService.Handle(req)
 }
