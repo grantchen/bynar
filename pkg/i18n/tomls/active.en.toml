@@ -1,4 +1,3 @@
-RequiredFieldsBlank = "Required fields cannot be blank."
 FieldOutRange = "Out of range value for field."
 TruncatedIncorrect = "Truncated incorrect error."
 FieldTooLong = "Data too long for field."
@@ -15,6 +14,8 @@ InvalidCondition = "invalid condition when update data."
 MergeFail = "Merge with current data fail."
 NoUserGroupLineFound = "You are not in any user group and cannot create an organization."
 UpdateChildLine =  "no allow to update child line."
+[RequiredFieldsBlank]
+other = "Required fields cannot be blank: {{.Field}}."
 [ValueDuplicated]
 other = "Field is duplicate: {{.Field}}."
 [ValidateOnNotNegativeNumber]

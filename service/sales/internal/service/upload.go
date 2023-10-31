@@ -153,13 +153,13 @@ func (s *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 
 func (s *UploadService) save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	if err := s.saveSale(tx, tr); err != nil {
-		return i18n.TranslationI18n(s.language, "SaveSale", err, map[string]string{
+		return i18n.TranslationI18n(s.language, "SaveSale", map[string]string{
 			"Message": err.Error(),
 		})
 	}
 
 	if err := s.saveSaleLine(tx, tr, tr.Fields.GetID()); err != nil {
-		return i18n.TranslationI18n(s.language, "SaveSaleLine", err, map[string]string{
+		return i18n.TranslationI18n(s.language, "SaveSaleLine", map[string]string{
 			"Message": err.Error(),
 		})
 	}
@@ -190,7 +190,7 @@ func (s *UploadService) saveSale(tx *sql.Tx, tr *treegrid.MainRow) error {
 	var err error
 	switch tr.Fields.GetActionType() {
 	case treegrid.GridRowActionAdd:
-		err = tr.Fields.ValidateOnRequiredAll(requiredFieldsMapping)
+		err = tr.Fields.ValidateOnRequiredAll(requiredFieldsMapping, s.language)
 		if err != nil {
 			return err
 		}
@@ -203,7 +203,7 @@ func (s *UploadService) saveSale(tx *sql.Tx, tr *treegrid.MainRow) error {
 		tr.Fields["currency_value"] = 0
 		tr.Fields["direct_debit_mandate_id"] = 0
 	case treegrid.GridRowActionChanged:
-		err = tr.Fields.ValidateOnRequired(requiredFieldsMapping)
+		err = tr.Fields.ValidateOnRequired(requiredFieldsMapping, s.language)
 		if err != nil {
 			return err
 		}
@@ -251,7 +251,7 @@ func (s *UploadService) saveSaleLine(tx *sql.Tx, tr *treegrid.MainRow, parentID 
 	for _, item := range tr.Items {
 		switch item.GetActionType() {
 		case treegrid.GridRowActionAdd:
-			err := item.ValidateOnRequiredAll(requiredFieldsMapping)
+			err := item.ValidateOnRequiredAll(requiredFieldsMapping, s.language)
 			if err != nil {
 				return err
 			}
@@ -278,7 +278,7 @@ func (s *UploadService) saveSaleLine(tx *sql.Tx, tr *treegrid.MainRow, parentID 
 				return fmt.Errorf("add child user groups line error: [%w]", err)
 			}
 		case treegrid.GridRowActionChanged:
-			err := item.ValidateOnRequired(requiredFieldsMapping)
+			err := item.ValidateOnRequired(requiredFieldsMapping, s.language)
 			if err != nil {
 				return err
 			}

@@ -1,4 +1,3 @@
-RequiredFieldsBlank = "Erforderliche Felder dürfen nicht leer sein."
 FieldOutRange = "Wert außerhalb des zulässigen Bereichs für das Feld."
 TruncatedIncorrect = "Abgeschnittener falscher Fehler."
 FieldTooLong = "Daten zu lang für Feld."
@@ -15,6 +14,8 @@ InvalidCondition = "Ungültiger Zustand beim Aktualisieren der Daten."
 MergeFail = "Zusammenführen mit aktuellen Daten schlägt fehl."
 NoUserGroupLineFound = "Sie gehören keiner Benutzergruppe an und können keine Organisation erstellen."
 UpdateChildLine =  "Es ist nicht gestattet, die untergeordnete Zeile zu aktualisieren."
+[RequiredFieldsBlank]
+other = "Erforderliche Felder dürfen nicht leer sein: {{.Field}}."
 [ValueDuplicated]
 other = "Feld ist doppelt vorhanden: {{.Field}}."
 [ValidateOnNotNegativeNumber]

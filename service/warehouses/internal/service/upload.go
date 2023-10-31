@@ -74,9 +74,9 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	fieldsCombinationValidating := []string{"code"}
 	switch gr.GetActionType() {
 	case treegrid.GridRowActionAdd:
-		err1 := gr.ValidateOnRequiredAll(repository.WarehousesFieldNames)
+		err1 := gr.ValidateOnRequiredAll(repository.WarehousesFieldNames, u.language)
 		if err1 != nil {
-			return i18n.TranslationI18n(u.language, "RequiredFieldsBlank", nil, map[string]string{})
+			return err1
 		}
 		err = gr.ValidateOnNotNegativeNumber(repository.WarehousesFieldNames, u.language)
 		if err != nil {
@@ -88,14 +88,14 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				templateData := map[string]string{
 					"Field": field,
 				}
-				return i18n.TranslationI18n(u.language, "ValueDuplicated", nil, templateData)
+				return i18n.TranslationI18n(u.language, "ValueDuplicated", templateData)
 			}
 		}
 		err = u.tgWarehousesSimpleRepository.Add(tx, gr)
 	case treegrid.GridRowActionChanged:
-		err1 := gr.ValidateOnRequired(repository.WarehousesFieldNames)
+		err1 := gr.ValidateOnRequired(repository.WarehousesFieldNames, u.language)
 		if err1 != nil {
-			return i18n.TranslationI18n(u.language, "RequiredFieldsBlank", nil, map[string]string{})
+			return err1
 		}
 		err = gr.ValidateOnNotNegativeNumber(repository.WarehousesFieldNames, u.language)
 		if err != nil {
@@ -107,7 +107,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				templateData := map[string]string{
 					"Field": field,
 				}
-				return i18n.TranslationI18n(u.language, "ValueDuplicated", nil, templateData)
+				return i18n.TranslationI18n(u.language, "ValueDuplicated", templateData)
 			}
 		}
 		_, ok := gr.GetValInt("id")
@@ -121,7 +121,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		warehouses, err = u.warehousesRepository.GetWarehouses(gr.GetIDInt())
 		if err == nil {
 			if warehouses.Archived == 1 {
-				return i18n.TranslationI18n(u.language, "ArchivedDelete", nil, map[string]string{})
+				return i18n.TranslationI18n(u.language, "ArchivedDelete", map[string]string{})
 			}
 			err = u.tgWarehousesSimpleRepository.Delete(tx, gr)
 			if err != nil {
@@ -131,11 +131,11 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			return nil
 		}
 	default:
-		return i18n.TranslationI18n(u.language, "", err, map[string]string{})
+		return i18n.TranslationErrorToI18n(u.language, err)
 	}
 
 	if err != nil {
-		return i18n.TranslationI18n(u.language, "", err, map[string]string{})
+		return i18n.TranslationErrorToI18n(u.language, err)
 	}
 
 	return err
@@ -145,15 +145,15 @@ func (u *uploadService) checkGeneralPostSetupCondition(gps *model.Warehouses) er
 
 	if gps.Archived != 0 && gps.Archived != 1 {
 		logger.Debug("gps: ", gps.Archived)
-		return i18n.TranslationI18n(u.language, "NotValidArchived", nil, map[string]string{})
+		return i18n.TranslationI18n(u.language, "NotValidArchived", map[string]string{})
 	}
 
 	if gps.Status != 0 && gps.Status != 1 {
-		return i18n.TranslationI18n(u.language, "NotValidStatus", nil, map[string]string{})
+		return i18n.TranslationI18n(u.language, "NotValidStatus", map[string]string{})
 	}
 
 	if gps.Status == 1 && gps.Status == gps.Archived {
-		return i18n.TranslationI18n(u.language, "StatusAndArchivedSame", nil, map[string]string{})
+		return i18n.TranslationI18n(u.language, "StatusAndArchivedSame", map[string]string{})
 	}
 
 	return nil

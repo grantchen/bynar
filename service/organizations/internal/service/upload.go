@@ -79,14 +79,14 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 		defer stmt.Close()
 		err = stmt.QueryRow(s.userID).Scan(&parentId)
 		if err != nil {
-			return i18n.TranslationI18n(s.language, "NoUserGroupLineFound", nil, map[string]string{})
+			return i18n.TranslationI18n(s.language, "NoUserGroupLineFound", map[string]string{})
 		}
 
 		gr["user_group_int"] = parentId
 
-		err1 = gr.ValidateOnRequiredAll(repository.OrganizationFieldNames)
+		err1 = gr.ValidateOnRequiredAll(repository.OrganizationFieldNames, s.language)
 		if err1 != nil {
-			return i18n.TranslationI18n(s.language, "RequiredFieldsBlank", nil, map[string]string{})
+			return err1
 		}
 
 		for _, field := range fieldsValidating {
@@ -95,14 +95,14 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 				templateData := map[string]string{
 					"Field": field,
 				}
-				return i18n.TranslationI18n(s.language, "ValueDuplicated", nil, templateData)
+				return i18n.TranslationI18n(s.language, "ValueDuplicated", templateData)
 			}
 		}
 		err = s.organizationSimpleRepository.Add(tx, gr)
 	case treegrid.GridRowActionChanged:
-		err1 := gr.ValidateOnRequired(repository.OrganizationFieldNames)
+		err1 := gr.ValidateOnRequired(repository.OrganizationFieldNames, s.language)
 		if err1 != nil {
-			return i18n.TranslationI18n(s.language, "RequiredFieldsBlank", nil, map[string]string{})
+			return err1
 		}
 		for _, field := range fieldsValidating {
 			ok, err := s.organizationSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
@@ -110,7 +110,7 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 				templateData := map[string]string{
 					"Field": field,
 				}
-				return i18n.TranslationI18n(s.language, "ValueDuplicated", nil, templateData)
+				return i18n.TranslationI18n(s.language, "ValueDuplicated", templateData)
 			}
 		}
 		err = s.organizationSimpleRepository.Update(tx, gr)
@@ -122,7 +122,7 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 	}
 
 	if err != nil {
-		return i18n.TranslationI18n(s.language, "", err, map[string]string{})
+		return i18n.TranslationErrorToI18n(s.language, err)
 	}
 
 	if err := tx.Commit(); err != nil {

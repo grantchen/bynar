@@ -39,19 +39,25 @@ func initBundle() *i18n.Bundle {
 	return bundle
 }
 
-func TranslationI18n(language, messageId string, err error, templateData map[string]string) error {
+func TranslationI18n(language, messageId string, templateData map[string]string) error {
+	bundle := initBundle()
+	localizer := i18n.NewLocalizer(bundle, language)
+	translationMessage := localizer.MustLocalize(&i18n.LocalizeConfig{
+		DefaultMessage: &i18n.Message{
+			ID:    messageId,
+			Other: "",
+		},
+		TemplateData: templateData,
+	})
+	return fmt.Errorf(translationMessage)
+}
+
+// TranslationErrorToI18n todo Database error translation
+func TranslationErrorToI18n(language string, err error) error {
 	bundle := initBundle()
 	localizer := i18n.NewLocalizer(bundle, language)
 	translationMessage := ""
-	if messageId != "" {
-		translationMessage = localizer.MustLocalize(&i18n.LocalizeConfig{
-			DefaultMessage: &i18n.Message{
-				ID:    messageId,
-				Other: "",
-			},
-			TemplateData: templateData,
-		})
-	} else if err != nil {
+	if err != nil {
 		translationMessage = err.Error()
 		for key, code := range errMsgToTranslationMap {
 			if strings.Contains(translationMessage, key) {

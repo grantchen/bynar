@@ -5,8 +5,6 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"strconv"
 	"strings"
-
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 )
 
 type (
@@ -37,25 +35,31 @@ func (f GridRow) GetLineID() string {
 	return strings.Trim(f.GetIDStr(), lineSuffix)
 }
 
-func (f GridRow) ValidateOnRequiredAll(fieldsMapping map[string][]string) error {
+func (f GridRow) ValidateOnRequiredAll(fieldsMapping map[string][]string, language string) error {
 	for key, _ := range fieldsMapping {
 		val, ok := f[key]
 		if !ok || val == "" {
-			return fmt.Errorf("%w, %s", errors.ErrMissingRequiredParams, key)
+			templateData := map[string]string{
+				"Field": key,
+			}
+			return i18n.TranslationI18n(language, "RequiredFieldsBlank", templateData)
 		}
 	}
 	return nil
 }
 
 // used to check empty update key.
-func (f GridRow) ValidateOnRequired(fieldsMapping map[string][]string) error {
+func (f GridRow) ValidateOnRequired(fieldsMapping map[string][]string, language string) error {
 	for key, _ := range fieldsMapping {
 		if key == "Changed" || key == "id" {
 			continue
 		}
 		val, ok := f[key]
 		if ok && val == "" {
-			return fmt.Errorf("[%w]: %s", errors.ErrMissingRequiredParams, key)
+			templateData := map[string]string{
+				"Field": key,
+			}
+			return i18n.TranslationI18n(language, "RequiredFieldsBlank", templateData)
 		}
 	}
 	return nil
@@ -73,7 +77,7 @@ func (f GridRow) ValidateOnNotNegativeNumber(fieldsMapping map[string][]string, 
 			templateData := map[string]string{
 				"Field": key,
 			}
-			return i18n.TranslationI18n(language, "ValidateOnNotNegativeNumber", nil, templateData)
+			return i18n.TranslationI18n(language, "ValidateOnNotNegativeNumber", templateData)
 		}
 
 	}
@@ -92,7 +96,7 @@ func (f GridRow) ValidateOnPositiveNumber(fieldsMapping map[string][]string, lan
 			templateData := map[string]string{
 				"Field": key,
 			}
-			return i18n.TranslationI18n(language, "ValidateOnPositiveNumber", nil, templateData)
+			return i18n.TranslationI18n(language, "ValidateOnPositiveNumber", templateData)
 		}
 
 	}
