@@ -81,12 +81,13 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	defer tx.Rollback()
 
 	m := make(map[string]interface{})
+	var handleErr error
 	for _, tr := range trList.MainRows() {
-		if err := u.handle(tx, tr); err != nil {
-			log.Println("Err", err)
+		if handleErr = u.handle(tx, tr); handleErr != nil {
+			log.Println("Err", handleErr)
 
 			resp.IO.Result = -1
-			resp.IO.Message += err.Error() + "\n"
+			resp.IO.Message += handleErr.Error() + "\n"
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(tr.Fields))
 			break
 		}
@@ -100,8 +101,10 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 		}
 	}
 
-	if err = tx.Commit(); err != nil {
-		return nil, fmt.Errorf("%s: [%w]", i18n.Localize(u.language, errors.ErrCodeCommitTransaction), err)
+	if handleErr == nil {
+		if err = tx.Commit(); err != nil {
+			return nil, fmt.Errorf("%s: [%w]", i18n.Localize(u.language, errors.ErrCodeCommitTransaction), err)
+		}
 	}
 
 	return resp, nil
@@ -111,7 +114,7 @@ func (s *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 	// Check Approval Order
 	ok, err := s.approvalService.Check(tr, s.accountID, s.language)
 	if err != nil {
-		return i18n.TranslationI18n(s.language, "", err, map[string]string{})
+		return err
 	}
 
 	if !ok {
@@ -137,7 +140,7 @@ func (s *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 		}
 
 		if err := s.HandleSale(tx, entity); err != nil {
-			return fmt.Errorf("handle sale: [%w]", err)
+			return err
 		}
 
 		if err := s.docSvc.Handle(tx, entity.ID, entity.DocumentID, entity.DocumentNo); err != nil {
