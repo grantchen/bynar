@@ -22,19 +22,6 @@ import (
 const accountId = 6
 
 func main() {
-	// secretmanager, err := utils.GetSecretManager()
-
-	// if err != nil {
-	// 	log.Panic(err)
-	// }
-
-	// appConfig := config.NewAWSSecretsManagerConfig(secretmanager)
-	// connString := appConfig.GetDBConnection()
-	// db, err := sql_db.NewConnection(connString)
-
-	// if err != nil {
-	// 	log.Panic(err)
-	// }
 	err := godotenv.Load("../main/.env")
 	if err != nil {
 		log.Fatal("Error loading .env file in main service")
