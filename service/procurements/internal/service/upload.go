@@ -70,7 +70,7 @@ func (s *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 
 func (s *UploadService) handle(tr *treegrid.MainRow) error {
 	// Check Approval Order
-	ok, err := s.approvalService.Check(tr, s.moduleID, s.accountID)
+	ok, err := s.approvalService.Check(tr, s.accountID, "")
 	if err != nil {
 		return fmt.Errorf("check order: [%w], transfer id: %s", err, tr.IDString())
 	}
@@ -89,7 +89,7 @@ func (s *UploadService) handle(tr *treegrid.MainRow) error {
 	if err := s.gridRowRepository.Save(tx, tr); err != nil {
 		return fmt.Errorf("procecurement svc save '%s': [%w]", tr.IDString(), err)
 	}
-
+	//todo refactor
 	if tr.Status() == 1 {
 		logger.Debug("status equal 1 - do calculation, status", tr.Status())
 

@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
@@ -57,7 +56,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 			log.Println("Err", err)
 
 			resp.IO.Result = -1
-			resp.IO.Message += i18n.ErrMsgToI18n(err, u.language).Error() + "\n"
+			resp.IO.Message += err.Error() + "\n"
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(tr.Fields))
 			break
 		}
@@ -82,7 +81,7 @@ func (s *UploadService) handle(tr *treegrid.MainRow) error {
 	defer tx.Rollback()
 
 	if err := s.save(tx, tr); err != nil {
-		return err
+		return i18n.TranslationI18n(s.language, "", err, map[string]string{})
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -94,17 +93,17 @@ func (s *UploadService) handle(tr *treegrid.MainRow) error {
 
 func (s *UploadService) save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	if err := s.saveUserGroup(tx, tr); err != nil {
-		return fmt.Errorf("%s %s: [%w]",
-			i18n.Localize(s.language, errors.ErrCodeSave),
-			i18n.Localize(s.language, errors.ErrCodeUserGroup),
-			i18n.ErrMsgToI18n(err, s.language))
+		userTemplateData := map[string]string{
+			"Message": err.Error(),
+		}
+		return i18n.TranslationI18n(s.language, "SaveUserGroup", err, userTemplateData)
 	}
 
 	if err := s.saveUserGroupLine(tx, tr, tr.Fields.GetID()); err != nil {
-		return fmt.Errorf("%s %s: [%w]",
-			i18n.Localize(s.language, errors.ErrCodeSave),
-			i18n.Localize(s.language, errors.ErrCodeUserGroupLine),
-			i18n.ErrMsgToI18n(err, s.language))
+		userGroupLineTemplateData := map[string]string{
+			"Message": err.Error(),
+		}
+		return i18n.TranslationI18n(s.language, "SaveUserLine", err, userGroupLineTemplateData)
 	}
 
 	return nil
@@ -118,25 +117,31 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 	case treegrid.GridRowActionAdd:
 		err = tr.Fields.ValidateOnRequiredAll(repository.UserGroupFieldNames)
 		if err != nil {
-			return err
+			return i18n.TranslationI18n(s.language, "RequiredFieldsBlank", nil, map[string]string{})
 		}
 
 		for _, field := range fieldsValidating {
 			ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("duplicate, %s", field)
+				templateData := map[string]string{
+					"Field": field,
+				}
+				return i18n.TranslationI18n(s.language, "ValueDuplicated", nil, templateData)
 			}
 		}
 	case treegrid.GridRowActionChanged:
 		err = tr.Fields.ValidateOnRequired(repository.UserGroupFieldNames)
 		if err != nil {
-			return err
+			return i18n.TranslationI18n(s.language, "RequiredFieldsBlank", nil, map[string]string{})
 		}
 
 		for _, field := range fieldsValidating {
 			ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("duplicate, %s", field)
+				templateData := map[string]string{
+					"Field": field,
+				}
+				return i18n.TranslationI18n(s.language, "ValueDuplicated", nil, templateData)
 			}
 		}
 	case treegrid.GridRowActionDeleted:
@@ -152,7 +157,7 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 
 			_, err = stmt.Exec(idStr)
 			if err != nil {
-				return err
+				return i18n.TranslationI18n(s.language, "", err, map[string]string{})
 			}
 		}
 	}
@@ -169,7 +174,7 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, pare
 		case treegrid.GridRowActionAdd:
 			err = item.ValidateOnRequiredAll(map[string][]string{"user_id": repository.UserGroupLineFieldNames["user_id"]})
 			if err != nil {
-				return err
+				return i18n.TranslationI18n(s.language, "RequiredFieldsBlank", nil, map[string]string{})
 			}
 
 			logger.Debug("add child row")
@@ -177,13 +182,19 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, pare
 			ok, err := s.checkValidUser(tx, userId)
 
 			if err != nil || !ok {
-				return fmt.Errorf("%s user_id: [%s]", i18n.Localize(s.language, errors.ErrCodeUserNotExist), userId)
+				templateData := map[string]string{
+					"UserId": fmt.Sprintf("%s", userId),
+				}
+				return i18n.TranslationI18n(s.language, "UserNotExist", nil, templateData)
 			}
 
 			ok, err = s.userExistInLine(tx, userId)
 
 			if err != nil || !ok {
-				return fmt.Errorf("%s user_id: [%s]", i18n.Localize(s.language, errors.ErrCodeUserBelongSpecificUserGroupLines), userId)
+				templateData := map[string]string{
+					"UserId": fmt.Sprintf("%s", userId),
+				}
+				return i18n.TranslationI18n(s.language, "UserBelongSpecificUserGroupLines", nil, templateData)
 			}
 
 			err = s.updateGRUserGroupRepositoryWithChild.SaveLineAdd(tx, item)
@@ -192,7 +203,7 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, pare
 			}
 		case treegrid.GridRowActionChanged:
 			// DO NOTHING WITH ACTION UPDATE, NOT ALLOW UPDATE LINES TABLE
-			return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeNoAllowToUpdateChildLine))
+			return i18n.TranslationI18n(s.language, "UpdateChildLine", nil, map[string]string{})
 		case treegrid.GridRowActionDeleted:
 			logger.Debug("delete child")
 

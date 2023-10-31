@@ -50,3 +50,16 @@ func (c Column) WhereSQL(val string) (whereSQL string) {
 
 	return fmt.Sprintf("%s='%s'", c.DBName, val)
 }
+
+// Type return type for column
+func (c Column) Type() string {
+	if c.IsDate {
+		return "Date"
+	}
+
+	if IsIntCol(c.DBName) {
+		return "Int"
+	}
+
+	return "Auto"
+}

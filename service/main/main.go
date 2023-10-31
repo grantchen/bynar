@@ -17,7 +17,7 @@ import (
 	general_posting_setup_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/external/service"
 	invoices_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/external/handler/service"
 	organizations_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/external/handler/service"
-	payments_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/external/handler/http"
+	payments_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/external/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
@@ -142,9 +142,9 @@ func main() {
 	lsHandlerMapping = append(lsHandlerMapping,
 		&HandlerMapping{handler: sales_handler.NewHTTPHandler(appConfig, db),
 			prefixPath: "/sales"})
-	lsHandlerMapping = append(lsHandlerMapping,
-		&HandlerMapping{handler: payments_handler.NewHTTPHandler(appConfig, db),
-			prefixPath: "/payments"})
+	//lsHandlerMapping = append(lsHandlerMapping,
+	//	&HandlerMapping{handler: payments_handler.NewHTTPHandler(appConfig, db),
+	//		prefixPath: "/payments"})
 	lsHandlerMapping = append(lsHandlerMapping,
 		&HandlerMapping{handler: procurements_handler.NewHTTPHandler(appConfig, db),
 			prefixPath: "/procurements"})
@@ -167,6 +167,7 @@ func main() {
 		&HandlerMappingWithPermission{factoryFunc: general_posting_setup_service.NewTreeGridServiceFactory(), prefixPath: "/general_posting_setup"},
 		&HandlerMappingWithPermission{factoryFunc: user_group_service.NewTreeGridServiceFactory(), prefixPath: "/user_groups"},
 		&HandlerMappingWithPermission{factoryFunc: warehouses_service.NewTreeGridServiceFactory(), prefixPath: "/warehouses"},
+		&HandlerMappingWithPermission{factoryFunc: payments_service.NewTreeGridServiceFactory(), prefixPath: "/payments"},
 	)
 
 	for _, handlerMappingWithPermission := range lsHandlerMappingWithPermission {

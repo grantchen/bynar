@@ -63,7 +63,6 @@ func (d *documentService) Handle(tx *sql.Tx, modelID, docID int, docNo string) e
 
 			return nil
 		}
-
 		return d.generate(tx, modelID, doc.SeriesID, false)
 	}
 

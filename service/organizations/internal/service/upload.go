@@ -48,7 +48,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 			log.Println("Err", err)
 
 			resp.IO.Result = -1
-			resp.IO.Message += i18n.ErrMsgToI18n(err, u.language).Error() + "\n"
+			resp.IO.Message += err.Error() + "\n"
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
 			break
 		}
@@ -79,32 +79,38 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 		defer stmt.Close()
 		err = stmt.QueryRow(s.userID).Scan(&parentId)
 		if err != nil {
-			return fmt.Errorf(i18n.Localize(s.language, errors.ErrCodeNoUserGroupLineFound))
+			return i18n.TranslationI18n(s.language, "NoUserGroupLineFound", nil, map[string]string{})
 		}
 
 		gr["user_group_int"] = parentId
 
 		err1 = gr.ValidateOnRequiredAll(repository.OrganizationFieldNames)
 		if err1 != nil {
-			return err1
+			return i18n.TranslationI18n(s.language, "RequiredFieldsBlank", nil, map[string]string{})
 		}
 
 		for _, field := range fieldsValidating {
 			ok, err := s.organizationSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("duplicate, %s", field)
+				templateData := map[string]string{
+					"Field": field,
+				}
+				return i18n.TranslationI18n(s.language, "ValueDuplicated", nil, templateData)
 			}
 		}
 		err = s.organizationSimpleRepository.Add(tx, gr)
 	case treegrid.GridRowActionChanged:
 		err1 := gr.ValidateOnRequired(repository.OrganizationFieldNames)
 		if err1 != nil {
-			return err1
+			return i18n.TranslationI18n(s.language, "RequiredFieldsBlank", nil, map[string]string{})
 		}
 		for _, field := range fieldsValidating {
 			ok, err := s.organizationSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("duplicate, %s", field)
+				templateData := map[string]string{
+					"Field": field,
+				}
+				return i18n.TranslationI18n(s.language, "ValueDuplicated", nil, templateData)
 			}
 		}
 		err = s.organizationSimpleRepository.Update(tx, gr)
@@ -116,7 +122,7 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 	}
 
 	if err != nil {
-		return err
+		return i18n.TranslationI18n(s.language, "", err, map[string]string{})
 	}
 
 	if err := tx.Commit(); err != nil {

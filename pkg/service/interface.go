@@ -21,16 +21,16 @@ type DocumentService interface {
 
 type CashReceiptService interface {
 	GetPaymentTx(tx *sql.Tx, id interface{}) (*models.CashReceipt, error)
-	Handle(tx *sql.Tx, m *models.CashReceipt, moduleID int) error
+	Handle(tx *sql.Tx, m *models.CashReceipt) error
 	HandleLine(tx *sql.Tx, pr *models.CashReceipt, l *models.CashReceiptLine) (err error)
 }
 
 type ApprovalService interface {
-	Check(tr *treegrid.MainRow, moduleID, accountID int) (bool, error)
+	Check(tr *treegrid.MainRow, accountID int, language string) (bool, error)
 }
 
 type ApprovalCashPaymentService interface {
-	Check(tr *treegrid.MainRow, moduleID, accountID int) (bool, error)
+	Check(tr *treegrid.MainRow, accountID int, language string) (bool, error)
 }
 
 type AccountManagerService interface {
