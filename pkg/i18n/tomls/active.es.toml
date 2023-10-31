@@ -23,8 +23,12 @@ other = "{{.Field}} : El campo no debe ser negativo."
 other = "{{.Field}} : El campo debe ser positivo."
 [SaveUserGroup]
 other = "Guardar grupo de usuarios : {{.Message}} "
-[SaveUserLine]
+[SaveUserGroupLine]
 other = "Guardar línea de grupo de usuarios : {{.Message}}"
+[SaveSale]
+other = "Guardar venta : {{.Message}} "
+[SaveSaleLine]
+other = "Guardar línea de venta : {{.Message}}"
 [UserNotExist]
 other = "La usuario no existe! user_id: {{.UserId}}"
 [UserBelongSpecificUserGroupLines]

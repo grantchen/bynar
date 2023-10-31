@@ -29,7 +29,7 @@ import (
 	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	procurements_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/procurements/external/handler/http"
-	sales_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/external/handler/http"
+	sale_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/external/service"
 	sites_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/sites/external/handler/service"
 	transfers_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/external/handler/service"
 	user_group_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/external/service"
@@ -139,9 +139,6 @@ func main() {
 	}
 
 	lsHandlerMapping := make([]*HandlerMapping, 0)
-	lsHandlerMapping = append(lsHandlerMapping,
-		&HandlerMapping{handler: sales_handler.NewHTTPHandler(appConfig, db),
-			prefixPath: "/sales"})
 	//lsHandlerMapping = append(lsHandlerMapping,
 	//	&HandlerMapping{handler: payments_handler.NewHTTPHandler(appConfig, db),
 	//		prefixPath: "/payments"})
@@ -167,6 +164,7 @@ func main() {
 		&HandlerMappingWithPermission{factoryFunc: general_posting_setup_service.NewTreeGridServiceFactory(), prefixPath: "/general_posting_setup"},
 		&HandlerMappingWithPermission{factoryFunc: user_group_service.NewTreeGridServiceFactory(), prefixPath: "/user_groups"},
 		&HandlerMappingWithPermission{factoryFunc: warehouses_service.NewTreeGridServiceFactory(), prefixPath: "/warehouses"},
+		&HandlerMappingWithPermission{factoryFunc: sale_service.NewTreeGridServiceFactory(), prefixPath: "/sales"},
 		&HandlerMappingWithPermission{factoryFunc: payments_service.NewTreeGridServiceFactory(), prefixPath: "/payments"},
 	)
 
