@@ -16,7 +16,7 @@ var procurementFields = []string{
 	"transaction_no",
 	"posting_date",
 	"status",
-	"discount_id",
+	// "discount_id",
 	"currency_id",
 	"currency_value",
 
@@ -32,9 +32,9 @@ var procurementFields = []string{
 	"total_exclusive_vat_lcy",
 	"total_vat_lcy",
 	"total_inclusive_vat_lcy",
-	"paid",
-	"remaining",
-	"paid_status",
+	// "paid",
+	// "remaining",
+	// "paid_status",
 	// "entry_date",
 	// "shipment_date",
 	// "project_id",
@@ -75,7 +75,7 @@ func NewProcurementRepository(conn *sql.DB) ProcurementRepository {
 func (s *procurementRepository) GetDocID(id interface{}) (docID int, err error) {
 	logger.Debug("get document id", id)
 	query := `
-	SELECT document_id 
+	SELECT document_id
 	FROM procurements
 	WHERE id = ?
 	`
@@ -86,7 +86,7 @@ func (s *procurementRepository) GetDocID(id interface{}) (docID int, err error) 
 
 func (s *procurementRepository) GetStatus(id interface{}) (status int, err error) {
 	query := `
-	SELECT status 
+	SELECT status
 	FROM procurements
 	WHERE id = ?
 	`
@@ -109,7 +109,7 @@ func (p *procurementRepository) GetProcurement(tx *sql.Tx, id interface{}) (m *m
 		&m.TransactionNo,
 		&m.PostingDate,
 		&m.Status,
-		&m.InvoiceDiscountID,
+		// &m.InvoiceDiscountID,
 		&m.CurrencyID,
 		&m.CurrencyValue,
 		&m.TotalDiscount,
@@ -122,9 +122,9 @@ func (p *procurementRepository) GetProcurement(tx *sql.Tx, id interface{}) (m *m
 		&m.TotalExclusiveVatLcy,
 		&m.TotalVatLcy,
 		&m.SubtotalExclusiveVatLcy,
-		&m.Paid,
-		&m.Remaining,
-		&m.PaidStatus,
+		// &m.Paid,
+		// &m.Remaining,
+		// &m.PaidStatus,
 	)
 
 	return
@@ -143,7 +143,7 @@ func (p *procurementRepository) SaveProcurement(tx *sql.Tx, m *models.Procuremen
 		m.TransactionNo,
 		m.PostingDate,
 		m.Status,
-		m.InvoiceDiscountID,
+		// m.InvoiceDiscountID,
 		m.CurrencyID,
 		m.CurrencyValue,
 		m.TotalDiscount,
@@ -156,9 +156,9 @@ func (p *procurementRepository) SaveProcurement(tx *sql.Tx, m *models.Procuremen
 		m.TotalExclusiveVatLcy,
 		m.TotalVatLcy,
 		m.SubtotalExclusiveVatLcy,
-		m.Paid,
-		m.Remaining,
-		m.PaidStatus,
+		// m.Paid,
+		// m.Remaining,
+		// m.PaidStatus,
 		m.ID,
 	)
 

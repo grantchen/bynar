@@ -47,14 +47,14 @@ var (
 		"total_exclusive_vat_lcy":      {"total_exclusive_vat_lcy"},
 		"total_vat_lcy":                {"total_vat_lcy"},
 		"total_inclusive_vat_lcy":      {"total_inclusive_vat_lcy"},
-		"discount_id":                  {"discount_id"},
-		"paid":                         {"paid"},
-		"remaining":                    {"remaining"},
-		"paid_status":                  {"paid_status"},
+		// "discount_id":                  {"discount_id"},
+		// "paid":                         {"paid"},
+		// "remaining":                    {"remaining"},
+		// "paid_status":                  {"paid_status"},
 	}
 
 	ProcurementLineFieldNames = map[string][]string{
-		"id":                         {"id"},
+		"id-line":                    {"id"},
 		"Parent":                     {"parent_id"},
 		"item_type":                  {"item_type"},
 		"item_id":                    {"item_id"},

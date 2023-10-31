@@ -51,6 +51,9 @@ func (s *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 
 	// handle all transfer, check error and make proper response
 	for _, tr := range trList.MainRows() {
+		if tr.Fields["id"] == "Group" {
+			continue
+		}
 		if err := s.handle(tr); err != nil {
 			log.Println("Err", err)
 
