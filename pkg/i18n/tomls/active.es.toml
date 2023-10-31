@@ -1,4 +1,3 @@
-RequiredFieldsBlank = "Los campos obligatorios no pueden estar en blanco."
 FieldOutRange = "Valor fuera de rango para el campo."
 TruncatedIncorrect = "Error incorrecto truncado."
 FieldTooLong = "Datos demasiado largos para el campo."
@@ -15,6 +14,8 @@ InvalidCondition = "condición no válida al actualizar los datos."
 MergeFail = "Error al fusionar con los datos actuales."
 NoUserGroupLineFound = "No estás en ningún grupo de usuarios y no puedes crear una organización."
 UpdateChildLine =  "no se permite actualizar la línea secundaria."
+[RequiredFieldsBlank]
+other = "Los campos obligatorios no pueden estar en blanco: {{.Field}}."
 [ValueDuplicated]
 other = "El campo está duplicado: {{.Field}}."
 [ValidateOnNotNegativeNumber]

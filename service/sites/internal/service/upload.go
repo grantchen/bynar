@@ -75,9 +75,9 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	// add addition here
 	switch gr.GetActionType() {
 	case treegrid.GridRowActionAdd:
-		err = gr.ValidateOnRequiredAll(repository.SiteFieldNames)
+		err = gr.ValidateOnRequiredAll(repository.SiteFieldNames, s.language)
 		if err != nil {
-			return i18n.TranslationI18n(s.language, "RequiredFieldsBlank", nil, map[string]string{})
+			return err
 		}
 
 		for _, field := range positiveFieldsValidating {
@@ -93,14 +93,14 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				templateData := map[string]string{
 					"Field": field,
 				}
-				return i18n.TranslationI18n(s.language, "ValueDuplicated", nil, templateData)
+				return i18n.TranslationI18n(s.language, "ValueDuplicated", templateData)
 			}
 		}
 		err = s.siteSimpleRepository.Add(tx, gr)
 	case treegrid.GridRowActionChanged:
-		err = gr.ValidateOnRequired(repository.SiteFieldNames)
+		err = gr.ValidateOnRequired(repository.SiteFieldNames, s.language)
 		if err != nil {
-			return i18n.TranslationI18n(s.language, "RequiredFieldsBlank", nil, map[string]string{})
+			return err
 		}
 
 		for _, field := range positiveFieldsValidating {
@@ -116,7 +116,7 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				templateData := map[string]string{
 					"Field": field,
 				}
-				return i18n.TranslationI18n(s.language, "ValueDuplicated", nil, templateData)
+				return i18n.TranslationI18n(s.language, "ValueDuplicated", templateData)
 			}
 		}
 		err = s.siteSimpleRepository.Update(tx, gr)
@@ -127,5 +127,5 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		return fmt.Errorf("undefined row type: %s", gr.GetActionType())
 	}
 
-	return i18n.TranslationI18n(s.language, "", err, map[string]string{})
+	return i18n.TranslationErrorToI18n(s.language, err)
 }

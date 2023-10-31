@@ -74,7 +74,7 @@ func (t *transferRepository) SaveTransfer(tx *sql.Tx, tr *treegrid.MainRow) erro
 
 	switch tr.Fields.GetActionType() {
 	case treegrid.GridRowActionAdd:
-		err := tr.Fields.ValidateOnRequiredAll(requiredFieldsMapping)
+		err := tr.Fields.ValidateOnRequiredAll(requiredFieldsMapping, t.language)
 		if err != nil {
 			return err
 		}
@@ -89,7 +89,7 @@ func (t *transferRepository) SaveTransfer(tx *sql.Tx, tr *treegrid.MainRow) erro
 			return err
 		}
 	case treegrid.GridRowActionChanged:
-		err := tr.Fields.ValidateOnRequired(requiredFieldsMapping)
+		err := tr.Fields.ValidateOnRequired(requiredFieldsMapping, t.language)
 		if err != nil {
 			return err
 		}
@@ -143,7 +143,7 @@ func (t *transferRepository) SaveTransferLines(tx *sql.Tx, tr *treegrid.MainRow)
 	for _, item := range tr.Items {
 		switch item.GetActionType() {
 		case treegrid.GridRowActionAdd:
-			err := item.ValidateOnRequiredAll(requiredFieldsMapping)
+			err := item.ValidateOnRequiredAll(requiredFieldsMapping, t.language)
 			if err != nil {
 				return err
 			}
@@ -164,7 +164,7 @@ func (t *transferRepository) SaveTransferLines(tx *sql.Tx, tr *treegrid.MainRow)
 
 			continue
 		case treegrid.GridRowActionChanged:
-			err := item.ValidateOnRequired(requiredFieldsMapping)
+			err := item.ValidateOnRequired(requiredFieldsMapping, t.language)
 			if err != nil {
 				return err
 			}

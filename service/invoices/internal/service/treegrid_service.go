@@ -83,16 +83,16 @@ func (s *TreeGridService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	case treegrid.GridRowActionAdd:
 		// Assigning values to other fields
 		gr["account_id"] = s.accountID
-		err1 := gr.ValidateOnRequiredAll(repository.InvoiceFieldNames)
+		err1 := gr.ValidateOnRequiredAll(repository.InvoiceFieldNames, s.language)
 		if err1 != nil {
-			return i18n.TranslationI18n(s.language, "RequiredFieldsBlank", nil, map[string]string{})
+			return err1
 		}
 		ok, err1 := s.invoiceSimpleRepository.ValidateOnIntegrity(tx, gr, fieldsValidating)
 		if !ok || err1 != nil {
 			templateData := map[string]string{
 				"Field": "invoice_no",
 			}
-			return i18n.TranslationI18n(s.language, "ValueDuplicated", nil, templateData)
+			return i18n.TranslationI18n(s.language, "ValueDuplicated", templateData)
 		}
 		err = s.invoiceSimpleRepository.Add(tx, gr)
 	case treegrid.GridRowActionChanged:
@@ -102,16 +102,16 @@ func (s *TreeGridService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			return nil
 		}
 
-		err1 := gr.ValidateOnRequired(repository.InvoiceFieldNames)
+		err1 := gr.ValidateOnRequired(repository.InvoiceFieldNames, s.language)
 		if err1 != nil {
-			return i18n.TranslationI18n(s.language, "RequiredFieldsBlank", nil, map[string]string{})
+			return err1
 		}
 		ok, err1 = s.invoiceSimpleRepository.ValidateOnIntegrity(tx, gr, fieldsValidating)
 		if !ok || err1 != nil {
 			templateData := map[string]string{
 				"Field": "invoice_no",
 			}
-			return i18n.TranslationI18n(s.language, "ValueDuplicated", nil, templateData)
+			return i18n.TranslationI18n(s.language, "ValueDuplicated", templateData)
 		}
 		err = s.invoiceSimpleRepository.Update(tx, gr)
 	case treegrid.GridRowActionDeleted:
@@ -121,7 +121,7 @@ func (s *TreeGridService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	}
 
 	if err != nil {
-		return i18n.TranslationI18n(s.language, "", err, map[string]string{})
+		return i18n.TranslationErrorToI18n(s.language, err)
 	}
 
 	return err
