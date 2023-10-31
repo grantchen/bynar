@@ -44,13 +44,9 @@ var (
 )
 
 var (
-	ErrCodeSave          = "save"
-	ErrCodeUserGroup     = "user-group"
-	ErrCodeUserGroupLine = "user-group-line"
-	ErrCodeTransfer      = "transfer"
-	ErrCodeTransferLine  = "transfer-line"
-	ErrCodeSale          = "sale"
-	ErrCodeSaleLine      = "sale-line"
+	ErrCodeSave         = "save"
+	ErrCodeTransfer     = "transfer"
+	ErrCodeTransferLine = "transfer-line"
 
 	ErrCodePayment     = "payment"
 	ErrCodePaymentLine = "payment-line"
