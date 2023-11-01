@@ -5,6 +5,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
+	"strconv"
 	"strings"
 
 	errpkg "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
@@ -163,5 +164,9 @@ func (s *approvalCashPaymentService) checkActionDeleted(tr *treegrid.MainRow, la
 		return false, fmt.Errorf("%s : %v, [%w]", i18n.Localize(language, "failed-to-get-by", "status", "id"), tr.Fields.GetID(), err)
 	}
 
-	return status != 1, nil
+	if status == 1 {
+		return false, i18n.TranslationI18n(language, "RecordCanNotDeleteWithStatus", map[string]string{"Status": strconv.Itoa(status)})
+	}
+
+	return true, nil
 }
