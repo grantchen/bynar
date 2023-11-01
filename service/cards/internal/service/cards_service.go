@@ -2,6 +2,7 @@ package service
 
 import (
 	"database/sql"
+	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/cards/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/models"
@@ -43,11 +44,13 @@ func (r *cardServiceHandler) AddCard(req *models.ValidateCardRequest) error {
 	}
 	err = r.cr.AddCard(req.ID, cardDetails.Customer.ID, cardDetails.Source.ID, total)
 	if err != nil {
-		derr := r.paymentProvider.DeleteCard(cardDetails.Source.ID)
-		if derr != nil {
-			return errors.NewUnknownError("failed to delete card", "failed-delete-card").WithInternal().WithCause(derr)
+		if !strings.Contains(err.Error(), "card exists") {
+			derr := r.paymentProvider.DeleteCard(cardDetails.Source.ID)
+			if derr != nil {
+				return errors.NewUnknownError("failed to delete card", "failed-delete-card").WithInternal().WithCause(derr)
+			}
+			return errors.NewUnknownError("failed to add user card", "failed-add-card").WithInternal().WithCause(err)
 		}
-		return errors.NewUnknownError("failed to add user card", "failed-add-card").WithInternal().WithCause(err)
 	}
 	return nil
 }
