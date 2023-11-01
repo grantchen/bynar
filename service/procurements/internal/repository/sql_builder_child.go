@@ -31,7 +31,7 @@ const (
 	total_exclusive_vat_lcy,
 	total_vat_lcy,
 	total_inclusive_vat_lcy
-	FROM procurement_lines WHERE 1=1
+	FROM procurement_lines
 	`
 
 	QueryChildJoins = ` INNER JOIN procurements ON parent_id = procurements.id `
