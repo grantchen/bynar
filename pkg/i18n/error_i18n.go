@@ -24,6 +24,7 @@ var errMsgToCodeMap = map[string]string{
 	"missing required params": errors.ErrCodeRequiredFieldsBlank,
 }
 
+// Deprecated: use TranslationI18n or TranslationErrorToI18n instead
 func ErrMsgToI18n(err error, language string) error {
 	errMsg := err.Error()
 	for key, code := range errMsgToCodeMap {

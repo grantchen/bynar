@@ -51,10 +51,14 @@ func (s *approvalCashPaymentService) checkActionAdded(tr *treegrid.MainRow, acco
 			i18n.Localize(language, "missing"), "document_id")
 	}
 
+	if docID <= 0 {
+		return false, i18n.TranslationI18n(language, "ValidateOnPositiveNumber", map[string]string{"Field": "document_id"})
+	}
+
 	wrkItem, err := s.storage.GetWorkflowItem(accountID, docID)
 	if err != nil {
-		return false, fmt.Errorf("%s",
-			i18n.Localize(language, "failed-to-get-by", i18n.Localize(language, "workflow-item"), "document_id"))
+		return false, fmt.Errorf("%s : %s:%d, %s:%d",
+			i18n.Localize(language, "failed-to-get-data-from", "current-workflow-item"), "account_id", accountID, "document_id", docID)
 	}
 	tr.Fields["status"] = wrkItem.Status
 

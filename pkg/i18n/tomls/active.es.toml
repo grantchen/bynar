@@ -32,5 +32,15 @@ other = "Guardar venta : {{.Message}} "
 other = "Guardar línea de venta : {{.Message}}"
 [UserNotExist]
 other = "La usuario no existe! user_id: {{.UserId}}"
+[CurrencyNotExist]
+other = "la moneda no existe! currency_id: {{.CurrencyId}}"
+[StoreNotExist]
+other = "la tienda no existe! store_id: {{.StoreId}}"
+[DocumentNotExist]
+other = "documento no existe! store_id: {{.StoreId}}"
+[ItemNotExist]
+other = "artículo no existe! item_id: {{.ItemId}}"
+[UnitNotExist]
+other = "la unidad no existe! item_unit_id: {{.ItemUnitId}}"
 [UserBelongSpecificUserGroupLines]
 other = "El usuario pertenece a un grupo de usuarios específico. user_id: {{.UserId}}"

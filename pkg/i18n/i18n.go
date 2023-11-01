@@ -42,6 +42,7 @@ func init() {
 }
 
 // Localise the text based on the language
+// Deprecated: use TranslationI18n or TranslationErrorToI18n instead
 func Localize(language, key string, args ...interface{}) string {
 	// If the language is empty, English is used by default
 	if language == "" {

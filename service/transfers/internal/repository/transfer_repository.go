@@ -81,7 +81,7 @@ func (t *transferRepository) SaveTransfer(tx *sql.Tx, tr *treegrid.MainRow) erro
 
 		err = tr.Fields.ValidateOnPositiveNumber(positiveFieldsMapping, t.language)
 		if err != nil {
-			return fmt.Errorf(i18n.Localize(t.language, "", err.Error()))
+			return err
 		}
 
 		err = t.validateTransferParams(tx, tr)
@@ -96,7 +96,7 @@ func (t *transferRepository) SaveTransfer(tx *sql.Tx, tr *treegrid.MainRow) erro
 
 		err = tr.Fields.ValidateOnPositiveNumber(positiveFieldsMapping, t.language)
 		if err != nil {
-			return fmt.Errorf(i18n.Localize(t.language, "", err.Error()))
+			return err
 		}
 
 		err = t.validateTransferParams(tx, tr)
@@ -150,7 +150,7 @@ func (t *transferRepository) SaveTransferLines(tx *sql.Tx, tr *treegrid.MainRow)
 
 			err = item.ValidateOnPositiveNumber(positiveFieldsMapping, t.language)
 			if err != nil {
-				return fmt.Errorf(i18n.Localize(t.language, "", err.Error()))
+				return err
 			}
 
 			if err = t.validateAddTransferLine(tx, item); err != nil {
@@ -171,7 +171,7 @@ func (t *transferRepository) SaveTransferLines(tx *sql.Tx, tr *treegrid.MainRow)
 
 			err = item.ValidateOnPositiveNumber(positiveFieldsMapping, t.language)
 			if err != nil {
-				return fmt.Errorf(i18n.Localize(t.language, "", err.Error()))
+				return err
 			}
 
 			// check item_id

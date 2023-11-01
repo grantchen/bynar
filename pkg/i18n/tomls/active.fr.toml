@@ -32,5 +32,15 @@ other = "Enregistrer la vente : {{.Message}} "
 other = "Enregistrer la ligne de vente : {{.Message}}"
 [UserNotExist]
 other = "l'utilisateur n'existe pas! user_id: {{.UserId}}"
+[CurrencyNotExist]
+other = "la monnaie n'existe pas! currency_id: {{.CurrencyId}}"
+[StoreNotExist]
+other = "le magasin n'existe pas! store_id: {{.StoreId}}"
+[DocumentNotExist]
+other = "le document n'existe pas! store_id: {{.StoreId}}"
+[ItemNotExist]
+other = "l'article n'existe pas! item_id: {{.ItemId}}"
+[UnitNotExist]
+other = "l'unité n'existe pas! item_unit_id: {{.ItemUnitId}}"
 [UserBelongSpecificUserGroupLines]
 other = "l'utilisateur appartient à un groupe d'utilisateurs spécifique user_id: {{.UserId}}"

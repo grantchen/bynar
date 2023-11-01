@@ -10,6 +10,7 @@ import (
 	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"log"
+	"strconv"
 	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
@@ -126,10 +127,6 @@ func (s *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 		return err
 	}
 
-	//if err := s.updateGRSaleRepositoryWithChild.Save(tx, tr); err != nil {
-	//	return fmt.Errorf("transfer svc save '%s': [%w]", tr.IDString(), err)
-	//}
-
 	if tr.Status() == 1 {
 		logger.Debug("status equal 1 - do calculation, status", tr.Status())
 
@@ -179,12 +176,14 @@ func (s *UploadService) saveSale(tx *sql.Tx, tr *treegrid.MainRow) error {
 			"entry_date",
 			"shipment_date",
 			"store_id",
+			"currency_id",
 		})
 	positiveFieldsMapping := tr.Fields.FilterFieldsMapping(
 		repository.SaleFieldNames,
 		[]string{
 			"document_id",
 			"store_id",
+			"currency_id",
 		})
 
 	var err error
@@ -197,7 +196,12 @@ func (s *UploadService) saveSale(tx *sql.Tx, tr *treegrid.MainRow) error {
 
 		err = tr.Fields.ValidateOnPositiveNumber(positiveFieldsMapping, s.language)
 		if err != nil {
-			return fmt.Errorf(i18n.Localize(s.language, "", err.Error()))
+			return err
+		}
+
+		err = s.validateStoreID(tx, tr)
+		if err != nil {
+			return err
 		}
 
 		tr.Fields["currency_value"] = 0
@@ -210,7 +214,12 @@ func (s *UploadService) saveSale(tx *sql.Tx, tr *treegrid.MainRow) error {
 
 		err = tr.Fields.ValidateOnPositiveNumber(positiveFieldsMapping, s.language)
 		if err != nil {
-			return fmt.Errorf(i18n.Localize(s.language, "", err.Error()))
+			return err
+		}
+
+		err = s.validateStoreID(tx, tr)
+		if err != nil {
+			return err
 		}
 	case treegrid.GridRowActionDeleted:
 		// ignore id start with CR
@@ -258,7 +267,17 @@ func (s *UploadService) saveSaleLine(tx *sql.Tx, tr *treegrid.MainRow, parentID 
 
 			err = item.ValidateOnPositiveNumber(positiveFieldsMapping, s.language)
 			if err != nil {
-				return fmt.Errorf(i18n.Localize(s.language, "", err.Error()))
+				return err
+			}
+
+			// check item_id
+			if err = s.validateItemID(tx, item); err != nil {
+				return err
+			}
+
+			// check item_unit_id
+			if err = s.validateItemUintID(tx, item); err != nil {
+				return err
 			}
 
 			item["item_unit_value"] = 0
@@ -285,7 +304,7 @@ func (s *UploadService) saveSaleLine(tx *sql.Tx, tr *treegrid.MainRow, parentID 
 
 			err = item.ValidateOnPositiveNumber(positiveFieldsMapping, s.language)
 			if err != nil {
-				return fmt.Errorf(i18n.Localize(s.language, "", err.Error()))
+				return err
 			}
 
 			return s.updateGRSaleRepositoryWithChild.SaveLineUpdate(tx, item)
@@ -324,7 +343,9 @@ func (s *UploadService) HandleSale(tx *sql.Tx, m *models.Sale) error {
 	currency, err := s.currencyRep.GetCurrency(m.CurrencyID)
 	if err != nil {
 		if stderr.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("currency not found with currency_id: %d", m.CurrencyID)
+			return i18n.TranslationI18n(s.language, "CurrencyNotExist", map[string]string{
+				"CurrencyId": strconv.Itoa(m.CurrencyID),
+			})
 		}
 		return fmt.Errorf("get currency: [%w]", err)
 	}
@@ -506,4 +527,88 @@ func (s *UploadService) handleBoundFlows(tx *sql.Tx, pr *models.Sale, l *models.
 	}
 
 	return
+}
+
+// validate store_id
+func (s *UploadService) validateStoreID(tx *sql.Tx, tr *treegrid.MainRow) error {
+	id, ok := tr.Fields["store_id"]
+	if !ok {
+		return nil
+	}
+
+	query := `SELECT 1 FROM stores WHERE id = ?`
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	var existFlag int
+	if err = stmt.QueryRow(id).Scan(&existFlag); err != nil {
+		if stderr.Is(err, sql.ErrNoRows) {
+			return i18n.TranslationI18n(s.language, "StoreNotExist", map[string]string{
+				"StoreId": fmt.Sprint(id),
+			})
+		}
+
+		return i18n.TranslationErrorToI18n(s.language, err)
+	}
+
+	return nil
+}
+
+// validate item_id
+func (s *UploadService) validateItemID(tx *sql.Tx, item treegrid.GridRow) error {
+	id, ok := item["item_id"]
+	if !ok {
+		return nil
+	}
+
+	query := `SELECT 1 FROM items WHERE id = ?`
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	var existFlag int
+	if err = stmt.QueryRow(id).Scan(&existFlag); err != nil {
+		if stderr.Is(err, sql.ErrNoRows) {
+			return i18n.TranslationI18n(s.language, "ItemNotExist", map[string]string{
+				"ItemId": fmt.Sprint(id),
+			})
+		}
+
+		return i18n.TranslationErrorToI18n(s.language, err)
+	}
+
+	return nil
+}
+
+// validate item_unit_id
+func (s *UploadService) validateItemUintID(tx *sql.Tx, item treegrid.GridRow) error {
+	id, ok := item["item_unit_id"]
+	if !ok {
+		return nil
+	}
+
+	query := `SELECT 1 FROM units WHERE id = ?`
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	var existFlag int
+	if err = stmt.QueryRow(id).Scan(&existFlag); err != nil {
+		if stderr.Is(err, sql.ErrNoRows) {
+			return i18n.TranslationI18n(s.language, "UnitNotExist", map[string]string{
+				"ItemUnitId": fmt.Sprint(id),
+			})
+		}
+
+		return i18n.TranslationErrorToI18n(s.language, err)
+	}
+
+	return nil
 }
