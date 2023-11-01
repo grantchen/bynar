@@ -39,7 +39,7 @@ func (d *currencyRepository) GetVat(id int) (m models.DiscountVat, err error) {
 
 func (d *currencyRepository) GetCurrency(id int) (m models.Currency, err error) {
 	query := `
-	SELECT rate
+	SELECT exchange_rate
 	FROM currencies
 	WHERE id = ?
 	`
