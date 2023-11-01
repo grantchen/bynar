@@ -77,7 +77,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	case treegrid.GridRowActionAdd:
 		err = gr.ValidateOnRequired(repository.GeneralPostingSetupFieldNames, u.language)
 		if err != nil {
-			return i18n.TranslationI18n(u.language, "RequiredFieldsBlank", map[string]string{})
+			return err
 		}
 		err = gr.ValidateOnNotNegativeNumber(repository.GeneralPostingSetupFieldNames, u.language)
 		if err != nil {
@@ -104,7 +104,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	case treegrid.GridRowActionChanged:
 		err = gr.ValidateOnRequired(repository.GeneralPostingSetupFieldNames, u.language)
 		if err != nil {
-			return i18n.TranslationI18n(u.language, "RequiredFieldsBlank", map[string]string{})
+			return err
 		}
 		err = gr.ValidateOnNotNegativeNumber(repository.GeneralPostingSetupFieldNames, u.language)
 		if err != nil {

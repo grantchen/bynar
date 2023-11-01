@@ -32,5 +32,15 @@ other = "Save sale : {{.Message}} "
 other = "Save sale line : {{.Message}}"
 [UserNotExist]
 other = "user not exist! user_id: {{.UserId}}"
+[CurrencyNotExist]
+other = "currency not exist! currency_id: {{.CurrencyId}}"
+[StoreNotExist]
+other = "store not exist! store_id: {{.StoreId}}"
+[DocumentNotExist]
+other = "document not exist! document_id: {{.DocumentId}}"
+[ItemNotExist]
+other = "item not exist! item_id: {{.ItemId}}"
+[UnitNotExist]
+other = "unit not exist! item_unit_id: {{.ItemUnitId}}"
 [UserBelongSpecificUserGroupLines]
 other = "user is belong to a specific user group lines user_id: {{.UserId}}"

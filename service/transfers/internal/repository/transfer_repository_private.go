@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
@@ -114,10 +114,12 @@ func (t *transferRepository) validateDocumentID(tx *sql.Tx, tr *treegrid.MainRow
 	var existFlag int
 	if err = stmt.QueryRow(id).Scan(&existFlag); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("document not found with document_id: %s", id)
+			return i18n.TranslationI18n(t.language, "DocumentNotExist", map[string]string{
+				"DocumentId": fmt.Sprint(id),
+			})
 		}
 
-		return err
+		return i18n.TranslationErrorToI18n(t.language, err)
 	}
 
 	return nil
@@ -140,10 +142,12 @@ func (t *transferRepository) validateStoreID(tx *sql.Tx, tr *treegrid.MainRow) e
 	var existFlag int
 	if err = stmt.QueryRow(id).Scan(&existFlag); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("store not found with store_id: %s", id)
+			return i18n.TranslationI18n(t.language, "StoreNotExist", map[string]string{
+				"StoreId": fmt.Sprint(id),
+			})
 		}
 
-		return err
+		return i18n.TranslationErrorToI18n(t.language, err)
 	}
 
 	return nil
@@ -166,10 +170,12 @@ func (t *transferRepository) validateItemID(tx *sql.Tx, item treegrid.GridRow) e
 	var existFlag int
 	if err = stmt.QueryRow(id).Scan(&existFlag); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("item not found with item_id: %s", id)
+			return i18n.TranslationI18n(t.language, "ItemNotExist", map[string]string{
+				"ItemId": fmt.Sprint(id),
+			})
 		}
 
-		return err
+		return i18n.TranslationErrorToI18n(t.language, err)
 	}
 
 	return nil
@@ -192,10 +198,12 @@ func (t *transferRepository) validateItemUintID(tx *sql.Tx, item treegrid.GridRo
 	var existFlag int
 	if err = stmt.QueryRow(id).Scan(&existFlag); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("uint not found with item_unit_id: %s", id)
+			return i18n.TranslationI18n(t.language, "UnitNotExist", map[string]string{
+				"ItemUnitId": fmt.Sprint(id),
+			})
 		}
 
-		return err
+		return i18n.TranslationErrorToI18n(t.language, err)
 	}
 
 	return nil

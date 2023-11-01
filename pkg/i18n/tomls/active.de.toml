@@ -32,5 +32,15 @@ other = "Verkauf sparen : {{.Message}} "
 other = "Verkaufszeile speichern : {{.Message}}"
 [UserNotExist]
 other = "Benutzer existiert nicht! user_id: {{.UserId}}"
+[CurrencyNotExist]
+other = "Währung existiert nicht! currency_id: {{.CurrencyId}}"
+[StoreNotExist]
+other = "Shop existiert nicht! store_id: {{.StoreId}}"
+[DocumentNotExist]
+other = "Dokument existiert nicht! store_id: {{.StoreId}}"
+[ItemNotExist]
+other = "Artikel existiert nicht! item_id: {{.ItemId}}"
+[UnitNotExist]
+other = "Einheit existiert nicht! item_unit_id: {{.ItemUnitId}}"
 [UserBelongSpecificUserGroupLines]
 other = "Der Benutzer gehört zu einer bestimmten Benutzergruppe user_id: {{.UserId}}"
