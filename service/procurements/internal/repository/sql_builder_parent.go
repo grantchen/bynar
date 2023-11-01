@@ -3,7 +3,7 @@ package repository
 const (
 	QueryParentCount = `
 	SELECT COUNT(id) as Count
-	FROM procurements
+	FROM procurements WHERE 1=1
 	`
 
 	QueryParent = `
@@ -52,7 +52,7 @@ const (
 	total_exclusive_vat_lcy,
 	total_vat_lcy,
 	total_inclusive_vat_lcy
-	FROM procurements
+	FROM procurements WHERE 1=1
 	`
 
 	// empty

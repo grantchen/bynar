@@ -3,7 +3,7 @@ package repository
 const (
 	QueryChildCount = `
 		SELECT COUNT(*) as Count
-		FROM procurement_lines
+		FROM procurement_lines WHERE 1=1
 		`
 
 	QueryChild = `
@@ -31,7 +31,8 @@ const (
 	total_exclusive_vat_lcy,
 	total_vat_lcy,
 	total_inclusive_vat_lcy
-	FROM procurement_lines `
+	FROM procurement_lines WHERE 1=1
+	`
 
 	QueryChildJoins = ` INNER JOIN procurements ON parent_id = procurements.id `
 )
