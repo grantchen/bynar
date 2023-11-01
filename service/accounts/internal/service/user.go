@@ -10,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/repository"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
@@ -27,13 +28,15 @@ type UserService struct {
 	db                           *sql.DB
 	accountDB                    *sql.DB
 	organizationID               int
+	customerID                   string
 	authProvider                 gip.AuthProvider
+	paymentProvider              checkout.PaymentClient
 	simpleOrganizationRepository treegrid.SimpleGridRowRepository
 	language                     string
 }
 
-func NewUserService(db *sql.DB, accountDB *sql.DB, organizationID int, authProvider gip.AuthProvider, simpleOrganizationService treegrid.SimpleGridRowRepository, language string) *UserService {
-	return &UserService{db, accountDB, organizationID, authProvider, simpleOrganizationService, language}
+func NewUserService(db *sql.DB, accountDB *sql.DB, organizationID int, customerID string, authProvider gip.AuthProvider, paymentProvider checkout.PaymentClient, simpleOrganizationService treegrid.SimpleGridRowRepository, language string) *UserService {
+	return &UserService{db, accountDB, organizationID, customerID, authProvider, paymentProvider, simpleOrganizationService, language}
 }
 
 // Handle implements treegrid.TreeGridService
@@ -55,7 +58,7 @@ func (s *UserService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse,
 		if err = s.handle(tx, gr); err != nil {
 			isCommit = false
 			resp.IO.Result = -1
-			resp.IO.Message += i18n.ErrMsgToI18n(err, s.language).Error() + "\n"
+			resp.IO.Message += err.Error() + "\n"
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
 			isCommit = false
 			break
@@ -98,14 +101,17 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				}
 			}
 		}
-		err1 := gr.ValidateOnRequiredAll(repository.UserFieldNames)
+		err1 := gr.ValidateOnRequiredAll(repository.UserFieldNames, s.language)
 		if err1 != nil {
 			return err1
 		}
 		for _, field := range fieldsValidating {
 			ok, err := s.simpleOrganizationRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("duplicate, %s", field)
+				templateData := map[string]string{
+					"Field": field,
+				}
+				return i18n.TranslationI18n(s.language, "ValueDuplicated", templateData)
 			}
 		}
 		err = func() error {
@@ -123,24 +129,24 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			}
 			uid, err := s.authProvider.CreateUser(context.Background(), email, fullName, phone, status == 0)
 			if err != nil {
-				return err
+				return i18n.TranslationErrorToI18n(s.language, err)
 			}
 			var userID int
 			stmt, err := tx.Prepare("SELECT id FROM users WHERE email=?")
 			if err != nil {
-				return err
+				return i18n.TranslationErrorToI18n(s.language, err)
 			}
 			err = stmt.QueryRow(email).Scan(&userID)
 			if err != nil {
-				return err
+				return i18n.TranslationErrorToI18n(s.language, err)
 			}
 			// insert into organization_accounts
 			stmt, err = s.accountDB.Prepare(`INSERT INTO organization_accounts (organization_id, organization_user_uid, organization_user_id, oraginzation_main_account) VALUES(?, ?, ?, ?)`)
 			if err != nil {
-				return err
+				return i18n.TranslationErrorToI18n(s.language, err)
 			}
 			_, err = stmt.Exec(s.organizationID, uid, userID, 0)
-			return err
+			return i18n.TranslationErrorToI18n(s.language, err)
 		}()
 	case treegrid.GridRowActionChanged:
 		for _, i := range gr.UpdatedFields() {
@@ -151,7 +157,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				}
 			}
 		}
-		err1 := gr.ValidateOnRequired(repository.UserFieldNames)
+		err1 := gr.ValidateOnRequired(repository.UserFieldNames, s.language)
 		if err1 != nil {
 			return err1
 		}
@@ -161,22 +167,25 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				for _, field := range fieldsValidating {
 					ok, err = s.simpleOrganizationRepository.ValidateOnIntegrity(tx, gr, []string{field})
 					if !ok || err != nil {
-						return fmt.Errorf("duplicate, %s", field)
+						templateData := map[string]string{
+							"Field": field,
+						}
+						return i18n.TranslationI18n(s.language, "ValueDuplicated", templateData)
 					}
 				}
 				err = s.simpleOrganizationRepository.Update(tx, gr)
 				if err != nil {
-					return err
+					return i18n.TranslationErrorToI18n(s.language, err)
 				}
 
 				var uid string
 				stmt, err := s.accountDB.Prepare(`SELECT organization_user_uid FROM organization_accounts WHERE organization_id = ? AND organization_user_id = ?`)
 				if err != nil {
-					return fmt.Errorf("user not found")
+					return i18n.TranslationI18n(s.language, "NoUserFound", map[string]string{})
 				}
 				err = stmt.QueryRow(s.organizationID, id).Scan(&uid)
 				if err != nil {
-					return fmt.Errorf("gip user not found")
+					return i18n.TranslationI18n(s.language, "GipUserNotFound", map[string]string{})
 				}
 				// update user claims in gip
 				params := map[string]interface{}{}
@@ -199,7 +208,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				}
 				u, err := s.authProvider.GetUser(context.Background(), uid)
 				if err != nil {
-					return err
+					return i18n.TranslationErrorToI18n(s.language, err)
 				}
 				if u.CustomClaims == nil {
 					u.CustomClaims = map[string]interface{}{}
@@ -209,7 +218,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				}
 				params["customClaims"] = u.CustomClaims
 				err = s.authProvider.UpdateUser(context.Background(), uid, params)
-				return err
+				return i18n.TranslationErrorToI18n(s.language, err)
 			}
 			return nil
 		}()
@@ -219,11 +228,11 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			var email string
 			stmt, err := tx.Prepare(`SELECT email FROM users WHERE id=?`)
 			if err != nil {
-				return err
+				return i18n.TranslationErrorToI18n(s.language, err)
 			}
 			err = stmt.QueryRow(id).Scan(&email)
 			if err != nil {
-				return err
+				return i18n.TranslationErrorToI18n(s.language, err)
 			}
 			// delete user in gip
 			err = s.authProvider.DeleteUserByEmail(context.Background(), email)
@@ -231,11 +240,22 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				if stderr.Is(err, gip.ErrUserNotFound) {
 					logrus.Error("delete user by email from gip ", email, err)
 				} else {
-					return err
+					return i18n.TranslationErrorToI18n(s.language, err)
 				}
 
 			}
+			if s.customerID != "" {
+				resp, err := s.paymentProvider.FetchCustomerDetails(s.customerID)
+				if err == nil {
+					for _, i := range resp.Instruments {
+						s.paymentProvider.DeleteCard(i.ID)
+					}
+				}
+			}
 			err = s.simpleOrganizationRepository.Delete(tx, gr)
+			if err != nil {
+				return i18n.TranslationErrorToI18n(s.language, err)
+			}
 			return err
 		}()
 
@@ -244,7 +264,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	}
 
 	if err != nil {
-		return err
+		return i18n.TranslationErrorToI18n(s.language, err)
 	}
 
 	return err

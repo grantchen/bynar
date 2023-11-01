@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
@@ -53,7 +52,7 @@ func (u *uploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 			log.Println("Err", err)
 
 			resp.IO.Result = -1
-			resp.IO.Message += i18n.ErrMsgToI18n(err, u.language).Error() + "\n"
+			resp.IO.Message += err.Error() + "\n"
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
 			break
 		}
@@ -75,34 +74,40 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	fieldsCombinationValidating := []string{"code"}
 	switch gr.GetActionType() {
 	case treegrid.GridRowActionAdd:
-		err1 := gr.ValidateOnRequiredAll(repository.WarehousesFieldNames)
+		err1 := gr.ValidateOnRequiredAll(repository.WarehousesFieldNames, u.language)
 		if err1 != nil {
 			return err1
 		}
-		err = gr.ValidateOnNotNegativeNumber(repository.WarehousesFieldNames)
+		err = gr.ValidateOnNotNegativeNumber(repository.WarehousesFieldNames, u.language)
 		if err != nil {
 			return err
 		}
 		for _, field := range fieldsCombinationValidating {
 			ok, err := u.tgWarehousesSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("duplicate, %s", field)
+				templateData := map[string]string{
+					"Field": field,
+				}
+				return i18n.TranslationI18n(u.language, "ValueDuplicated", templateData)
 			}
 		}
 		err = u.tgWarehousesSimpleRepository.Add(tx, gr)
 	case treegrid.GridRowActionChanged:
-		err1 := gr.ValidateOnRequired(repository.WarehousesFieldNames)
+		err1 := gr.ValidateOnRequired(repository.WarehousesFieldNames, u.language)
 		if err1 != nil {
 			return err1
 		}
-		err = gr.ValidateOnNotNegativeNumber(repository.WarehousesFieldNames)
+		err = gr.ValidateOnNotNegativeNumber(repository.WarehousesFieldNames, u.language)
 		if err != nil {
 			return err
 		}
 		for _, field := range fieldsCombinationValidating {
 			ok, err := u.tgWarehousesSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("duplicate, %s", field)
+				templateData := map[string]string{
+					"Field": field,
+				}
+				return i18n.TranslationI18n(u.language, "ValueDuplicated", templateData)
 			}
 		}
 		_, ok := gr.GetValInt("id")
@@ -116,7 +121,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		warehouses, err = u.warehousesRepository.GetWarehouses(gr.GetIDInt())
 		if err == nil {
 			if warehouses.Archived == 1 {
-				return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeArchivedDelete))
+				return i18n.TranslationI18n(u.language, "ArchivedDelete", map[string]string{})
 			}
 			err = u.tgWarehousesSimpleRepository.Delete(tx, gr)
 			if err != nil {
@@ -126,11 +131,11 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			return nil
 		}
 	default:
-		return err
+		return i18n.TranslationErrorToI18n(u.language, err)
 	}
 
 	if err != nil {
-		return err
+		return i18n.TranslationErrorToI18n(u.language, err)
 	}
 
 	return err
@@ -140,15 +145,15 @@ func (u *uploadService) checkGeneralPostSetupCondition(gps *model.Warehouses) er
 
 	if gps.Archived != 0 && gps.Archived != 1 {
 		logger.Debug("gps: ", gps.Archived)
-		return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeArchivedNotValid))
+		return i18n.TranslationI18n(u.language, "NotValidArchived", map[string]string{})
 	}
 
 	if gps.Status != 0 && gps.Status != 1 {
-		return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeStatusNotValid))
+		return i18n.TranslationI18n(u.language, "NotValidStatus", map[string]string{})
 	}
 
 	if gps.Status == 1 && gps.Status == gps.Archived {
-		return fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeSameArchivedStatus))
+		return i18n.TranslationI18n(u.language, "StatusAndArchivedSame", map[string]string{})
 	}
 
 	return nil

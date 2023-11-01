@@ -1,0 +1,36 @@
+FieldOutRange = "Valeur hors plage pour le champ."
+TruncatedIncorrect = "Erreur incorrecte tronquée."
+FieldTooLong = "Données trop longues pour le champ."
+PhoneNumberError = "Erreur de format du numéro de téléphone."
+EmailError = "Erreur de format d'e-mail."
+GipUserNotFound = "L'utilisateur dans gip n'existe pas. Veuillez d'abord supprimer cet utilisateur, puis l'ajouter à nouveau."
+NoUserFound = "Aucun utilisateur trouvé."
+ArchivedUpdate = "archivé = 1, impossible de mettre à jour."
+ArchivedDelete = "archivé = 1, ne peut pas supprimer."
+NotValidArchived = "valeur archivée non valide."
+NotValidStatus = "valeur d'état non valide."
+StatusAndArchivedSame = "statut et archivé est la même valeur 1."
+InvalidCondition = "condition invalide lors de la mise à jour des données."
+MergeFail = "La fusion avec les données actuelles échoue."
+NoUserGroupLineFound = "La fusion avec les données actuelles échoue."
+UpdateChildLine =  "non autorisé à mettre à jour la ligne enfant."
+[RequiredFieldsBlank]
+other = "Les champs obligatoires ne peuvent pas être vides: {{.Field}}."
+[ValueDuplicated]
+other = "Le champ est en double: {{.Field}} ."
+[ValidateOnNotNegativeNumber]
+other = "{{.Field}} : le champ ne doit pas être négatif."
+[ValidateOnPositiveNumber]
+other = "{{.Field}} : le champ doit être positif."
+[SaveUserGroup]
+other = "Enregistrer le groupe d'utilisateurs : {{.Message}} "
+[SaveUserGroupLine]
+other = "Enregistrer la ligne du groupe d'utilisateurs : {{.Message}}"
+[SaveSale]
+other = "Enregistrer la vente : {{.Message}} "
+[SaveSaleLine]
+other = "Enregistrer la ligne de vente : {{.Message}}"
+[UserNotExist]
+other = "l'utilisateur n'existe pas! user_id: {{.UserId}}"
+[UserBelongSpecificUserGroupLines]
+other = "l'utilisateur appartient à un groupe d'utilisateurs spécifique user_id: {{.UserId}}"

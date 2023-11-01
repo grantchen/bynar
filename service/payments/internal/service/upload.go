@@ -161,7 +161,7 @@ func (u *UploadService) savePayment(tx *sql.Tx, tr *treegrid.MainRow) error {
 	var err error
 	switch tr.Fields.GetActionType() {
 	case treegrid.GridRowActionAdd:
-		err = tr.Fields.ValidateOnRequiredAll(repository.PaymentFieldUploadNames)
+		err = tr.Fields.ValidateOnRequiredAll(repository.PaymentFieldUploadNames, u.language)
 		if err != nil {
 			return err
 		}
@@ -176,7 +176,7 @@ func (u *UploadService) savePayment(tx *sql.Tx, tr *treegrid.MainRow) error {
 			}
 		}
 	case treegrid.GridRowActionChanged:
-		err = tr.Fields.ValidateOnRequired(repository.PaymentFieldNames)
+		err = tr.Fields.ValidateOnRequired(repository.PaymentFieldNames, u.language)
 		if err != nil {
 			return err
 		}
@@ -217,7 +217,7 @@ func (u *UploadService) savePaymentLine(tx *sql.Tx, tr *treegrid.MainRow, parent
 		var err error
 		switch item.GetActionType() {
 		case treegrid.GridRowActionAdd:
-			err = item.ValidateOnRequiredAll(repository.PaymentLineFieldUploadNames)
+			err = item.ValidateOnRequiredAll(repository.PaymentLineFieldUploadNames, u.language)
 			if err != nil {
 				return err
 			}
@@ -228,7 +228,7 @@ func (u *UploadService) savePaymentLine(tx *sql.Tx, tr *treegrid.MainRow, parent
 				return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "failed-to-add", "payment-line"), err)
 			}
 		case treegrid.GridRowActionChanged:
-			err = tr.Fields.ValidateOnRequired(repository.PaymentLineFieldUploadNames)
+			err = tr.Fields.ValidateOnRequired(repository.PaymentLineFieldUploadNames, u.language)
 			if err != nil {
 				return err
 			}

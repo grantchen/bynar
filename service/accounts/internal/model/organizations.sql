@@ -784,7 +784,7 @@ CREATE TABLE `bynar_currencies` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `code` varchar(5) NOT NULL,
   `name` varchar(55) NOT NULL,
-  `rate` decimal(12,4) NOT NULL,
+  `exchange_rate` decimal(25,4) NOT NULL,
   `auto_update` tinyint(1) NOT NULL DEFAULT '0',
   `symbol` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`) /*T![clustered_index] CLUSTERED */
@@ -2558,7 +2558,7 @@ CREATE TABLE `currencies` (
   `description` varchar(30) DEFAULT NULL,
   `code` varchar(5) DEFAULT NULL,
   `no_code` int(11) DEFAULT NULL,
-  `rate` decimal(12,4) NOT NULL,
+  `exchange_rate` decimal(25, 4)  NOT NULL,
   `exchange_rate_date` varchar(20) DEFAULT NULL,
   `symbol` varchar(3) DEFAULT NULL,
   `responsibility_center` varchar(20) DEFAULT NULL,
@@ -2902,6 +2902,7 @@ CREATE TABLE `discounts` (
   `operation` varchar(255) DEFAULT NULL,
   `transaction_code` varchar(255) DEFAULT NULL,
   `responsibility_center_uuid` int(11) DEFAULT NULL,
+  `percentage` tinyint not null,
   PRIMARY KEY (`id`) /*T![clustered_index] CLUSTERED */,
   UNIQUE KEY `discounts_id_uindex` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
@@ -3330,7 +3331,7 @@ CREATE TABLE `hr_units` (
 
 -- bynar.inbound_flow definition
 
-CREATE TABLE `inbound_flow` (
+CREATE TABLE `inbound_flows` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `module_id` int(11) DEFAULT NULL,
   `item_id` int(11) DEFAULT NULL,
@@ -3470,9 +3471,9 @@ CREATE TABLE `inventiry_exit_items` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 
--- bynar.inventory definition
+-- bynar.inventories definition
 
-CREATE TABLE `inventory` (
+CREATE TABLE `inventories` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `location_id` int(11) DEFAULT NULL,
   `item_id` int(11) DEFAULT NULL,
@@ -3989,7 +3990,7 @@ CREATE TABLE `organizations` (
 
 -- bynar.outbound_flow definition
 
-CREATE TABLE `outbound_flow` (
+CREATE TABLE `outbound_flows` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `module_id` int(11) DEFAULT NULL,
   `location_id` int(11) DEFAULT NULL,
@@ -4754,56 +4755,84 @@ CREATE TABLE `responsibility_center_items` (
 
 
 -- bynar.sales definition
+create table sales
+(
+  id                           int auto_increment
+    primary key,
+  document_id                  int            not null,
+  document_no                  varchar(255)   not null,
+  transaction_no               int            not null,
+  store_id                     int            not null,
+  document_date                datetime       not null,
+  posting_date                 datetime       not null,
+  entry_date                   datetime       not null,
+  shipment_date                datetime       not null,
+  project_id                   int            not null,
+  department_id                int            not null,
+  contract_id                  int            not null,
+  user_group_id                int            not null,
+  status                       tinyint        not null,
+  currency_id                  int            not null,
+  currency_value               decimal(15, 5) not null,
+  customer_id                  int            not null,
+  salesperson_id               int            not null,
+  responsibility_center_id     int            not null,
+  payment_terms_id             int            not null,
+  payment_method_id            int            not null,
+  transaction_type_id          int            not null,
+  payment_discount             decimal(20, 5) not null,
+  shipment_method_id           int            not null,
+  payment_reference            varchar(255)   not null,
+  transaction_specification_id int            not null,
+  transport_method_id          int            not null,
+  exit_point_id                int            not null,
+  campaign_id                  int            not null,
+  area_id                      int            not null,
+  package_tracking_no          varchar(255)   not null,
+  subtotal_exclusive_vat       decimal(20, 5) not null,
+  total_discount               decimal(20, 5) not null,
+  total_exclusive_vat          decimal(20, 5) not null,
+  total_vat                    decimal(20, 5) not null,
+  total_inclusive_vat          decimal(20, 5) not null,
+  subtotal_exclusive_vat_lcy   decimal(20, 5) not null,
+  total_discount_lcy           decimal(20, 5) not null,
+  total_exclusive_vat_lcy      decimal(20, 5) not null,
+  total_vat_lcy                decimal(20, 5) not null,
+  total_inclusive_vat_lcy      decimal(20, 5) not null,
+  direct_debit_mandate_id      int            not null,
+  agent_id                     int            not null,
+  agent_service_id             int            not null,
+  discount_id                  int            not null
+);
 
-CREATE TABLE `sales` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `document_no` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `document_uuid` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `document_date` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `posting_date` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `entry_date` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `delivery_date` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `document_currency_exchange_rate` decimal(25,4) DEFAULT NULL,
-  `item_cost` decimal(25,4) DEFAULT NULL,
-  `item_cost_quantity` decimal(25,4) DEFAULT NULL,
-  `item_unit_value` decimal(25,4) DEFAULT NULL,
-  `item_unit_discount` decimal(25,4) DEFAULT NULL,
-  `item_unit_total` decimal(25,4) DEFAULT NULL,
-  `item_unit_tax_value` decimal(25,4) DEFAULT NULL,
-  `item_unit_grand_total` decimal(25,4) DEFAULT NULL,
-  `item_quantity_value` decimal(25,4) DEFAULT NULL,
-  `item_quantity_discount` decimal(25,4) DEFAULT NULL,
-  `item_quantity_total` decimal(25,4) DEFAULT NULL,
-  `item_quantity_tax_value` decimal(25,4) DEFAULT NULL,
-  `item_quantity_grand_total` decimal(25,4) DEFAULT NULL,
-  `item_unit_value_base_currency` decimal(25,4) DEFAULT NULL,
-  `item_unit_discount_base_currency` decimal(25,4) DEFAULT NULL,
-  `item_unit_total_base_currency` decimal(25,4) DEFAULT NULL,
-  `item_unit_tax_value_base_currency` decimal(25,4) DEFAULT NULL,
-  `item_unit_grand_total_base_currency` decimal(25,4) DEFAULT NULL,
-  `item_quantity_value_base_currency` decimal(25,4) DEFAULT NULL,
-  `item_quantity_discount_base_currency` decimal(25,4) DEFAULT NULL,
-  `item_quantity_total_base_currency` decimal(25,4) DEFAULT NULL,
-  `item_quantity_tax_value_base_currency` decimal(25,4) DEFAULT NULL,
-  `item_quantity_grand_total_base_currency` decimal(25,4) DEFAULT NULL,
-  `paid` decimal(25,4) DEFAULT NULL,
-  `remaining` decimal(25,4) DEFAULT NULL,
-  `payments_doc` int(11) DEFAULT NULL,
-  `payment_due_date` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `transaction_code` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `document_priority` int(11) DEFAULT NULL,
-  `document_type_uuid` int(11) DEFAULT NULL,
-  `store_uuid` int(11) DEFAULT NULL,
-  `warehouse_uuid` int(11) DEFAULT NULL,
-  `account_uuid` int(11) DEFAULT NULL,
-  `currency_uuid` int(11) DEFAULT NULL,
-  `responsibility_center_uuid` int(11) DEFAULT NULL,
-  `document_manager_approval` tinyint(1) DEFAULT NULL,
-  `sales_order_status` tinyint(1) DEFAULT NULL,
-  `has_child` tinyint(1) DEFAULT NULL,
-  PRIMARY KEY (`id`) /*T![clustered_index] CLUSTERED */
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
+create table sale_lines
+(
+  id                         int auto_increment
+    primary key,
+  parent_id                  int            not null,
+  item_type                  tinyint        not null,
+  item_id                    int            not null,
+  location_id                int            not null,
+  input_quantity             decimal(15, 5) not null,
+  item_unit_value            decimal(15, 5) not null,
+  quantity                   decimal(15, 5) not null,
+  item_unit_id               int            not null,
+  discount_id                int            not null,
+  tax_area_id                int            not null,
+  vat_id                     int            not null,
+  quantity_assign            decimal(15, 5) not null,
+  quantity_assigned          decimal(15, 5) not null,
+  subtotal_exclusive_vat     decimal(20, 5) not null,
+  total_discount             decimal(20, 5) not null,
+  total_exclusive_vat        decimal(20, 5) not null,
+  total_vat                  decimal(20, 5) not null,
+  total_inclusive_vat        decimal(20, 5) not null,
+  subtotal_exclusive_vat_lcy decimal(20, 5) not null,
+  total_discount_lcy         decimal(20, 5) not null,
+  total_exclusive_vat_lcy    decimal(20, 5) not null,
+  total_vat_lcy              decimal(20, 5) not null,
+  total_inclusive_vat_lcy    decimal(20, 5) not null
+);
 
 -- bynar.sales_invoice_details definition
 

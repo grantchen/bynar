@@ -4,11 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"log"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/sites/internal/repository"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
@@ -51,8 +51,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 			log.Println("Err", err)
 
 			resp.IO.Result = -1
-			a := i18n.ErrMsgToI18n(err, u.language).Error()
-			resp.IO.Message += a + "\n"
+			resp.IO.Message += err.Error() + "\n"
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
 			break
 			//rollback
@@ -76,13 +75,13 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	// add addition here
 	switch gr.GetActionType() {
 	case treegrid.GridRowActionAdd:
-		err = gr.ValidateOnRequiredAll(repository.SiteFieldNames)
+		err = gr.ValidateOnRequiredAll(repository.SiteFieldNames, s.language)
 		if err != nil {
 			return err
 		}
 
 		for _, field := range positiveFieldsValidating {
-			err = gr.ValidateOnNotNegativeNumber(map[string][]string{field: repository.SiteFieldNames[field]})
+			err = gr.ValidateOnNotNegativeNumber(map[string][]string{field: repository.SiteFieldNames[field]}, s.language)
 			if err != nil {
 				return err
 			}
@@ -91,18 +90,21 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		for _, field := range fieldsValidating {
 			ok, err := s.siteSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("duplicate, %s", field)
+				templateData := map[string]string{
+					"Field": field,
+				}
+				return i18n.TranslationI18n(s.language, "ValueDuplicated", templateData)
 			}
 		}
 		err = s.siteSimpleRepository.Add(tx, gr)
 	case treegrid.GridRowActionChanged:
-		err = gr.ValidateOnRequired(repository.SiteFieldNames)
+		err = gr.ValidateOnRequired(repository.SiteFieldNames, s.language)
 		if err != nil {
 			return err
 		}
 
 		for _, field := range positiveFieldsValidating {
-			err = gr.ValidateOnNotNegativeNumber(map[string][]string{field: repository.SiteFieldNames[field]})
+			err = gr.ValidateOnNotNegativeNumber(map[string][]string{field: repository.SiteFieldNames[field]}, s.language)
 			if err != nil {
 				return err
 			}
@@ -111,7 +113,10 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		for _, field := range fieldsValidating {
 			ok, err := s.siteSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("duplicate, %s", field)
+				templateData := map[string]string{
+					"Field": field,
+				}
+				return i18n.TranslationI18n(s.language, "ValueDuplicated", templateData)
 			}
 		}
 		err = s.siteSimpleRepository.Update(tx, gr)
@@ -122,5 +127,5 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		return fmt.Errorf("undefined row type: %s", gr.GetActionType())
 	}
 
-	return err
+	return i18n.TranslationErrorToI18n(s.language, err)
 }

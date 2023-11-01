@@ -2,10 +2,9 @@ package treegrid
 
 import (
 	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"strconv"
 	"strings"
-
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 )
 
 type (
@@ -36,32 +35,38 @@ func (f GridRow) GetLineID() string {
 	return strings.Trim(f.GetIDStr(), lineSuffix)
 }
 
-func (f GridRow) ValidateOnRequiredAll(fieldsMapping map[string][]string) error {
+func (f GridRow) ValidateOnRequiredAll(fieldsMapping map[string][]string, language string) error {
 	for key, _ := range fieldsMapping {
 		val, ok := f[key]
 		if !ok || val == "" {
-			return fmt.Errorf("%w, %s", errors.ErrMissingRequiredParams, key)
+			templateData := map[string]string{
+				"Field": key,
+			}
+			return i18n.TranslationI18n(language, "RequiredFieldsBlank", templateData)
 		}
 	}
 	return nil
 }
 
 // used to check empty update key.
-func (f GridRow) ValidateOnRequired(fieldsMapping map[string][]string) error {
+func (f GridRow) ValidateOnRequired(fieldsMapping map[string][]string, language string) error {
 	for key, _ := range fieldsMapping {
 		if key == "Changed" || key == "id" {
 			continue
 		}
 		val, ok := f[key]
 		if ok && val == "" {
-			return fmt.Errorf("[%w]: %s", errors.ErrMissingRequiredParams, key)
+			templateData := map[string]string{
+				"Field": key,
+			}
+			return i18n.TranslationI18n(language, "RequiredFieldsBlank", templateData)
 		}
 	}
 	return nil
 }
 
 // used to check not negative number.
-func (f GridRow) ValidateOnNotNegativeNumber(fieldsMapping map[string][]string) error {
+func (f GridRow) ValidateOnNotNegativeNumber(fieldsMapping map[string][]string, language string) error {
 	for key, _ := range fieldsMapping {
 		if key == "Changed" || key == "id" {
 			continue
@@ -69,7 +74,10 @@ func (f GridRow) ValidateOnNotNegativeNumber(fieldsMapping map[string][]string) 
 		_, ok := f[key]
 		numberVal, _ := f.GetValFloat64(key)
 		if ok && numberVal < 0 {
-			return fmt.Errorf("[%s]: %s", key, "field must be not negative")
+			templateData := map[string]string{
+				"Field": key,
+			}
+			return i18n.TranslationI18n(language, "ValidateOnNotNegativeNumber", templateData)
 		}
 
 	}
@@ -77,7 +85,7 @@ func (f GridRow) ValidateOnNotNegativeNumber(fieldsMapping map[string][]string) 
 }
 
 // used to check A positive number.
-func (f GridRow) ValidateOnPositiveNumber(fieldsMapping map[string][]string) error {
+func (f GridRow) ValidateOnPositiveNumber(fieldsMapping map[string][]string, language string) error {
 	for key, _ := range fieldsMapping {
 		if key == "Changed" || key == "id" {
 			continue
@@ -85,7 +93,10 @@ func (f GridRow) ValidateOnPositiveNumber(fieldsMapping map[string][]string) err
 		_, ok := f[key]
 		numberVal, _ := f.GetValFloat64(key)
 		if ok && numberVal <= 0 {
-			return fmt.Errorf("[%s]: %s", key, "field must be positive")
+			templateData := map[string]string{
+				"Field": key,
+			}
+			return i18n.TranslationI18n(language, "ValidateOnPositiveNumber", templateData)
 		}
 
 	}
@@ -400,6 +411,10 @@ func (g GridRow) UpdatedFields() []string {
 		case "Def":
 			continue
 		case "id":
+			continue
+		case "reqID":
+			continue
+		case "Custom":
 			continue
 		default:
 			updatedFields = append(updatedFields, key)
