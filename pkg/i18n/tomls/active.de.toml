@@ -42,5 +42,7 @@ other = "Dokument existiert nicht! store_id: {{.StoreId}}"
 other = "Artikel existiert nicht! item_id: {{.ItemId}}"
 [UnitNotExist]
 other = "Einheit existiert nicht! item_unit_id: {{.ItemUnitId}}"
+[RecordCanNotDeleteWithStatus]
+other = "Datensatz kann nicht gelöscht werden, Status ist: {{.Status}}"
 [UserBelongSpecificUserGroupLines]
 other = "Der Benutzer gehört zu einer bestimmten Benutzergruppe user_id: {{.UserId}}"
