@@ -66,6 +66,7 @@ func TranslationErrorToI18n(language string, err error) error {
 						ID: code,
 					},
 				})
+				break
 			}
 		}
 	} else {
