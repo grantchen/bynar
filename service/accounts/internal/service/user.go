@@ -117,7 +117,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		err = func() error {
 			err = s.simpleOrganizationRepository.Add(tx, gr)
 			if err != nil {
-				return err
+				return i18n.TranslationErrorToI18n(s.language, err)
 			}
 			// create user in gip
 			email, _ := gr.GetValString("email")
