@@ -122,6 +122,9 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			// create user in gip
 			email, _ := gr.GetValString("email")
 			fullName, _ := gr.GetValString("full_name")
+			if len(fullName) > 100 {
+				return i18n.TranslationErrorToI18n(s.language, fmt.Errorf("full name too long"))
+			}
 			phone, _ := gr.GetValString("phone")
 			status, _ := gr.GetValInt("status")
 			if phone[0] != '+' {
@@ -154,6 +157,11 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				phone := strings.TrimSpace(gr["phone"].(string))
 				if len(phone) > 0 && phone[0] != '+' {
 					gr["phone"] = "+" + phone
+				}
+			}
+			if i == "full_name" {
+				if len(gr["full_name"].(string)) > 100 {
+					return i18n.TranslationErrorToI18n(s.language, fmt.Errorf("full name too long"))
 				}
 			}
 		}
