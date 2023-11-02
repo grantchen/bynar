@@ -96,7 +96,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		for _, i := range gr.UpdatedFields() {
 			if i == "phone" {
 				phone := strings.TrimSpace(gr["phone"].(string))
-				if phone[0] != '+' {
+				if len(phone) > 0 && phone[0] != '+' {
 					gr["phone"] = "+" + phone
 				}
 			}
@@ -117,7 +117,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		err = func() error {
 			err = s.simpleOrganizationRepository.Add(tx, gr)
 			if err != nil {
-				return err
+				return i18n.TranslationErrorToI18n(s.language, err)
 			}
 			// create user in gip
 			email, _ := gr.GetValString("email")
@@ -152,7 +152,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		for _, i := range gr.UpdatedFields() {
 			if i == "phone" {
 				phone := strings.TrimSpace(gr["phone"].(string))
-				if phone[0] != '+' {
+				if len(phone) > 0 && phone[0] != '+' {
 					gr["phone"] = "+" + phone
 				}
 			}
@@ -264,8 +264,8 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	}
 
 	if err != nil {
-		return i18n.TranslationErrorToI18n(s.language, err)
+		return err
 	}
 
-	return err
+	return nil
 }
