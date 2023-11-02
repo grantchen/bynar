@@ -74,7 +74,7 @@ func (s *UploadService) handle(tr *treegrid.MainRow) error {
 	// Check Approval Order
 	ok, err := s.approvalService.Check(tr, s.accountId, s.language)
 	if err != nil {
-		return fmt.Errorf("check order: [%w], document_id: %s", err, tr.IDString())
+		return fmt.Errorf("check order: [%w]", err)
 	}
 
 	if !ok {

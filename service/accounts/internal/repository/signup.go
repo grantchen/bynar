@@ -130,11 +130,11 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, tenantCode
 	}
 
 	// update the organizations count in tanants
-	stmt, err = tx.Prepare(`UPDATE tenants SET organizations = ? WHERE id = ?`)
+	stmt, err = tx.Prepare(`UPDATE tenants SET organizations = organizations + 1 WHERE id = ?`)
 	if err != nil {
 		return "", 0, err
 	}
-	_, err = stmt.Exec(organizations+1, tenantID)
+	_, err = stmt.Exec(tenantID)
 	stmt.Close()
 	if err != nil {
 		tx.Rollback()
