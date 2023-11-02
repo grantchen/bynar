@@ -21,6 +21,7 @@ func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, v
 	var organizationID int
 	var organizationUUID string
 	// check if the organization exists
+	mainAccount := 0
 	stmt, err := tx.Prepare(`SELECT id, organization_uuid FROM organizations where vat_number=?`)
 	if err != nil {
 		return 0, "", 0, err
@@ -32,6 +33,7 @@ func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, v
 		return 0, "", 0, fmt.Errorf("select organization of vat_number=%s error", vat)
 	}
 	if err == sql.ErrNoRows {
+		mainAccount = 1
 		organizationUUID = uuid.New().String()
 		logrus.Info("create organization with uuid ", organizationUUID)
 		// Insert organization info to db
@@ -54,7 +56,7 @@ func (r *accountRepositoryHandler) CreateOrganization(tx *sql.Tx, description, v
 	if err != nil {
 		return 0, "", 0, err
 	}
-	res, err := stmt.Exec(organizationID, uid, accountID, 1)
+	res, err := stmt.Exec(organizationID, uid, accountID, mainAccount)
 	stmt.Close()
 	if err != nil {
 		tx.Rollback()
@@ -128,11 +130,11 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, tenantCode
 	}
 
 	// update the organizations count in tanants
-	stmt, err = tx.Prepare(`UPDATE tenants SET organizations = ? WHERE id = ?`)
+	stmt, err = tx.Prepare(`UPDATE tenants SET organizations = organizations + 1 WHERE id = ?`)
 	if err != nil {
 		return "", 0, err
 	}
-	_, err = stmt.Exec(organizations+1, tenantID)
+	_, err = stmt.Exec(tenantID)
 	stmt.Close()
 	if err != nil {
 		tx.Rollback()

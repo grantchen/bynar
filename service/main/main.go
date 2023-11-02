@@ -28,7 +28,7 @@ import (
 	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
-	procurements_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/procurements/external/handler/http"
+	procurements_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/procurements/external/service"
 	sale_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/external/service"
 	sites_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/sites/external/handler/service"
 	transfers_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/external/handler/service"
@@ -62,13 +62,6 @@ func main() {
 			log.Println(closeErr)
 		}
 	}()
-
-	connString := appConfig.GetDBConnection()
-	db, err := sql_db.InitializeConnection(connString)
-
-	if err != nil {
-		log.Panic(err)
-	}
 
 	accountManagementConnectionString := appConfig.GetAccountManagementConnection()
 	logger.Debug("connection string account: ", accountManagementConnectionString)
@@ -142,9 +135,6 @@ func main() {
 	//lsHandlerMapping = append(lsHandlerMapping,
 	//	&HandlerMapping{handler: payments_handler.NewHTTPHandler(appConfig, db),
 	//		prefixPath: "/payments"})
-	lsHandlerMapping = append(lsHandlerMapping,
-		&HandlerMapping{handler: procurements_handler.NewHTTPHandler(appConfig, db),
-			prefixPath: "/procurements"})
 
 	for _, handlerMapping := range lsHandlerMapping {
 		http.HandleFunc(prefix+handlerMapping.prefixPath+"/data", handlerMapping.handler.HTTPHandleGetPageCount)
@@ -166,6 +156,7 @@ func main() {
 		&HandlerMappingWithPermission{factoryFunc: warehouses_service.NewTreeGridServiceFactory(), prefixPath: "/warehouses"},
 		&HandlerMappingWithPermission{factoryFunc: sale_service.NewTreeGridServiceFactory(), prefixPath: "/sales"},
 		&HandlerMappingWithPermission{factoryFunc: payments_service.NewTreeGridServiceFactory(), prefixPath: "/payments"},
+		&HandlerMappingWithPermission{factoryFunc: procurements_service.NewTreeGridServiceFactory(), prefixPath: "/procurements"},
 	)
 
 	for _, handlerMappingWithPermission := range lsHandlerMappingWithPermission {

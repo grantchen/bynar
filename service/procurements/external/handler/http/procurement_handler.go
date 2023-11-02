@@ -14,11 +14,29 @@ import (
 
 // TODO: get throug request
 var (
-	ModuleID  int = 4
 	AccountID int = 123456
 )
 
 func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGridHandler {
+	gridRowDataRepositoryWithChild := treegrid.NewGridRowDataRepositoryWithChild(
+		db,
+		"procurements",
+		"procurement_lines",
+		repository.ProcurementFieldNames,
+		repository.ProcurementLineFieldNames,
+		100,
+		&treegrid.GridRowDataRepositoryWithChildCfg{
+			MainCol:                  "document_id",
+			QueryParent:              repository.QueryParent,
+			QueryParentCount:         repository.QueryParentCount,
+			QueryParentJoins:         repository.QueryParentJoins,
+			QueryChild:               repository.QueryChild,
+			QueryChildCount:          repository.QueryChildCount,
+			QueryChildJoins:          repository.QueryChildJoins,
+			ChildJoinFieldWithParent: "parent_id",
+			ParentIdField:            "id",
+		},
+	)
 	gridRowRep := treegrid.NewGridRepository(db, "procurements",
 		"procurement_lines",
 		repository.ProcurementFieldNames,
@@ -38,6 +56,8 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 	)
 
 	procrSvc := service.NewProcurementSvc(
+		db,
+		gridRowDataRepositoryWithChild,
 		procurementRepository,
 		unitRepository,
 		currencyRepository,
@@ -45,18 +65,23 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 
 	docSvc := pkg_service.NewDocumentService(documentRepository)
 
-	uploadSvc, _ := service.NewService(
+	uploadSvc := service.NewUploadService(
 		db,
+		"en",
 		approvalSvc,
-		gridRowRep,
-		procrSvc,
-		ModuleID,
-		AccountID,
 		docSvc,
+		gridRowRep,
+		AccountID,
+		procrSvc,
 	)
 
 	handler := &handler.HTTPTreeGridHandler{
-		CallbackUploadDataFunc: uploadSvc.Handle,
+		CallbackUploadDataFunc:  uploadSvc.Handle,
+		CallbackGetPageDataFunc: procrSvc.GetPageData,
+		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) (float64, error) {
+			count, err := procrSvc.GetPageCount(tr)
+			return float64(count), err
+		},
 	}
 
 	return handler

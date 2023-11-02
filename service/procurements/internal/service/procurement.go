@@ -7,27 +7,43 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
 type ProcurementSvc struct {
-	procRep      repository.ProcurementRepository
-	unitRep      repository.UnitRepository
-	currencyRep  repository.CurrencyRepository
-	inventoryRep repository.InventoryRepository
-	boundFlowRep repository.BoundFlowRepository
+	db                             *sql.DB
+	gridRowDataRepositoryWithChild treegrid.GridRowDataRepositoryWithChild
+	procRep                        repository.ProcurementRepository
+	unitRep                        repository.UnitRepository
+	currencyRep                    repository.CurrencyRepository
+	inventoryRep                   repository.InventoryRepository
+	boundFlowRep                   repository.BoundFlowRepository
 }
 
-func NewProcurementSvc(procRep repository.ProcurementRepository, unitRep repository.UnitRepository,
-	currencyRep repository.CurrencyRepository, inventoryRep repository.InventoryRepository) *ProcurementSvc {
+func NewProcurementSvc(db *sql.DB,
+	gridRowDataRepositoryWithChild treegrid.GridRowDataRepositoryWithChild, procRep repository.ProcurementRepository, unitRep repository.UnitRepository,
+	currencyRep repository.CurrencyRepository, inventoryRep repository.InventoryRepository) ProcurementsService {
 	return &ProcurementSvc{
-		procRep:      procRep,
-		unitRep:      unitRep,
-		currencyRep:  currencyRep,
-		inventoryRep: inventoryRep,
+		db:                             db,
+		gridRowDataRepositoryWithChild: gridRowDataRepositoryWithChild,
+		procRep:                        procRep,
+		unitRep:                        unitRep,
+		currencyRep:                    currencyRep,
+		inventoryRep:                   inventoryRep,
 	}
 }
 
-func (s *ProcurementSvc) GetProcurementTx(tx *sql.Tx, id interface{}) (*models.Procurement, error) {
+// GetPageCount implements PaymentsService
+func (u *ProcurementSvc) GetPageCount(tr *treegrid.Treegrid) (int64, error) {
+	return u.gridRowDataRepositoryWithChild.GetPageCount(tr)
+}
+
+// GetPageData implements PaymentsService
+func (u *ProcurementSvc) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
+	return u.gridRowDataRepositoryWithChild.GetPageData(tr)
+}
+
+func (s *ProcurementSvc) GetTx(tx *sql.Tx, id interface{}) (*models.Procurement, error) {
 	return s.procRep.GetProcurement(tx, id)
 }
 
@@ -35,7 +51,7 @@ func (s *ProcurementSvc) Save(tx *sql.Tx, m *models.Procurement) error {
 	return s.procRep.SaveProcurement(tx, m)
 }
 
-func (s *ProcurementSvc) Handle(tx *sql.Tx, m *models.Procurement, moduleID int) error {
+func (s *ProcurementSvc) Handle(tx *sql.Tx, m *models.Procurement) error {
 	// update quantity
 	lines, err := s.procRep.GetProcurementLines(tx, m.ID)
 	if err != nil {
@@ -87,7 +103,7 @@ func (s *ProcurementSvc) Handle(tx *sql.Tx, m *models.Procurement, moduleID int)
 			return fmt.Errorf("handle inventory: [%w], id: %d", err, v.ID)
 		}
 
-		if err := s.handleInboundFlow(tx, m, v, moduleID, cost); err != nil {
+		if err := s.handleInboundFlow(tx, m, v, cost); err != nil {
 			return fmt.Errorf("handle inventory: [%w], id: %d", err, v.ID)
 		}
 
@@ -172,10 +188,9 @@ func (s *ProcurementSvc) handleInventory(tx *sql.Tx, l *models.ProcurementLine) 
 	return cost, s.inventoryRep.AddValues(tx, l.ItemID, l.LocationID, l.Quantity, l.TotalInclusiveVatLcy)
 }
 
-func (s *ProcurementSvc) handleInboundFlow(tx *sql.Tx, pr *models.Procurement, l *models.ProcurementLine, moduleID int, cost float32) (err error) {
+func (s *ProcurementSvc) handleInboundFlow(tx *sql.Tx, pr *models.Procurement, l *models.ProcurementLine, cost float32) (err error) {
 	inFlow := models.InboundFlow{
 		PostingDate:      pr.PostingDate,
-		ModuleID:         moduleID,
 		ItemID:           l.ItemID,
 		ParentID:         l.ParentID,
 		LocationID:       l.LocationID,

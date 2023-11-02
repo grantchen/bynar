@@ -50,10 +50,8 @@ type Procurement struct {
 	Paid                       float32
 	Remaining                  float32
 	PaidStatus                 uint8
-
-	Discount DiscountVat
-
-	Lines []*ProcurementLine
+	Discount                   DiscountVat
+	Lines                      []*ProcurementLine
 }
 
 type ProcurementLine struct {

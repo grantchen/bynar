@@ -4,41 +4,40 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
-
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
+	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
+	"log"
 )
 
 type UploadService struct {
-	moduleID          int
-	accountID         int
-	conn              *sql.DB
-	approvalService   service.ApprovalService
-	gridRowRepository treegrid.GridRowRepositoryWithChild
-	procurementSvc    ProcurementService
-	docSvc            service.DocumentService
+	db                  *sql.DB
+	language            string
+	approvalService     pkg_service.ApprovalCashPaymentService
+	docSvc              pkg_service.DocumentService
+	gridRowRepository   treegrid.GridRowRepositoryWithChild
+	accountId           int
+	procurementsService ProcurementsService
 }
 
-func NewService(conn *sql.DB,
-	approvalService service.ApprovalService,
+func NewUploadService(db *sql.DB,
+	language string,
+	approvalService pkg_service.ApprovalCashPaymentService,
+	docSvc pkg_service.DocumentService,
 	gridRowRepository treegrid.GridRowRepositoryWithChild,
-	procurementSvc ProcurementService,
-	moduleID, accoundID int,
-	docSvc service.DocumentService,
-) (*UploadService, error) {
-
+	accountId int,
+	procurementsService ProcurementsService,
+) *UploadService {
 	return &UploadService{
-		conn:              conn,
-		approvalService:   approvalService,
-		gridRowRepository: gridRowRepository,
-		procurementSvc:    procurementSvc,
-		moduleID:          moduleID,
-		accountID:         accoundID,
-		docSvc:            docSvc,
-	}, nil
+		db:                  db,
+		language:            language,
+		approvalService:     approvalService,
+		docSvc:              docSvc,
+		gridRowRepository:   gridRowRepository,
+		accountId:           accountId,
+		procurementsService: procurementsService,
+	}
 }
 
 // Handle
@@ -52,6 +51,9 @@ func (s *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 
 	// handle all transfer, check error and make proper response
 	for _, tr := range trList.MainRows() {
+		if tr.Fields["id"] == "Group" {
+			continue
+		}
 		if err := s.handle(tr); err != nil {
 			log.Println("Err", err)
 
@@ -70,9 +72,9 @@ func (s *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 
 func (s *UploadService) handle(tr *treegrid.MainRow) error {
 	// Check Approval Order
-	ok, err := s.approvalService.Check(tr, s.accountID, "")
+	ok, err := s.approvalService.Check(tr, s.accountId, s.language)
 	if err != nil {
-		return fmt.Errorf("check order: [%w], transfer id: %s", err, tr.IDString())
+		return fmt.Errorf("check order: [%w]", err)
 	}
 
 	if !ok {
@@ -80,7 +82,7 @@ func (s *UploadService) handle(tr *treegrid.MainRow) error {
 	}
 
 	// Create new transaction
-	tx, err := s.conn.BeginTx(context.Background(), nil)
+	tx, err := s.db.BeginTx(context.Background(), nil)
 	if err != nil {
 		return fmt.Errorf("begin transaction: [%w]", err)
 	}
@@ -94,12 +96,12 @@ func (s *UploadService) handle(tr *treegrid.MainRow) error {
 		logger.Debug("status equal 1 - do calculation, status", tr.Status())
 
 		// working with procurement - calculating and updating.
-		entity, err := s.procurementSvc.GetProcurementTx(tx, tr.Fields.GetID())
+		entity, err := s.procurementsService.GetTx(tx, tr.Fields.GetID())
 		if err != nil {
 			return fmt.Errorf("get procurement service: [%w]", err)
 		}
 
-		if err := s.procurementSvc.Handle(tx, entity, s.moduleID); err != nil {
+		if err := s.procurementsService.Handle(tx, entity); err != nil {
 			return fmt.Errorf("handle procurement: [%w]", err)
 		}
 
