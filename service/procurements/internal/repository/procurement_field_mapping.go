@@ -47,10 +47,6 @@ var (
 		"total_exclusive_vat_lcy":      {"total_exclusive_vat_lcy"},
 		"total_vat_lcy":                {"total_vat_lcy"},
 		"total_inclusive_vat_lcy":      {"total_inclusive_vat_lcy"},
-		// "discount_id":                  {"discount_id"},
-		// "paid":                         {"paid"},
-		// "remaining":                    {"remaining"},
-		// "paid_status":                  {"paid_status"},
 	}
 
 	ProcurementLineFieldNames = map[string][]string{

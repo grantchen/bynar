@@ -58,7 +58,7 @@ func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.Tre
 		repository.ProcurementFieldNames,
 		repository.ProcurementLineFieldNames)
 
-	uploadService := service.NewUploadService(db, "en", approvalSvc, docSvc, grPaymentDataUploadRepositoryWithChild, accountID, procService)
+	uploadService := service.NewUploadService(db, language, approvalSvc, docSvc, grPaymentDataUploadRepositoryWithChild, accountID, procService)
 	return &treegridService{
 		db:                  db,
 		procurementsService: procService,

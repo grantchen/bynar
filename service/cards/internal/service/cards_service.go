@@ -49,8 +49,8 @@ func (r *cardServiceHandler) AddCard(req *models.ValidateCardRequest) error {
 			if derr != nil {
 				return errors.NewUnknownError("failed to delete card", "failed-delete-card").WithInternal().WithCause(derr)
 			}
-			return errors.NewUnknownError("failed to add user card", "failed-add-card").WithInternal().WithCause(err)
 		}
+		return errors.NewUnknownError("failed to add user card", "failed-add-card").WithInternal().WithCause(err)
 	}
 	return nil
 }
