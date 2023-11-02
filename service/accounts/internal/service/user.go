@@ -264,8 +264,8 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	}
 
 	if err != nil {
-		return i18n.TranslationErrorToI18n(s.language, err)
+		return err
 	}
 
-	return err
+	return nil
 }
