@@ -77,7 +77,7 @@ func (s *approvalCashPaymentService) checkActionUpdated(tr *treegrid.MainRow, ac
 
 	currStatus, err := s.storage.GetStatus(tr.Fields.GetID())
 	if err != nil {
-		return false, fmt.Errorf("%s : %v, [%w]", i18n.Localize(language, "failed-to-get-by", "status", "id"), tr.Fields.GetID(), err)
+		return false, fmt.Errorf("%s : %v", i18n.Localize(language, "failed-to-get-by", "status", "id"), tr.Fields.GetID())
 	}
 
 	// can be updated only lines
@@ -104,19 +104,19 @@ func (s *approvalCashPaymentService) checkActionUpdated(tr *treegrid.MainRow, ac
 
 	currDocID, err := s.storage.GetDocID(tr.Fields.GetID())
 	if err != nil {
-		return false, fmt.Errorf("%s : %v, [%w]", i18n.Localize(language, "failed-to-get-by", "document_id", "id"), tr.Fields.GetID(), err)
+		return false, fmt.Errorf("%s : %v", i18n.Localize(language, "failed-to-get-by", "document_id", "id"), tr.Fields.GetID())
 	}
 
 	nextWrkItem, err := s.storage.GetWorkflowItem(accountID, newDocID)
 	if err != nil {
-		return false, fmt.Errorf("%s : %s:%d,%s:%d,[%w]",
-			i18n.Localize(language, "failed-to-get-data-from", "next-workflow-item"), "account_id", accountID, "document_id", newDocID, err)
+		return false, fmt.Errorf("%s : %s:%d,%s:%d",
+			i18n.Localize(language, "failed-to-get-data-from", "next-workflow-item"), "account_id", accountID, "document_id", newDocID)
 	}
 
 	currentWrkItem, err := s.storage.GetWorkflowItem(accountID, currDocID)
 	if err != nil {
-		return false, fmt.Errorf("%s : %s:%d,%s:%d,[%w]",
-			i18n.Localize(language, "failed-to-get-data-from", "current-workflow-item"), "account_id", accountID, "document_id", currDocID, err)
+		return false, fmt.Errorf("%s : %s:%d,%s:%d",
+			i18n.Localize(language, "failed-to-get-data-from", "current-workflow-item"), "account_id", accountID, "document_id", currDocID)
 	}
 
 	logger.Debug("Current approval_order", currentWrkItem.ApprovalOrder, "Next apploval_order", nextWrkItem.ApprovalOrder)
@@ -156,7 +156,7 @@ func (s *approvalCashPaymentService) checkActionDeleted(tr *treegrid.MainRow, la
 		if err.Error() == "sql: no rows in result set" {
 			return true, nil
 		}
-		return false, fmt.Errorf("%s : %v, [%w]", i18n.Localize(language, "failed-to-get-by", "status", "id"), tr.Fields.GetID(), err)
+		return false, fmt.Errorf("%s : %v", i18n.Localize(language, "failed-to-get-by", "status", "id"), tr.Fields.GetID())
 	}
 
 	return status != 1, nil
