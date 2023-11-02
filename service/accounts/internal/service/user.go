@@ -96,7 +96,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		for _, i := range gr.UpdatedFields() {
 			if i == "phone" {
 				phone := strings.TrimSpace(gr["phone"].(string))
-				if phone[0] != '+' {
+				if len(phone) > 0 && phone[0] != '+' {
 					gr["phone"] = "+" + phone
 				}
 			}
@@ -152,7 +152,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		for _, i := range gr.UpdatedFields() {
 			if i == "phone" {
 				phone := strings.TrimSpace(gr["phone"].(string))
-				if phone[0] != '+' {
+				if len(phone) > 0 && phone[0] != '+' {
 					gr["phone"] = "+" + phone
 				}
 			}
