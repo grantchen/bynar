@@ -73,6 +73,6 @@ var (
 		"total_discount_lcy":         {"total_discount_lcy"},
 		"total_exclusive_vat_lcy":    {"total_exclusive_vat_lcy"},
 		"total_vat_lcy":              {"total_vat_lcy"},
-		"total_inclusive_vat_lc":     {"total_inclusive_vat_lc"},
+		"total_inclusive_vat_lcy":    {"total_inclusive_vat_lcy"},
 	}
 )
