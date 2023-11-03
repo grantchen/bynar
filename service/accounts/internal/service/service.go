@@ -38,6 +38,12 @@ type AccountService interface {
 	UpdateGipCustomClaims(uid string) *errors.Error
 	// GetUserProfileById get user profile info
 	GetUserProfileById(db *sql.DB, userId int) (*model.UserProfileResponse, *errors.Error)
+	// GetOrganizationAccount get organization account information
+	GetOrganizationAccount(language string, accountID int, organizationUuid string) (*model.GetOrganizationAccountResponse, error)
+	// UpdateOrganizationAccount update organization account
+	UpdateOrganizationAccount(language string, accountID int, organizationUuid string, organizationAccount model.OrganizationAccountRequest) error
+	// DeleteOrganizationAccount delete organization account
+	DeleteOrganizationAccount(language string, accountID int, organizationUuid string) error
 }
 
 type accountServiceHandler struct {

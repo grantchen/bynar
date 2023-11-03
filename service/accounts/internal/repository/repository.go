@@ -25,6 +25,12 @@ type AccountRepository interface {
 	GetUserDetail(db *sql.DB, userId int) (*organization_schema.User, error)
 	// UpdateUserProfile update user profile
 	UpdateUserProfile(db *sql.DB, userId int, uid string, req model.UpdateUserProfileRequest) error
+	// GetOrganizationAccount get organization account information
+	GetOrganizationAccount(language string, accountID int, organizationUuid string) (*model.GetOrganizationAccountResponse, error)
+	// UpdateOrganizationAccount update organization account
+	UpdateOrganizationAccount(language string, accountID int, organizationUuid string, organizationAccount model.OrganizationAccountRequest) error
+	// DeleteOrganizationAccount delete organization account
+	DeleteOrganizationAccount(language string, accountID int, organizationUuid string) error
 }
 
 type accountRepositoryHandler struct {

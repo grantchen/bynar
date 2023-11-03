@@ -65,3 +65,19 @@ type UserProfileResponse struct {
 	Theme       string `json:"theme"`
 	Language    string `json:"language"`
 }
+
+// GetOrganizationAccountResponse get organization account api return struct
+type GetOrganizationAccountResponse struct {
+	Email               string `json:"email" valid:""`
+	FullName            string `json:"fullName" valid:""`
+	Country             string `json:"country" valid:""`
+	AddressLine         string `json:"addressLine" valid:""`
+	AddressLine2        string `json:"addressLine2"`
+	City                string `json:"city" valid:""`
+	State               string `json:"state" valid:""`
+	PostalCode          string `json:"postalCode" valid:""`
+	PhoneNumber         string `json:"phoneNumber" valid:""`
+	OrganizationName    string `json:"organizationName" valid:""`
+	VAT                 string `json:"VAT" valid:""`
+	OrganizationCountry string `json:"organizationCountry" valid:""`
+}

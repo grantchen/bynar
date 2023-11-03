@@ -348,3 +348,78 @@ func (h *AccountHandler) GetUserProfileById(w http.ResponseWriter, r *http.Reque
 	}
 	render.Ok(w, profile)
 }
+
+// GetOrganizationAccount get organization account information
+func (h *AccountHandler) GetOrganizationAccount(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		render.MethodNotAllowed(w)
+		return
+	}
+
+	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
+	if err != nil {
+		handler.LogInternalError(err)
+		render.Error(w, i18n.Localize("", errors.ErrCodeIDTokenInvalid))
+		return
+	}
+
+	response, err := h.as.GetOrganizationAccount(reqContext.Claims.Language, reqContext.Claims.AccountId, reqContext.Claims.OrganizationUuid)
+	if err != nil {
+		render.Error(w, err.Error())
+		return
+	}
+
+	render.Ok(w, response)
+}
+
+// UpdateOrganizationAccount update organization account(tenant)
+func (h *AccountHandler) UpdateOrganizationAccount(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		render.MethodNotAllowed(w)
+		return
+	}
+
+	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
+	if err != nil {
+		handler.LogInternalError(err)
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, errors.ErrCodeIDTokenInvalid))
+		return
+	}
+
+	var req model.OrganizationAccountRequest
+	if err = render.DecodeJSON(r.Body, &req); err != nil {
+		render.ErrorWithHttpCode(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.as.UpdateOrganizationAccount(reqContext.Claims.Language, reqContext.Claims.AccountId, reqContext.Claims.OrganizationUuid, req)
+	if err != nil {
+		render.Error(w, err.Error())
+		return
+	}
+
+	render.Ok(w, nil)
+}
+
+// DeleteOrganizationAccount delete organization account(tenant)
+func (h *AccountHandler) DeleteOrganizationAccount(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		render.MethodNotAllowed(w)
+		return
+	}
+
+	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
+	if err != nil {
+		handler.LogInternalError(err)
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, errors.ErrCodeIDTokenInvalid))
+		return
+	}
+
+	err = h.as.DeleteOrganizationAccount(reqContext.Claims.Language, reqContext.Claims.AccountId, reqContext.Claims.OrganizationUuid)
+	if err != nil {
+		render.Error(w, err.Error())
+		return
+	}
+
+	render.Ok(w, nil)
+}
