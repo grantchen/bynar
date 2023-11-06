@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 )
@@ -52,23 +53,69 @@ func (s *accountServiceHandler) DeleteOrganizationAccount(
 	tenantUuid string,
 	organizationUuid string,
 ) error {
-	// TODO delete cards from checkout.com
-
-	// TODO delete existing file from Google cloud storage
-	//if err = s.cloudStorageProvider.DeleteFiles(filePathPrefix); err != nil {
-	//	return "", errors.NewUnknownError("upload file fail", "").WithInternalCause(err)
-	//}
-
-	err := s.ar.DeleteOrganizationAccount(db, language, tenantUuid, organizationUuid)
+	err := s.ar.IsCanDeleteOrganizationAccount(language, organizationUuid)
 	if err != nil {
 		return err
 	}
 
-	// TODO delete user from Google identify platform
-	//err = s.authProvider.DeleteUser(context.Background(), uid)
-	//if err != nil {
-	//	return i18n.TranslationErrorToI18n(language, err)
-	//}
+	organizationID, err := s.ar.GetOrganizationIdByUuid(language, organizationUuid)
+	if err != nil {
+		return err
+	}
+
+	// delete all customers of organization from checkout.com
+	err = s.deleteCustomersFromCheckout(language, organizationID)
+	if err != nil {
+		return err
+	}
+
+	// delete existing file from Google cloud storage
+	if err = s.cloudStorageProvider.DeleteFiles(fmt.Sprintf("%d/", organizationID)); err != nil {
+		return err
+	}
+
+	// delete all users of organization from GIP
+	err = s.deleteUsersFromGIP(language, organizationID)
+	if err != nil {
+		return err
+	}
+
+	err = s.ar.DeleteOrganizationAccount(db, language, tenantUuid, organizationUuid)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// delete all customers of organization from checkout.com
+func (s *accountServiceHandler) deleteCustomersFromCheckout(language string, organizationID int) error {
+	customerIDs, err := s.ar.GetCustomerIDsByOrganizationID(language, organizationID)
+	if err != nil {
+		return err
+	}
+
+	for _, customerID := range customerIDs {
+		err = s.paymentProvider.DeleteCustomer(customerID)
+		if err != nil {
+			continue
+		}
+	}
+
+	return nil
+}
+
+// delete all users of organization from GIP
+func (s *accountServiceHandler) deleteUsersFromGIP(language string, organizationID int) error {
+	userUids, err := s.ar.GetGipUserUidsByOrganizationID(language, organizationID)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.authProvider.DeleteUsers(context.Background(), userUids)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

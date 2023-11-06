@@ -31,6 +31,14 @@ type AccountRepository interface {
 	UpdateOrganizationAccount(db *sql.DB, language string, accountID int, organizationUserId int, organizationUuid string, organizationAccount model.OrganizationAccountRequest) error
 	// DeleteOrganizationAccount delete organization account
 	DeleteOrganizationAccount(db *sql.DB, language string, tenantUuid string, organizationUuid string) error
+	// IsCanDeleteOrganizationAccount check if can delete organization account
+	IsCanDeleteOrganizationAccount(language string, organizationUuid string) error
+	// GetOrganizationIdByUuid get organization id by uuid
+	GetOrganizationIdByUuid(language string, organizationUuid string) (int, error)
+	// GetCustomerIDsByOrganizationID get customer ids by organization id
+	GetCustomerIDsByOrganizationID(language string, organizationID int) ([]string, error)
+	// GetGipUserUidsByOrganizationID get gip user uids by organization id
+	GetGipUserUidsByOrganizationID(language string, organizationID int) ([]string, error)
 }
 
 type accountRepositoryHandler struct {

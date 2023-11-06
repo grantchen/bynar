@@ -141,11 +141,6 @@ func (r *accountRepositoryHandler) UpdateOrganizationAccount(
 }
 
 func (r *accountRepositoryHandler) DeleteOrganizationAccount(db *sql.DB, language string, tenantUuid string, organizationUuid string) error {
-	err := r.isCanDeleteOrganizationAccount(language, organizationUuid)
-	if err != nil {
-		return err
-	}
-
 	var organizationID int
 	var tenantID int
 	queryOrganizationStmt, err := r.db.Prepare(`SELECT id, tenant_id FROM organizations WHERE organization_uuid = ? LIMIT 1;`)
@@ -172,7 +167,8 @@ func (r *accountRepositoryHandler) DeleteOrganizationAccount(db *sql.DB, languag
 	return nil
 }
 
-func (r *accountRepositoryHandler) isCanDeleteOrganizationAccount(language string, organizationUuid string) error {
+// IsCanDeleteOrganizationAccount checks if the organization account can be deleted.
+func (r *accountRepositoryHandler) IsCanDeleteOrganizationAccount(language string, organizationUuid string) error {
 	queryInvoiceStmt, err := r.db.Prepare(`
 		SELECT 1
 		FROM invoices i
@@ -198,6 +194,84 @@ func (r *accountRepositoryHandler) isCanDeleteOrganizationAccount(language strin
 	}
 
 	return i18n.TranslationI18n(language, "CannotDeleteAccountWithUnpaidInvoices", nil)
+}
+
+// GetOrganizationIdByUuid gets the organization id by uuid.
+func (r *accountRepositoryHandler) GetOrganizationIdByUuid(language string, organizationUuid string) (int, error) {
+	stmt, err := r.db.Prepare(`SELECT id FROM organizations WHERE organization_uuid = ? LIMIT 1;`)
+	if err != nil {
+		return 0, err
+	}
+	defer stmt.Close()
+
+	var organizationID int
+	err = stmt.QueryRow(organizationUuid).Scan(&organizationID)
+	if err != nil {
+		return 0, err
+	}
+
+	return organizationID, nil
+}
+
+// GetCustomerIDsByOrganizationID gets the customer ids of checkout users by organization id.
+func (r *accountRepositoryHandler) GetCustomerIDsByOrganizationID(language string, organizationID int) ([]string, error) {
+	// pluck user_payment_gateway_id from accounts_cards by user_id(which associated to accounts.id by organization_accounts)
+	stmt, err := r.db.Prepare(`
+		SELECT DISTINCT ac.user_payment_gateway_id
+		FROM accounts_cards ac
+				 INNER JOIN accounts a ON a.id = ac.user_id
+				 INNER JOIN organization_accounts oa ON oa.organization_user_uid = a.uid
+		WHERE oa.organization_id = ?;`)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(organizationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var customerIDs []string
+	for rows.Next() {
+		var customerID string
+		err = rows.Scan(&customerID)
+		if err != nil {
+			return nil, err
+		}
+		customerIDs = append(customerIDs, customerID)
+	}
+
+	return customerIDs, nil
+}
+
+// GetGipUserUidsByOrganizationID gets the gip user uids by organization id.
+func (r *accountRepositoryHandler) GetGipUserUidsByOrganizationID(language string, organizationID int) ([]string, error) {
+	// pluck organization_user_uid from organization_accounts by organization_id
+	stmt, err := r.db.Prepare(`SELECT organization_user_uid FROM organization_accounts WHERE organization_id = ?;`)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(organizationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var gipUserUids []string
+	for rows.Next() {
+		var gipUserUid string
+		err = rows.Scan(&gipUserUid)
+		if err != nil {
+			return nil, err
+		}
+		gipUserUids = append(gipUserUids, gipUserUid)
+	}
+
+	return gipUserUids, nil
 }
 
 // deleteAccount deletes the account data of the organization in accounts_management.

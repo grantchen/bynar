@@ -17,6 +17,8 @@ type AuthProvider interface {
 	UpdateUserByEmail(ctx context.Context, email string, params map[string]interface{}) error
 	// DeleteUser deletes the user by the given UID.
 	DeleteUser(ctx context.Context, uid string) error
+	// DeleteUsers deletes the users by the given UIDs.
+	DeleteUsers(ctx context.Context, uids []string) (*auth.DeleteUsersResult, error)
 	// DeleteUserByEmail deletes the user by the given email.
 	DeleteUserByEmail(ctx context.Context, email string) error
 	// SignIn signs in the user by the given UID.
