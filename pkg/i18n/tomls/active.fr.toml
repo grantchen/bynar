@@ -14,6 +14,7 @@ InvalidCondition = "condition invalide lors de la mise à jour des données."
 MergeFail = "La fusion avec les données actuelles échoue."
 NoUserGroupLineFound = "La fusion avec les données actuelles échoue."
 UpdateChildLine =  "non autorisé à mettre à jour la ligne enfant."
+CannotDeleteAccountWithUnpaidInvoices = "je ne peux pas supprimer le compte car il y a des factures impayées"
 [RequiredFieldsBlank]
 other = "Les champs obligatoires ne peuvent pas être vides: {{.Field}}."
 [ValueDuplicated]

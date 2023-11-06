@@ -263,22 +263,13 @@ func (r *accountRepositoryHandler) SetStatusToZeroIfEnvFailed(userID, tenantMana
 
 // CreateEnvironment create a new schema in db
 func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUID string, tenantManagentID, userID int, email, fullName, phoneNumber string) (int, error) {
-	//get tanant mysql connstr from environment
-	connStr := os.Getenv(tenantUUID)
-	if len(connStr) == 0 {
-		r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
-		return 0, errors.New("the tenant mysql connstr is not set")
-	}
-	if strings.Contains(connStr, "?") {
-		connStr += "&multiStatements=true"
-	} else {
-		connStr += "?multiStatements=true"
-	}
-	db, err := sql.Open("mysql", connStr)
+	db, err := r.getEnvironmentDB(tenantUUID)
 	if err != nil {
 		r.SetStatusToZeroIfEnvFailed(userID, tenantManagentID)
-		return 0, errors.New("open mysql failed")
+		return 0, err
 	}
+	defer db.Close()
+
 	var name string
 	err = db.QueryRow(`SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '` + organizationUUID + `'`).Scan(&name)
 	if err == nil {
@@ -322,4 +313,24 @@ func (r *accountRepositoryHandler) CreateEnvironment(tenantUUID, organizationUUI
 	}
 	id, _ := res.LastInsertId()
 	return int(id), nil
+}
+
+// CreateEnvironment create a new schema in db
+func (r *accountRepositoryHandler) getEnvironmentDB(tenantUUID string) (*sql.DB, error) {
+	// get tanant mysql connstr from environment
+	connStr := os.Getenv(tenantUUID)
+	if len(connStr) == 0 {
+		return nil, errors.New("the tenant mysql connstr is not set")
+	}
+
+	if strings.Contains(connStr, "?") {
+		connStr += "&multiStatements=true"
+	} else {
+		connStr += "?multiStatements=true"
+	}
+	db, err := sql.Open("mysql", connStr)
+	if err != nil {
+		return nil, errors.New("open mysql failed")
+	}
+	return db, nil
 }

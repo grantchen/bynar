@@ -14,6 +14,7 @@ InvalidCondition = "invalid condition when update data."
 MergeFail = "Merge with current data fail."
 NoUserGroupLineFound = "You are not in any user group and cannot create an organization."
 UpdateChildLine =  "no allow to update child line."
+CannotDeleteAccountWithUnpaidInvoices = "can't delete account because there are unpaid invoices"
 [RequiredFieldsBlank]
 other = "Required fields cannot be blank: {{.Field}}."
 [ValueDuplicated]

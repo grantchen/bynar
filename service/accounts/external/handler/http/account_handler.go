@@ -363,6 +363,11 @@ func (h *AccountHandler) GetOrganizationAccount(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	if !reqContext.Claims.OrganizationAccount {
+		render.Error(w, i18n.TranslationI18n(reqContext.Claims.Language, "permission-denied", nil).Error())
+		return
+	}
+
 	response, err := h.as.GetOrganizationAccount(reqContext.Claims.Language, reqContext.Claims.AccountId, reqContext.Claims.OrganizationUuid)
 	if err != nil {
 		render.Error(w, err.Error())
@@ -386,13 +391,26 @@ func (h *AccountHandler) UpdateOrganizationAccount(w http.ResponseWriter, r *htt
 		return
 	}
 
+	if !reqContext.Claims.OrganizationAccount {
+		render.Error(w, i18n.TranslationI18n(reqContext.Claims.Language, "permission-denied", nil).Error())
+		return
+	}
+
 	var req model.OrganizationAccountRequest
 	if err = render.DecodeJSON(r.Body, &req); err != nil {
 		render.ErrorWithHttpCode(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = h.as.UpdateOrganizationAccount(reqContext.Claims.Language, reqContext.Claims.AccountId, reqContext.Claims.OrganizationUuid, req)
+	err = h.as.UpdateOrganizationAccount(
+		reqContext.DynamicDB,
+		reqContext.Claims.Language,
+		reqContext.Claims.AccountId,
+		reqContext.Claims.Uid,
+		reqContext.Claims.OrganizationUserId,
+		reqContext.Claims.OrganizationUuid,
+		req,
+	)
 	if err != nil {
 		render.Error(w, err.Error())
 		return
@@ -415,7 +433,17 @@ func (h *AccountHandler) DeleteOrganizationAccount(w http.ResponseWriter, r *htt
 		return
 	}
 
-	err = h.as.DeleteOrganizationAccount(reqContext.Claims.Language, reqContext.Claims.AccountId, reqContext.Claims.OrganizationUuid)
+	if !reqContext.Claims.OrganizationAccount {
+		render.Error(w, i18n.TranslationI18n(reqContext.Claims.Language, "permission-denied", nil).Error())
+		return
+	}
+
+	err = h.as.DeleteOrganizationAccount(
+		reqContext.DynamicDB,
+		reqContext.Claims.Language,
+		reqContext.Claims.TenantUuid,
+		reqContext.Claims.OrganizationUuid,
+	)
 	if err != nil {
 		render.Error(w, err.Error())
 		return

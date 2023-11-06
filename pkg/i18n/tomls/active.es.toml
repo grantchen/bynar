@@ -14,6 +14,7 @@ InvalidCondition = "condición no válida al actualizar los datos."
 MergeFail = "Error al fusionar con los datos actuales."
 NoUserGroupLineFound = "No estás en ningún grupo de usuarios y no puedes crear una organización."
 UpdateChildLine =  "no se permite actualizar la línea secundaria."
+CannotDeleteAccountWithUnpaidInvoices = "No puedo eliminar la cuenta porque hay facturas impagas"
 [RequiredFieldsBlank]
 other = "Los campos obligatorios no pueden estar en blanco: {{.Field}}."
 [ValueDuplicated]
