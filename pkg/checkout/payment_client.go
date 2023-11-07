@@ -180,7 +180,7 @@ func (p paymentClient) DeleteCard(sourceID string) error {
 func (p paymentClient) DeleteCustomer(customerID string) error {
 	apiURL := fmt.Sprintf(`%v/%v`, configuration.CurrentEnv().CustomerUri(), customerID)
 	method := "DELETE"
-	authorization, err := p.GenerateAuthToken(configuration.Vault)
+	authorization, err := p.GenerateAuthToken(configuration.VaultInstruments)
 	if err != nil {
 		return err
 	}
@@ -194,7 +194,7 @@ func (p paymentClient) DeleteCustomer(customerID string) error {
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != 204 {
+	if res.StatusCode != http.StatusNoContent {
 		var errResp models.CheckOutErrorResponse
 		err = json.NewDecoder(res.Body).Decode(&errResp)
 		if err != nil {

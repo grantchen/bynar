@@ -112,6 +112,10 @@ func (s *accountServiceHandler) deleteUsersFromGIP(language string, organization
 		return err
 	}
 
+	if len(userUids) == 0 {
+		return nil
+	}
+
 	_, err = s.authProvider.DeleteUsers(context.Background(), userUids)
 	if err != nil {
 		return err

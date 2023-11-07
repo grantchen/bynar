@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 )
@@ -154,7 +155,7 @@ func (r *accountRepositoryHandler) DeleteOrganizationAccount(db *sql.DB, languag
 		return err
 	}
 
-	err = r.deleteEnvironment(language, tenantUuid)
+	err = r.deleteEnvironment(language, tenantUuid, organizationUuid)
 	if err != nil {
 		return err
 	}
@@ -338,6 +339,44 @@ func (r *accountRepositoryHandler) deleteAccount(language string, organizationID
 		return err
 	}
 
+	// delete accounts by uid associated to organization_accounts' organization_user_uid
+	deleteAccountsStmt, err := tx.Prepare(`
+		DELETE
+		FROM accounts
+		WHERE uid IN (SELECT oa.organization_user_uid
+					  FROM organization_accounts oa
+					  WHERE oa.organization_id = ?);`)
+	if err != nil {
+		return err
+	}
+	defer deleteAccountsStmt.Close()
+	_, err = deleteAccountsStmt.Exec(organizationID)
+	if err != nil {
+		return err
+	}
+
+	// delete organization_accounts by organization_id
+	deleteOrganizationAccountsStmt, err := tx.Prepare(`DELETE FROM organization_accounts WHERE organization_id = ?;`)
+	if err != nil {
+		return err
+	}
+	defer deleteOrganizationAccountsStmt.Close()
+	_, err = deleteOrganizationAccountsStmt.Exec(organizationID)
+	if err != nil {
+		return err
+	}
+
+	// delete organizations by id
+	deleteOrganizationsStmt, err := tx.Prepare(`DELETE FROM organizations WHERE id = ?;`)
+	if err != nil {
+		return err
+	}
+	defer deleteOrganizationsStmt.Close()
+	_, err = deleteOrganizationsStmt.Exec(organizationID)
+	if err != nil {
+		return err
+	}
+
 	// commit
 	err = tx.Commit()
 	if err != nil {
@@ -348,20 +387,14 @@ func (r *accountRepositoryHandler) deleteAccount(language string, organizationID
 }
 
 // deleteEnvironment deletes the environment of the organization.
-func (r *accountRepositoryHandler) deleteEnvironment(language string, tenantUuid string) error {
+func (r *accountRepositoryHandler) deleteEnvironment(language, tenantUuid, organizationUuid string) error {
 	db, err := r.getEnvironmentDB(tenantUuid)
 	if err != nil {
 		return err
 	}
 	defer db.Close()
 
-	dropDatabaseStmt, err := db.Prepare(`DROP DATABASE IF EXISTS ?;`)
-	if err != nil {
-		return err
-	}
-	defer dropDatabaseStmt.Close()
-
-	_, err = dropDatabaseStmt.Exec(tenantUuid)
+	_, err = db.Exec(fmt.Sprintf("DROP SCHEMA `%s`", organizationUuid))
 	if err != nil {
 		return err
 	}
