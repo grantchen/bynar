@@ -12,6 +12,7 @@ import (
 // Maximum number of gip users allowed to batch delete at a time.
 const gipMaxDeleteAccountsBatchSize = 1000
 
+// GetOrganizationAccount returns the organization account.
 func (s *accountServiceHandler) GetOrganizationAccount(language string, accountID int, organizationUuid string) (*model.GetOrganizationAccountResponse, error) {
 	account, err := s.ar.GetOrganizationAccount(language, accountID, organizationUuid)
 	if err != nil {
@@ -21,6 +22,7 @@ func (s *accountServiceHandler) GetOrganizationAccount(language string, accountI
 	return account, nil
 }
 
+// UpdateOrganizationAccount updates the organization account.
 func (s *accountServiceHandler) UpdateOrganizationAccount(
 	db *sql.DB,
 	language string,
@@ -51,6 +53,7 @@ func (s *accountServiceHandler) UpdateOrganizationAccount(
 	return nil
 }
 
+// DeleteOrganizationAccount deletes the organization account.
 func (s *accountServiceHandler) DeleteOrganizationAccount(
 	db *sql.DB,
 	language string,

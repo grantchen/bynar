@@ -8,6 +8,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 )
 
+// GetOrganizationAccount gets the organization account.
 func (r *accountRepositoryHandler) GetOrganizationAccount(language string, accountID int, organizationUuid string) (*model.GetOrganizationAccountResponse, error) {
 	stmt, err := r.db.Prepare(`
 		SELECT a.email,
@@ -54,6 +55,7 @@ func (r *accountRepositoryHandler) GetOrganizationAccount(language string, accou
 	return &res, nil
 }
 
+// UpdateOrganizationAccount updates the organization account.
 func (r *accountRepositoryHandler) UpdateOrganizationAccount(
 	db *sql.DB,
 	language string,
@@ -141,6 +143,7 @@ func (r *accountRepositoryHandler) UpdateOrganizationAccount(
 	return tx.Commit()
 }
 
+// DeleteOrganizationAccount deletes the organization account.
 func (r *accountRepositoryHandler) DeleteOrganizationAccount(db *sql.DB, language string, tenantUuid string, organizationUuid string) error {
 	var organizationID int
 	var tenantID int
