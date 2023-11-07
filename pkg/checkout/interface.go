@@ -16,6 +16,8 @@ type PaymentClient interface {
 	ValidateCard(userDetails *models.ValidateCardRequest) (models.ValidateCard, error)
 	FetchCustomerDetails(customerID string) (models.CustomerResponse, error)
 	DeleteCard(sourceID string) error
+	// DeleteCustomer Delete a customer and all of their linked payment instruments.
+	DeleteCustomer(customerID string) error
 	UpdateCustomer(customerInfo models.UpdateCustomer, customerID string) error
 	FetchPaymentDetails(paymentID string) (models.FetchPaymentDetails, error)
 }

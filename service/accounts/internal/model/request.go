@@ -64,3 +64,19 @@ type UpdateUserProfileRequest struct {
 	Language    string `json:"language" valid:""`
 	Theme       string `json:"theme" valid:""`
 }
+
+// OrganizationAccountRequest organization account request struct
+type OrganizationAccountRequest struct {
+	Email               string `json:"email" valid:""`
+	FullName            string `json:"fullName" valid:""`
+	Country             string `json:"country" valid:""`
+	AddressLine         string `json:"addressLine" valid:""`
+	AddressLine2        string `json:"addressLine2"`
+	City                string `json:"city" valid:""`
+	State               string `json:"state" valid:""`
+	PostalCode          string `json:"postalCode" valid:""`
+	PhoneNumber         string `json:"phoneNumber" valid:""`
+	OrganizationName    string `json:"organizationName" valid:""`
+	VAT                 string `json:"VAT" valid:""`
+	OrganizationCountry string `json:"organizationCountry" valid:""`
+}

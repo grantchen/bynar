@@ -25,6 +25,22 @@ type AccountRepository interface {
 	GetUserDetail(db *sql.DB, userId int) (*organization_schema.User, error)
 	// UpdateUserProfile update user profile
 	UpdateUserProfile(db *sql.DB, userId int, uid string, req model.UpdateUserProfileRequest) error
+	// GetOrganizationAccount get organization account information
+	GetOrganizationAccount(language string, accountID int, organizationUuid string) (*model.GetOrganizationAccountResponse, error)
+	// IsOrganizationVATDuplicated check if organization vat is duplicated
+	IsOrganizationVATDuplicated(language string, organizationUuid string, vat string) error
+	// UpdateOrganizationAccount update organization account
+	UpdateOrganizationAccount(db *sql.DB, language string, accountID int, organizationUserId int, organizationUuid string, organizationAccount model.OrganizationAccountRequest) error
+	// DeleteOrganizationAccount delete organization account
+	DeleteOrganizationAccount(db *sql.DB, language string, tenantUuid string, organizationUuid string) error
+	// IsCanDeleteOrganizationAccount check if can delete organization account
+	IsCanDeleteOrganizationAccount(language string, organizationUuid string) error
+	// GetOrganizationIdByUuid get organization id by uuid
+	GetOrganizationIdByUuid(language string, organizationUuid string) (int, error)
+	// GetCustomerIDsByOrganizationID get customer ids by organization id
+	GetCustomerIDsByOrganizationID(language string, organizationID int) ([]string, error)
+	// GetGipUserUidsByOrganizationID get gip user uids by organization id
+	GetGipUserUidsByOrganizationID(language string, organizationID int) ([]string, error)
 }
 
 type accountRepositoryHandler struct {

@@ -105,6 +105,9 @@ func main() {
 	http.Handle("/update-user-language-preference", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.UpdateUserLanguagePreference))))
 	http.Handle("/update-user-theme-preference", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.UpdateUserThemePreference))))
 	http.Handle("/update-profile", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.UpdateUserProfile))))
+	http.Handle("/organization-account", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.GetOrganizationAccount))))
+	http.Handle("/update-organization-account", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.UpdateOrganizationAccount))))
+	http.Handle("/delete-organization-account", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.DeleteOrganizationAccount))))
 
 	cardsHandler := cards_http_handler.NewHTTPHandler(accountDB, authProvider, paymentProvider)
 	// Cards endpoints

@@ -60,7 +60,7 @@ func Localize(language, key string, args ...interface{}) string {
 	msg, ok := locale[key]
 	if !ok {
 		logrus.Errorf("The key is not found: %s", key)
-		return fmt.Sprint(args...)
+		return fmt.Sprintf(key, args...)
 	}
 
 	if msg != "" {
