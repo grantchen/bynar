@@ -39,7 +39,6 @@ func (h *CardHandler) ListCards(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !reqContext.Claims.OrganizationAccount {
-		i18n.Localize(reqContext.Claims.Language, errors.FromError(err).Code)
 		render.Error(w, "not organization account")
 		return
 	}
