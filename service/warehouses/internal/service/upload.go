@@ -82,6 +82,10 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		if err != nil {
 			return err
 		}
+		err = gr.ValidateOnLimitLength(repository.WarehousesFieldNames, 100, u.language)
+		if err != nil {
+			return err
+		}
 		for _, field := range fieldsCombinationValidating {
 			ok, err := u.tgWarehousesSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
@@ -98,6 +102,10 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			return err1
 		}
 		err = gr.ValidateOnNotNegativeNumber(repository.WarehousesFieldNames, u.language)
+		if err != nil {
+			return err
+		}
+		err = gr.ValidateOnLimitLength(repository.WarehousesFieldNames, 100, u.language)
 		if err != nil {
 			return err
 		}

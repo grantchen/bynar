@@ -1,6 +1,4 @@
-FieldOutRange = "Out of range value for field."
 TruncatedIncorrect = "Truncated incorrect error."
-FieldTooLong = "Data too long for field."
 PhoneNumberError = "Phone number format error."
 EmailError = "Email format error."
 EmailAlreadyExists = "Email already exists."
@@ -15,8 +13,13 @@ InvalidCondition = "invalid condition when update data."
 MergeFail = "Merge with current data fail."
 NoUserGroupLineFound = "You are not in any user group and cannot create an organization."
 UpdateChildLine =  "no allow to update child line."
+CheckOrder = "check order"
 CannotDeleteAccountWithUnpaidInvoices = "can't delete account because there are unpaid invoices"
 OrganizationVATDuplicated = "Organization number already exists."
+[FieldTooLong]
+other = "Data too long for field: {{.Field}}."
+[FieldOutRange]
+other = "Out of range value for field: {{.Field}}."
 [RequiredFieldsBlank]
 other = "Required fields cannot be blank: {{.Field}}."
 [ValueDuplicated]

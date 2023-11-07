@@ -83,6 +83,10 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		if err != nil {
 			return err
 		}
+		err = gr.ValidateOnLimitLength(repository.GeneralPostingSetupFieldNames, 100, u.language)
+		if err != nil {
+			return err
+		}
 		generalPostingSetup, _ := model.ParseGridRow(gr)
 		err = u.checkGeneralPostSetupCondition(generalPostingSetup)
 		if err != nil {
@@ -107,6 +111,10 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			return err
 		}
 		err = gr.ValidateOnNotNegativeNumber(repository.GeneralPostingSetupFieldNames, u.language)
+		if err != nil {
+			return err
+		}
+		err = gr.ValidateOnLimitLength(repository.GeneralPostingSetupFieldNames, 100, u.language)
 		if err != nil {
 			return err
 		}

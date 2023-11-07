@@ -1,6 +1,4 @@
-FieldOutRange = "Valor fuera de rango para el campo."
 TruncatedIncorrect = "Error incorrecto truncado."
-FieldTooLong = "Datos demasiado largos para el campo."
 PhoneNumberError = "Error de formato del número de teléfono."
 EmailError = "Error de formato de correo electrónico."
 EmailAlreadyExists = "el Email ya existe."
@@ -17,6 +15,11 @@ NoUserGroupLineFound = "No estás en ningún grupo de usuarios y no puedes crear
 UpdateChildLine =  "no se permite actualizar la línea secundaria."
 CannotDeleteAccountWithUnpaidInvoices = "No puedo eliminar la cuenta porque hay facturas impagas"
 OrganizationVATDuplicated = "El número de organización ya existe."
+CheckOrder = "revisar orden"
+[FieldTooLong]
+other = "Datos demasiado largos para el campo: {{.Field}}."
+[FieldOutRange]
+other = "Valor fuera de rango para el campo: {{.Field}}."
 [RequiredFieldsBlank]
 other = "Los campos obligatorios no pueden estar en blanco: {{.Field}}."
 [ValueDuplicated]

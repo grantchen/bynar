@@ -1,6 +1,4 @@
-FieldOutRange = "Valeur hors plage pour le champ."
 TruncatedIncorrect = "Erreur incorrecte tronquée."
-FieldTooLong = "Données trop longues pour le champ."
 PhoneNumberError = "Erreur de format du numéro de téléphone."
 EmailError = "Erreur de format d'e-mail."
 EmailAlreadyExists = "l'email existe déjà."
@@ -15,8 +13,13 @@ InvalidCondition = "condition invalide lors de la mise à jour des données."
 MergeFail = "La fusion avec les données actuelles échoue."
 NoUserGroupLineFound = "La fusion avec les données actuelles échoue."
 UpdateChildLine =  "non autorisé à mettre à jour la ligne enfant."
+CheckOrder = "vérifier la commande"
 CannotDeleteAccountWithUnpaidInvoices = "je ne peux pas supprimer le compte car il y a des factures impayées"
 OrganizationVATDuplicated = "Le numéro d'organisation existe déjà."
+[FieldTooLong]
+other = "Données trop longues pour le champ: {{.Field}}."
+[FieldOutRange]
+other = "Valeur hors plage pour le champ: {{.Field}}."
 [RequiredFieldsBlank]
 other = "Les champs obligatoires ne peuvent pas être vides: {{.Field}}."
 [ValueDuplicated]

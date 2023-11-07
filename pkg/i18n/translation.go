@@ -11,21 +11,20 @@ import (
 )
 
 var errMsgToTranslationMap = map[string]string{
-	"of range":             "FieldOutRange",
 	"Truncated incorrect":  "TruncatedIncorrect",
-	"too long":             "FieldTooLong",
-	"Too Long":             "FieldTooLong",
 	"INVALID_PHONE_NUMBER": "PhoneNumberError",
 	"phone number":         "PhoneNumberError",
 	"INVALID_EMAIL":        "EmailError",
 	"email already exists": "EmailAlreadyExists",
 }
 
+var globalBundle *i18n.Bundle
+
 // No need to load active.en.toml since we are providing default translations.
 // bundle.MustLoadMessageFile("active.en.toml")
-func initBundle() *i18n.Bundle {
-	bundle := i18n.NewBundle(language.English)
-	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
+func init() {
+	globalBundle = i18n.NewBundle(language.English)
+	globalBundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
 	// Read the configuration data in the i18n locales folder
 	directoryPath := "../../pkg/i18n/tomls"
 	files, err := os.ReadDir(directoryPath)
@@ -34,14 +33,12 @@ func initBundle() *i18n.Bundle {
 	}
 	for _, file := range files {
 		fileName := file.Name()
-		bundle.MustLoadMessageFile(directoryPath + "/" + fileName)
+		globalBundle.MustLoadMessageFile(directoryPath + "/" + fileName)
 	}
-	return bundle
 }
 
 func TranslationI18n(language, messageId string, templateData map[string]string) error {
-	bundle := initBundle()
-	localizer := i18n.NewLocalizer(bundle, language)
+	localizer := i18n.NewLocalizer(globalBundle, language)
 	translationMessage := localizer.MustLocalize(&i18n.LocalizeConfig{
 		DefaultMessage: &i18n.Message{
 			ID:    messageId,
@@ -62,8 +59,7 @@ func TranslationErrorToI18n(language string, err error) error {
 		return e
 	}
 
-	bundle := initBundle()
-	localizer := i18n.NewLocalizer(bundle, language)
+	localizer := i18n.NewLocalizer(globalBundle, language)
 	translationMessage := ""
 	if err != nil {
 		translationMessage = err.Error()

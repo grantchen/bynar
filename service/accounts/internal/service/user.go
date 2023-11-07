@@ -100,15 +100,14 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 					gr["phone"] = "+" + phone
 				}
 			}
-			if i == "full_name" {
-				if len(gr["full_name"].(string)) > 100 {
-					return i18n.TranslationErrorToI18n(s.language, fmt.Errorf("full name too long"))
-				}
-			}
 		}
 		err1 := gr.ValidateOnRequiredAll(repository.UserFieldNames, s.language)
 		if err1 != nil {
 			return err1
+		}
+		err = gr.ValidateOnLimitLength(repository.UserFieldNames, 100, s.language)
+		if err != nil {
+			return err
 		}
 		for _, field := range fieldsValidating {
 			ok, err := s.simpleOrganizationRepository.ValidateOnIntegrity(tx, gr, []string{field})
@@ -161,15 +160,14 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 					gr["phone"] = "+" + phone
 				}
 			}
-			if i == "full_name" {
-				if len(gr["full_name"].(string)) > 100 {
-					return i18n.TranslationErrorToI18n(s.language, fmt.Errorf("full name too long"))
-				}
-			}
 		}
 		err1 := gr.ValidateOnRequired(repository.UserFieldNames, s.language)
 		if err1 != nil {
 			return err1
+		}
+		err = gr.ValidateOnLimitLength(repository.UserFieldNames, 100, s.language)
+		if err != nil {
+			return err
 		}
 		err = func() error {
 			id, ok := gr.GetValInt("id")

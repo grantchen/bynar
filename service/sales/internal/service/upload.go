@@ -193,7 +193,10 @@ func (s *UploadService) saveSale(tx *sql.Tx, tr *treegrid.MainRow) error {
 		if err != nil {
 			return err
 		}
-
+		err = tr.Fields.ValidateOnLimitLength(requiredFieldsMapping, 100, s.language)
+		if err != nil {
+			return err
+		}
 		err = tr.Fields.ValidateOnPositiveNumber(positiveFieldsMapping, s.language)
 		if err != nil {
 			return err
@@ -211,7 +214,10 @@ func (s *UploadService) saveSale(tx *sql.Tx, tr *treegrid.MainRow) error {
 		if err != nil {
 			return err
 		}
-
+		err = tr.Fields.ValidateOnLimitLength(requiredFieldsMapping, 100, s.language)
+		if err != nil {
+			return err
+		}
 		err = tr.Fields.ValidateOnPositiveNumber(positiveFieldsMapping, s.language)
 		if err != nil {
 			return err
@@ -264,7 +270,10 @@ func (s *UploadService) saveSaleLine(tx *sql.Tx, tr *treegrid.MainRow, parentID 
 			if err != nil {
 				return err
 			}
-
+			err = tr.Fields.ValidateOnLimitLength(positiveFieldsMapping, 100, s.language)
+			if err != nil {
+				return err
+			}
 			err = item.ValidateOnPositiveNumber(positiveFieldsMapping, s.language)
 			if err != nil {
 				return err
@@ -301,7 +310,10 @@ func (s *UploadService) saveSaleLine(tx *sql.Tx, tr *treegrid.MainRow, parentID 
 			if err != nil {
 				return err
 			}
-
+			err = tr.Fields.ValidateOnLimitLength(positiveFieldsMapping, 100, s.language)
+			if err != nil {
+				return err
+			}
 			err = item.ValidateOnPositiveNumber(positiveFieldsMapping, s.language)
 			if err != nil {
 				return err

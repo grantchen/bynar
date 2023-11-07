@@ -88,7 +88,10 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 		if err1 != nil {
 			return err1
 		}
-
+		err = gr.ValidateOnLimitLength(repository.OrganizationFieldNames, 100, s.language)
+		if err != nil {
+			return err
+		}
 		for _, field := range fieldsValidating {
 			ok, err := s.organizationSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
@@ -103,6 +106,10 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 		err1 := gr.ValidateOnRequired(repository.OrganizationFieldNames, s.language)
 		if err1 != nil {
 			return err1
+		}
+		err = gr.ValidateOnLimitLength(repository.OrganizationFieldNames, 100, s.language)
+		if err != nil {
+			return err
 		}
 		for _, field := range fieldsValidating {
 			ok, err := s.organizationSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
