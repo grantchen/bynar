@@ -65,7 +65,7 @@ func (f GridRow) ValidateOnRequired(fieldsMapping map[string][]string, language 
 	return nil
 }
 
-// Check string length.
+// Check Field length.
 func (f GridRow) ValidateOnLimitLength(fieldsMapping map[string][]string, limitLength int, language string) error {
 	for key, _ := range fieldsMapping {
 		if key == "Changed" || key == "id" {
