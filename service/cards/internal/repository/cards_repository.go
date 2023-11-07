@@ -66,13 +66,24 @@ func (r *cardRepositoryHandler) FetchCardBySourceID(sourceID string) (cardDetail
 	return cardDetails, nil
 }
 
-func (r *cardRepositoryHandler) ListCards(accountID int) (model.ListCardsResponse, error) {
+func (r *cardRepositoryHandler) ListCards(accountID int) (model.ListCardsResponse, map[string]bool, error) {
 	resp := model.ListCardsResponse{Instruments: make([]models.CardDetails, 0)}
+	ins := map[string]bool{}
 	err := r.db.QueryRow(`SELECT user_payment_gateway_id, source_id, email, full_name FROM accounts_cards ac JOIN accounts a on ac.user_id = a.id WHERE ac.user_id = ? AND is_default = ?`, accountID, true).Scan(&resp.ID, &resp.Default, &resp.Email, &resp.Name)
 	if err != nil {
-		return resp, errors.NewUnknownError("list card failed", "").WithInternal().WithCause(err)
+		return resp, ins, errors.NewUnknownError("list card failed", "").WithInternal().WithCause(err)
 	}
-	return resp, nil
+	rows, err := r.db.Query(`SELECT source_id FROM accounts_cards WHERE user_id = ?`, accountID)
+	if err != nil {
+		return resp, ins, errors.NewUnknownError("list card failed", "").WithInternal().WithCause(err)
+	}
+	for rows.Next() {
+		var inst string
+		rows.Scan(&inst)
+		ins[inst] = true
+	}
+	defer rows.Close()
+	return resp, ins, nil
 }
 
 func (r *cardRepositoryHandler) UpdateDefaultCard(tx *sql.Tx, accountID int, sourceID string) error {
