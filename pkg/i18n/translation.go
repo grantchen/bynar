@@ -11,11 +11,12 @@ import (
 )
 
 var errMsgToTranslationMap = map[string]string{
-	"Truncated incorrect":  "TruncatedIncorrect",
-	"INVALID_PHONE_NUMBER": "PhoneNumberError",
-	"phone number":         "PhoneNumberError",
-	"INVALID_EMAIL":        "EmailError",
-	"email already exists": "EmailAlreadyExists",
+	"Truncated incorrect":         "TruncatedIncorrect",
+	"INVALID_PHONE_NUMBER":        "PhoneNumberError",
+	"phone number":                "PhoneNumberError",
+	"phone_number already exists": "PhoneNumberAlreadyExists",
+	"INVALID_EMAIL":               "EmailError",
+	"email already exists":        "EmailAlreadyExists",
 }
 
 var globalBundle *i18n.Bundle
