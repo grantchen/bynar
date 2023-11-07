@@ -56,7 +56,7 @@ func (r *cardServiceHandler) AddCard(req *models.ValidateCardRequest) error {
 }
 
 func (r *cardServiceHandler) ListCards(accountID int) (model.ListCardsResponse, error) {
-	card, err := r.cr.ListCards(accountID)
+	card, ins, err := r.cr.ListCards(accountID)
 	if err != nil {
 		return card, errors.NewUnknownError("failed to fetch card", "failed-fetch-card").WithInternal().WithCause(err)
 	}
@@ -67,7 +67,13 @@ func (r *cardServiceHandler) ListCards(accountID int) (model.ListCardsResponse, 
 	card.Name = info.Name
 	card.Email = info.Email
 	card.Default = info.Default
-	card.Instruments = info.Instruments
+	instruments := make([]models.CardDetails, 0)
+	for i := range info.Instruments {
+		if ins[info.Instruments[i].ID] {
+			instruments = append(instruments, info.Instruments[i])
+		}
+	}
+	card.Instruments = instruments
 	return card, nil
 }
 

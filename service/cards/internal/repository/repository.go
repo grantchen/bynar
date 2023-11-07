@@ -11,7 +11,7 @@ type CardRepository interface {
 	CountCard(id int) (int, error)
 	AddCard(userID int, customerID, sourceID string, total int) error
 	FetchCardBySourceID(sourceID string) (model.UserCard, error)
-	ListCards(accountID int) (model.ListCardsResponse, error)
+	ListCards(accountID int) (model.ListCardsResponse, map[string]bool, error)
 	UpdateDefaultCard(tx *sql.Tx, accountID int, sourceID string) error
 	DeleteCard(tx *sql.Tx, sourceID string) error
 }
