@@ -1,7 +1,7 @@
 package i18n
 
 import (
-	"fmt"
+	"errors"
 	"github.com/BurntSushi/toml"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/sirupsen/logrus"
@@ -18,7 +18,7 @@ var errMsgToTranslationMap = map[string]string{
 	"INVALID_PHONE_NUMBER": "PhoneNumberError",
 	"phone number":         "PhoneNumberError",
 	"INVALID_EMAIL":        "EmailError",
-	"email":                "EmailError",
+	"email already exists": "EmailAlreadyExists",
 }
 
 // No need to load active.en.toml since we are providing default translations.
@@ -49,11 +49,19 @@ func TranslationI18n(language, messageId string, templateData map[string]string)
 		},
 		TemplateData: templateData,
 	})
-	return fmt.Errorf(translationMessage)
+
+	e := NewError(language, translationMessage)
+	e.withMessageId(messageId)
+	return e
 }
 
 // TranslationErrorToI18n todo Database error translation
 func TranslationErrorToI18n(language string, err error) error {
+	var e *Error
+	if errors.As(err, &e) {
+		return e
+	}
+
 	bundle := initBundle()
 	localizer := i18n.NewLocalizer(bundle, language)
 	translationMessage := ""
@@ -72,5 +80,9 @@ func TranslationErrorToI18n(language string, err error) error {
 	} else {
 		return nil
 	}
-	return fmt.Errorf(translationMessage)
+
+	e = NewError(language, translationMessage)
+	e.WithCause(err)
+	logrus.Errorf("%s, stack: %s", e.FullError(), e.Stack())
+	return e
 }

@@ -348,3 +348,106 @@ func (h *AccountHandler) GetUserProfileById(w http.ResponseWriter, r *http.Reque
 	}
 	render.Ok(w, profile)
 }
+
+// GetOrganizationAccount get organization account information
+func (h *AccountHandler) GetOrganizationAccount(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		render.MethodNotAllowed(w)
+		return
+	}
+
+	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
+	if err != nil {
+		handler.LogInternalError(err)
+		render.Error(w, i18n.Localize("", errors.ErrCodeIDTokenInvalid))
+		return
+	}
+
+	if !reqContext.Claims.OrganizationAccount {
+		render.Error(w, i18n.TranslationI18n(reqContext.Claims.Language, "permission-denied", nil).Error())
+		return
+	}
+
+	response, err := h.as.GetOrganizationAccount(reqContext.Claims.Language, reqContext.Claims.AccountId, reqContext.Claims.OrganizationUuid)
+	if err != nil {
+		render.Error(w, i18n.TranslationErrorToI18n(reqContext.Claims.Language, err).Error())
+		return
+	}
+
+	render.Ok(w, response)
+}
+
+// UpdateOrganizationAccount update organization account(tenant)
+func (h *AccountHandler) UpdateOrganizationAccount(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		render.MethodNotAllowed(w)
+		return
+	}
+
+	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
+	if err != nil {
+		handler.LogInternalError(err)
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, errors.ErrCodeIDTokenInvalid))
+		return
+	}
+
+	if !reqContext.Claims.OrganizationAccount {
+		render.Error(w, i18n.TranslationI18n(reqContext.Claims.Language, "permission-denied", nil).Error())
+		return
+	}
+
+	var req model.OrganizationAccountRequest
+	if err = render.DecodeJSON(r.Body, &req); err != nil {
+		render.ErrorWithHttpCode(w, i18n.TranslationErrorToI18n(reqContext.Claims.Language, err).Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.as.UpdateOrganizationAccount(
+		reqContext.DynamicDB,
+		reqContext.Claims.Language,
+		reqContext.Claims.AccountId,
+		reqContext.Claims.Uid,
+		reqContext.Claims.OrganizationUserId,
+		reqContext.Claims.OrganizationUuid,
+		req,
+	)
+	if err != nil {
+		render.Error(w, i18n.TranslationErrorToI18n(reqContext.Claims.Language, err).Error())
+		return
+	}
+
+	render.Ok(w, nil)
+}
+
+// DeleteOrganizationAccount delete organization account(tenant)
+func (h *AccountHandler) DeleteOrganizationAccount(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		render.MethodNotAllowed(w)
+		return
+	}
+
+	reqContext, err := middleware.GetIdTokenClaimsFromHttpRequestContext(r)
+	if err != nil {
+		handler.LogInternalError(err)
+		render.Error(w, i18n.Localize(reqContext.Claims.Language, errors.ErrCodeIDTokenInvalid))
+		return
+	}
+
+	if !reqContext.Claims.OrganizationAccount {
+		render.Error(w, i18n.TranslationI18n(reqContext.Claims.Language, "permission-denied", nil).Error())
+		return
+	}
+
+	err = h.as.DeleteOrganizationAccount(
+		reqContext.DynamicDB,
+		reqContext.Claims.Language,
+		reqContext.Claims.TenantUuid,
+		reqContext.Claims.OrganizationUuid,
+	)
+	if err != nil {
+		render.Error(w, i18n.TranslationErrorToI18n(reqContext.Claims.Language, err).Error())
+		return
+	}
+
+	render.Ok(w, nil)
+}

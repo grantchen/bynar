@@ -191,6 +191,21 @@ func (g gipClient) DeleteUser(ctx context.Context, uid string) error {
 	return nil
 }
 
+// DeleteUsers delete users by the given UIDs.
+func (g gipClient) DeleteUsers(ctx context.Context, uids []string) (*auth.DeleteUsersResult, error) {
+	client, err := g.app.Auth(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error getting Auth client: %v", err)
+	}
+
+	result, err := client.DeleteUsers(ctx, uids)
+	if err != nil {
+		return nil, fmt.Errorf("error deleting users: %v", err)
+	}
+
+	return result, nil
+}
+
 // DeleteUserByEmail deletes the user by the given email.
 func (g gipClient) DeleteUserByEmail(ctx context.Context, email string) error {
 	client, err := g.app.Auth(ctx)
