@@ -149,19 +149,18 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, tenantCode
 		}
 		newTenantManagentID, _ := res.LastInsertId()
 		tenantManagentID = int(newTenantManagentID)
-	}
-
-	// update the organizations count in tanants
-	stmt, err = tx.Prepare(`UPDATE tenants SET organizations = organizations + 1 WHERE id = ?`)
-	if err != nil {
-		return "", 0, err
-	}
-	_, err = stmt.Exec(tenantID)
-	stmt.Close()
-	if err != nil {
-		tx.Rollback()
-		logrus.Error("update tenants error ", err.Error())
-		return "", 0, errors.New("update tenants failed")
+		// update the organizations count in tanants
+		stmt, err = tx.Prepare(`UPDATE tenants SET organizations = organizations + 1 WHERE id = ?`)
+		if err != nil {
+			return "", 0, err
+		}
+		_, err = stmt.Exec(tenantID)
+		stmt.Close()
+		if err != nil {
+			tx.Rollback()
+			logrus.Error("update tenants error ", err.Error())
+			return "", 0, errors.New("update tenants failed")
+		}
 	}
 	// update the tenant_id in organization
 	stmt, err = tx.Prepare(`UPDATE organizations SET tenant_id = ? WHERE id = ?`)
