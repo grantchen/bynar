@@ -1,6 +1,7 @@
 TruncatedIncorrect = "Abgeschnittener falscher Fehler."
 PhoneNumberError = "Fehler im Format der Telefonnummer."
 EmailError = "Fehler im E-Mail-Format."
+EmailAlreadyExists = "E-Mail existiert bereits."
 GipUserNotFound = "Der Benutzer in gip existiert nicht. Bitte löschen Sie diesen Benutzer zuerst und fügen Sie ihn dann erneut hinzu."
 NoUserFound = "Kein Benutzer gefunden."
 ArchivedUpdate = "archiviert = 1, kann nicht aktualisiert werden."
@@ -13,6 +14,8 @@ MergeFail = "Zusammenführen mit aktuellen Daten schlägt fehl."
 NoUserGroupLineFound = "Sie gehören keiner Benutzergruppe an und können keine Organisation erstellen."
 UpdateChildLine =  "Es ist nicht gestattet, die untergeordnete Zeile zu aktualisieren."
 CheckOrder = "prüfe die Reihenfolge"
+CannotDeleteAccountWithUnpaidInvoices = "Das Konto kann nicht gelöscht werden, da unbezahlte Rechnungen vorhanden sind"
+OrganizationVATDuplicated = "Die Organisationsnummer ist bereits vorhanden."
 [FieldTooLong]
 other = "Daten zu lang für Feld: {{.Field}}."
 [FieldOutRange]

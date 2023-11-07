@@ -1,6 +1,7 @@
 TruncatedIncorrect = "Erreur incorrecte tronquée."
 PhoneNumberError = "Erreur de format du numéro de téléphone."
 EmailError = "Erreur de format d'e-mail."
+EmailAlreadyExists = "l'email existe déjà."
 GipUserNotFound = "L'utilisateur dans gip n'existe pas. Veuillez d'abord supprimer cet utilisateur, puis l'ajouter à nouveau."
 NoUserFound = "Aucun utilisateur trouvé."
 ArchivedUpdate = "archivé = 1, impossible de mettre à jour."
@@ -13,6 +14,8 @@ MergeFail = "La fusion avec les données actuelles échoue."
 NoUserGroupLineFound = "La fusion avec les données actuelles échoue."
 UpdateChildLine =  "non autorisé à mettre à jour la ligne enfant."
 CheckOrder = "vérifier la commande"
+CannotDeleteAccountWithUnpaidInvoices = "je ne peux pas supprimer le compte car il y a des factures impayées"
+OrganizationVATDuplicated = "Le numéro d'organisation existe déjà."
 [FieldTooLong]
 other = "Données trop longues pour le champ: {{.Field}}."
 [FieldOutRange]
