@@ -84,6 +84,15 @@ func (f GridRow) ValidateOnLimitLength(fieldsMapping map[string][]string, limitL
 		if ok && isString {
 			// treegrid input number automatically add spaces after inputting more than 10 characters 'e '
 			if strings.Contains(stringVal, "e ") {
+				// "e " to "e+"
+				modifiedStr := strings.Replace(stringVal, "e ", "e+", 1)
+				// Parse float64
+				floatValue, err := strconv.ParseFloat(modifiedStr, 64)
+				if err == nil {
+					if floatValue > 10000000000 {
+						return i18n.TranslationI18n(language, "FieldOutRange", templateData)
+					}
+				}
 				return i18n.TranslationI18n(language, "FieldOutRange", templateData)
 			}
 			if len(stringVal) > limitLength {
