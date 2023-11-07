@@ -65,6 +65,33 @@ func (f GridRow) ValidateOnRequired(fieldsMapping map[string][]string, language 
 	return nil
 }
 
+// Check string length.
+func (f GridRow) ValidateOnLimitLength(fieldsMapping map[string][]string, limitLength int, language string) error {
+	for key, _ := range fieldsMapping {
+		if key == "Changed" || key == "id" {
+			continue
+		}
+		_, ok := f[key]
+		templateData := map[string]string{
+			"Field": key,
+		}
+		numberVal, _ := f.GetValFloat64(key)
+		if ok && numberVal > 10000000000 {
+			return i18n.TranslationI18n(language, "FieldOutRange", templateData)
+		}
+		stringVal, isString := f.GetValString(key)
+		if ok && isString {
+			if strings.Contains(stringVal, "e ") {
+				return i18n.TranslationI18n(language, "FieldOutRange", templateData)
+			}
+			if len(stringVal) > limitLength {
+				return i18n.TranslationI18n(language, "FieldTooLong", templateData)
+			}
+		}
+	}
+	return nil
+}
+
 // used to check not negative number.
 func (f GridRow) ValidateOnNotNegativeNumber(fieldsMapping map[string][]string, language string) error {
 	for key, _ := range fieldsMapping {

@@ -79,7 +79,10 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		if err != nil {
 			return err
 		}
-
+		err = gr.ValidateOnLimitLength(repository.SiteFieldNames, 100, s.language)
+		if err != nil {
+			return err
+		}
 		for _, field := range positiveFieldsValidating {
 			err = gr.ValidateOnNotNegativeNumber(map[string][]string{field: repository.SiteFieldNames[field]}, s.language)
 			if err != nil {
@@ -102,7 +105,10 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		if err != nil {
 			return err
 		}
-
+		err = gr.ValidateOnLimitLength(repository.SiteFieldNames, 100, s.language)
+		if err != nil {
+			return err
+		}
 		for _, field := range positiveFieldsValidating {
 			err = gr.ValidateOnNotNegativeNumber(map[string][]string{field: repository.SiteFieldNames[field]}, s.language)
 			if err != nil {

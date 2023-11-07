@@ -122,7 +122,10 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 		if err != nil {
 			return err
 		}
-
+		err = tr.Fields.ValidateOnLimitLength(repository.UserGroupFieldNames, 100, s.language)
+		if err != nil {
+			return err
+		}
 		for _, field := range fieldsValidating {
 			ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
 			if !ok || err != nil {
@@ -137,7 +140,10 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 		if err != nil {
 			return err
 		}
-
+		err = tr.Fields.ValidateOnLimitLength(repository.UserGroupFieldNames, 100, s.language)
+		if err != nil {
+			return err
+		}
 		for _, field := range fieldsValidating {
 			ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
 			if !ok || err != nil {

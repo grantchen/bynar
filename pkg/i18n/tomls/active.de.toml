@@ -1,6 +1,4 @@
-FieldOutRange = "Wert außerhalb des zulässigen Bereichs für das Feld."
 TruncatedIncorrect = "Abgeschnittener falscher Fehler."
-FieldTooLong = "Daten zu lang für Feld."
 PhoneNumberError = "Fehler im Format der Telefonnummer."
 EmailError = "Fehler im E-Mail-Format."
 GipUserNotFound = "Der Benutzer in gip existiert nicht. Bitte löschen Sie diesen Benutzer zuerst und fügen Sie ihn dann erneut hinzu."
@@ -14,10 +12,15 @@ InvalidCondition = "Ungültiger Zustand beim Aktualisieren der Daten."
 MergeFail = "Zusammenführen mit aktuellen Daten schlägt fehl."
 NoUserGroupLineFound = "Sie gehören keiner Benutzergruppe an und können keine Organisation erstellen."
 UpdateChildLine =  "Es ist nicht gestattet, die untergeordnete Zeile zu aktualisieren."
+CheckOrder = "prüfe die Reihenfolge"
+[FieldTooLong]
+other = "Daten zu lang für Feld: {{.Field}}."
+[FieldOutRange]
+other = "Wert außerhalb des zulässigen Bereichs für das Feld: {{.Field}}."
 [RequiredFieldsBlank]
 other = "Erforderliche Felder dürfen nicht leer sein: {{.Field}}."
 [ValueDuplicated]
-other = "Feld ist doppelt vorhanden: {{.Field}}."
+other = "Diess Feld wird wiederholt: {{.Field}}."
 [ValidateOnNotNegativeNumber]
 other = "{{.Field}} : Feld darf nicht negativ sein."
 [ValidateOnPositiveNumber]

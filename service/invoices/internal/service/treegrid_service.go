@@ -87,6 +87,10 @@ func (s *TreeGridService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		if err1 != nil {
 			return err1
 		}
+		err = gr.ValidateOnLimitLength(repository.InvoiceFieldNames, 100, s.language)
+		if err != nil {
+			return err
+		}
 		ok, err1 := s.invoiceSimpleRepository.ValidateOnIntegrity(tx, gr, fieldsValidating)
 		if !ok || err1 != nil {
 			templateData := map[string]string{
@@ -105,6 +109,10 @@ func (s *TreeGridService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		err1 := gr.ValidateOnRequired(repository.InvoiceFieldNames, s.language)
 		if err1 != nil {
 			return err1
+		}
+		err = gr.ValidateOnLimitLength(repository.InvoiceFieldNames, 100, s.language)
+		if err != nil {
+			return err
 		}
 		ok, err1 = s.invoiceSimpleRepository.ValidateOnIntegrity(tx, gr, fieldsValidating)
 		if !ok || err1 != nil {

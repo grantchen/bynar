@@ -11,10 +11,7 @@ import (
 )
 
 var errMsgToTranslationMap = map[string]string{
-	"of range":             "FieldOutRange",
 	"Truncated incorrect":  "TruncatedIncorrect",
-	"too long":             "FieldTooLong",
-	"Too Long":             "FieldTooLong",
 	"INVALID_PHONE_NUMBER": "PhoneNumberError",
 	"phone number":         "PhoneNumberError",
 	"INVALID_EMAIL":        "EmailError",

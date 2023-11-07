@@ -1,6 +1,4 @@
-FieldOutRange = "Valeur hors plage pour le champ."
 TruncatedIncorrect = "Erreur incorrecte tronquée."
-FieldTooLong = "Données trop longues pour le champ."
 PhoneNumberError = "Erreur de format du numéro de téléphone."
 EmailError = "Erreur de format d'e-mail."
 GipUserNotFound = "L'utilisateur dans gip n'existe pas. Veuillez d'abord supprimer cet utilisateur, puis l'ajouter à nouveau."
@@ -14,6 +12,11 @@ InvalidCondition = "condition invalide lors de la mise à jour des données."
 MergeFail = "La fusion avec les données actuelles échoue."
 NoUserGroupLineFound = "La fusion avec les données actuelles échoue."
 UpdateChildLine =  "non autorisé à mettre à jour la ligne enfant."
+CheckOrder = "vérifier la commande"
+[FieldTooLong]
+other = "Données trop longues pour le champ: {{.Field}}."
+[FieldOutRange]
+other = "Valeur hors plage pour le champ: {{.Field}}."
 [RequiredFieldsBlank]
 other = "Les champs obligatoires ne peuvent pas être vides: {{.Field}}."
 [ValueDuplicated]

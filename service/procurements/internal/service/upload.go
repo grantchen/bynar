@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
@@ -74,7 +75,7 @@ func (s *UploadService) handle(tr *treegrid.MainRow) error {
 	// Check Approval Order
 	ok, err := s.approvalService.Check(tr, s.accountId, s.language)
 	if err != nil {
-		return fmt.Errorf("check order: [%w]", err)
+		return fmt.Errorf("%s: [%w]", i18n.TranslationI18n(s.language, "CheckOrder", map[string]string{}).Error(), err)
 	}
 
 	if !ok {
