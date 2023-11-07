@@ -1,5 +1,6 @@
 TruncatedIncorrect = "Truncated incorrect error."
 PhoneNumberError = "Phone number format error."
+PhoneNumberAlreadyExists = "Phone number already exists."
 EmailError = "Email format error."
 EmailAlreadyExists = "Email already exists."
 NoUserFound = "No user found."

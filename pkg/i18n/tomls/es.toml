@@ -1,5 +1,6 @@
 TruncatedIncorrect = "Error incorrecto truncado."
 PhoneNumberError = "Error de formato del número de teléfono."
+PhoneNumberAlreadyExists = "El número de teléfono ya existe."
 EmailError = "Error de formato de correo electrónico."
 EmailAlreadyExists = "el Email ya existe."
 GipUserNotFound = "El usuario en gip no existe, primero elimine este usuario y luego agréguelo nuevamente."
