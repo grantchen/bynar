@@ -153,7 +153,7 @@ func (s *accountServiceHandler) UpdateUserProfile(db *sql.DB, userId int, uid st
 	if needUpdateUser {
 		err = s.authProvider.UpdateUser(context.Background(), uid, gipUpdateParam)
 		if err != nil {
-			return errors.NewUnknownError("update user profile fail", "").WithInternalCause(err)
+			return errors.NewUnknownError("update user profile fail", err.Error()).WithInternalCause(err)
 		}
 	}
 	// update database user profile

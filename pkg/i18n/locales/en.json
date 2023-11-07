@@ -65,5 +65,7 @@
   "failed-to-delete": "failed to delete %s",
   "failed-to-add": "failed to add %s",
   "failed-to-handle": "failed to handle %s",
-  "failed-to-update": "failed to update %s"
+  "failed-to-update": "failed to update %s",
+  "email already exists": "email already exists",
+  "phone_number already exists": ""
 }

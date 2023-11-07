@@ -64,5 +64,7 @@
   "current-status": "état actuel",
   "failed-to-delete": "n'a pas réussi à supprimer %s",
   "failed-to-add": "échec de l'ajout %s",
-  "failed-to-handle": "n'a pas réussi à gérer %s"
+  "failed-to-handle": "n'a pas réussi à gérer %s",
+  "email already exists": "l'email existe déjà",
+  "phone_number already exists": "le numéro de téléphone existe déjà"
 }

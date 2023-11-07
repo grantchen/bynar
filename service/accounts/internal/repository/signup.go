@@ -75,44 +75,66 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, tenantCode
 	var organizationsAllowed int
 	var tenantUUID string
 	var status bool
-	// check the tanant exists
-	stmt, err := tx.Prepare("SELECT id, organizations, organizations_allowed, tenant_uuid, status FROM tenants WHERE code = ?")
-	if err != nil {
-		return "", 0, err
-	}
-	err = stmt.QueryRow(tenantCode).Scan(&tenantID, &organizations, &organizationsAllowed, &tenantUUID, &status)
-	stmt.Close()
-	if err != nil {
-		logrus.Error("select tenant error: ", err)
-		return "", 0, fmt.Errorf("tenants of code %s not exist", tenantCode)
-	}
-	if !status {
-		return "", 0, fmt.Errorf("tenant of code %s cannot be selected ", tenantCode)
-	}
-	if organizations >= organizationsAllowed {
-		return "", 0, fmt.Errorf("tenant of code %s is full", tenantCode)
-	}
 
 	var tenantManagentID int
 	var tenantManagentStatus int
-	stmt, err = tx.Prepare("SELECT id, status FROM tenants_management WHERE organization_id = ? AND tenant_id = ?")
+	var oldTenantId int
+	stmt, err := tx.Prepare("SELECT id, status, tenant_id FROM tenants_management WHERE organization_id = ?")
 	if err != nil {
 		return "", 0, err
 	}
-	err = stmt.QueryRow(organizationID, tenantID).Scan(&tenantManagentID, &tenantManagentStatus)
+	err = stmt.QueryRow(organizationID).Scan(&tenantManagentID, &tenantManagentStatus, &oldTenantId)
 	stmt.Close()
+	if err == nil {
+		tenantID = oldTenantId
+		if tenantManagentStatus == 0 {
+			_, updateErr := tx.Exec("UPDATE tenants_management SET status = ? WHERE id = ?", 1, tenantManagentID)
+			if updateErr != nil {
+				logrus.Error("update tenants_management status error ", err.Error())
+				return "", 0, errors.New("update tenants_management status failed")
+			}
+		}
+		// check the tanant exists
+		stmt, err = tx.Prepare("SELECT id, organizations, organizations_allowed, tenant_uuid, status FROM tenants WHERE id = ?")
+		if err != nil {
+			return "", 0, err
+		}
+		err = stmt.QueryRow(tenantID).Scan(&tenantID, &organizations, &organizationsAllowed, &tenantUUID, &status)
+		stmt.Close()
+		if err != nil {
+			logrus.Error("select tenant error: ", err)
+			return "", 0, fmt.Errorf("tenants of code %s not exist", tenantCode)
+		}
+		if !status {
+			return "", 0, fmt.Errorf("tenant of code %s cannot be selected ", tenantCode)
+		}
+		if organizations >= organizationsAllowed {
+			return "", 0, fmt.Errorf("tenant of code %s is full", tenantCode)
+		}
+	}
 	if err != nil && err != sql.ErrNoRows {
 		logrus.Error("select tenants_management error ", err.Error())
 		return "", 0, errors.New("select tenants_management failed")
 	}
-	if tenantManagentStatus == 0 {
-		_, updateErr := tx.Exec("UPDATE tenants_management SET status = ? WHERE id = ?", 1, tenantManagentID)
-		if updateErr != nil {
-			logrus.Error("update tenants_management status error ", err.Error())
-			return "", 0, errors.New("update tenants_management status failed")
-		}
-	}
+
 	if err == sql.ErrNoRows {
+		// check the tanant exists
+		stmt, err = tx.Prepare("SELECT id, organizations, organizations_allowed, tenant_uuid, status FROM tenants WHERE code = ?")
+		if err != nil {
+			return "", 0, err
+		}
+		err = stmt.QueryRow(tenantCode).Scan(&tenantID, &organizations, &organizationsAllowed, &tenantUUID, &status)
+		stmt.Close()
+		if err != nil {
+			logrus.Error("select tenant error: ", err)
+			return "", 0, fmt.Errorf("tenants of code %s not exist", tenantCode)
+		}
+		if !status {
+			return "", 0, fmt.Errorf("tenant of code %s cannot be selected ", tenantCode)
+		}
+		if organizations >= organizationsAllowed {
+			return "", 0, fmt.Errorf("tenant of code %s is full", tenantCode)
+		}
 		// insert managemant
 		stmt, err = tx.Prepare(`INSERT INTO tenants_management (organization_id, tenant_id, status, suspended) VALUES (?, ?, ?, ?)`)
 		if err != nil {
@@ -127,19 +149,18 @@ func (r *accountRepositoryHandler) CreateTenantManagement(tx *sql.Tx, tenantCode
 		}
 		newTenantManagentID, _ := res.LastInsertId()
 		tenantManagentID = int(newTenantManagentID)
-	}
-
-	// update the organizations count in tanants
-	stmt, err = tx.Prepare(`UPDATE tenants SET organizations = organizations + 1 WHERE id = ?`)
-	if err != nil {
-		return "", 0, err
-	}
-	_, err = stmt.Exec(tenantID)
-	stmt.Close()
-	if err != nil {
-		tx.Rollback()
-		logrus.Error("update tenants error ", err.Error())
-		return "", 0, errors.New("update tenants failed")
+		// update the organizations count in tanants
+		stmt, err = tx.Prepare(`UPDATE tenants SET organizations = organizations + 1 WHERE id = ?`)
+		if err != nil {
+			return "", 0, err
+		}
+		_, err = stmt.Exec(tenantID)
+		stmt.Close()
+		if err != nil {
+			tx.Rollback()
+			logrus.Error("update tenants error ", err.Error())
+			return "", 0, errors.New("update tenants failed")
+		}
 	}
 	// update the tenant_id in organization
 	stmt, err = tx.Prepare(`UPDATE organizations SET tenant_id = ? WHERE id = ?`)
