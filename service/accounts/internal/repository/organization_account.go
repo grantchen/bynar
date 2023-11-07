@@ -55,6 +55,27 @@ func (r *accountRepositoryHandler) GetOrganizationAccount(language string, accou
 	return &res, nil
 }
 
+// IsOrganizationVATDuplicated checks if the organization vat is duplicated.
+func (r *accountRepositoryHandler) IsOrganizationVATDuplicated(language string, organizationUuid string, vat string) error {
+	// check if organization vat is duplicated in organizations
+	stmt, err := r.db.Prepare(`SELECT 1 FROM organizations WHERE vat_number = ? AND organization_uuid != ? LIMIT 1;`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	var existFlag int
+	if err = stmt.QueryRow(vat, organizationUuid).Scan(&existFlag); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		}
+
+		return err
+	}
+
+	return i18n.TranslationI18n(language, "OrganizationVATDuplicated", nil)
+}
+
 // UpdateOrganizationAccount updates the organization account.
 func (r *accountRepositoryHandler) UpdateOrganizationAccount(
 	db *sql.DB,

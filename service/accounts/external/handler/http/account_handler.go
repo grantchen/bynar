@@ -370,7 +370,7 @@ func (h *AccountHandler) GetOrganizationAccount(w http.ResponseWriter, r *http.R
 
 	response, err := h.as.GetOrganizationAccount(reqContext.Claims.Language, reqContext.Claims.AccountId, reqContext.Claims.OrganizationUuid)
 	if err != nil {
-		render.Error(w, err.Error())
+		render.Error(w, i18n.TranslationErrorToI18n(reqContext.Claims.Language, err).Error())
 		return
 	}
 
@@ -398,7 +398,7 @@ func (h *AccountHandler) UpdateOrganizationAccount(w http.ResponseWriter, r *htt
 
 	var req model.OrganizationAccountRequest
 	if err = render.DecodeJSON(r.Body, &req); err != nil {
-		render.ErrorWithHttpCode(w, err.Error(), http.StatusBadRequest)
+		render.ErrorWithHttpCode(w, i18n.TranslationErrorToI18n(reqContext.Claims.Language, err).Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -412,7 +412,7 @@ func (h *AccountHandler) UpdateOrganizationAccount(w http.ResponseWriter, r *htt
 		req,
 	)
 	if err != nil {
-		render.Error(w, err.Error())
+		render.Error(w, i18n.TranslationErrorToI18n(reqContext.Claims.Language, err).Error())
 		return
 	}
 
@@ -445,7 +445,7 @@ func (h *AccountHandler) DeleteOrganizationAccount(w http.ResponseWriter, r *htt
 		reqContext.Claims.OrganizationUuid,
 	)
 	if err != nil {
-		render.Error(w, err.Error())
+		render.Error(w, i18n.TranslationErrorToI18n(reqContext.Claims.Language, err).Error())
 		return
 	}
 

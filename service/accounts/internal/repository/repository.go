@@ -27,6 +27,8 @@ type AccountRepository interface {
 	UpdateUserProfile(db *sql.DB, userId int, uid string, req model.UpdateUserProfileRequest) error
 	// GetOrganizationAccount get organization account information
 	GetOrganizationAccount(language string, accountID int, organizationUuid string) (*model.GetOrganizationAccountResponse, error)
+	// IsOrganizationVATDuplicated check if organization vat is duplicated
+	IsOrganizationVATDuplicated(language string, organizationUuid string, vat string) error
 	// UpdateOrganizationAccount update organization account
 	UpdateOrganizationAccount(db *sql.DB, language string, accountID int, organizationUserId int, organizationUuid string, organizationAccount model.OrganizationAccountRequest) error
 	// DeleteOrganizationAccount delete organization account

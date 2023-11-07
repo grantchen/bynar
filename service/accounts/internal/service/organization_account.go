@@ -36,7 +36,13 @@ func (s *accountServiceHandler) UpdateOrganizationAccount(
 		organizationAccount.PhoneNumber = "+" + organizationAccount.PhoneNumber
 	}
 
-	err := s.authProvider.UpdateUser(context.Background(), uid, map[string]interface{}{
+	// check if organization vat is duplicated
+	err := s.ar.IsOrganizationVATDuplicated(language, organizationUuid, organizationAccount.VAT)
+	if err != nil {
+		return err
+	}
+
+	err = s.authProvider.UpdateUser(context.Background(), uid, map[string]interface{}{
 		"email":       organizationAccount.Email,
 		"displayName": organizationAccount.FullName,
 		"phoneNumber": organizationAccount.PhoneNumber,
