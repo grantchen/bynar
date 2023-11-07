@@ -6,7 +6,11 @@ import (
 	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
+	"log"
 )
+
+// Maximum number of gip users allowed to batch delete at a time.
+const gipMaxDeleteAccountsBatchSize = 1000
 
 func (s *accountServiceHandler) GetOrganizationAccount(language string, accountID int, organizationUuid string) (*model.GetOrganizationAccountResponse, error) {
 	account, err := s.ar.GetOrganizationAccount(language, accountID, organizationUuid)
@@ -116,9 +120,35 @@ func (s *accountServiceHandler) deleteUsersFromGIP(language string, organization
 		return nil
 	}
 
-	_, err = s.authProvider.DeleteUsers(context.Background(), userUids)
+	// delete users from GIP in batches
+	err = s.userUidsInBatches(userUids, gipMaxDeleteAccountsBatchSize, func(dividedIds []string) error {
+		_, err = s.authProvider.DeleteUsers(context.Background(), dividedIds)
+		if err != nil {
+			log.Print(err)
+			// return nil for continue deleting other users
+			return nil
+		}
+		return nil
+	})
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// userUidsInBatches divides the given user IDs into batches and calls the given function for each batch.
+func (s *accountServiceHandler) userUidsInBatches(ids []string, chunkSize int, batchFunc func(dividedIds []string) error) error {
+	idsLength := len(ids)
+	for i := 0; i < idsLength; i += chunkSize {
+		end := i + chunkSize
+		if end > idsLength {
+			end = idsLength
+		}
+		err := batchFunc(ids[i:end])
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
