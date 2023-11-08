@@ -33,6 +33,10 @@ System service http api collections, it call pkg common functions in pkg directo
 | main | Main run code|
 | organizations | Organizations service treegrid relate api code|
 | usergroups | Usergroups service treegrid relate api code|
+| warehouses | Warehouses service treegrid relate api code|
+| sales | Sales service treegrid relate api code|
+| payments | Payments service treegrid relate api code|
+| procurements | Procurements service treegrid relate api code|
 
 ## How to run
 Before run should create .env file in service/main directory, you can copy .env.template as base template.
@@ -119,6 +123,17 @@ When push code to master will trigger google cloud build, google cloud build wil
 | /update-user-language-preference | Update user language preference api|
 | /update-user-theme-preference | Update user theme preference api|
 | /update-profile| Update user profile api|
+| /organization-account| Get organization account api|
+| /update-organization-account| update organization account api|
+| /delete-organization-account| delete organization account api|
+
+### Cards API
+| Url | Description |
+| :--- | :--- |
+| /cards/list  | Get credit card list|
+| /cards/add  | add credit card|
+| /cards/update  | update credit card|
+| /cards/delete  | delete credit card|
 
 ### TreeGrid API
 | Url | Description |
@@ -133,6 +148,10 @@ Current avaliable sevices are:
  * user_list
  * general_posting_setup
  * user_groups
+ * warehouses
+ * sales
+ * payments
+ * procurements
 
 ## How to config domain
 * DNS A address set
