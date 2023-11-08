@@ -10,6 +10,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
+// NewHTTPHandler create new http handler
 func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGridHandler {
 	simpleOrganizationRepository := treegrid.NewSimpleGridRowRepositoryWithCfg(db, "organizations", repository.OrganizationFieldNames,
 		100, &treegrid.SimpleGridRepositoryCfg{MainCol: "code"})

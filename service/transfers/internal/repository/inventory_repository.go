@@ -10,6 +10,7 @@ import (
 )
 
 type (
+	// inventory is a struct for inventory
 	inventory struct {
 		ID        int
 		Quantity  int
@@ -18,6 +19,7 @@ type (
 		IsOrigin  bool
 	}
 
+	// item is a struct for item
 	item struct {
 		LocationOriginID int
 		LocationDestID   int
@@ -27,13 +29,16 @@ type (
 	}
 )
 
+// InventoryRepository is a repository for inventory
 type inventoryRepository struct {
 }
 
+// NewInventoryRepository returns a new InventoryRepository
 func NewInventoryRepository(db *sql.DB) InventoryRepository {
 	return &inventoryRepository{}
 }
 
+// CheckQuantityAndValue checks quantity and value
 func (ir *inventoryRepository) CheckQuantityAndValue(tx *sql.Tx, tr *treegrid.MainRow) (bool, error) {
 	locOrigin, _, err := getLocations(tx, tr)
 	if err != nil {
@@ -83,6 +88,7 @@ func (ir *inventoryRepository) CheckQuantityAndValue(tx *sql.Tx, tr *treegrid.Ma
 	return true, nil
 }
 
+// getLocations returns location origin and location destination
 func getLocations(tx *sql.Tx, tr *treegrid.MainRow) (locationOrigin, locationDest int, err error) {
 	if tr.Fields.GetActionType() == treegrid.GridRowActionAdd {
 		var ok bool
@@ -116,6 +122,7 @@ func getLocations(tx *sql.Tx, tr *treegrid.MainRow) (locationOrigin, locationDes
 	return
 }
 
+// Save implements InventoryRepository
 func (ir *inventoryRepository) Save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	query := `
 	SELECT  tl.quantity, tl.item_id, t.location_origin_id, t.location_destination_id, COALESCE(t.posting_date, '')
@@ -147,6 +154,7 @@ func (ir *inventoryRepository) Save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	return nil
 }
 
+// move moves item
 func move(tx *sql.Tx, trItem item) error {
 	query := `
 	SELECT id, quantity, value, value_fifo
@@ -212,6 +220,7 @@ func move(tx *sql.Tx, trItem item) error {
 	return nil
 }
 
+// calcInventory calculates inventory
 func calcInventory(tx *sql.Tx, inv inventory, itemQuantity int, bItem *boundItem) error {
 	if inv.Quantity == 0 {
 		return fmt.Errorf("inventory quantity = 0, id: %v", inv.ID)
@@ -242,6 +251,7 @@ func calcInventory(tx *sql.Tx, inv inventory, itemQuantity int, bItem *boundItem
 	return err
 }
 
+// BoundItem is a struct for bound item
 type boundItem struct {
 	ModuleID         int
 	ItemID           int
@@ -255,6 +265,7 @@ type boundItem struct {
 	Status           int
 }
 
+// CalsStatus calculates status
 func (b *boundItem) CalsStatus() {
 	if b.Quantity == b.OutboundQuantity && b.Value == b.OutboundValue {
 		b.Status = 1
@@ -265,6 +276,7 @@ func (b *boundItem) CalsStatus() {
 	b.Status = 0
 }
 
+// saveBoundFlow saves bound flow
 func saveBoundFlow(tx *sql.Tx, bItem *boundItem) error {
 	columnNames := []string{
 		"module_id",

@@ -20,6 +20,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/internal/repository"
 )
 
+// UploadService is the service for upload
 type UploadService struct {
 	db                              *sql.DB
 	updateGRSaleRepository          treegrid.SimpleGridRowRepository
@@ -35,6 +36,7 @@ type UploadService struct {
 	boundFlowRep                    pkg_repository.BoundFlowRepository
 }
 
+// NewUploadService returns new instance of UploadService
 func NewUploadService(db *sql.DB,
 	updateGRSaleRepository treegrid.SimpleGridRowRepository,
 	updateGRSaleRepositoryWithChild treegrid.GridRowRepositoryWithChild,
@@ -64,6 +66,7 @@ func NewUploadService(db *sql.DB,
 	}
 }
 
+// Handle handles upload request
 func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	resp := &treegrid.PostResponse{}
 	// Create new transaction
@@ -111,6 +114,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	return resp, nil
 }
 
+// handle handles upload request of single row
 func (s *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 	// Check Approval Order
 	ok, err := s.approvalService.Check(tr, s.accountID, s.language)
@@ -148,6 +152,7 @@ func (s *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 	return nil
 }
 
+// save saves sale and sale lines
 func (s *UploadService) save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	if err := s.saveSale(tx, tr); err != nil {
 		return i18n.TranslationI18n(s.language, "SaveSale", map[string]string{
@@ -164,6 +169,7 @@ func (s *UploadService) save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	return nil
 }
 
+// saveSale saves sale
 func (s *UploadService) saveSale(tx *sql.Tx, tr *treegrid.MainRow) error {
 	requiredFieldsMapping := tr.Fields.FilterFieldsMapping(
 		repository.SaleFieldNames,
@@ -248,6 +254,7 @@ func (s *UploadService) saveSale(tx *sql.Tx, tr *treegrid.MainRow) error {
 	return s.updateGRSaleRepositoryWithChild.SaveMainRow(tx, tr)
 }
 
+// saveSaleLine saves sale lines
 func (s *UploadService) saveSaleLine(tx *sql.Tx, tr *treegrid.MainRow, parentID interface{}) error {
 	requiredFieldsMapping := tr.Fields.FilterFieldsMapping(
 		repository.SaleLineFieldNames,
@@ -333,10 +340,12 @@ func (s *UploadService) saveSaleLine(tx *sql.Tx, tr *treegrid.MainRow, parentID 
 	return nil
 }
 
+// GetSaleTx returns sale by id
 func (s *UploadService) GetSaleTx(tx *sql.Tx, id interface{}) (*models.Sale, error) {
 	return s.saleRep.GetSale(tx, id)
 }
 
+// HandleSale handles sale calculation and saving to db
 func (s *UploadService) HandleSale(tx *sql.Tx, m *models.Sale) error {
 	// update quantity
 	lines, err := s.saleRep.GetSaleLines(tx, m.ID)
@@ -403,6 +412,7 @@ func (s *UploadService) HandleSale(tx *sql.Tx, m *models.Sale) error {
 	return s.saleRep.SaveSale(tx, m)
 }
 
+// HandleLine handles sale line calculation
 func (s *UploadService) HandleLine(tx *sql.Tx, pr *models.Sale, l *models.SaleLine) (err error) {
 	// calc quantity
 	unit, err := s.unitRep.Get(l.ItemUnitID)
@@ -459,6 +469,7 @@ func (s *UploadService) HandleLine(tx *sql.Tx, pr *models.Sale, l *models.SaleLi
 	return nil
 }
 
+// handleInventory handles inventory calculation and saving to db
 func (s *UploadService) handleInventory(tx *sql.Tx, l *models.SaleLine) (currInventory, newInventory models.Inventory, err error) {
 	currInventory, err = s.inventoryRep.GetInventory(tx, l.ItemID, l.LocationID)
 	if err != nil {
@@ -501,6 +512,7 @@ func (s *UploadService) handleInventory(tx *sql.Tx, l *models.SaleLine) (currInv
 	return
 }
 
+// handleBoundFlows handles bound flows calculation and saving to db
 func (s *UploadService) handleBoundFlows(tx *sql.Tx, pr *models.Sale, l *models.SaleLine, moduleID int, currInv, newInv models.Inventory) (err error) {
 	inFlow := models.InboundFlow{
 		ModuleID:         moduleID,

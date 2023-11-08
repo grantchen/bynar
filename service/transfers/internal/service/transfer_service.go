@@ -9,9 +9,11 @@ import (
 )
 
 var (
+	// ErrInvalidQuantity is an error for invalid quantity
 	ErrInvalidQuantity = stderr.New("invalid quantity")
 )
 
+// TransferService implements TransferService
 type transferService struct {
 	db                             *sql.DB
 	language                       string
@@ -29,6 +31,7 @@ func (t *transferService) GetPageCount(tr *treegrid.Treegrid) (int64, error) {
 	return t.gridRowDataRepositoryWithChild.GetPageCount(tr)
 }
 
+// NewTransferService returns a new TransferService
 func NewTransferService(
 	db *sql.DB,
 	transferRepository repository.TransferRepository,

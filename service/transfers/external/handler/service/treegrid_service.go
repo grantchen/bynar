@@ -7,10 +7,10 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/service"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
+// treegridService implements treegrid.TreeGridService
 type treegridService struct {
 	db              *sql.DB
 	transferService service.TransferService
@@ -18,9 +18,8 @@ type treegridService struct {
 	uploadService   *service.UploadService
 }
 
+// newTreeGridService returns a new treegridService
 func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.TreeGridService {
-	logger.Debug("accountID:", accountID)
-
 	gridRowDataRepositoryWithChild := treegrid.NewGridRowDataRepositoryWithChild(
 		db,
 		"transfers",
@@ -77,6 +76,7 @@ func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.Tre
 	}
 }
 
+// NewTreeGridServiceFactory returns a new treegrid.TreeGridServiceFactoryFunc
 func NewTreeGridServiceFactory() treegrid.TreeGridServiceFactoryFunc {
 	return func(db *sql.DB, accountID int, transferUuid string, permissionInfo *treegrid.PermissionInfo, language string) treegrid.TreeGridService {
 		return newTreeGridService(db, accountID, language)

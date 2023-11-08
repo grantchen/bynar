@@ -15,8 +15,8 @@ import (
 // for test
 const accountId = 6
 
+// NewHTTPHandler returns new http handler
 func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGridHandler {
-
 	gridRowDataRepositoryWithChild := treegrid.NewGridRowDataRepositoryWithChild(
 		db,
 		"sales",

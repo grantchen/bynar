@@ -1,6 +1,7 @@
 package repository
 
 var (
+	// SaleFieldNames is a map of sale field names
 	SaleFieldNames = map[string][]string{
 		"id":                           {"id"},
 		"document_id":                  {"document_id"},
@@ -47,11 +48,11 @@ var (
 		// need to insert, not in treegrid cols
 		"currency_value":          {"currency_value"},
 		"direct_debit_mandate_id": {"direct_debit_mandate_id"},
-
-		"subtotal_exclusive_vat": {"subtotal_exclusive_vat"},
-		"discount_id":            {"discount_id"},
+		"subtotal_exclusive_vat":  {"subtotal_exclusive_vat"},
+		"discount_id":             {"discount_id"},
 	}
 
+	// SaleLineFieldNames is a map of sale line field names
 	SaleLineFieldNames = map[string][]string{
 		"id-line":                {"sale_lines.id"},
 		"Parent":                 {"parent_id"},

@@ -3,20 +3,23 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"strings"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
 )
 
+// saleRepository implements SaleRepository
 type saleRepository struct {
 	conn *sql.DB
 }
 
+// NewSaleRepository returns new SaleRepository
 func NewSaleRepository(conn *sql.DB) SaleRepository {
 	return &saleRepository{conn: conn}
 }
 
+// GetDocID returns document id by sale id
 func (s *saleRepository) GetDocID(id interface{}) (docID int, err error) {
 
 	logger.Debug("get document id", id)
@@ -30,6 +33,7 @@ func (s *saleRepository) GetDocID(id interface{}) (docID int, err error) {
 	return
 }
 
+// GetStatus returns status by sale id
 func (s *saleRepository) GetStatus(id interface{}) (status int, err error) {
 	query := `
 	SELECT status 
@@ -41,6 +45,7 @@ func (s *saleRepository) GetStatus(id interface{}) (status int, err error) {
 	return
 }
 
+// saleFields is a slice of sale field names
 var saleFields = []string{
 	"id",
 	"document_id",
@@ -66,6 +71,7 @@ var saleFields = []string{
 	"total_inclusive_vat_lcy",
 }
 
+// GetSale returns sale by id
 func (s *saleRepository) GetSale(tx *sql.Tx, id interface{}) (m *models.Sale, err error) {
 	query := `
 	SELECT ` + strings.Join(saleFields, ", ") + `
@@ -80,6 +86,7 @@ func (s *saleRepository) GetSale(tx *sql.Tx, id interface{}) (m *models.Sale, er
 	return
 }
 
+// SaveSale saves sale
 func (s *saleRepository) SaveSale(tx *sql.Tx, m *models.Sale) (err error) {
 	query := `
 	UPDATE sales
@@ -94,6 +101,7 @@ func (s *saleRepository) SaveSale(tx *sql.Tx, m *models.Sale) (err error) {
 	return
 }
 
+// SaleLineFieldNames is a slice of sale line field names
 var saleLineFields = []string{
 	"id",
 	"parent_id",
@@ -122,6 +130,7 @@ var saleLineFields = []string{
 	"total_inclusive_vat_lcy",
 }
 
+// GetSaleLines returns sale lines by parent id
 func (s *saleRepository) GetSaleLines(tx *sql.Tx, parentID interface{}) ([]*models.SaleLine, error) {
 	query := `
 	SELECT ` + strings.Join(saleLineFields, ",") + `
@@ -173,9 +182,8 @@ func (s *saleRepository) GetSaleLines(tx *sql.Tx, parentID interface{}) ([]*mode
 	return res, nil
 }
 
+// SaveSaleLine saves sale line
 func (s *saleRepository) SaveSaleLine(tx *sql.Tx, l *models.SaleLine) (err error) {
-	logger.Debug("save sale line", l.ID, "unit value", l.ItemUnitValue)
-
 	query := `
 	UPDATE sale_lines
 	SET ` + strings.Join(saleLineFields[1:], " = ?,") + " = ? " + `

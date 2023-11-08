@@ -10,13 +10,13 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/service"
 )
 
-// TODO: get throug request
 var (
+	// AccountID for testing
 	AccountID int = 123456
 )
 
+// NewHTTPHandler returns a new HTTP handler
 func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGridHandler {
-
 	gridRowDataRepositoryWithChild := treegrid.NewGridRowDataRepositoryWithChild(
 		db,
 		"transfers",
@@ -48,7 +48,6 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 	inventoryRepository := repository.NewInventoryRepository(db)
 	transferRepository := repository.NewTransferRepository(db, "en")
 	userRepository := repository.NewUserRepository(db)
-	workflowRepository := repository.NewWorkflowRepository()
 
 	transferService := service.NewTransferService(
 		db,
@@ -60,7 +59,6 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 		db,
 		grTransferRepositoryWithChild,
 		userRepository,
-		workflowRepository,
 		transferRepository,
 		inventoryRepository,
 		documentRepository,

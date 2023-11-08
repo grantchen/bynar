@@ -1,6 +1,7 @@
 package repository
 
 var (
+	// TransferFieldNames is a map of transfer field names
 	TransferFieldNames = map[string][]string{
 		"id": {
 			"id",
@@ -96,6 +97,7 @@ var (
 		},
 	}
 
+	// TransferLineFieldNames is a map of transfer line field names
 	TransferLineFieldNames = map[string][]string{
 		"id-line": {
 			"id",

@@ -6,6 +6,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
+// SaleService is implementation of SaleService
 type saleService struct {
 	gridRowDataRepositoryWithChild treegrid.GridRowDataRepositoryWithChild
 	db                             *sql.DB
@@ -40,6 +41,7 @@ func (u *saleService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, e
 	return u.gridRowDataRepositoryWithChild.GetPageData(tr)
 }
 
+// NewSaleService returns new instance of SaleService
 func NewSaleService(
 	db *sql.DB,
 	gridRowDataRepositoryWithChild treegrid.GridRowDataRepositoryWithChild,
