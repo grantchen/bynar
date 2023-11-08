@@ -7,45 +7,20 @@ import (
 )
 
 type languageService struct {
-	gridRowDataRepositoryWithChild treegrid.GridRowDataRepositoryWithChild
-	db                             *sql.DB
+	db                       *sql.DB
+	simpleLanguageRepository treegrid.SimpleGridRowRepository
 }
 
-// GetCellSuggestion implements languageservice
-func (u *languageService) GetCellSuggestion(tr *treegrid.Treegrid) (*treegrid.PostResponse, error) {
-	data, err := u.gridRowDataRepositoryWithChild.GetChildSuggestion(tr)
-
-	resp := &treegrid.PostResponse{}
-
-	if err != nil {
-		resp.IO.Result = -1
-		resp.IO.Message += err.Error() + "\n"
-		return resp, err
-	}
-
-	suggestion := &treegrid.Suggestion{
-		Items: data,
-	}
-	resp.Changes = append(resp.Changes, treegrid.CreateSuggestionResult(tr.BodyParams.Col, suggestion, tr))
-	return resp, nil
+// GetPageCount implements languageService
+func (o *languageService) GetPageCount(tr *treegrid.Treegrid) (int64, error) {
+	return o.simpleLanguageRepository.GetPageCount(tr)
 }
 
-// GetTransferCount implements languagesService
-func (u *languageService) GetPageCount(tr *treegrid.Treegrid) (int64, error) {
-	return u.gridRowDataRepositoryWithChild.GetPageCount(tr)
+// GetPageData implements languageService
+func (o *languageService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
+	return o.simpleLanguageRepository.GetPageData(tr)
 }
 
-// GetTransfersPageData implements languagesService
-func (u *languageService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
-	return u.gridRowDataRepositoryWithChild.GetPageData(tr)
-}
-
-func Newlanguageservice(
-	db *sql.DB,
-	gridRowDataRepositoryWithChild treegrid.GridRowDataRepositoryWithChild,
-) LanguageService {
-	return &languageService{
-		db:                             db,
-		gridRowDataRepositoryWithChild: gridRowDataRepositoryWithChild,
-	}
+func NewLanguageService(db *sql.DB, simplelanguageService treegrid.SimpleGridRowRepository) LanguageService {
+	return &languageService{db: db, simpleLanguageRepository: simplelanguageService}
 }

@@ -4,17 +4,17 @@ import (
 	"log"
 	"net/http"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"github.com/joho/godotenv"
 
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/languages/external/handler/service"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
-
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/languages/external/service"
 )
 
 func main() {
@@ -24,7 +24,8 @@ func main() {
 	}
 	appConfig := config.NewLocalConfig()
 
-	dbAccount, err := sql_db.NewConnection(appConfig.GetAccountManagementConnection())
+	accountManagementConnectionString := appConfig.GetAccountManagementConnection()
+	dbAccount, err := sql_db.NewConnection(accountManagementConnectionString)
 
 	if err != nil {
 		log.Panic(err)
@@ -50,7 +51,7 @@ func main() {
 		AccountManagerService:  accountService,
 		TreeGridServiceFactory: treegridService,
 		ConnectionPool:         connectionPool,
-		PathPrefix:             "/user_groups",
+		PathPrefix:             "/apprunnerurl/languages",
 	}
 
 	handler.HandleHTTPReqWithAuthenMWAndDefaultPath()
@@ -58,5 +59,4 @@ func main() {
 	// server
 	log.Println("start server at 8080!")
 	log.Fatal(http.ListenAndServe(":8080", nil))
-
 }

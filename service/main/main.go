@@ -16,7 +16,7 @@ import (
 	cards_http_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/cards/external/handler/http"
 	general_posting_setup_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/external/service"
 	invoices_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/external/handler/service"
-	languages_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/languages/external/service"
+	languages_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/languages/external/handler/service"
 	organizations_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/external/handler/service"
 	payments_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/external/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
