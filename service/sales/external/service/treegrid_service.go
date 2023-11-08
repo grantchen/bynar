@@ -11,12 +11,14 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/internal/service"
 )
 
+// treegridService implements treegrid.TreeGridService
 type treegridService struct {
 	db            *sql.DB
 	saleService   service.SaleService
 	uploadService *service.UploadService
 }
 
+// newTreeGridService returns new treegrid.TreeGridService
 func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.TreeGridService {
 	gridRowDataRepositoryWithChild := treegrid.NewGridRowDataRepositoryWithChild(
 		db,
@@ -87,6 +89,7 @@ func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.Tre
 	}
 }
 
+// NewTreeGridServiceFactory returns new treegrid.TreeGridServiceFactoryFunc
 func NewTreeGridServiceFactory() treegrid.TreeGridServiceFactoryFunc {
 	return func(db *sql.DB, accountID int, organizationUuid string, permissionInfo *treegrid.PermissionInfo, language string) treegrid.TreeGridService {
 		return newTreeGridService(db, accountID, language)

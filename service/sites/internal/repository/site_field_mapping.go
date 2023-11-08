@@ -1,5 +1,6 @@
 package repository
 
+// SiteFieldNames is a map of field names for the table sites
 var SiteFieldNames = map[string][]string{
 	"id":                         {"id"},
 	"code":                       {"code"},

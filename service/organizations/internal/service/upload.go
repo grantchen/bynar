@@ -12,6 +12,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
+// UploadService is the service for upload
 type UploadService struct {
 	db                           *sql.DB
 	organizationService          OrganizationService
@@ -20,6 +21,7 @@ type UploadService struct {
 	language                     string
 }
 
+// NewUploadService create new instance of UploadService
 func NewUploadService(db *sql.DB,
 	organizationService OrganizationService,
 	organizationSimpleRepository treegrid.SimpleGridRowRepository,
@@ -35,20 +37,27 @@ func NewUploadService(db *sql.DB,
 	}, nil
 }
 
+// Handle hanldes the upload request
 func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	resp := &treegrid.PostResponse{}
-	// Create new transaction
 	grList, err := treegrid.ParseRequestUploadSingleRow(req)
 	if err != nil {
 		return nil, fmt.Errorf("parse requst: [%w]", err)
 	}
 
+	tx, err := u.db.BeginTx(context.Background(), nil)
+	if err != nil {
+		return nil, fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeBeginTransaction))
+	}
+	defer tx.Rollback()
+
+	var handleErr error
 	for _, gr := range grList {
-		if err := u.handle(gr); err != nil {
-			log.Println("Err", err)
+		if handleErr = u.handle(tx, gr); handleErr != nil {
+			log.Println("Err", handleErr)
 
 			resp.IO.Result = -1
-			resp.IO.Message += err.Error() + "\n"
+			resp.IO.Message += handleErr.Error() + "\n"
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
 			break
 		}
@@ -56,16 +65,18 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 		resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
 	}
 
+	if handleErr == nil {
+		if err = tx.Commit(); err != nil {
+			return nil, fmt.Errorf("%s: [%w]", i18n.Localize(u.language, errors.ErrCodeCommitTransaction), err)
+		}
+	}
+
 	return resp, nil
 }
 
-func (s *UploadService) handle(gr treegrid.GridRow) error {
-	tx, err := s.db.BeginTx(context.Background(), nil)
-	if err != nil {
-		return fmt.Errorf("begin transaction: [%w]", err)
-	}
-	defer tx.Rollback()
-
+// handle handles upload request of single row
+func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
+	var err error
 	fieldsValidating := []string{"code"}
 
 	// add addition here
@@ -132,9 +143,5 @@ func (s *UploadService) handle(gr treegrid.GridRow) error {
 		return i18n.TranslationErrorToI18n(s.language, err)
 	}
 
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit transaction: [%w]", err)
-	}
-
-	return err
+	return nil
 }

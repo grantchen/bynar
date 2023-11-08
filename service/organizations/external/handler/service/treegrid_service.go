@@ -11,22 +11,21 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/internal/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
+// treegridService implements treegrid.TreeGridService
 type treegridService struct {
 	db                  *sql.DB
 	organizationService service.OrganizationService
 	uploadService       service.UploadService
 }
 
+// newTreeGridService create new treegrid service
 func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.TreeGridService {
-
 	var filterPermissionCondition string
 	var userID int
 
-	logger.Debug("accountID:", accountID)
 	if accountID != 0 {
 		appConfig := config.NewLocalConfig()
 		accountDB, err := sql_db.NewConnection(appConfig.GetAccountManagementConnection())
@@ -68,6 +67,7 @@ func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.Tre
 	}
 }
 
+// NewTreeGridServiceFactory create new treegrid service factory
 func NewTreeGridServiceFactory() treegrid.TreeGridServiceFactoryFunc {
 	return func(db *sql.DB, accountID int, organizationUuid string, permissionInfo *treegrid.PermissionInfo, language string) treegrid.TreeGridService {
 		return newTreeGridService(db, accountID, language)

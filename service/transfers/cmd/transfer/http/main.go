@@ -13,8 +13,8 @@ import (
 
 var accountID = 6
 
+// only for testing
 func main() {
-
 	// appConfig := config.NewLocalConfig()
 	// dbConnString := appConfig.GetDBConnection()
 	dbConnString := "root:123456@tcp(localhost:3306)/46542255-9d45-49d5-939d-84bc55b1a938"

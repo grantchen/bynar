@@ -6,12 +6,13 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
+// UserGroupService implements UserGroupService
 type userGroupService struct {
 	gridRowDataRepositoryWithChild treegrid.GridRowDataRepositoryWithChild
 	db                             *sql.DB
 }
 
-// GetCellSuggestion implements UserGroupService
+// GetCellSuggestion implements UserGroupsService to get cell suggestion
 func (u *userGroupService) GetCellSuggestion(tr *treegrid.Treegrid) (*treegrid.PostResponse, error) {
 	data, err := u.gridRowDataRepositoryWithChild.GetChildSuggestion(tr)
 
@@ -30,16 +31,17 @@ func (u *userGroupService) GetCellSuggestion(tr *treegrid.Treegrid) (*treegrid.P
 	return resp, nil
 }
 
-// GetTransferCount implements UserGroupsService
+// GetPageCount implements UserGroupsService to get page count
 func (u *userGroupService) GetPageCount(tr *treegrid.Treegrid) (int64, error) {
 	return u.gridRowDataRepositoryWithChild.GetPageCount(tr)
 }
 
-// GetTransfersPageData implements UserGroupsService
+// GetPageData implements UserGroupsService to get page data
 func (u *userGroupService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
 	return u.gridRowDataRepositoryWithChild.GetPageData(tr)
 }
 
+// NewUserGroupService returns a new UserGroupService
 func NewUserGroupService(
 	db *sql.DB,
 	gridRowDataRepositoryWithChild treegrid.GridRowDataRepositoryWithChild,

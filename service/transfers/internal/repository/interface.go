@@ -6,27 +6,32 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
+// TransferRepository is a repository for transfer
 type TransferRepository interface {
-	GetTransferCount(treegrid *treegrid.Treegrid) (int, error)
-	GetTransfersPageData(tr *treegrid.Treegrid) ([]map[string]string, error)
+	// Save saves transfer
 	Save(tx *sql.Tx, tr *treegrid.MainRow) error
-	SaveTransfer(tx *sql.Tx, tr *treegrid.MainRow) error
-	SaveTransferLines(tx *sql.Tx, tr *treegrid.MainRow) error
+	// SaveDocumentID saves document id
 	SaveDocumentID(tx *sql.Tx, tr *treegrid.MainRow, docID string) error
+	// UpdateStatus updates status
 	UpdateStatus(tx *sql.Tx, status int) error
 }
 
+// InventoryRepository is a repository for inventory
 type InventoryRepository interface {
+	// CheckQuantityAndValue checks quantity and value
 	CheckQuantityAndValue(tx *sql.Tx, tr *treegrid.MainRow) (bool, error)
+	// Save saves inventory
 	Save(tx *sql.Tx, tr *treegrid.MainRow) error
 }
 
+// DocumentRepository is a repository for document
 type DocumentRepository interface {
+	// IsAuto returns true if document is auto
 	IsAuto(tx *sql.Tx, tr *treegrid.MainRow) (bool, error)
+	// Generate generates document
 	Generate(tx *sql.Tx, tr *treegrid.MainRow) (string, error)
-	Save(tx *sql.Tx, tr *treegrid.MainRow) error
 }
 
+// UserRepository is a repository for user
 type UserRepository interface {
-	GetUserID(accountID int) (int, error)
 }

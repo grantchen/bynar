@@ -1,5 +1,6 @@
 package repository
 
+// OrganizationFieldNames is a map of field names for the organizations table
 var OrganizationFieldNames = map[string][]string{
 	"id":             {"id"},
 	"name":           {"name"},

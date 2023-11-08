@@ -6,6 +6,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
+// siteService implements SiteService
 type siteService struct {
 	db                   *sql.DB
 	simpleSiteRepository treegrid.SimpleGridRowRepository
@@ -21,6 +22,7 @@ func (o *siteService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, e
 	return o.simpleSiteRepository.GetPageData(tr)
 }
 
+// NewSiteService create new instance of SiteService
 func NewSiteService(db *sql.DB, simpleSiteService treegrid.SimpleGridRowRepository) SiteService {
 	return &siteService{db: db, simpleSiteRepository: simpleSiteService}
 }

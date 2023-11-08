@@ -17,6 +17,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/internal/repository"
 )
 
+// UploadService is the service for upload
 type UploadService struct {
 	db                                   *sql.DB
 	updateGRUserGroupRepository          treegrid.SimpleGridRowRepository
@@ -25,6 +26,7 @@ type UploadService struct {
 	language                             string
 }
 
+// NewUploadService returns a new upload service
 func NewUploadService(db *sql.DB,
 	updateGRUserGroupRepository treegrid.SimpleGridRowRepository,
 	updateGRUserGroupRepositoryWithChild treegrid.GridRowRepositoryWithChild,
@@ -40,9 +42,9 @@ func NewUploadService(db *sql.DB,
 	}
 }
 
+// Handle handles the upload request
 func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	resp := &treegrid.PostResponse{}
-	// Create new transaction
 	b, _ := json.Marshal(req)
 	logger.Debug("request: ", string(b))
 	trList, err := treegrid.ParseRequestUpload(req, u.updateGRUserGroupRepositoryWithChild)
@@ -87,6 +89,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	return resp, nil
 }
 
+// handle handles the upload request of a main row
 func (s *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 	if err := s.save(tx, tr); err != nil {
 		return i18n.TranslationErrorToI18n(s.language, err)
@@ -94,6 +97,7 @@ func (s *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 	return nil
 }
 
+// save saves user group and user group lines
 func (s *UploadService) save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	if err := s.saveUserGroup(tx, tr); err != nil {
 		userTemplateData := map[string]string{
@@ -112,6 +116,7 @@ func (s *UploadService) save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	return nil
 }
 
+// saveUserGroup saves user group
 func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 	fieldsValidating := []string{"code"}
 
@@ -174,6 +179,7 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 	return s.updateGRUserGroupRepositoryWithChild.SaveMainRow(tx, tr)
 }
 
+// saveUserGroupLine saves user group lines
 func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, parentID interface{}) error {
 	for _, item := range tr.Items {
 		logger.Debug("save group line: ", tr, "parentID: ", parentID)
@@ -230,6 +236,7 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, pare
 	return nil
 }
 
+// getUserIdFromUserGroupLineId gets user id from user group line id
 func (s *UploadService) getUserIdFromUserGroupLineId(tx *sql.Tx, userGroupLineId string) (int, error) {
 	query := `SELECT user_id FROM user_group_lines WHERE id = ?`
 	args := []interface{}{userGroupLineId}
@@ -256,6 +263,7 @@ func (s *UploadService) getUserIdFromUserGroupLineId(tx *sql.Tx, userGroupLineId
 	return userId, nil
 }
 
+// checkValidUser checks if user is valid
 func (s *UploadService) checkValidUser(tx *sql.Tx, userId interface{}) (bool, error) {
 	query := `
 	SELECT COUNT(*) as Count FROM users where id = ?
@@ -275,6 +283,7 @@ func (s *UploadService) checkValidUser(tx *sql.Tx, userId interface{}) (bool, er
 	return count == 1, nil
 }
 
+// userExistInLine checks if user exist in line
 func (s *UploadService) userExistInLine(tx *sql.Tx, userId interface{}) (bool, error) {
 	query := `
 	SELECT COUNT(*) as Count FROM user_group_lines where user_id = ?

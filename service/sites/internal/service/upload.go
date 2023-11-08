@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"log"
 
@@ -12,6 +13,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
+// UploadService is the service for upload
 type UploadService struct {
 	db                   *sql.DB
 	siteService          SiteService
@@ -19,6 +21,7 @@ type UploadService struct {
 	language             string
 }
 
+// NewUploadService create new instance of UploadService
 func NewUploadService(db *sql.DB,
 	siteService SiteService,
 	siteSimpleRepository treegrid.SimpleGridRowRepository,
@@ -32,9 +35,9 @@ func NewUploadService(db *sql.DB,
 	}, nil
 }
 
+// Handle handles upload request
 func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	resp := &treegrid.PostResponse{}
-	// Create new transaction
 	grList, err := treegrid.ParseRequestUploadSingleRow(req)
 	if err != nil {
 		return nil, fmt.Errorf("parse requst: [%w]", err)
@@ -46,27 +49,30 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	}
 	defer tx.Rollback()
 
+	var handleErr error
 	for _, gr := range grList {
-		if err = u.handle(tx, gr); err != nil {
-			log.Println("Err", err)
+		if handleErr = u.handle(tx, gr); handleErr != nil {
+			log.Println("Err", handleErr)
 
 			resp.IO.Result = -1
-			resp.IO.Message += err.Error() + "\n"
+			resp.IO.Message += handleErr.Error() + "\n"
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
 			break
-			//rollback
-			//return resp, err
 		}
 		resp.Changes = append(resp.Changes, gr)
 		resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
 	}
-	if err = tx.Commit(); err != nil {
-		return nil, fmt.Errorf("commit transaction: [%w]", err)
+
+	if handleErr == nil {
+		if err = tx.Commit(); err != nil {
+			return nil, fmt.Errorf("%s: [%w]", i18n.Localize(u.language, errors.ErrCodeCommitTransaction), err)
+		}
 	}
 
 	return resp, nil
 }
 
+// handle handles upload request of single row
 func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	fieldsValidating := []string{"code"}
 	positiveFieldsValidating := []string{"subsidiaries_uuid", "address_uuid", "contact_uuid", "responsibility_center_uuid"}

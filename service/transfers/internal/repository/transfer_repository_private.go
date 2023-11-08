@@ -23,6 +23,7 @@ func (t *transferRepository) validateTransferParams(tx *sql.Tx, tr *treegrid.Mai
 	return nil
 }
 
+// validate transfer line params and calculate quantity
 func (t *transferRepository) validateAddTransferLine(tx *sql.Tx, item treegrid.GridRow) error {
 	// check item_id
 	if err := t.validateItemID(tx, item); err != nil {
@@ -72,6 +73,7 @@ func (t *transferRepository) validateAddTransferLine(tx *sql.Tx, item treegrid.G
 	return nil
 }
 
+// afterChangeTransferLine updates quantity and item_unit_value
 func (t *transferRepository) afterChangeTransferLine(tx *sql.Tx, item treegrid.GridRow) error {
 	if _, ok := item["input_quantity"]; ok {
 		return t.updateTransferLineQuantityVals(tx, item)
@@ -85,6 +87,7 @@ func (t *transferRepository) afterChangeTransferLine(tx *sql.Tx, item treegrid.G
 	return nil
 }
 
+// updateTransferLineQuantityVals updates quantity and item_unit_value
 func (t *transferRepository) updateTransferLineQuantityVals(tx *sql.Tx, item treegrid.GridRow) error {
 	query := `
 UPDATE transfer_lines trl

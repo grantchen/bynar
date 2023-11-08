@@ -10,8 +10,8 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/internal/service"
 )
 
+// NewHTTPHandler returns a new HTTP handler
 func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGridHandler {
-
 	gridRowDataRepositoryWithChild := treegrid.NewGridRowDataRepositoryWithChild(
 		db,
 		"user_groups",

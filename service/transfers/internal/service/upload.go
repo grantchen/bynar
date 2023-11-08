@@ -13,6 +13,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
+// UploadService is the service for upload
 type UploadService struct {
 	db                            *sql.DB
 	grTransferRepositoryWithChild treegrid.GridRowRepositoryWithChild
@@ -24,6 +25,7 @@ type UploadService struct {
 	language                      string
 }
 
+// NewUploadService returns a new upload service
 func NewUploadService(db *sql.DB,
 	grTransferRepositoryWithChild treegrid.GridRowRepositoryWithChild,
 	userRepository repository.UserRepository,
@@ -45,6 +47,7 @@ func NewUploadService(db *sql.DB,
 	}
 }
 
+// Handle handles the upload request
 func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	resp := &treegrid.PostResponse{}
 	trList, err := treegrid.ParseRequestUpload(req, u.grTransferRepositoryWithChild)
@@ -89,6 +92,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	return resp, nil
 }
 
+// handle handles upload request of single row
 func (s *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 	switch tr.Status() {
 	// update/add

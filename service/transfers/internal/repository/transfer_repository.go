@@ -10,6 +10,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
+// transferRepository is a repository for transfer
 type transferRepository struct {
 	gridTreeRepository treegrid.GridRowRepositoryWithChild
 	db                 *sql.DB
@@ -215,16 +216,7 @@ func (*transferRepository) UpdateStatus(tx *sql.Tx, status int) error {
 	return nil
 }
 
-// GetTransfersPageData implements TransferRepository
-func (t *transferRepository) GetTransfersPageData(tg *treegrid.Treegrid) ([]map[string]string, error) {
-	return nil, nil
-}
-
-// GetTransferCount implements TransferRepository
-func (t *transferRepository) GetTransferCount(treegrid *treegrid.Treegrid) (int, error) {
-	return 0, nil
-}
-
+// NewTransferRepository returns a new TransferRepository
 func NewTransferRepository(db *sql.DB, language string) TransferRepository {
 	grRepository := treegrid.NewGridRepository(db,
 		"transfers",
