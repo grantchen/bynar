@@ -72,6 +72,24 @@ func (f GridRow) ValidateOnLimitLength(fieldsMapping map[string][]string, limitL
 			continue
 		}
 		_, ok := f[key]
+		stringVal, isString := f.GetValString(key)
+		if ok && isString && len(stringVal) > limitLength {
+			templateData := map[string]string{
+				"Field": key,
+			}
+			return i18n.TranslationI18n(language, "FieldTooLong", templateData)
+		}
+	}
+	return nil
+}
+
+// Check Field Limit length.
+func (f GridRow) ValidateOnLimitLengthToFloat(fieldsMapping map[string][]string, language string) error {
+	for key, _ := range fieldsMapping {
+		if key == "Changed" || key == "id" {
+			continue
+		}
+		_, ok := f[key]
 		templateData := map[string]string{
 			"Field": key,
 		}
@@ -94,9 +112,6 @@ func (f GridRow) ValidateOnLimitLength(fieldsMapping map[string][]string, limitL
 					}
 				}
 				return i18n.TranslationI18n(language, "FieldOutRange", templateData)
-			}
-			if len(stringVal) > limitLength {
-				return i18n.TranslationI18n(language, "FieldTooLong", templateData)
 			}
 		}
 	}
