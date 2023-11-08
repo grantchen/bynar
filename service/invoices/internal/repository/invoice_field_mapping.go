@@ -11,3 +11,7 @@ var InvoiceFieldNames = map[string][]string{
 	"provider_id":         {"provider_id"},
 	"paid":                {"paid"},
 }
+
+var InvoiceFieldNamesFloat = map[string][]string{
+	"total": {"total"},
+}
