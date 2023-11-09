@@ -27,7 +27,7 @@ const (
 	SELECT users.id AS user_id,
 	users.full_name,
 	users.email 
-	FROM users where concat(id,full_name,email) like ? AND id not in (
+	FROM users where full_name like ? AND id not in (
 		SELECT user_id FROM user_group_lines where parent_id = ?
 	)
 	`
