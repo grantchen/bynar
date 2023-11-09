@@ -133,6 +133,7 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 	}
 
 	tableData := make([]map[string]string, 0)
+	colData := NewColumn(tg.GroupCols[level], nil, s.fieldMapping)
 
 	for rows.Next() {
 		if err := rowVals.Parse(rows); err != nil {
@@ -144,6 +145,11 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 		tgCol := tg.GroupCols[level]
 		if s.cfg != nil && s.cfg.MainCol != "" {
 			entry[s.cfg.MainCol] = entry[tgCol]
+			entry[s.cfg.MainCol+"Type"] = colData.Type()
+			// TODO get from treegrid config
+			if colData.IsDate {
+				entry[s.cfg.MainCol+"Format"] = "yyyy-MM-dd"
+			}
 		}
 		if where != "" {
 			where += " "
