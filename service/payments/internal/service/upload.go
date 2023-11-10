@@ -15,6 +15,7 @@ import (
 	"strings"
 )
 
+// UploadService is the service for upload
 type UploadService struct {
 	db                                 *sql.DB
 	updateGRPaymentRepository          treegrid.SimpleGridRowRepository
@@ -27,6 +28,7 @@ type UploadService struct {
 	paymentService                     PaymentService
 }
 
+// NewUploadService returns a new upload service
 func NewUploadService(db *sql.DB,
 	updateGRPaymentRepository treegrid.SimpleGridRowRepository,
 	updateGRPaymentRepositoryWithChild treegrid.GridRowRepositoryWithChild,
@@ -50,6 +52,7 @@ func NewUploadService(db *sql.DB,
 	}
 }
 
+// Handle handles the upload request
 func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	resp := &treegrid.PostResponse{}
 	// Create new transaction
@@ -69,7 +72,6 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	m := make(map[string]interface{}, 0)
 	var handleErr error
 	for _, tr := range trList.MainRows() {
-		// todo refactor group
 		if tr.Fields["id"] == "Group" {
 			continue
 		}
@@ -99,6 +101,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	return resp, nil
 }
 
+// handle handles the upload request of a main row
 func (u *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 	//Check Approval Order
 	ok, err := u.approvalService.Check(tr, u.accountId, u.language)
@@ -137,6 +140,7 @@ func (u *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 	return nil
 }
 
+// save saves payment and payment lines
 func (u *UploadService) save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	if err := u.savePayment(tx, tr); err != nil {
 		return fmt.Errorf("%s %s: [%w]",
@@ -155,6 +159,7 @@ func (u *UploadService) save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	return nil
 }
 
+// savePayment saves payment
 func (u *UploadService) savePayment(tx *sql.Tx, tr *treegrid.MainRow) error {
 	fieldsValidating := []string{"document_id"}
 
@@ -203,13 +208,12 @@ func (u *UploadService) savePayment(tx *sql.Tx, tr *treegrid.MainRow) error {
 				return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "failed-to-delete", "payment_lines"), err)
 			}
 		}
-
-		fmt.Println(tr.Fields.GetID())
 	}
 
 	return u.updateGRPaymentRepositoryWithChild.SaveMainRow(tx, tr)
 }
 
+// savePaymentLine saves payment lines
 func (u *UploadService) savePaymentLine(tx *sql.Tx, tr *treegrid.MainRow, parentID interface{}) error {
 	for _, item := range tr.Items {
 		logger.Debug("save payment line: ", tr, "parentID: ", parentID)
