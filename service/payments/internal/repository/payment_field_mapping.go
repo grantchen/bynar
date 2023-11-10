@@ -1,6 +1,7 @@
 package repository
 
 var (
+	// PaymentFieldNames is a map for payments fields
 	PaymentFieldNames = map[string][]string{
 		"id":                        {"id", "payments.id"},
 		"batch_id":                  {"batch_id", "payments.batch_id"},
@@ -33,6 +34,7 @@ var (
 		"paid_status":               {"paid_status", "payments.paid_status"},
 	}
 
+	// PaymentLineFieldNames is a map for payment line fields
 	PaymentLineFieldNames = map[string][]string{
 		"id-line":               {"id", "payment_lines.id"},
 		"Parent":                {"parent_id", "payment_lines.parent_id"},
@@ -43,7 +45,7 @@ var (
 		"amount_lcy":            {"amount_lcy", "payment_lines.amount_lcy"},
 		"applied":               {"applied", "payment_lines.applied"},
 	}
-
+	// PaymentFieldUploadNames is a map for user payment fields for upload
 	PaymentFieldUploadNames = map[string][]string{
 		"id":                        {"id"},
 		"batch_id":                  {"batch_id"},
@@ -71,7 +73,7 @@ var (
 		"bank_payment_type_id":      {"bank_payment_type_id"},
 		"bank_id":                   {"bank_id"},
 	}
-
+	// PaymentLineFieldUploadNames is a map for user payment line fields for upload
 	PaymentLineFieldUploadNames = map[string][]string{
 		"id":                    {"id"},
 		"Parent":                {"parent_id"},

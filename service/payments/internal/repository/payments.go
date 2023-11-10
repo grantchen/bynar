@@ -9,12 +9,14 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 )
 
+// paymentRepository implements payment repository
 type paymentRepository struct {
 	conn          *sql.DB
 	tableName     string
 	lineTableName string
 }
 
+// NewPayment returns a new payment
 func NewPayment(conn *sql.DB, tableName, lineTableName string) PaymentRepository {
 	return &paymentRepository{
 		conn:          conn,
@@ -23,6 +25,7 @@ func NewPayment(conn *sql.DB, tableName, lineTableName string) PaymentRepository
 	}
 }
 
+// GetDocID implements PaymentRepository
 func (s *paymentRepository) GetDocID(id interface{}) (docID int, err error) {
 	logger.Debug("get document id", id)
 	query := `
@@ -35,6 +38,7 @@ func (s *paymentRepository) GetDocID(id interface{}) (docID int, err error) {
 	return
 }
 
+// GetStatus implements PaymentRepository
 func (s *paymentRepository) GetStatus(id interface{}) (status int, err error) {
 	query := `
 	SELECT status 
@@ -46,6 +50,7 @@ func (s *paymentRepository) GetStatus(id interface{}) (status int, err error) {
 	return
 }
 
+// paymentFields query fileds for payment
 var paymentFields = []string{
 	"id",
 	"batch_id",
@@ -78,6 +83,7 @@ var paymentFields = []string{
 	"status",
 }
 
+// Get implements PaymentRepository
 func (s *paymentRepository) Get(tx *sql.Tx, id interface{}) (m *models.Payment, err error) {
 	query := `
 	SELECT ` + strings.Join(paymentFields, ", ") + `
@@ -120,6 +126,7 @@ func (s *paymentRepository) Get(tx *sql.Tx, id interface{}) (m *models.Payment, 
 	return
 }
 
+// Save implements PaymentRepository
 func (s *paymentRepository) Save(tx *sql.Tx, m *models.Payment) (err error) {
 	query := `
 	UPDATE ` + s.tableName + `
@@ -173,6 +180,7 @@ var paymentLineFields = []string{
 	"applied",
 }
 
+// GetLines implements PaymentRepository
 func (s *paymentRepository) GetLines(tx *sql.Tx, parentID interface{}, applied int) ([]*models.PaymentLine, error) {
 	query := `
 	SELECT ` + strings.Join(paymentLineFields, ",") + `
@@ -208,6 +216,7 @@ func (s *paymentRepository) GetLines(tx *sql.Tx, parentID interface{}, applied i
 	return res, nil
 }
 
+// SaveLine implements PaymentRepository
 func (s *paymentRepository) SaveLine(tx *sql.Tx, l *models.PaymentLine) (err error) {
 	logger.Debug("save line", l.ID)
 
