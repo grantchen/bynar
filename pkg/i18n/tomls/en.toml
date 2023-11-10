@@ -17,6 +17,13 @@ UpdateChildLine =  "no allow to update child line."
 CheckOrder = "check order"
 CannotDeleteAccountWithUnpaidInvoices = "can't delete account because there are unpaid invoices"
 OrganizationVATDuplicated = "Organization number already exists."
+SaveTransfer = "Save transfer: {{.Message}}"
+SaveTransferLine = "Save transfer line: {{.Message}}"
+OnlyLinesCanBeUpdated = "current-status is 1, Only lines can be updated"
+[UndefinedActionType]
+other = "undefined action type: {{.Type}}."
+[Missing]
+other = "missing: {{.DocumentId}}."
 [FieldTooLong]
 other = "Data too long for field: {{.Field}}."
 [FieldOutRange]
@@ -53,3 +60,11 @@ other = "unit not exist! item_unit_id: {{.ItemUnitId}}"
 other = "record cannot be deleted, status is: {{.Status}}"
 [UserBelongSpecificUserGroupLines]
 other = "user is belong to a specific user group lines user_id: {{.UserId}}"
+[FailedToFrom]
+other = "failed to get data from {{.Field}}: account_id: {{.AccountId}}, document_id: {{.DocumentId}}"
+[FailedToGetBy]
+other = "failed to get {{.Field}} by id: {{.Id}}"
+[OnlyDocumentIdCanUpdated]
+other = "only document_id can be updated. items length: {{.Id}}"
+[OnlyDocumentIdCanUpdatedReceived]
+other = "only document_id can be updated. Received fields to update: {{.Field}}"

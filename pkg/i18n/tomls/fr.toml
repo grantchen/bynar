@@ -17,6 +17,13 @@ UpdateChildLine =  "non autorisé à mettre à jour la ligne enfant."
 CheckOrder = "vérifier la commande"
 CannotDeleteAccountWithUnpaidInvoices = "je ne peux pas supprimer le compte car il y a des factures impayées"
 OrganizationVATDuplicated = "Le numéro d'organisation existe déjà."
+SaveTransfer = "Enregistrer le transfert: {{.Message}}"
+SaveTransferLine = "Enregistrer la ligne de transfert: {{.Message}}"
+OnlyLinesCanBeUpdated = "l'état actuel est 1, seules les lignes peuvent être mises à jour"
+[UndefinedActionType]
+other = "type d'action non défini: {{.Type}}."
+[Missing]
+other = "manquante: {{.DocumentId}}."
 [FieldTooLong]
 other = "Données trop longues pour le champ: {{.Field}}."
 [FieldOutRange]
@@ -53,3 +60,11 @@ other = "l'unité n'existe pas! item_unit_id: {{.ItemUnitId}}"
 other = "l'enregistrement ne peut pas être supprimé, le statut est: {{.Status}}"
 [UserBelongSpecificUserGroupLines]
 other = "l'utilisateur appartient à un groupe d'utilisateurs spécifique user_id: {{.UserId}}"
+[FailedToFrom]
+other = "n'a pas réussi à obtenir des données de {{.Field}}: account_id: {{.AccountId}}, document_id: {{.DocumentId}}"
+[FailedToGetBy]
+other = "échoué à obtenir {{.Field}} par id: {{.Id}}"
+[OnlyDocumentIdCanUpdated]
+other = "seul document_id peut être mis à jour. longueur des articles: {{.Id}}"
+[OnlyDocumentIdCanUpdatedReceived]
+other = "seul document_id peut être mis à jour. Champs reçus à mettre à jour: {{.Field}}"
