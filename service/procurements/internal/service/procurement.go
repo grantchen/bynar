@@ -65,7 +65,7 @@ func (s *ProcurementSvc) Handle(tx *sql.Tx, m *models.Procurement) error {
 		// return fmt.Errorf("get discount: [%w], id %d", err, m.InvoiceDiscountID)
 	}
 	m.Discount = disc
-
+	// get currency
 	currency, err := s.currencyRep.GetCurrency(m.CurrencyID)
 	if err != nil {
 		return fmt.Errorf("get currency: [%w]", err)
@@ -74,6 +74,7 @@ func (s *ProcurementSvc) Handle(tx *sql.Tx, m *models.Procurement) error {
 
 	m.CurrencyValue = currency.ExchangeRate
 
+	// handle lines
 	for _, v := range lines {
 		if err := s.HandleLine(tx, m, v); err != nil {
 			return fmt.Errorf("handle line: [%w], id: %d", err, v.ID)
@@ -122,15 +123,11 @@ func (s *ProcurementSvc) HandleLine(tx *sql.Tx, pr *models.Procurement, l *model
 
 	l.ItemUnitValue = unit.Value
 	l.Quantity = l.InputQuantity * unit.Value
-
-	// TODO: add parent discount
 	// calc discount
 	disc, err := s.currencyRep.GetDiscount(l.DiscountID)
 	if err != nil {
 		logger.Debug("get discount by id: [%w], id %d", err, l.DiscountID)
 
-		// TODO: handle error
-		// return fmt.Errorf("get discount by id: [%w], id %d", err, l.DiscountID)
 	}
 
 	lineDiscount, err := disc.Calculate(l.SubtotalExclusiveVat)
@@ -149,9 +146,6 @@ func (s *ProcurementSvc) HandleLine(tx *sql.Tx, pr *models.Procurement, l *model
 	vat, err := s.currencyRep.GetVat(l.VatID)
 	if err != nil {
 		logger.Debug("get vat: [%w], id %d", err, l.VatID)
-
-		// TODO: handle error
-		// return fmt.Errorf("get vat: [%w], id %d", err, l.VatID)
 	}
 
 	if l.TotalVat, err = vat.Calculate(l.TotalExclusiveVat); err != nil {

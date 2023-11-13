@@ -47,6 +47,7 @@ func (u *uploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	}
 	defer tx.Rollback()
 
+	// handle list
 	for _, gr := range grList {
 		if err = u.handle(tx, gr); err != nil {
 			log.Println("Err", err)
@@ -128,6 +129,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		var warehouses *model.Warehouses
 		warehouses, err = u.warehousesRepository.GetWarehouses(gr.GetIDInt())
 		if err == nil {
+			// check archived status
 			if warehouses.Archived == 1 {
 				return i18n.TranslationI18n(u.language, "ArchivedDelete", map[string]string{})
 			}
@@ -149,6 +151,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	return err
 }
 
+// checkGeneralPostSetupCondition
 func (u *uploadService) checkGeneralPostSetupCondition(gps *model.Warehouses) error {
 
 	if gps.Archived != 0 && gps.Archived != 1 {
