@@ -41,7 +41,7 @@ func NewUploadService(db *sql.DB,
 	}
 }
 
-// Handle
+// Handle: upload handle
 func (s *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	resp := &treegrid.PostResponse{}
 

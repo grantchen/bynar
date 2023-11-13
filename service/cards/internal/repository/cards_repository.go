@@ -8,6 +8,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 )
 
+// CountCard: count card num of user
 func (r *cardRepositoryHandler) CountCard(id int) (int, error) {
 	var total int
 	err := r.db.QueryRow(`SELECT count(*) FROM accounts_cards WHERE user_id = ?`, id).Scan(&total)
@@ -17,11 +18,13 @@ func (r *cardRepositoryHandler) CountCard(id int) (int, error) {
 	return total, nil
 }
 
+// AddCard: add a card to db from checkout response
 func (r *cardRepositoryHandler) AddCard(userID int, customerID, sourceID string, total int) error {
 	isDefault := 1
 	if total > 0 {
 		isDefault = 0
 	}
+	// check card exists
 	var count int
 	err := r.db.QueryRow(`SELECT COUNT(*) FROM accounts_cards WHERE user_payment_gateway_id=? AND source_id=?`, customerID, sourceID).Scan(&count)
 	if err != nil {
@@ -45,6 +48,7 @@ func (r *cardRepositoryHandler) AddCard(userID int, customerID, sourceID string,
 	return nil
 }
 
+// FetchCardBySourceID: get card from checkout source id
 func (r *cardRepositoryHandler) FetchCardBySourceID(sourceID string) (cardDetails model.UserCard, err error) {
 	err = r.db.QueryRow(`SELECT ac.id,
 		user_payment_gateway_id,
@@ -66,6 +70,7 @@ func (r *cardRepositoryHandler) FetchCardBySourceID(sourceID string) (cardDetail
 	return cardDetails, nil
 }
 
+// ListCards: list user's cards in db
 func (r *cardRepositoryHandler) ListCards(accountID int) (model.ListCardsResponse, map[string]bool, error) {
 	resp := model.ListCardsResponse{Instruments: make([]models.CardDetails, 0)}
 	ins := map[string]bool{}
@@ -86,6 +91,7 @@ func (r *cardRepositoryHandler) ListCards(accountID int) (model.ListCardsRespons
 	return resp, ins, nil
 }
 
+// UpdateDefaultCard: set the default card in db
 func (r *cardRepositoryHandler) UpdateDefaultCard(tx *sql.Tx, accountID int, sourceID string) error {
 	_, err := tx.Exec(`UPDATE accounts_cards
 					SET is_default = IF(source_id = ?, 1, 0)
@@ -96,6 +102,7 @@ func (r *cardRepositoryHandler) UpdateDefaultCard(tx *sql.Tx, accountID int, sou
 	return nil
 }
 
+// DeleteCard: delete card in db by sourceId
 func (r *cardRepositoryHandler) DeleteCard(tx *sql.Tx, sourceID string) error {
 	_, err := tx.Exec(`DELETE
 					FROM accounts_cards
