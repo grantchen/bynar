@@ -63,8 +63,9 @@ steps:
 
   # Delete old revisions
   - name: 'gcr.io/cloud-builders/gcloud'
-    args: ['revisions', 'list', 
-           '--filter="status.conditions.type:Active AND status.conditions.status:'False'" --format='value(metadata.name)'',
+    args: ['revisions', 'list',
+           '--filter="status.conditions.type:Active AND status.conditions.status:'False'"',
+           '--format="value(metadata.name)"',
            ' | xargs -r -L1 gcloud run revisions delete --quiet']
 
   # Deploy to Cloud Run
