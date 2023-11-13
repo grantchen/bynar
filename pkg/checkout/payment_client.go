@@ -115,7 +115,7 @@ func (p paymentClient) ValidateCard(userDetails *models.ValidateCardRequest) (mo
 	if err != nil {
 		return resp, err
 	}
-
+	// generate access token
 	authorization, err := p.GenerateAuthToken(configuration.GatewayPayment)
 	if err != nil {
 		return resp, err
@@ -150,6 +150,7 @@ func (p paymentClient) ValidateCard(userDetails *models.ValidateCardRequest) (mo
 func (p paymentClient) DeleteCard(sourceID string) error {
 	apiURL := fmt.Sprintf(`%v/%v`, configuration.CurrentEnv().InstrumentUri(), sourceID)
 	method := "DELETE"
+	// generate access token
 	authorization, err := p.GenerateAuthToken(configuration.VaultInstruments)
 	if err != nil {
 		return err
@@ -180,6 +181,7 @@ func (p paymentClient) DeleteCard(sourceID string) error {
 func (p paymentClient) DeleteCustomer(customerID string) error {
 	apiURL := fmt.Sprintf(`%v/%v`, configuration.CurrentEnv().CustomerUri(), customerID)
 	method := "DELETE"
+	// generate access token
 	authorization, err := p.GenerateAuthToken(configuration.VaultInstruments)
 	if err != nil {
 		return err
@@ -222,6 +224,7 @@ func (p paymentClient) UpdateCustomer(customerInfo models.UpdateCustomer, custom
 		logrus.Errorf("UpdateCustomer: Error creating new request %v", err)
 		return err
 	}
+	// generate access token
 	authorization, err := p.GenerateAuthToken(configuration.VaultInstruments)
 	if err != nil {
 		return err
@@ -253,6 +256,7 @@ func (p paymentClient) UpdateCustomer(customerInfo models.UpdateCustomer, custom
 func (p paymentClient) FetchPaymentDetails(paymentID string) (paymentDetails models.FetchPaymentDetails, err error) {
 	apiURL := fmt.Sprintf(`%v/%v`, configuration.CurrentEnv().PaymentsUri(), paymentID)
 	method := "GET"
+	// generate access token
 	authorization, err := p.GenerateAuthToken(configuration.GatewayPaymentDetails)
 	if err != nil {
 		return paymentDetails, err
@@ -290,6 +294,7 @@ func (p paymentClient) FetchCustomerDetails(customerID string) (models.CustomerR
 	var customerDetails models.CustomerResponse
 	apiURL := fmt.Sprintf(`%v/%v`, configuration.CurrentEnv().CustomerUri(), customerID)
 	method := "GET"
+	// generate access token
 	authorization, err := p.GenerateAuthToken(configuration.VaultInstruments)
 	if err != nil {
 		return customerDetails, err
