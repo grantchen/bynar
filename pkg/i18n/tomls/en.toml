@@ -20,6 +20,11 @@ OrganizationVATDuplicated = "Organization number already exists."
 SaveTransfer = "Save transfer: {{.Message}}"
 SaveTransferLine = "Save transfer line: {{.Message}}"
 OnlyLinesCanBeUpdated = "current-status is 1, Only lines can be updated"
+ForbiddenAction = "forbidden action"
+FailedToGetDataFrom = "failed to get data from procurement."
+UndefinedActionType="undefined action type"
+[FailedToHandle]
+other = "failed to handle {{.Field}}."
 [UndefinedActionType]
 other = "undefined action type: {{.Type}}."
 [Missing]
@@ -68,3 +73,16 @@ other = "failed to get {{.Field}} by id: {{.Id}}"
 other = "only document_id can be updated. items length: {{.Id}}"
 [OnlyDocumentIdCanUpdatedReceived]
 other = "only document_id can be updated. Received fields to update: {{.Field}}"
+[InvalidApprovalOrder]
+other = "invalid approval order, current: {{.CurrentApprovalOrder}}, got: {{.ApprovalOrder}}"
+[FailedToDelete]
+other = "failed to delete {{.Field}}."
+[FailedToUpdate]
+other = "failed to update {{.Field}}."
+[FailedToAdd]
+other = "failed to add {{.Field}}."
+[SavePayment]
+other = "Save sale : {{.Message}} "
+[SavePaymentLine]
+other = "Save sale line : {{.Message}}"
+

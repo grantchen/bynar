@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"log"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/repository"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
@@ -58,7 +56,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 
 	tx, err := u.db.BeginTx(context.Background(), nil)
 	if err != nil {
-		return nil, fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeBeginTransaction))
+		return nil, fmt.Errorf("begin transaction: [%w]", err)
 	}
 	defer tx.Rollback()
 
@@ -85,7 +83,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 
 	if handleErr == nil {
 		if err = tx.Commit(); err != nil {
-			return nil, fmt.Errorf("%s: [%w]", i18n.Localize(u.language, errors.ErrCodeCommitTransaction), err)
+			return nil, fmt.Errorf("commit transaction: [%w]", err)
 		}
 	}
 

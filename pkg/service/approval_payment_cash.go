@@ -147,7 +147,11 @@ func (s *approvalCashPaymentService) checkActionUpdated(tr *treegrid.MainRow, ac
 	logger.Debug("Current approval_order", currentWrkItem.ApprovalOrder, "Next apploval_order", nextWrkItem.ApprovalOrder)
 
 	if (nextWrkItem.ApprovalOrder - currentWrkItem.ApprovalOrder) != 1 {
-		return false, fmt.Errorf("invalid approval order, current: %d, got: %d", currentWrkItem.ApprovalOrder, nextWrkItem.ApprovalOrder)
+		templateData := map[string]string{
+			"CurrentApprovalOrder": fmt.Sprintf("%d", currentWrkItem.ApprovalOrder),
+			"ApprovalOrder":        fmt.Sprintf("%d", nextWrkItem.ApprovalOrder),
+		}
+		return false, i18n.TranslationI18n(language, "InvalidApprovalOrder", templateData)
 	}
 
 	// No updates allowed. Only document_id can be modified
