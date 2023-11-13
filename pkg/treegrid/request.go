@@ -139,6 +139,12 @@ func SetGridRowIdentity(gr GridRow, identityStore IdentityStorage) (isChild bool
 
 		// add data after grouped
 		if val == "R" {
+			// parent row
+			if gr.GetParentID() == "0" {
+				return false, nil
+			}
+
+			// child row
 			gr["Parent"] = gr.GetGroupIDStr(gr.GetParentID())
 			return true, nil
 		}
