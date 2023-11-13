@@ -46,29 +46,29 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	}
 	defer tx.Rollback()
 
+	var handleErr error
 	for _, gr := range grList {
-		if err = u.handle(tx, gr); err != nil {
+		if err = u.handle(tx, gr); handleErr != nil {
 			log.Println("Err", err)
 
 			resp.IO.Result = -1
-			resp.IO.Message += err.Error() + "\n"
+			resp.IO.Message += handleErr.Error() + "\n"
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
 			break
-			//rollback
-			//return resp, err
 		}
 		resp.Changes = append(resp.Changes, gr)
 		resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
 	}
-	if err = tx.Commit(); err != nil {
-		return nil, fmt.Errorf("commit transaction: [%w]", err)
+	if handleErr == nil {
+		if err = tx.Commit(); err != nil {
+			return nil, fmt.Errorf("commit transaction: [%w]", err)
+		}
 	}
 
 	return resp, nil
 }
 
 func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
-	fieldsValidating := []string{"country", "number"}
 	positiveFieldsValidating := []string{"number"}
 
 	var err error
@@ -102,15 +102,6 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			}
 		}
 
-		for _, field := range fieldsValidating {
-			ok, err := s.languageSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
-			if !ok || err != nil {
-				templateData := map[string]string{
-					"Field": field,
-				}
-				return i18n.TranslationI18n(s.language, "ValueDuplicated", templateData)
-			}
-		}
 		err = s.languageSimpleRepository.Add(tx, gr)
 	case treegrid.GridRowActionChanged:
 		err = gr.ValidateOnRequired(repository.LanguageFieldNames, s.language)
@@ -137,16 +128,6 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			err = gr.ValidateOnNotNegativeNumber(map[string][]string{field: repository.LanguageFieldNames[field]}, s.language)
 			if err != nil {
 				return err
-			}
-		}
-
-		for _, field := range fieldsValidating {
-			ok, err := s.languageSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
-			if !ok || err != nil {
-				templateData := map[string]string{
-					"Field": field,
-				}
-				return i18n.TranslationI18n(s.language, "ValueDuplicated", templateData)
 			}
 		}
 		err = s.languageSimpleRepository.Update(tx, gr)

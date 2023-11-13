@@ -11,21 +11,20 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// AddCard: add card through checkout and db
 func (r *cardServiceHandler) AddCard(req *models.ValidateCardRequest) error {
+	// get user card num in db
 	total, err := r.cr.CountCard(req.ID)
 	if err != nil {
 		return err
 	}
-	// if total >= 10 {
-	// 	return errors.NewUnknownError("user can't add more than 10 cards", "")
-	// }
 	logrus.Infof("----- add card request  %#v\n", req)
 	cardDetails, err := r.paymentProvider.ValidateCard(req)
 	if err != nil {
 		return errors.NewUnknownError("failed to validate card", "failed-validate-card").WithInternal().WithCause(err)
 	}
-	// TODO: delete log after tested
 	logrus.Infof("----- add card details %#v\n", cardDetails)
+	// get sourceid from checkout if response empty
 	var rsp models.CustomerResponse
 	if cardDetails.Source.ID == "" {
 		rsp, err = r.paymentProvider.FetchCustomerDetails(cardDetails.Customer.ID)
@@ -35,6 +34,7 @@ func (r *cardServiceHandler) AddCard(req *models.ValidateCardRequest) error {
 		logrus.Infof("--- fetch cards %#v\n", rsp.Instruments)
 		cardDetails.Source.ID = rsp.Instruments[len(rsp.Instruments)-1].ID
 	}
+	// check card status
 	if !cardDetails.Approved || cardDetails.Status != "Card Verified" {
 		err = r.paymentProvider.DeleteCard(cardDetails.Source.ID)
 		if err != nil {
@@ -55,6 +55,7 @@ func (r *cardServiceHandler) AddCard(req *models.ValidateCardRequest) error {
 	return nil
 }
 
+// ListCards: list user's cards from checkout and db
 func (r *cardServiceHandler) ListCards(accountID int) (model.ListCardsResponse, error) {
 	card, ins, err := r.cr.ListCards(accountID)
 	if err != nil {
@@ -77,7 +78,9 @@ func (r *cardServiceHandler) ListCards(accountID int) (model.ListCardsResponse, 
 	return card, nil
 }
 
+// UpdateCard: set default card of user in checkout and db
 func (r *cardServiceHandler) UpdateCard(accountID int, sourceID string) error {
+	// get card from checkout
 	cardDetails, err := r.cr.FetchCardBySourceID(sourceID)
 	if err != nil {
 		return errors.NewUnknownError("failed to fetch card", "failed-fetch-card").WithInternal().WithCause(err)
@@ -107,7 +110,9 @@ func (r *cardServiceHandler) UpdateCard(accountID int, sourceID string) error {
 	return nil
 }
 
+// DeleteCard: delete card in checkout and db
 func (r *cardServiceHandler) DeleteCard(accountID int, sourceID string) error {
+	// get card from checkout
 	cardDetails, err := r.cr.FetchCardBySourceID(sourceID)
 	if err != nil {
 		if err = r.paymentProvider.DeleteCard(sourceID); err != nil {
@@ -115,11 +120,11 @@ func (r *cardServiceHandler) DeleteCard(accountID int, sourceID string) error {
 		}
 		return nil
 	}
-
+	//  check permission
 	if cardDetails.UserID != accountID {
 		return errors.NewUnknownError("user not authorized for this operation", "user-not-allowed")
 	}
-
+	// check default
 	if cardDetails.IsDefault {
 		return errors.NewUnknownError("user cannot delete default card", "failed-delete-card")
 	}
