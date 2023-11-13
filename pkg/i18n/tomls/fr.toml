@@ -20,6 +20,15 @@ OrganizationVATDuplicated = "Le numéro d'organisation existe déjà."
 SaveTransfer = "Enregistrer le transfert: {{.Message}}"
 SaveTransferLine = "Enregistrer la ligne de transfert: {{.Message}}"
 OnlyLinesCanBeUpdated = "l'état actuel est 1, seules les lignes peuvent être mises à jour"
+ForbiddenAction = "action interdite"
+FailedToGetDataFrom = "échec de récupération des données de l'approvisionnement."
+UndefinedActionType = "type d'action indéfini"
+ErrCodeIDTokenInvalid = "IdToken invalide"
+ErrCodeMethodNotAllowed = "méthode non autorisée"
+ErrCodeRequestParameter = "Erreur de paramètre de demande"
+ErrCodePermissionDenied = "Opération non autorisée"
+[FailedToHandle]
+other = "échec de la gestion de {{.Field}}."
 [UndefinedActionType]
 other = "type d'action non défini: {{.Type}}."
 [Missing]
@@ -68,3 +77,18 @@ other = "échoué à obtenir {{.Field}} par id: {{.Id}}"
 other = "seul document_id peut être mis à jour. longueur des articles: {{.Id}}"
 [OnlyDocumentIdCanUpdatedReceived]
 other = "seul document_id peut être mis à jour. Champs reçus à mettre à jour: {{.Field}}"
+[InvalidApprovalOrder]
+other = "ordre d'approbation invalide, actuel : {{.CurrentApprovalOrder}}, obtenu : {{.ApprovalOrder}}"
+[FailedToDelete]
+other = "échec de la suppression de {{.Field}}."
+[FailedToUpdate]
+other = "échec de la mise à jour de {{.Field}}."
+[FailedToAdd]
+other = "échec de l'ajout de {{.Field}}."
+[FailedToUpload]
+other = "échec du téléchargement de {{.Field}}."
+[SavePayment]
+other = "Enregistrer la vente : {{.Message}}"
+[SavePaymentLine]
+other = "Enregistrer la ligne de vente : {{.Message}}"
+

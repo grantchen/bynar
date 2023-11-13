@@ -20,6 +20,15 @@ OrganizationVATDuplicated = "Die Organisationsnummer ist bereits vorhanden."
 SaveTransfer = "Übertragung speichern: {{.Message}}"
 SaveTransferLine = "Transferleitung speichern: {{.Message}}"
 OnlyLinesCanBeUpdated = "aktueller Status ist 1, nur Zeilen können aktualisiert werden"
+ForbiddenAction = "verbotene Aktion"
+FailedToGetDataFrom = "Datenabruf fehlgeschlagen von Einkauf."
+UndefinedActionType = "undefinierter Aktions-Typ"
+ErrCodeIDTokenInvalid = "Ungültiges IdToken"
+ErrCodeMethodNotAllowed = "Methode nicht erlaubt"
+ErrCodeRequestParameter = "Fehlerhafte Anforderungsparameter"
+ErrCodePermissionDenied = "Operation nicht autorisiert"
+[FailedToHandle]
+other = "Fehler bei der Verarbeitung von {{.Field}}."
 [UndefinedActionType]
 other = "undefinierter Aktionstyp: {{.Type}}."
 [Missing]
@@ -68,3 +77,18 @@ other = "konnte nicht bekommen {{.Field}} von id: {{.Id}}"
 other = "Nur document_id kann aktualisiert werden. Artikellänge: {{.Id}}"
 [OnlyDocumentIdCanUpdatedReceived]
 other = "Nur document_id kann aktualisiert werden. Empfangene Felder zum Aktualisieren: {{.Field}}"
+[InvalidApprovalOrder]
+other = "ungültige Genehmigungsreihenfolge, aktuell: {{.CurrentApprovalOrder}}, erhalten: {{.ApprovalOrder}}"
+[FailedToDelete]
+other = "Fehler beim Löschen von {{.Field}}."
+[FailedToUpdate]
+other = "Fehler beim Aktualisieren von {{.Field}}."
+[FailedToAdd]
+other = "Fehler beim Hinzufügen von {{.Field}}."
+[FailedToUpload]
+other = "Fehler beim Hochladen von {{.Field}}."
+[SavePayment]
+other = "Verkauf speichern: {{.Message}}"
+[SavePaymentLine]
+other = "Verkaufszeile speichern: {{.Message}}"
+

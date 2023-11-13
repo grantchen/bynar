@@ -20,6 +20,15 @@ CheckOrder = "revisar orden"
 SaveTransfer = "Guardar transferencia: {{.Message}}"
 SaveTransferLine = "Guardar línea de transferencia: {{.Message}}"
 OnlyLinesCanBeUpdated = "El estado actual es 1, solo se pueden actualizar las líneas."
+ForbiddenAction = "acción prohibida"
+FailedToGetDataFrom = "no se pudieron obtener datos de aprovisionamiento."
+UndefinedActionType = "tipo de acción indefinido"
+ErrCodeIDTokenInvalid = "IdToken no válido"
+ErrCodeMethodNotAllowed = "método no permitido"
+ErrCodeRequestParameter = "Error en los parámetros de la solicitud"
+ErrCodePermissionDenied = "Operación no autorizada"
+[FailedToHandle]
+other = "no se pudo manejar {{.Field}}."
 [UndefinedActionType]
 other = "tipo de acción indefinida: {{.Type}}."
 [Missing]
@@ -68,3 +77,18 @@ other = "no pudo conseguir {{.Field}} por id: {{.Id}}"
 other = "sólo se puede actualizar document_id. longitud de los artículos: {{.Id}}"
 [OnlyDocumentIdCanUpdatedReceived]
 other = "sólo se puede actualizar document_id. Campos recibidos para actualizar: {{.Field}}"
+[InvalidApprovalOrder]
+other = "orden de aprobación inválido, actual: {{.CurrentApprovalOrder}}, recibido: {{.ApprovalOrder}}"
+[FailedToDelete]
+other = "no se pudo eliminar {{.Field}}."
+[FailedToUpdate]
+other = "no se pudo actualizar {{.Field}}."
+[FailedToAdd]
+other = "no se pudo agregar {{.Field}}."
+[FailedToUpload]
+other = "no se pudo cargar {{.Field}}."
+[SavePayment]
+other = "Guardar venta: {{.Message}}"
+[SavePaymentLine]
+other = "Guardar línea de venta: {{.Message}}"
+

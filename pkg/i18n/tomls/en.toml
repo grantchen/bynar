@@ -23,6 +23,10 @@ OnlyLinesCanBeUpdated = "current-status is 1, Only lines can be updated"
 ForbiddenAction = "forbidden action"
 FailedToGetDataFrom = "failed to get data from procurement."
 UndefinedActionType="undefined action type"
+ErrCodeIDTokenInvalid = "IdToken invalid"
+ErrCodeMethodNotAllowed = "method no allowed"
+ErrCodeRequestParameter = "Request parameter error"
+ErrCodePermissionDenied = "Operation not authorized"
 [FailedToHandle]
 other = "failed to handle {{.Field}}."
 [UndefinedActionType]
@@ -81,6 +85,8 @@ other = "failed to delete {{.Field}}."
 other = "failed to update {{.Field}}."
 [FailedToAdd]
 other = "failed to add {{.Field}}."
+[FailedToUpload]
+other = "failed to upload {{.Field}}."
 [SavePayment]
 other = "Save sale : {{.Message}} "
 [SavePaymentLine]
