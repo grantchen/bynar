@@ -68,7 +68,6 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 }
 
 func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
-	fieldsValidating := []string{"country", "number"}
 	positiveFieldsValidating := []string{"number"}
 
 	var err error
@@ -102,15 +101,6 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			}
 		}
 
-		for _, field := range fieldsValidating {
-			ok, err := s.languageSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
-			if !ok || err != nil {
-				templateData := map[string]string{
-					"Field": field,
-				}
-				return i18n.TranslationI18n(s.language, "ValueDuplicated", templateData)
-			}
-		}
 		err = s.languageSimpleRepository.Add(tx, gr)
 	case treegrid.GridRowActionChanged:
 		err = gr.ValidateOnRequired(repository.LanguageFieldNames, s.language)
@@ -137,16 +127,6 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			err = gr.ValidateOnNotNegativeNumber(map[string][]string{field: repository.LanguageFieldNames[field]}, s.language)
 			if err != nil {
 				return err
-			}
-		}
-
-		for _, field := range fieldsValidating {
-			ok, err := s.languageSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
-			if !ok || err != nil {
-				templateData := map[string]string{
-					"Field": field,
-				}
-				return i18n.TranslationI18n(s.language, "ValueDuplicated", templateData)
 			}
 		}
 		err = s.languageSimpleRepository.Update(tx, gr)
