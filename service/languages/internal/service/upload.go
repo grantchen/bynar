@@ -70,66 +70,19 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 }
 
 func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
-	positiveFieldsValidating := []string{"number"}
-
 	var err error
 	// add addition here
 	switch gr.GetActionType() {
 	case treegrid.GridRowActionAdd:
-		err = gr.ValidateOnRequiredAll(repository.LanguageFieldNames, s.language)
+		err = validateGridRow(gr, s.language)
 		if err != nil {
 			return err
 		}
-		err = gr.ValidateOnLimitLength(repository.LanguageFieldCountry, 30, s.language)
-		if err != nil {
-			return err
-		}
-		err = gr.ValidateOnLimitLength(repository.LanguageFieldLanguage, 40, s.language)
-		if err != nil {
-			return err
-		}
-		err = gr.ValidateOnLimitLength(repository.LanguageFieldLetters, 10, s.language)
-		if err != nil {
-			return err
-		}
-		err = gr.ValidateOnLimitLengthToFloat(repository.LanguageFieldNamesFloat, s.language)
-		if err != nil {
-			return err
-		}
-		for _, field := range positiveFieldsValidating {
-			err = gr.ValidateOnNotNegativeNumber(map[string][]string{field: repository.LanguageFieldNames[field]}, s.language)
-			if err != nil {
-				return err
-			}
-		}
-
 		err = s.languageSimpleRepository.Add(tx, gr)
 	case treegrid.GridRowActionChanged:
-		err = gr.ValidateOnRequired(repository.LanguageFieldNames, s.language)
+		err = validateGridRow(gr, s.language)
 		if err != nil {
 			return err
-		}
-		err = gr.ValidateOnLimitLength(repository.LanguageFieldCountry, 30, s.language)
-		if err != nil {
-			return err
-		}
-		err = gr.ValidateOnLimitLength(repository.LanguageFieldLanguage, 40, s.language)
-		if err != nil {
-			return err
-		}
-		err = gr.ValidateOnLimitLength(repository.LanguageFieldLetters, 10, s.language)
-		if err != nil {
-			return err
-		}
-		err = gr.ValidateOnLimitLengthToFloat(repository.LanguageFieldNamesFloat, s.language)
-		if err != nil {
-			return err
-		}
-		for _, field := range positiveFieldsValidating {
-			err = gr.ValidateOnNotNegativeNumber(map[string][]string{field: repository.LanguageFieldNames[field]}, s.language)
-			if err != nil {
-				return err
-			}
 		}
 		err = s.languageSimpleRepository.Update(tx, gr)
 	case treegrid.GridRowActionDeleted:
@@ -140,4 +93,37 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	}
 
 	return i18n.TranslationErrorToI18n(s.language, err)
+}
+
+// Common verification logic
+func validateGridRow(gr treegrid.GridRow, language string) error {
+	positiveFieldsValidating := []string{"number"}
+	err := gr.ValidateOnRequiredAll(repository.LanguageFieldNames, language)
+	if err != nil {
+		return err
+	}
+	err = gr.ValidateOnLimitLength(repository.LanguageFieldCountry, 30, language)
+	if err != nil {
+		return err
+	}
+	err = gr.ValidateOnLimitLength(repository.LanguageFieldLanguage, 40, language)
+	if err != nil {
+		return err
+	}
+	err = gr.ValidateOnLimitLength(repository.LanguageFieldLetters, 10, language)
+	if err != nil {
+		return err
+	}
+	err = gr.ValidateOnLimitLengthToFloat(repository.LanguageFieldNamesFloat, language)
+	if err != nil {
+		return err
+	}
+	for _, field := range positiveFieldsValidating {
+		err = gr.ValidateOnNotNegativeNumber(map[string][]string{field: repository.LanguageFieldNames[field]}, language)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

@@ -2,6 +2,7 @@ package http_handler
 
 import (
 	"database/sql"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 
 	"net/http"
 
@@ -43,7 +44,7 @@ func (h *CardHandler) ListCards(w http.ResponseWriter, r *http.Request) {
 	resp, err := h.cs.ListCards(reqContext.Claims.AccountId)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, err.Error())
+		render.Error(w, errors.FromError(err).Code)
 		return
 	}
 	render.Ok(w, resp)
@@ -72,7 +73,7 @@ func (h *CardHandler) AddCard(w http.ResponseWriter, r *http.Request) {
 	err = h.cs.AddCard(&models.ValidateCardRequest{ID: reqContext.Claims.AccountId, Token: req.Token, Name: reqContext.Claims.Name, Email: reqContext.Claims.Email})
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, err.Error())
+		render.Error(w, errors.FromError(err).Code)
 		return
 	}
 	render.Ok(w, nil)
@@ -101,7 +102,7 @@ func (h *CardHandler) UpdateCard(w http.ResponseWriter, r *http.Request) {
 	err = h.cs.UpdateCard(reqContext.Claims.AccountId, req.SourceID)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, err.Error())
+		render.Error(w, errors.FromError(err).Code)
 		return
 	}
 	render.Ok(w, nil)
@@ -130,7 +131,7 @@ func (h *CardHandler) DeleteCard(w http.ResponseWriter, r *http.Request) {
 	err = h.cs.DeleteCard(reqContext.Claims.AccountId, req.SourceID)
 	if err != nil {
 		handler.LogInternalError(err)
-		render.Error(w, err.Error())
+		render.Error(w, errors.FromError(err).Code)
 		return
 	}
 	render.Ok(w, nil)
