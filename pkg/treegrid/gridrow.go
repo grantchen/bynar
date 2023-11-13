@@ -83,7 +83,7 @@ func (f GridRow) ValidateOnLimitLength(fieldsMapping map[string][]string, limitL
 	return nil
 }
 
-// Check Field Limit length.
+// Check Field Limit length to float.
 func (f GridRow) ValidateOnLimitLengthToFloat(fieldsMapping map[string][]string, language string) error {
 	for key, _ := range fieldsMapping {
 		if key == "Changed" || key == "id" {
@@ -102,15 +102,6 @@ func (f GridRow) ValidateOnLimitLengthToFloat(fieldsMapping map[string][]string,
 		if ok && isString {
 			// treegrid input number automatically add spaces after inputting more than 10 characters 'e '
 			if strings.Contains(stringVal, "e ") {
-				// "e " to "e+"
-				modifiedStr := strings.Replace(stringVal, "e ", "e+", 1)
-				// Parse float64
-				floatValue, err := strconv.ParseFloat(modifiedStr, 64)
-				if err == nil {
-					if floatValue > 10000000000 {
-						return i18n.TranslationI18n(language, "FieldOutRange", templateData)
-					}
-				}
 				return i18n.TranslationI18n(language, "FieldOutRange", templateData)
 			}
 		}

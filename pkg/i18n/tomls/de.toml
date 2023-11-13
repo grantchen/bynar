@@ -17,6 +17,21 @@ UpdateChildLine =  "Es ist nicht gestattet, die untergeordnete Zeile zu aktualis
 CheckOrder = "prüfe die Reihenfolge"
 CannotDeleteAccountWithUnpaidInvoices = "Das Konto kann nicht gelöscht werden, da unbezahlte Rechnungen vorhanden sind"
 OrganizationVATDuplicated = "Die Organisationsnummer ist bereits vorhanden."
+SaveTransfer = "Übertragung speichern: {{.Message}}"
+SaveTransferLine = "Transferleitung speichern: {{.Message}}"
+OnlyLinesCanBeUpdated = "aktueller Status ist 1, nur Zeilen können aktualisiert werden"
+ForbiddenAction = "verbotene Aktion"
+FailedToGetDataFrom = "Datenabruf fehlgeschlagen von Einkauf."
+ErrCodeIDTokenInvalid = "Ungültiges IdToken"
+ErrCodeMethodNotAllowed = "Methode nicht erlaubt"
+ErrCodeRequestParameter = "Fehlerhafte Anforderungsparameter"
+ErrCodePermissionDenied = "Operation nicht autorisiert"
+[FailedToHandle]
+other = "Fehler bei der Verarbeitung von {{.Field}}."
+[UndefinedActionType]
+other = "undefinierter Aktionstyp: {{.Type}}."
+[Missing]
+other = "fehlen: {{.DocumentId}}."
 [FieldTooLong]
 other = "Daten zu lang für Feld: {{.Field}}."
 [FieldOutRange]
@@ -53,3 +68,26 @@ other = "Einheit existiert nicht! item_unit_id: {{.ItemUnitId}}"
 other = "Datensatz kann nicht gelöscht werden, Status ist: {{.Status}}"
 [UserBelongSpecificUserGroupLines]
 other = "Der Benutzer gehört zu einer bestimmten Benutzergruppe user_id: {{.UserId}}"
+[FailedToFrom]
+other = "Es konnten keine Daten abgerufen werden {{.Field}}: account_id: {{.AccountId}}, document_id: {{.DocumentId}}"
+[FailedToGetBy]
+other = "konnte nicht bekommen {{.Field}} von id: {{.Id}}"
+[OnlyDocumentIdCanUpdated]
+other = "Nur document_id kann aktualisiert werden. Artikellänge: {{.Id}}"
+[OnlyDocumentIdCanUpdatedReceived]
+other = "Nur document_id kann aktualisiert werden. Empfangene Felder zum Aktualisieren: {{.Field}}"
+[InvalidApprovalOrder]
+other = "ungültige Genehmigungsreihenfolge, aktuell: {{.CurrentApprovalOrder}}, erhalten: {{.ApprovalOrder}}"
+[FailedToDelete]
+other = "Fehler beim Löschen von {{.Field}}."
+[FailedToUpdate]
+other = "Fehler beim Aktualisieren von {{.Field}}."
+[FailedToAdd]
+other = "Fehler beim Hinzufügen von {{.Field}}."
+[FailedToUpload]
+other = "Fehler beim Hochladen von {{.Field}}."
+[SavePayment]
+other = "Verkauf speichern: {{.Message}}"
+[SavePaymentLine]
+other = "Verkaufszeile speichern: {{.Message}}"
+

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
@@ -20,17 +19,17 @@ type transferRepository struct {
 // Save implements TransferRepository
 func (t *transferRepository) Save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	if err := t.SaveTransfer(tx, tr); err != nil {
-		return fmt.Errorf("%s %s: [%w]",
-			i18n.Localize(t.language, errors.ErrCodeSave),
-			i18n.Localize(t.language, errors.ErrCodeTransfer),
-			i18n.ErrMsgToI18n(err, t.language))
+		templateData := map[string]string{
+			"Message": err.Error(),
+		}
+		return i18n.TranslationI18n(t.language, "SaveTransfer", templateData)
 	}
 
 	if err := t.SaveTransferLines(tx, tr); err != nil {
-		return fmt.Errorf("%s %s: [%w]",
-			i18n.Localize(t.language, errors.ErrCodeSave),
-			i18n.Localize(t.language, errors.ErrCodeTransferLine),
-			i18n.ErrMsgToI18n(err, t.language))
+		templateData := map[string]string{
+			"Message": err.Error(),
+		}
+		return i18n.TranslationI18n(t.language, "SaveTransferLine", templateData)
 	}
 
 	return nil
