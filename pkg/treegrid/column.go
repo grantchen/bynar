@@ -61,5 +61,5 @@ func (c Column) Type() string {
 		return "Int"
 	}
 
-	return "Auto"
+	return "Text"
 }

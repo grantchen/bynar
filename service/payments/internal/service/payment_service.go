@@ -11,10 +11,10 @@ import (
 )
 
 const (
-	ToApply        = 1
-	SuccessApplied = 2
+	ToApply = 1
 )
 
+// paymentService implements PaymentService
 type paymentService struct {
 	gridRowDataRepositoryWithChild treegrid.GridRowDataRepositoryWithChild
 	db                             *sql.DB
@@ -34,6 +34,7 @@ func (u *paymentService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string
 	return u.gridRowDataRepositoryWithChild.GetPageData(tr)
 }
 
+// Handle implements PaymentsService
 func (u *paymentService) Handle(tx *sql.Tx, m *models.Payment) error {
 	if err := u.handlePayment(tx, m); err != nil {
 		return fmt.Errorf("handle payment: [%w]", err)
@@ -59,10 +60,13 @@ func (u *paymentService) Handle(tx *sql.Tx, m *models.Payment) error {
 
 	return nil
 }
+
+// GetTx implements PaymentsService
 func (u *paymentService) GetTx(tx *sql.Tx, id interface{}) (*models.Payment, error) {
 	return u.paymentRepository.Get(tx, id)
 }
 
+// handlePayment handle payment calculation
 func (u *paymentService) handlePayment(tx *sql.Tx, m *models.Payment) error {
 	if m.PaidStatus == 1 {
 		return nil
@@ -95,6 +99,7 @@ func (u *paymentService) handlePayment(tx *sql.Tx, m *models.Payment) error {
 	return nil
 }
 
+// HandleLine implements PaymentsService
 func (u *paymentService) HandleLine(tx *sql.Tx, payment *models.Payment, line *models.PaymentLine) (err error) {
 	pr, err := u.procRepository.GetProcurement(tx, line.AppliesDocumentID)
 	if err != nil {
@@ -123,6 +128,7 @@ func (u *paymentService) HandleLine(tx *sql.Tx, payment *models.Payment, line *m
 	return nil
 }
 
+// NewPaymentService returns a new PaymentService
 func NewPaymentService(
 	db *sql.DB,
 	gridRowDataRepositoryWithChild treegrid.GridRowDataRepositoryWithChild,

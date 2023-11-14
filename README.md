@@ -152,6 +152,7 @@ Current avaliable sevices are:
  * sales
  * payments
  * procurements
+ * languages
 
 ## How to config domain
 * DNS A address set

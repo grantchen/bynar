@@ -56,7 +56,6 @@ func (u *TreeGridService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespo
 	for _, gr := range grList {
 		if err = u.handle(tx, gr); err != nil {
 			log.Println("Err", err)
-			isCommit = false
 			resp.IO.Result = -1
 			resp.IO.Message += err.Error() + "\n"
 			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))

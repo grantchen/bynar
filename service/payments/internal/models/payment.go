@@ -2,6 +2,7 @@ package models
 
 import "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
 
+// Payment is a struct for payment
 type Payment struct {
 	ID                     int
 	BatchID                int
@@ -36,6 +37,7 @@ type Payment struct {
 	CashManagement *models.CashManagement
 }
 
+// PaymentLine is a struct for payment line
 type PaymentLine struct {
 	ID                  int
 	ParentID            int

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/repository"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
@@ -15,6 +14,7 @@ import (
 	"strings"
 )
 
+// UploadService is the service for upload
 type UploadService struct {
 	db                                 *sql.DB
 	updateGRPaymentRepository          treegrid.SimpleGridRowRepository
@@ -27,6 +27,7 @@ type UploadService struct {
 	paymentService                     PaymentService
 }
 
+// NewUploadService returns a new upload service
 func NewUploadService(db *sql.DB,
 	updateGRPaymentRepository treegrid.SimpleGridRowRepository,
 	updateGRPaymentRepositoryWithChild treegrid.GridRowRepositoryWithChild,
@@ -50,6 +51,7 @@ func NewUploadService(db *sql.DB,
 	}
 }
 
+// Handle handles the upload request
 func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	resp := &treegrid.PostResponse{}
 	// Create new transaction
@@ -63,13 +65,12 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 
 	tx, err := u.db.BeginTx(context.Background(), nil)
 	if err != nil {
-		return nil, fmt.Errorf(i18n.Localize(u.language, errors.ErrCodeBeginTransaction))
+		return nil, fmt.Errorf("begin transaction: [%w]", err)
 	}
 	defer tx.Rollback()
 	m := make(map[string]interface{}, 0)
 	var handleErr error
 	for _, tr := range trList.MainRows() {
-		// todo refactor group
 		if tr.Fields["id"] == "Group" {
 			continue
 		}
@@ -93,12 +94,13 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	}
 	if handleErr == nil {
 		if err := tx.Commit(); err != nil {
-			return nil, fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "commit-transaction"), err)
+			return nil, fmt.Errorf("commit transaction: [%w]", err)
 		}
 	}
 	return resp, nil
 }
 
+// handle handles the upload request of a main row
 func (u *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 	//Check Approval Order
 	ok, err := u.approvalService.Check(tr, u.accountId, u.language)
@@ -107,8 +109,9 @@ func (u *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 	}
 
 	if !ok {
-		return fmt.Errorf("%s",
-			i18n.Localize(u.language, "forbidden-action"))
+		return i18n.TranslationI18n(u.language, "ForbiddenAction", map[string]string{
+			"Message": err.Error(),
+		})
 	}
 	if err := u.save(tx, tr); err != nil {
 		return err
@@ -120,15 +123,23 @@ func (u *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 		// working with procurement - calculating and updating.
 		entity, err := u.paymentService.GetTx(tx, tr.Fields.GetID())
 		if err != nil {
-			return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "failed-to-get-data-from", "procurement"), err)
+			return i18n.TranslationI18n(u.language, "FailedToGetDataFrom", map[string]string{
+				"Message": err.Error(),
+			})
 		}
 
 		if err := u.paymentService.Handle(tx, entity); err != nil {
-			return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "failed-to-handle", "procurement"), err)
+			templateData := map[string]string{
+				"Field": "procurement",
+			}
+			return i18n.TranslationI18n(u.language, "FailedToHandle", templateData)
 		}
 		if entity.DocumentNo == "" {
 			if err := u.docSvc.Handle(tx, entity.ID, entity.DocumentID, entity.DocumentNo); err != nil {
-				return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "failed-to-handle", "document"), err)
+				templateData := map[string]string{
+					"Field": "document",
+				}
+				return i18n.TranslationI18n(u.language, "FailedToHandle", templateData)
 			}
 		}
 
@@ -137,24 +148,24 @@ func (u *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 	return nil
 }
 
+// save saves payment and payment lines
 func (u *UploadService) save(tx *sql.Tx, tr *treegrid.MainRow) error {
 	if err := u.savePayment(tx, tr); err != nil {
-		return fmt.Errorf("%s %s: [%w]",
-			i18n.Localize(u.language, errors.ErrCodeSave),
-			i18n.Localize(u.language, errors.ErrCodePayment),
-			err)
+		return i18n.TranslationI18n(u.language, "SavePayment", map[string]string{
+			"Message": err.Error(),
+		})
 	}
 
 	if err := u.savePaymentLine(tx, tr, tr.Fields.GetID()); err != nil {
-		return fmt.Errorf("%s %s: [%w]",
-			i18n.Localize(u.language, errors.ErrCodeSave),
-			i18n.Localize(u.language, errors.ErrCodePaymentLine),
-			err)
+		return i18n.TranslationI18n(u.language, "SavePaymentLine", map[string]string{
+			"Message": err.Error(),
+		})
 	}
 
 	return nil
 }
 
+// savePayment saves payment
 func (u *UploadService) savePayment(tx *sql.Tx, tr *treegrid.MainRow) error {
 	fieldsValidating := []string{"document_id"}
 
@@ -172,7 +183,10 @@ func (u *UploadService) savePayment(tx *sql.Tx, tr *treegrid.MainRow) error {
 		for _, field := range fieldsValidating {
 			ok, err := u.updateGRPaymentRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(u.language, errors.ErrCodeValueDuplicated), tr.Fields[field])
+				templateData := map[string]string{
+					"Field": field,
+				}
+				return i18n.TranslationI18n(u.language, "ValueDuplicated", templateData)
 			}
 		}
 	case treegrid.GridRowActionChanged:
@@ -184,7 +198,10 @@ func (u *UploadService) savePayment(tx *sql.Tx, tr *treegrid.MainRow) error {
 		for _, field := range fieldsValidating {
 			ok, err := u.updateGRPaymentRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
 			if !ok || err != nil {
-				return fmt.Errorf("%s: %s: %s", field, i18n.Localize(u.language, errors.ErrCodeValueDuplicated), tr.Fields[field])
+				templateData := map[string]string{
+					"Field": field,
+				}
+				return i18n.TranslationI18n(u.language, "ValueDuplicated", templateData)
 			}
 		}
 	case treegrid.GridRowActionDeleted:
@@ -193,23 +210,28 @@ func (u *UploadService) savePayment(tx *sql.Tx, tr *treegrid.MainRow) error {
 		if !strings.HasPrefix(idStr, "CR") {
 			stmt, err := tx.Prepare("DELETE FROM payment_lines WHERE parent_id = ?")
 			if err != nil {
-				return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "failed-to-delete", "payment_lines"), err)
+				templateData := map[string]string{
+					"Field": "payment_lines",
+				}
+				return i18n.TranslationI18n(u.language, "FailedToDelete", templateData)
 			}
 
 			defer stmt.Close()
 
 			_, err = stmt.Exec(idStr)
 			if err != nil {
-				return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "failed-to-delete", "payment_lines"), err)
+				templateData := map[string]string{
+					"Field": "payment_lines",
+				}
+				return i18n.TranslationI18n(u.language, "FailedToDelete", templateData)
 			}
 		}
-
-		fmt.Println(tr.Fields.GetID())
 	}
 
 	return u.updateGRPaymentRepositoryWithChild.SaveMainRow(tx, tr)
 }
 
+// savePaymentLine saves payment lines
 func (u *UploadService) savePaymentLine(tx *sql.Tx, tr *treegrid.MainRow, parentID interface{}) error {
 	for _, item := range tr.Items {
 		logger.Debug("save payment line: ", tr, "parentID: ", parentID)
@@ -225,7 +247,10 @@ func (u *UploadService) savePaymentLine(tx *sql.Tx, tr *treegrid.MainRow, parent
 			logger.Debug("add child row")
 			err = u.updateGRPaymentRepositoryWithChild.SaveLineAdd(tx, item)
 			if err != nil {
-				return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "failed-to-add", "payment-line"), err)
+				templateData := map[string]string{
+					"Field": "payment-line",
+				}
+				return i18n.TranslationI18n(u.language, "FailedToAdd", templateData)
 			}
 		case treegrid.GridRowActionChanged:
 			err = tr.Fields.ValidateOnRequired(repository.PaymentLineFieldUploadNames, u.language)
@@ -235,7 +260,10 @@ func (u *UploadService) savePaymentLine(tx *sql.Tx, tr *treegrid.MainRow, parent
 
 			err = u.updateGRPaymentRepositoryWithChild.SaveLineUpdate(tx, item)
 			if err != nil {
-				return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "failed-to-update", "payment-line"), err)
+				templateData := map[string]string{
+					"Field": "payment-line",
+				}
+				return i18n.TranslationI18n(u.language, "FailedToUpdate", templateData)
 			}
 		case treegrid.GridRowActionDeleted:
 			logger.Debug("delete child")
@@ -244,10 +272,15 @@ func (u *UploadService) savePaymentLine(tx *sql.Tx, tr *treegrid.MainRow, parent
 			item["id"] = item.GetID()
 			err = u.updateGRPaymentRepositoryWithChild.SaveLineDelete(tx, item)
 			if err != nil {
-				return fmt.Errorf("%s: [%w]", i18n.Localize(u.language, "failed-to-delete", "payment-line"), err)
+				templateData := map[string]string{
+					"Field": "payment-line",
+				}
+				return i18n.TranslationI18n(u.language, "FailedToDelete", templateData)
 			}
 		default:
-			return fmt.Errorf("%s: %s", i18n.Localize(u.language, "undefined-action-type"), tr.Fields.GetActionType())
+			return i18n.TranslationI18n(u.language, "UndefinedActionType", map[string]string{
+				"Message": err.Error(),
+			})
 
 		}
 	}

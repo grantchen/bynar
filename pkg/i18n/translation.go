@@ -22,7 +22,7 @@ var errMsgToTranslationMap = map[string]string{
 var globalBundle *i18n.Bundle
 
 // No need to load active.en.toml since we are providing default translations.
-// bundle.MustLoadMessageFile("active.en.toml")
+// bundle.MustLoadMessageFile("en.toml")
 func init() {
 	globalBundle = i18n.NewBundle(language.English)
 	globalBundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
@@ -38,6 +38,7 @@ func init() {
 	}
 }
 
+// TranslationI18n  error translation to i18n
 func TranslationI18n(language, messageId string, templateData map[string]string) error {
 	localizer := i18n.NewLocalizer(globalBundle, language)
 	translationMessage := localizer.MustLocalize(&i18n.LocalizeConfig{
