@@ -1,9 +1,12 @@
 package service
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
@@ -18,11 +21,12 @@ type ProcurementSvc struct {
 	currencyRep                    repository.CurrencyRepository
 	inventoryRep                   repository.InventoryRepository
 	boundFlowRep                   repository.BoundFlowRepository
+	language                       string
 }
 
 func NewProcurementSvc(db *sql.DB,
 	gridRowDataRepositoryWithChild treegrid.GridRowDataRepositoryWithChild, procRep repository.ProcurementRepository, unitRep repository.UnitRepository,
-	currencyRep repository.CurrencyRepository, inventoryRep repository.InventoryRepository) ProcurementsService {
+	currencyRep repository.CurrencyRepository, inventoryRep repository.InventoryRepository, language string) ProcurementsService {
 	return &ProcurementSvc{
 		db:                             db,
 		gridRowDataRepositoryWithChild: gridRowDataRepositoryWithChild,
@@ -30,6 +34,7 @@ func NewProcurementSvc(db *sql.DB,
 		unitRep:                        unitRep,
 		currencyRep:                    currencyRep,
 		inventoryRep:                   inventoryRep,
+		language:                       language,
 	}
 }
 
@@ -197,4 +202,57 @@ func (s *ProcurementSvc) handleInboundFlow(tx *sql.Tx, pr *models.Procurement, l
 	err = s.boundFlowRep.SaveInboundFlow(tx, inFlow)
 
 	return
+}
+
+// validate item_id
+func (s *ProcurementSvc) validateItemID(tx *sql.Tx, item treegrid.GridRow) error {
+	id, ok := item["item_id"]
+	if !ok {
+		return nil
+	}
+	query := `SELECT 1 FROM items WHERE id = ?`
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	var existFlag int
+	if err = stmt.QueryRow(id).Scan(&existFlag); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return i18n.TranslationI18n(s.language, "ItemNotExist", map[string]string{
+				"ItemId": fmt.Sprint(id),
+			})
+		}
+
+		return i18n.TranslationErrorToI18n(s.language, err)
+	}
+
+	return nil
+}
+
+func (s *ProcurementSvc) ValidateParams(db *sql.DB, item treegrid.GridRow) error {
+	tx, err := db.BeginTx(context.Background(), nil)
+	if err != nil {
+		return nil
+	}
+
+	err = s.validateItemID(tx, item)
+	if err != nil {
+		return err
+	}
+	unitID, ok := item["item_unit_id"]
+	if !ok {
+		return nil
+	}
+
+	query := `SELECT value FROM units WHERE id = ?`
+	var unitValue float64
+	if err := tx.QueryRow(query, unitID).Scan(&unitValue); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("unit not found with item_unit_id: %s", unitID)
+		}
+
+		return fmt.Errorf("query row: [%w], query: %s", err, query)
+	}
+	return nil
 }

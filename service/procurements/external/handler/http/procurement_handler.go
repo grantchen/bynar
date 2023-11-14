@@ -61,7 +61,8 @@ func NewHTTPHandler(appConfig config.AppConfig, db *sql.DB) *handler.HTTPTreeGri
 		procurementRepository,
 		unitRepository,
 		currencyRepository,
-		inventoryRepository)
+		inventoryRepository,
+		"en")
 
 	docSvc := pkg_service.NewDocumentService(documentRepository)
 

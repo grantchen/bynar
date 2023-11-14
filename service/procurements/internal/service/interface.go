@@ -13,4 +13,5 @@ type ProcurementsService interface {
 	HandleLine(tx *sql.Tx, pr *models.Procurement, line *models.ProcurementLine) (err error)
 	GetPageCount(treegrid *treegrid.Treegrid) (int64, error)
 	GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error)
+	ValidateParams(db *sql.DB, item treegrid.GridRow) error
 }

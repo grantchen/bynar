@@ -4,12 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
-	"log"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/procurements/internal/repository"
 )
 
 type UploadService struct {
@@ -72,16 +74,52 @@ func (s *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 }
 
 func (s *UploadService) handle(tr *treegrid.MainRow) error {
+	switch tr.Fields.GetActionType() {
+	case treegrid.GridRowActionAdd:
+		err := tr.Fields.ValidateOnRequiredAll(repository.ProcurementFieldNames, s.language)
+		if err != nil {
+			return err
+		}
+		err = tr.Fields.ValidateOnNotNegativeNumber(repository.ProcurementFieldNames, s.language)
+		if err != nil {
+			return err
+		}
+	case treegrid.GridRowActionChanged:
+		err := tr.Fields.ValidateOnNotNegativeNumber(repository.ProcurementFieldNames, s.language)
+		if err != nil {
+			return err
+		}
+	}
+	for _, item := range tr.Items {
+		switch item.GetActionType() {
+		case treegrid.GridRowActionAdd:
+			err := item.ValidateOnNotNegativeNumber(repository.ProcurementLineFieldNames, s.language)
+			if err != nil {
+				return err
+			}
+			err = s.procurementsService.ValidateParams(s.db, item)
+			if err != nil {
+				return err
+			}
+		case treegrid.GridRowActionChanged:
+			err := item.ValidateOnNotNegativeNumber(repository.ProcurementLineFieldNames, s.language)
+			if err != nil {
+				return err
+			}
+			err = s.procurementsService.ValidateParams(s.db, item)
+			if err != nil {
+				return err
+			}
+		}
+	}
 	// Check Approval Order
 	ok, err := s.approvalService.Check(tr, s.accountId, s.language)
 	if err != nil {
 		return fmt.Errorf("%s: [%w]", i18n.TranslationI18n(s.language, "CheckOrder", map[string]string{}).Error(), err)
 	}
-
 	if !ok {
 		return fmt.Errorf("invalid approval order: [%w]: status: %d", errors.ErrForbiddenAction, tr.Status())
 	}
-
 	// Create new transaction
 	tx, err := s.db.BeginTx(context.Background(), nil)
 	if err != nil {

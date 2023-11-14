@@ -51,7 +51,7 @@ func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.Tre
 
 	docSvc := pkg_service.NewDocumentService(documentRepository)
 
-	procService := service.NewProcurementSvc(db, gridRowDataRepositoryWithChild, procurementRepository, unitRepo, currencyRepo, invRepo)
+	procService := service.NewProcurementSvc(db, gridRowDataRepositoryWithChild, procurementRepository, unitRepo, currencyRepo, invRepo, language)
 
 	grPaymentDataUploadRepositoryWithChild := treegrid.NewGridRepository(db, "procurements",
 		"procurement_lines",
