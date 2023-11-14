@@ -45,6 +45,9 @@ Before run should create .env file in service/main directory, you can copy .env.
  $ cd service/main/
  $ go run main.go
 ```
+## How to test
+
+change .env file config value, then run above command, you can test api endpoint in http://127.0.0.1:8080
 
 ## ENV keys
 
