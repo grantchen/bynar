@@ -78,7 +78,8 @@ func main() {
 		procurementRepository,
 		unitRepository,
 		currencyRepository,
-		inventoryRepository)
+		inventoryRepository,
+		"en")
 
 	docSvc := pkg_service.NewDocumentService(documentRepository)
 

@@ -90,6 +90,32 @@ func (s *UploadService) handle(tr *treegrid.MainRow) error {
 			return err
 		}
 	}
+	for _, item := range tr.Items {
+		switch item.GetActionType() {
+		case treegrid.GridRowActionAdd:
+			err := item.ValidateOnRequiredAll(repository.ProcurementLineFieldNames, s.language)
+			if err != nil {
+				return err
+			}
+			err = item.ValidateOnNotNegativeNumber(repository.ProcurementLineFieldNames, s.language)
+			if err != nil {
+				return err
+			}
+			err = s.procurementsService.ValidateParams(s.db, item)
+			if err != nil {
+				return err
+			}
+		case treegrid.GridRowActionChanged:
+			err := item.ValidateOnNotNegativeNumber(repository.ProcurementLineFieldNames, s.language)
+			if err != nil {
+				return err
+			}
+			err = s.procurementsService.ValidateParams(s.db, item)
+			if err != nil {
+				return err
+			}
+		}
+	}
 	// Check Approval Order
 	ok, err := s.approvalService.Check(tr, s.accountId, s.language)
 	if err != nil {
