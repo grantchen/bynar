@@ -41,7 +41,7 @@ func (s *accountServiceHandler) Signup(email string) *errpkg.Error {
 
 	err = gip.SendRegistrationEmail(email, continueUrl)
 	if err != nil {
-		errpkg.NewUnknownError("send registration email fail", "").WithInternalCause(err)
+		return errpkg.NewUnknownError("send registration email fail", "").WithInternalCause(err)
 	}
 	return nil
 }
