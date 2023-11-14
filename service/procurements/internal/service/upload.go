@@ -93,11 +93,7 @@ func (s *UploadService) handle(tr *treegrid.MainRow) error {
 	for _, item := range tr.Items {
 		switch item.GetActionType() {
 		case treegrid.GridRowActionAdd:
-			err := item.ValidateOnRequiredAll(repository.ProcurementLineFieldNames, s.language)
-			if err != nil {
-				return err
-			}
-			err = item.ValidateOnNotNegativeNumber(repository.ProcurementLineFieldNames, s.language)
+			err := item.ValidateOnNotNegativeNumber(repository.ProcurementLineFieldNames, s.language)
 			if err != nil {
 				return err
 			}
