@@ -68,11 +68,11 @@ steps:
       - '-c'
       - |
         # List and filter revisions (modify this command as needed)
-        OLD_REVISIONS=$(gcloud run revisions list --region=europe-west1 --filter="status.conditions.type:Active AND status.conditions.status:'False'" --format='value(metadata.name)')
+        OLD_REVISIONS=$(gcloud run revisions list --region=europe-west1 --filter="status.conditions.type:Active AND status.conditions.status:'False'" --format="value(metadata.name)")
         
         # Loop through and delete old revisions
         for revision in $OLD_REVISIONS; do
-          gcloud run revisions delete --quiet --region=europe-west1
+          gcloud run revisions delete $revision --quiet --region=europe-west1
         done
 
   # Deploy to Cloud Run
