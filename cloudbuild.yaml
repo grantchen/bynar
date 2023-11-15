@@ -63,9 +63,8 @@ steps:
   
   # Delete old revisions
   - name: 'bash'
-    script:
-      - '-c'
-      - |
+    script: |
+        #!/usr/bin/env bash
         # List and filter revisions (modify this command as needed)
         OLD_REVISIONS=$(gcloud run revisions list --region=europe-west1 --filter="status.conditions.type:Active AND status.conditions.status:'False'" --format="value(metadata.name)")
         
