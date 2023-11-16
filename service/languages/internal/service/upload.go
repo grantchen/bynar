@@ -98,7 +98,7 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 // Common verification logic
 func validateGridRow(gr treegrid.GridRow, language string) error {
 	positiveFieldsValidating := []string{"number"}
-	err := gr.ValidateOnRequiredAll(repository.LanguageFieldNames, language)
+	err := gr.ValidateOnRequired(repository.LanguageFieldNames, language)
 	if err != nil {
 		return err
 	}
