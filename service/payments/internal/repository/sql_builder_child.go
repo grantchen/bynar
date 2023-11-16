@@ -4,7 +4,7 @@ const (
 	// QueryChildCount is a query for getting count of child rows
 	QueryChildCount = `
 		SELECT COUNT(*) as Count
-		FROM payment_lines 
+		FROM payment_lines
 		`
 	// QueryChild is a query for getting child rows
 	QueryChild = `
