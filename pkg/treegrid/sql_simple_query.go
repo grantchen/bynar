@@ -66,13 +66,39 @@ func BuildSimpleQueryGroupBy(tableName string, fieldMapping map[string][]string,
 		groupBy = append(groupBy, dbCol)
 	}
 
-	queryBuffer.WriteString(sel[level])
-	queryBuffer.WriteString(", COUNT(*) AS Count FROM " + tableName)
-	if innerJoin != "" {
-		queryBuffer.WriteString(innerJoin)
+	queryFrom := ""
+	if level == len(groupCol)-1 {
+		// get the last level parent data with children count
+		queryFrom = tableName
+		queryBuffer.WriteString(sel[level])
+		queryBuffer.WriteString(", COUNT(*) AS Count FROM " + queryFrom)
+		if innerJoin != "" {
+			queryBuffer.WriteString(innerJoin)
+		}
+		queryBuffer.WriteString(whereCondition)
+		queryBuffer.WriteString(" GROUP BY " + groupBy[level])
+	} else {
+		// get the parent data with children count not the last level
+		queryFrom = fmt.Sprintf(`
+			(SELECT %s, %s
+			FROM %s
+			%s
+			%s
+			GROUP BY %s, %s) t
+			`,
+			groupBy[level],
+			groupBy[level+1],
+			tableName,
+			innerJoin,
+			whereCondition,
+			groupBy[level],
+			groupBy[level+1],
+		)
+
+		queryBuffer.WriteString(sel[level])
+		queryBuffer.WriteString(", COUNT(*) AS Count FROM " + queryFrom)
+		queryBuffer.WriteString(" GROUP BY " + groupBy[level])
 	}
-	queryBuffer.WriteString(whereCondition)
-	queryBuffer.WriteString(" GROUP BY " + groupBy[level])
 
 	return queryBuffer.String()
 }

@@ -104,6 +104,7 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 	level := tg.BodyParams.GetRowLevel()
 	where := tg.BodyParams.GetRowWhere()
 
+	// last level of group by, get data from table
 	if level == len(tg.GroupCols) {
 		where = where + s.cfg.AdditionWhere
 		return s.getPageData(tg, where)
