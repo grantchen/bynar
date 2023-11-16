@@ -187,6 +187,7 @@ func (s *simpleGridRepository) GetPageCount(tg *Treegrid) (int64, error) {
 		fmt.Printf("parse rows: [%v]", err)
 		return 0, err
 	}
+	defer rows.Close()
 
 	return int64(math.Ceil(float64(utils.CheckCount(rows)) / float64(s.pageSize))), nil
 }

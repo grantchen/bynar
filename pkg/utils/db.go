@@ -78,23 +78,29 @@ func (r *RowValues) GetValue(columnName string) string {
 	return val
 }
 
+// CheckCount checks count value from sql.Rows
 func CheckCount(rows *sql.Rows) (rowCount int) {
-	for rows.Next() {
-		err := rows.Scan(&rowCount)
-		if err != nil {
-			logger.Debug(err)
-		}
+	if !rows.Next() {
+		return 0
+	}
+
+	err := rows.Scan(&rowCount)
+	if err != nil {
+		logger.Debug(err)
 	}
 
 	return rowCount
 }
 
-func CheckCoutWithError(rows *sql.Rows) (rowCount int, err error) {
-	for rows.Next() {
-		err := rows.Scan(&rowCount)
-		if err != nil {
-			return 0, err
-		}
+// CheckCountWithError checks count value from sql.Rows
+func CheckCountWithError(rows *sql.Rows) (rowCount int, err error) {
+	if !rows.Next() {
+		return 0, err
+	}
+
+	err = rows.Scan(&rowCount)
+	if err != nil {
+		return 0, err
 	}
 
 	return rowCount, nil

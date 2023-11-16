@@ -169,6 +169,7 @@ func (g *gridRowDataRepositoryWithChild) GetPageCount(tg *Treegrid) (int64, erro
 		log.Println(err, "query", query, "colData", column)
 		return 0, err
 	}
+	defer rows.Close()
 
 	return int64(math.Ceil(float64(utils.CheckCount(rows)) / float64(g.pageSize))), nil
 	// return 0
