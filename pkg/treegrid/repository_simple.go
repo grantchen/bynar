@@ -177,7 +177,7 @@ func (s *simpleGridRepository) GetPageCount(tg *Treegrid) (int64, error) {
 		query = query + DummyWhere + FilterWhere + s.cfg.AdditionWhere
 	} else {
 		where := DummyWhere + FilterWhere + s.cfg.AdditionWhere
-		query = BuildSimpleQueryGroupByCount(s.tableName, s.fieldMapping, tg.GroupCols, where, s.cfg.QueryCount)
+		query = BuildSimpleQueryGroupByCount(s.tableName, s.fieldMapping, tg.GroupCols, where)
 	}
 
 	logger.Debug("query GetPageCount: ", query)
