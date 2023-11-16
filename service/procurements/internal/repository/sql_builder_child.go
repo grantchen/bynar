@@ -34,5 +34,6 @@ const (
 	FROM procurement_lines
 	`
 
-	QueryChildJoins = ` INNER JOIN procurements ON parent_id = procurements.id `
+	QueryChildJoins = `
+	`
 )
