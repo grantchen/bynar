@@ -117,7 +117,20 @@ func (g *gridRowDataRepositoryWithChild) GetPageCount(tg *Treegrid) (int64, erro
 				DummyWhere +
 				FilterWhere["parent"] + ") "
 		}
-		query = g.cfg.QueryChildCount + FilterWhere["child"] + FilterWhere["parent"]
+
+		if !tg.WithGroupBy() {
+			query = g.cfg.QueryChildCount + FilterWhere["child"] + FilterWhere["parent"]
+		} else {
+			query = fmt.Sprintf(`SELECT COUNT(*) FROM (SELECT %s FROM %s%s%s%s GROUP BY %s) t;`,
+				column.DBName,
+				g.lineTableName,
+				g.cfg.QueryChildJoins,
+				DummyWhere,
+				FilterWhere["child"]+FilterWhere["parent"],
+				column.DBName,
+			)
+		}
+
 		logger.Debug("query count1:", query)
 	} else {
 		if FilterWhere["child"] != "" {
@@ -134,7 +147,19 @@ func (g *gridRowDataRepositoryWithChild) GetPageCount(tg *Treegrid) (int64, erro
 
 		}
 
-		query = g.cfg.QueryParentCount + FilterWhere["child"] + FilterWhere["parent"]
+		if !tg.WithGroupBy() {
+			query = g.cfg.QueryParentCount + FilterWhere["child"] + FilterWhere["parent"]
+		} else {
+			query = fmt.Sprintf(`SELECT COUNT(*) FROM (SELECT %s FROM %s%s%s%s GROUP BY %s) t;`,
+				column.DBName,
+				g.tableName,
+				g.cfg.QueryParentJoins,
+				DummyWhere,
+				FilterWhere["child"]+FilterWhere["parent"],
+				column.DBName,
+			)
+		}
+
 		logger.Debug("query count2: ", query)
 	}
 
@@ -144,6 +169,7 @@ func (g *gridRowDataRepositoryWithChild) GetPageCount(tg *Treegrid) (int64, erro
 		log.Println(err, "query", query, "colData", column)
 		return 0, err
 	}
+	defer rows.Close()
 
 	return int64(math.Ceil(float64(utils.CheckCount(rows)) / float64(g.pageSize))), nil
 	// return 0

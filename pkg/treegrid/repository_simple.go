@@ -104,6 +104,7 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 	level := tg.BodyParams.GetRowLevel()
 	where := tg.BodyParams.GetRowWhere()
 
+	// last level of group by, get data from table
 	if level == len(tg.GroupCols) {
 		where = where + s.cfg.AdditionWhere
 		return s.getPageData(tg, where)
@@ -177,7 +178,7 @@ func (s *simpleGridRepository) GetPageCount(tg *Treegrid) (int64, error) {
 		query = query + DummyWhere + FilterWhere + s.cfg.AdditionWhere
 	} else {
 		where := DummyWhere + FilterWhere + s.cfg.AdditionWhere
-		query = BuildSimpleQueryGroupByCount(s.tableName, s.fieldMapping, tg.GroupCols, where, s.cfg.QueryCount)
+		query = BuildSimpleQueryGroupByCount(s.tableName, s.fieldMapping, tg.GroupCols, where)
 	}
 
 	logger.Debug("query GetPageCount: ", query)
@@ -187,6 +188,7 @@ func (s *simpleGridRepository) GetPageCount(tg *Treegrid) (int64, error) {
 		fmt.Printf("parse rows: [%v]", err)
 		return 0, err
 	}
+	defer rows.Close()
 
 	return int64(math.Ceil(float64(utils.CheckCount(rows)) / float64(s.pageSize))), nil
 }

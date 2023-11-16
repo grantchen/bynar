@@ -274,7 +274,7 @@ func (s *UploadService) checkValidUser(tx *sql.Tx, userId interface{}) (bool, er
 		return false, err
 	}
 	defer rows.Close()
-	count, err := utils.CheckCoutWithError(rows)
+	count, err := utils.CheckCountWithError(rows)
 	if err != nil {
 		return false, err
 	}
@@ -293,7 +293,7 @@ func (s *UploadService) userExistInLine(tx *sql.Tx, userId interface{}) (bool, e
 		return false, err
 	}
 	defer rows.Close()
-	count, err := utils.CheckCoutWithError(rows)
+	count, err := utils.CheckCountWithError(rows)
 	if err != nil {
 		return false, err
 	}
