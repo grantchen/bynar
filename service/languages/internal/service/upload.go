@@ -74,12 +74,20 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	// add addition here
 	switch gr.GetActionType() {
 	case treegrid.GridRowActionAdd:
+		err1 := gr.ValidateOnRequiredAll(repository.LanguageFieldNames, s.language)
+		if err1 != nil {
+			return err1
+		}
 		err = validateGridRow(gr, s.language)
 		if err != nil {
 			return err
 		}
 		err = s.languageSimpleRepository.Add(tx, gr)
 	case treegrid.GridRowActionChanged:
+		err1 := gr.ValidateOnRequired(repository.LanguageFieldNames, s.language)
+		if err1 != nil {
+			return err1
+		}
 		err = validateGridRow(gr, s.language)
 		if err != nil {
 			return err
@@ -98,11 +106,7 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 // Common verification logic
 func validateGridRow(gr treegrid.GridRow, language string) error {
 	positiveFieldsValidating := []string{"number"}
-	err := gr.ValidateOnRequired(repository.LanguageFieldNames, language)
-	if err != nil {
-		return err
-	}
-	err = gr.ValidateOnLimitLength(repository.LanguageFieldCountry, 30, language)
+	err := gr.ValidateOnLimitLength(repository.LanguageFieldCountry, 30, language)
 	if err != nil {
 		return err
 	}
