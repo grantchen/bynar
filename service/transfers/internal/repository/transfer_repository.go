@@ -180,7 +180,7 @@ func (t *transferRepository) SaveTransferLines(tx *sql.Tx, tr *treegrid.MainRow)
 			}
 
 			// check item_unit_id
-			if err = t.validateItemUintID(tx, item); err != nil {
+			if err = t.validateItemUnitID(tx, item); err != nil {
 				return err
 			}
 
