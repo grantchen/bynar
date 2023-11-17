@@ -112,12 +112,19 @@ func ExtractWhereClause(query string, params []interface{}) string {
 		query = strings.Replace(query, "?", fmt.Sprintf("'%s'", params[count]), 1)
 	}
 
-	pos := strings.Index(query, "WHERE")
-	if pos == -1 {
+	// If there is no WHERE clause
+	wherePos := strings.Index(query, "WHERE")
+	if wherePos == -1 {
 		return "WHERE 1=1"
 	}
 
-	return query[pos:]
+	// If there is no GROUP BY clause
+	groupByPos := strings.Index(query, "GROUP BY")
+	if groupByPos == -1 {
+		return query[wherePos:]
+	}
+
+	return query[wherePos:groupByPos]
 }
 
 // Returns the replaced column in the query.
