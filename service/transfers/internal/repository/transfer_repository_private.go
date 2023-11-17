@@ -185,7 +185,7 @@ func (t *transferRepository) validateItemID(tx *sql.Tx, item treegrid.GridRow) e
 }
 
 // validate item_unit_id
-func (t *transferRepository) validateItemUintID(tx *sql.Tx, item treegrid.GridRow) error {
+func (t *transferRepository) validateItemUnitID(tx *sql.Tx, item treegrid.GridRow) error {
 	id, ok := item["item_unit_id"]
 	if !ok {
 		return nil
