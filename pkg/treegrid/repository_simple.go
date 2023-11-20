@@ -68,7 +68,7 @@ func (s *simpleGridRepository) getPageData(tg *Treegrid, additionWhere string) (
 
 	FilterWhere, FilterArgs := PrepQuerySimple(tg.FilterParams, s.fieldMapping)
 
-	query = query + DummyWhere + FilterWhere + " " + additionWhere + tg.OrderByChildQuery(s.cfg.MapSorted)
+	query = query + ParentDummyWhere + FilterWhere + " " + additionWhere + tg.OrderByChildQuery(s.cfg.MapSorted)
 	query = AppendLimitToQuery(query, s.pageSize, pos)
 	rows, err := s.db.Query(query, FilterArgs...)
 
@@ -116,7 +116,7 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 		FilterWhere = FilterWhere + s.cfg.AdditionWhere
 	}
 
-	groupWhere := DummyWhere + FilterWhere
+	groupWhere := ParentDummyWhere + FilterWhere
 	query := BuildSimpleQueryGroupBy(s.tableName, s.fieldMapping, tg.GroupCols, groupWhere, level, s.cfg.QueryJoin)
 
 	pos, _ := tg.BodyParams.IntPos()
@@ -175,9 +175,9 @@ func (s *simpleGridRepository) GetPageCount(tg *Treegrid) (int64, error) {
 	FilterWhere, FilterArgs := PrepQuerySimple(tg.FilterParams, s.fieldMapping)
 	if !tg.WithGroupBy() {
 		query = BuildSimpleQueryCount(s.tableName, s.fieldMapping, s.cfg.QueryCount)
-		query = query + DummyWhere + FilterWhere + s.cfg.AdditionWhere
+		query = query + ParentDummyWhere + FilterWhere + s.cfg.AdditionWhere
 	} else {
-		where := DummyWhere + FilterWhere + s.cfg.AdditionWhere
+		where := ParentDummyWhere + FilterWhere + s.cfg.AdditionWhere
 		query = BuildSimpleQueryGroupByCount(s.tableName, s.fieldMapping, tg.GroupCols, where)
 	}
 

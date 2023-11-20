@@ -291,7 +291,6 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		db := sql_db.Conn()
 		// Validate permissions
 		if h.IsValidatePermissions {
-			logger.Debug("check permission")
 			permission := &repository.PermissionInfo{}
 			connString, _ = h.AccountManagerService.GetNewStringConnection(claims.TenantUuid, claims.OrganizationUuid, permission)
 			db, err = h.ConnectionPool.Get(connString)

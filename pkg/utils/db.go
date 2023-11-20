@@ -106,7 +106,8 @@ func CheckCountWithError(rows *sql.Rows) (rowCount int, err error) {
 	return rowCount, nil
 }
 
-func ExtractWhereClause(query string, params []interface{}) string {
+// TODO whereTag ?
+func ExtractWhereClause(query string, params []interface{}, whereTag string) string {
 	paramValueCount := strings.Count(query, "?")
 	for count := 0; count < paramValueCount; count++ {
 		query = strings.Replace(query, "?", fmt.Sprintf("'%s'", params[count]), 1)
