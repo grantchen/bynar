@@ -281,7 +281,11 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 			writeErrorResponse(w, defaultResponse, errors.New("no permission"))
 			return
 		}
-
+		modulePath := getModuleFromPath(r)
+		if !claims.OrganizationAccount && modulePath.module == "invoices" {
+			writeErrorResponse(w, defaultResponse, errors.New("no permission"))
+			return
+		}
 		var connString string
 		// Initialize to the "accounts_management" database connection
 		db := sql_db.Conn()
@@ -289,26 +293,25 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		if h.IsValidatePermissions {
 			logger.Debug("check permission")
 			permission := &repository.PermissionInfo{}
-			modulePath := getModuleFromPath(r)
 			connString, _ = h.AccountManagerService.GetNewStringConnection(claims.TenantUuid, claims.OrganizationUuid, permission)
 			db, err = h.ConnectionPool.Get(connString)
 			if err != nil {
 				log.Println("Err get policy", err)
-				writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
+				writeErrorResponse(w, defaultResponse, errors.New("no permission"))
 				return
 			}
 			var val string
 			err = db.QueryRow("SELECT policies FROM users WHERE users.email = ?", claims.Email).Scan(&val)
 			if err != nil {
 				log.Println("Err get policy", err)
-				writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
+				writeErrorResponse(w, defaultResponse, errors.New("no permission"))
 				return
 			}
 			policy := models.Policy{Services: make([]models.ServicePolicy, 0)}
 			err = json.Unmarshal([]byte(val), &policy)
 			if err != nil {
 				log.Println("Err get policy", err)
-				writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
+				writeErrorResponse(w, defaultResponse, errors.New("no permission"))
 				return
 			}
 			allowed := false
@@ -332,7 +335,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 			}
 			if !allowed {
 				log.Println("not allowed to get policy "+modulePath.module, modulePath.pathFeature)
-				writeErrorResponse(w, defaultResponse, errors.New("do not have policy"))
+				writeErrorResponse(w, defaultResponse, errors.New("no permission"))
 				return
 			}
 		}
