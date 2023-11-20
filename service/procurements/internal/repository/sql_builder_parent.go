@@ -8,7 +8,7 @@ const (
 		`
 
 	QueryParent = `
-		SELECT id,
+		SELECT procurements.id,
 			   document_id,
 			   document_no,
 			   transaction_no,
@@ -43,16 +43,16 @@ const (
 			   campaign_id,
 			   area_id,
 			   vendor_shipment_no,
-			   subtotal_exclusive_vat,
-			   total_discount,
-			   total_exclusive_vat,
-			   total_vat,
-			   total_inclusive_vat,
-			   subtotal_exclusive_vat_lcy,
-			   total_discount_lcy,
-			   total_exclusive_vat_lcy,
-			   total_vat_lcy,
-			   total_inclusive_vat_lcy,
+			   procurements.subtotal_exclusive_vat,
+			   procurements.total_discount,
+			   procurements.total_exclusive_vat,
+			   procurements.total_vat,
+			   procurements.total_inclusive_vat,
+			   procurements.subtotal_exclusive_vat_lcy,
+			   procurements.total_discount_lcy,
+			   procurements.total_exclusive_vat_lcy,
+			   procurements.total_vat_lcy,
+			   procurements.total_inclusive_vat_lcy,
 			   COUNT(procurement_lines.id) AS Count
 		FROM procurements
 				 LEFT JOIN procurement_lines ON procurement_lines.parent_id = procurements.id
