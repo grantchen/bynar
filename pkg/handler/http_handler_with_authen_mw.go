@@ -281,7 +281,11 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 			writeErrorResponse(w, defaultResponse, errors.New("no permission"))
 			return
 		}
-
+		modulePath := getModuleFromPath(r)
+		if !claims.OrganizationAccount && modulePath.module == "invoices" {
+			writeErrorResponse(w, defaultResponse, errors.New("no permission"))
+			return
+		}
 		var connString string
 		// Initialize to the "accounts_management" database connection
 		db := sql_db.Conn()
@@ -289,7 +293,6 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		if h.IsValidatePermissions {
 			logger.Debug("check permission")
 			permission := &repository.PermissionInfo{}
-			modulePath := getModuleFromPath(r)
 			connString, _ = h.AccountManagerService.GetNewStringConnection(claims.TenantUuid, claims.OrganizationUuid, permission)
 			db, err = h.ConnectionPool.Get(connString)
 			if err != nil {
