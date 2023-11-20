@@ -2,9 +2,10 @@ package repository
 
 const (
 	QueryParentCount = `
-	SELECT COUNT(id) as Count
-	FROM procurements WHERE 1=1
-	`
+		SELECT COUNT(id) as Count
+		FROM procurements
+		WHERE 1=1
+		`
 
 	QueryParent = `
 		SELECT procurements.id,
@@ -60,6 +61,5 @@ const (
 		`
 
 	// empty
-	QueryParentJoins = `
-	`
+	QueryParentJoins = ``
 )

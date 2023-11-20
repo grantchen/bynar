@@ -78,23 +78,29 @@ func (r *RowValues) GetValue(columnName string) string {
 	return val
 }
 
+// CheckCount checks count value from sql.Rows
 func CheckCount(rows *sql.Rows) (rowCount int) {
-	for rows.Next() {
-		err := rows.Scan(&rowCount)
-		if err != nil {
-			logger.Debug(err)
-		}
+	if !rows.Next() {
+		return 0
+	}
+
+	err := rows.Scan(&rowCount)
+	if err != nil {
+		logger.Debug(err)
 	}
 
 	return rowCount
 }
 
-func CheckCoutWithError(rows *sql.Rows) (rowCount int, err error) {
-	for rows.Next() {
-		err := rows.Scan(&rowCount)
-		if err != nil {
-			return 0, err
-		}
+// CheckCountWithError checks count value from sql.Rows
+func CheckCountWithError(rows *sql.Rows) (rowCount int, err error) {
+	if !rows.Next() {
+		return 0, err
+	}
+
+	err = rows.Scan(&rowCount)
+	if err != nil {
+		return 0, err
 	}
 
 	return rowCount, nil
@@ -106,12 +112,19 @@ func ExtractWhereClause(query string, params []interface{}) string {
 		query = strings.Replace(query, "?", fmt.Sprintf("'%s'", params[count]), 1)
 	}
 
-	pos := strings.Index(query, "WHERE")
-	if pos == -1 {
+	// If there is no WHERE clause
+	wherePos := strings.Index(query, "WHERE")
+	if wherePos == -1 {
 		return "WHERE 1=1"
 	}
 
-	return query[pos:]
+	// If there is no GROUP BY clause
+	groupByPos := strings.Index(query, "GROUP BY")
+	if groupByPos == -1 {
+		return query[wherePos:]
+	}
+
+	return query[wherePos:groupByPos]
 }
 
 // Returns the replaced column in the query.

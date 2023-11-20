@@ -277,10 +277,12 @@ func (s *UploadService) saveSaleLine(tx *sql.Tx, tr *treegrid.MainRow, parentID 
 			if err != nil {
 				return err
 			}
+
 			err = tr.Fields.ValidateOnLimitLength(positiveFieldsMapping, 100, s.language)
 			if err != nil {
 				return err
 			}
+
 			err = item.ValidateOnPositiveNumber(positiveFieldsMapping, s.language)
 			if err != nil {
 				return err
@@ -292,7 +294,7 @@ func (s *UploadService) saveSaleLine(tx *sql.Tx, tr *treegrid.MainRow, parentID 
 			}
 
 			// check item_unit_id
-			if err = s.validateItemUintID(tx, item); err != nil {
+			if err = s.validateItemUnitID(tx, item); err != nil {
 				return err
 			}
 
@@ -317,12 +319,24 @@ func (s *UploadService) saveSaleLine(tx *sql.Tx, tr *treegrid.MainRow, parentID 
 			if err != nil {
 				return err
 			}
+
 			err = tr.Fields.ValidateOnLimitLength(positiveFieldsMapping, 100, s.language)
 			if err != nil {
 				return err
 			}
+
 			err = item.ValidateOnPositiveNumber(positiveFieldsMapping, s.language)
 			if err != nil {
+				return err
+			}
+
+			// check item_id
+			if err = s.validateItemID(tx, item); err != nil {
+				return err
+			}
+
+			// check item_unit_id
+			if err = s.validateItemUnitID(tx, item); err != nil {
 				return err
 			}
 
@@ -610,7 +624,7 @@ func (s *UploadService) validateItemID(tx *sql.Tx, item treegrid.GridRow) error 
 }
 
 // validate item_unit_id
-func (s *UploadService) validateItemUintID(tx *sql.Tx, item treegrid.GridRow) error {
+func (s *UploadService) validateItemUnitID(tx *sql.Tx, item treegrid.GridRow) error {
 	id, ok := item["item_unit_id"]
 	if !ok {
 		return nil

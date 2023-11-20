@@ -4,7 +4,7 @@ const (
 	// QueryChildCount is a query for getting count of child rows
 	QueryChildCount = `
 		SELECT COUNT(*) as Count
-		FROM payment_lines 
+		FROM payment_lines
 		`
 	// QueryChild is a query for getting child rows
 	QueryChild = `
@@ -14,7 +14,8 @@ const (
 	FROM payment_lines `
 
 	// QueryChildJoins is a query for getting child rows with joins
-	QueryChildJoins = ` INNER JOIN payments ON payment_lines.parent_id = payments.id `
+	QueryChildJoins = `
+	`
 
 	// QueryChildSuggestion is a query for getting child rows suggestion
 	QueryChildSuggestion = ``
