@@ -172,6 +172,20 @@ func (h *HTTPTreeGridHandler) HTTPHandleCell(w http.ResponseWriter, r *http.Requ
 	writeResponse(w, resp)
 }
 
+// response no permission error
+func writeNoPermissionResponse(w http.ResponseWriter, resp *treegrid.PostResponse) {
+	if resp == nil {
+		resp = &treegrid.PostResponse{}
+	}
+
+	resp.IO.Result = -1
+	resp.IO.Message = "no permission"
+	resp.IO.Reason = "NO_PERMISSION"
+
+	// write response with error
+	writeResponse(w, resp)
+}
+
 // WriteErrorResponse
 // if err occures then maybe invalid request so:
 // * log error

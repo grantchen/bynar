@@ -26,6 +26,7 @@ type (
 		IO struct {
 			Message string
 			Result  int
+			Reason  string // Reason for error, for logical judgement
 		}
 
 		Changes []map[string]interface{}

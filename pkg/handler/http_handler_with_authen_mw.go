@@ -278,12 +278,12 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 			return
 		}
 		if !claims.OrganizationStatus || !claims.TenantStatus || claims.TenantSuspended {
-			writeErrorResponse(w, defaultResponse, errors.New("no permission"))
+			writeNoPermissionResponse(w, defaultResponse)
 			return
 		}
 		modulePath := getModuleFromPath(r)
 		if !claims.OrganizationAccount && modulePath.module == "invoices" {
-			writeErrorResponse(w, defaultResponse, errors.New("no permission"))
+			writeNoPermissionResponse(w, defaultResponse)
 			return
 		}
 		var connString string
@@ -297,21 +297,21 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 			db, err = h.ConnectionPool.Get(connString)
 			if err != nil {
 				log.Println("Err get policy", err)
-				writeErrorResponse(w, defaultResponse, errors.New("no permission"))
+				writeNoPermissionResponse(w, defaultResponse)
 				return
 			}
 			var val string
 			err = db.QueryRow("SELECT policies FROM users WHERE users.email = ?", claims.Email).Scan(&val)
 			if err != nil {
 				log.Println("Err get policy", err)
-				writeErrorResponse(w, defaultResponse, errors.New("no permission"))
+				writeNoPermissionResponse(w, defaultResponse)
 				return
 			}
 			policy := models.Policy{Services: make([]models.ServicePolicy, 0)}
 			err = json.Unmarshal([]byte(val), &policy)
 			if err != nil {
 				log.Println("Err get policy", err)
-				writeErrorResponse(w, defaultResponse, errors.New("no permission"))
+				writeNoPermissionResponse(w, defaultResponse)
 				return
 			}
 			allowed := false
@@ -335,7 +335,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 			}
 			if !allowed {
 				log.Println("not allowed to get policy "+modulePath.module, modulePath.pathFeature)
-				writeErrorResponse(w, defaultResponse, errors.New("no permission"))
+				writeNoPermissionResponse(w, defaultResponse)
 				return
 			}
 		}
