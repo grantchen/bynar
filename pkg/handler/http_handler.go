@@ -20,6 +20,11 @@ var (
 	awsRegion           = "eu-central-1"
 
 	httpAuthorizationHeader = "Authorization"
+
+	// no permission error message
+	noPermissionErrorMessage = "no permission"
+	// no permission error reason
+	noPermissionErrorReason = "NO_PERMISSION"
 )
 
 type HTTPTreeGridHandler struct {
@@ -179,8 +184,8 @@ func writeNoPermissionResponse(w http.ResponseWriter, resp *treegrid.PostRespons
 	}
 
 	resp.IO.Result = -1
-	resp.IO.Message = "no permission"
-	resp.IO.Reason = "NO_PERMISSION"
+	resp.IO.Message = noPermissionErrorMessage
+	resp.IO.Reason = noPermissionErrorReason
 
 	// write response with error
 	writeResponse(w, resp)
