@@ -250,13 +250,20 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				} else {
 					return i18n.TranslationErrorToI18n(s.language, err)
 				}
-
+			}
+			_, err = s.db.Exec("DELETE FROM user_group_lines WHERE user_id = ?", id)
+			if err != nil {
+				return i18n.TranslationErrorToI18n(s.language, err)
 			}
 			if s.customerID != "" {
-				resp, err := s.paymentProvider.FetchCustomerDetails(s.customerID)
-				if err == nil {
-					for _, i := range resp.Instruments {
-						s.paymentProvider.DeleteCard(i.ID)
+				var mainAccount int
+				s.accountDB.QueryRow("SELECT oraginzation_main_account FROM organization_accounts WHERE organization_id = ? AND organization_user_id = ?", s.organizationID, id).Scan(&mainAccount)
+				if mainAccount > 0 {
+					resp, err := s.paymentProvider.FetchCustomerDetails(s.customerID)
+					if err == nil {
+						for _, i := range resp.Instruments {
+							s.paymentProvider.DeleteCard(i.ID)
+						}
 					}
 				}
 			}
