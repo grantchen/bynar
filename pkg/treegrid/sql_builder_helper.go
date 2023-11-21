@@ -38,6 +38,7 @@ func (s *ConnectableSQL) Set(sql string, args ...interface{}) {
 	s.Args = args
 }
 
+// Append appends sql and args
 func (s *ConnectableSQL) Append(sql string, args ...interface{}) {
 	s.SQL += sql
 	s.Args = append(s.Args, args...)
