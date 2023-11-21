@@ -3,10 +3,8 @@ package treegrid
 import (
 	"database/sql"
 	"fmt"
-	"math"
-	"strconv"
-
 	"github.com/sirupsen/logrus"
+	"math"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
@@ -102,7 +100,7 @@ func (s *simpleGridRepository) getPageData(tg *Treegrid, additionWhere string) (
 
 func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]string, error) {
 	level := tg.BodyParams.GetRowLevel()
-	where := tg.BodyParams.GetRowWhere()
+	where := tg.BodyParams.GetRowParentWhere()
 
 	// last level of group by, get data from table
 	if level == len(tg.GroupCols) {
@@ -111,7 +109,7 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 	}
 	FilterWhere, FilterArgs := PrepQuerySimple(tg.FilterParams, s.fieldMapping)
 	if level > 0 {
-		FilterWhere = FilterWhere + tg.BodyParams.GetRowWhere() + s.cfg.AdditionWhere
+		FilterWhere = FilterWhere + tg.BodyParams.GetRowParentWhere() + s.cfg.AdditionWhere
 	} else {
 		FilterWhere = FilterWhere + s.cfg.AdditionWhere
 	}
@@ -155,7 +153,7 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 		if where != "" {
 			where += " "
 		}
-		entry["Rows"] = strconv.Itoa(level+1) + where + "AND " + s.fieldMapping[tgCol][0] + " = '" + entry[tgCol] + "'"
+		entry["Rows"] = SetBodyParamRows(level+1, where+"AND "+s.fieldMapping[tgCol][0]+" = '"+entry[tgCol]+"'", "")
 		tableData = append(tableData, entry)
 	}
 	return tableData, nil
