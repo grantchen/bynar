@@ -1,7 +1,9 @@
 package treegrid
 
 import (
+	"fmt"
 	"strconv"
+	"strings"
 )
 
 type BodyParam struct {
@@ -13,7 +15,12 @@ type BodyParam struct {
 	TreegridOriginID string // using for keep id from treegrid, especially with child row, and group with $
 }
 
-// / GetRowLevel gets from rows level. Example: rows = "2WHERE filed=1", level = 1
+// SetBodyParamRows sets rows param for body. Example: rows = "2|13|19|WHERE filed=1WHERE child_field=2"
+func SetBodyParamRows(level int, parentWhere, childWhere string) string {
+	return fmt.Sprintf("%d|%d|%d|%s%s", level, len(parentWhere), len(childWhere), parentWhere, childWhere)
+}
+
+// GetRowLevel gets from rows level. Example: rows = "2WHERE filed=1", level = 1
 func (b *BodyParam) GetRowLevel() int {
 	if b.Rows == "" {
 		return 0
@@ -24,13 +31,34 @@ func (b *BodyParam) GetRowLevel() int {
 	return id
 }
 
-// GetRowWhere gets from rows where clause. Example: rows = "2WHERE filed=1", return WHERE filed=1
-func (b *BodyParam) GetRowWhere() string {
+// GetRowParentWhere gets from rows parent where clause. Example: rows = "2|13|19|WHERE filed=1WHERE child_field=2"
+func (b *BodyParam) GetRowParentWhere() string {
 	if b.Rows == "" {
 		return ""
 	}
 
-	return b.Rows[1:]
+	splitN := strings.SplitN(b.Rows, "|", 4)
+	if len(splitN) != 4 {
+		return ""
+	}
+
+	parentLen, _ := strconv.Atoi(splitN[1])
+	return splitN[3][:parentLen]
+}
+
+// GetRowChildWhere gets from rows child where clause. Example: rows = "2|13|19|WHERE filed=1WHERE child_field=2"
+func (b *BodyParam) GetRowChildWhere() string {
+	if b.Rows == "" {
+		return ""
+	}
+
+	splitN := strings.SplitN(b.Rows, "|", 4)
+	if len(splitN) != 4 {
+		return ""
+	}
+
+	parentLen, _ := strconv.Atoi(splitN[1])
+	return splitN[3][parentLen:]
 }
 
 // GetItemsRequest defines type of response - Transfer of TransferItems

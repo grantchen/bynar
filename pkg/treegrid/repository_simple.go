@@ -3,10 +3,8 @@ package treegrid
 import (
 	"database/sql"
 	"fmt"
-	"math"
-	"strconv"
-
 	"github.com/sirupsen/logrus"
+	"math"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
@@ -68,7 +66,7 @@ func (s *simpleGridRepository) getPageData(tg *Treegrid, additionWhere string) (
 
 	FilterWhere, FilterArgs := PrepQuerySimple(tg.FilterParams, s.fieldMapping)
 
-	query = query + DummyWhere + FilterWhere + " " + additionWhere + tg.OrderByChildQuery(s.cfg.MapSorted)
+	query = query + ParentDummyWhere + FilterWhere + " " + additionWhere + tg.OrderByChildQuery(s.cfg.MapSorted)
 	query = AppendLimitToQuery(query, s.pageSize, pos)
 	rows, err := s.db.Query(query, FilterArgs...)
 
@@ -102,7 +100,7 @@ func (s *simpleGridRepository) getPageData(tg *Treegrid, additionWhere string) (
 
 func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]string, error) {
 	level := tg.BodyParams.GetRowLevel()
-	where := tg.BodyParams.GetRowWhere()
+	where := tg.BodyParams.GetRowParentWhere()
 
 	// last level of group by, get data from table
 	if level == len(tg.GroupCols) {
@@ -111,12 +109,12 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 	}
 	FilterWhere, FilterArgs := PrepQuerySimple(tg.FilterParams, s.fieldMapping)
 	if level > 0 {
-		FilterWhere = FilterWhere + tg.BodyParams.GetRowWhere() + s.cfg.AdditionWhere
+		FilterWhere = FilterWhere + tg.BodyParams.GetRowParentWhere() + s.cfg.AdditionWhere
 	} else {
 		FilterWhere = FilterWhere + s.cfg.AdditionWhere
 	}
 
-	groupWhere := DummyWhere + FilterWhere
+	groupWhere := ParentDummyWhere + FilterWhere
 	query := BuildSimpleQueryGroupBy(s.tableName, s.fieldMapping, tg.GroupCols, groupWhere, level, s.cfg.QueryJoin)
 
 	pos, _ := tg.BodyParams.IntPos()
@@ -155,7 +153,7 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 		if where != "" {
 			where += " "
 		}
-		entry["Rows"] = strconv.Itoa(level+1) + where + "AND " + s.fieldMapping[tgCol][0] + " = '" + entry[tgCol] + "'"
+		entry["Rows"] = SetBodyParamRows(level+1, where+"AND "+s.fieldMapping[tgCol][0]+" = '"+entry[tgCol]+"'", "")
 		tableData = append(tableData, entry)
 	}
 	return tableData, nil
@@ -175,9 +173,9 @@ func (s *simpleGridRepository) GetPageCount(tg *Treegrid) (int64, error) {
 	FilterWhere, FilterArgs := PrepQuerySimple(tg.FilterParams, s.fieldMapping)
 	if !tg.WithGroupBy() {
 		query = BuildSimpleQueryCount(s.tableName, s.fieldMapping, s.cfg.QueryCount)
-		query = query + DummyWhere + FilterWhere + s.cfg.AdditionWhere
+		query = query + ParentDummyWhere + FilterWhere + s.cfg.AdditionWhere
 	} else {
-		where := DummyWhere + FilterWhere + s.cfg.AdditionWhere
+		where := ParentDummyWhere + FilterWhere + s.cfg.AdditionWhere
 		query = BuildSimpleQueryGroupByCount(s.tableName, s.fieldMapping, tg.GroupCols, where)
 	}
 

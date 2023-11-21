@@ -106,27 +106,6 @@ func CheckCountWithError(rows *sql.Rows) (rowCount int, err error) {
 	return rowCount, nil
 }
 
-func ExtractWhereClause(query string, params []interface{}) string {
-	paramValueCount := strings.Count(query, "?")
-	for count := 0; count < paramValueCount; count++ {
-		query = strings.Replace(query, "?", fmt.Sprintf("'%s'", params[count]), 1)
-	}
-
-	// If there is no WHERE clause
-	wherePos := strings.Index(query, "WHERE")
-	if wherePos == -1 {
-		return "WHERE 1=1"
-	}
-
-	// If there is no GROUP BY clause
-	groupByPos := strings.Index(query, "GROUP BY")
-	if groupByPos == -1 {
-		return query[wherePos:]
-	}
-
-	return query[wherePos:groupByPos]
-}
-
 // Returns the replaced column in the query.
 func ReplaceColumnValueInQuery(orignal_query string, col_name string, col_value string) string {
 	updated_query := ""

@@ -3,20 +3,23 @@ package repository
 const (
 	// QueryChildCount is a query for child count
 	QueryChildCount = `
-SELECT COUNT(*) as Count 
-FROM transfer_lines 
-	INNER JOIN items ON transfer_lines.item_id = items.id  
-	INNER JOIN units ON transfer_lines.item_unit_id = units.id`
+		SELECT COUNT(*) as Count 
+		FROM transfer_lines 
+			INNER JOIN items ON transfer_lines.item_id = items.id  
+			INNER JOIN units ON transfer_lines.item_unit_id = units.id
+		WHERE 2=2
+		`
 
 	// QueryChild is a query for child
 	QueryChild = `
-SELECT 
-	transfer_lines.*,
-	CONCAT (transfer_lines.id, '-line') as id
-FROM transfer_lines 
-	INNER JOIN items ON transfer_lines.item_id = items.id  
-	INNER JOIN units ON transfer_lines.item_unit_id = units.id 
-`
+		SELECT 
+			transfer_lines.*,
+			CONCAT (transfer_lines.id, '-line') as id
+		FROM transfer_lines 
+			INNER JOIN items ON transfer_lines.item_id = items.id  
+			INNER JOIN units ON transfer_lines.item_unit_id = units.id 
+		WHERE 2=2
+		`
 
 	// QueryChildJoins is a query for child joins
 	QueryChildJoins = `

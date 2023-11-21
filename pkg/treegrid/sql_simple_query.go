@@ -7,11 +7,10 @@ import (
 )
 
 var (
-	// Dummy where clause used before AND clauses
-	DummyWhere = " where 1=1 "
-
-	// WHERE Parent = ''
-
+	// ParentDummyWhere parent where clause used before AND clauses
+	ParentDummyWhere = " WHERE 1=1 "
+	// ChildDummyWhere child where clause used before AND clauses
+	ChildDummyWhere = " WHERE 2=2 "
 )
 
 func BuildSimpleQueryCount(tableName string, fieldMapping map[string][]string, defaultQueryCount string) string {
