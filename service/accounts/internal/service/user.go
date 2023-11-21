@@ -28,7 +28,6 @@ type UserService struct {
 	db                           *sql.DB
 	accountDB                    *sql.DB
 	organizationID               int
-	mainAccount                  int
 	customerID                   string
 	authProvider                 gip.AuthProvider
 	paymentProvider              checkout.PaymentClient
@@ -36,8 +35,8 @@ type UserService struct {
 	language                     string
 }
 
-func NewUserService(db *sql.DB, accountDB *sql.DB, organizationID int, mainAccount int, customerID string, authProvider gip.AuthProvider, paymentProvider checkout.PaymentClient, simpleOrganizationService treegrid.SimpleGridRowRepository, language string) *UserService {
-	return &UserService{db, accountDB, organizationID, mainAccount, customerID, authProvider, paymentProvider, simpleOrganizationService, language}
+func NewUserService(db *sql.DB, accountDB *sql.DB, organizationID int, customerID string, authProvider gip.AuthProvider, paymentProvider checkout.PaymentClient, simpleOrganizationService treegrid.SimpleGridRowRepository, language string) *UserService {
+	return &UserService{db, accountDB, organizationID, customerID, authProvider, paymentProvider, simpleOrganizationService, language}
 }
 
 // Handle implements treegrid.TreeGridService
@@ -254,7 +253,9 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 
 			}
 			if s.customerID != "" {
-				if s.mainAccount > 0 {
+				var mainAccount int
+				s.accountDB.QueryRow("SELECT oraginzation_main_account FROM organization_accounts WHERE organization_id = ? AND organization_user_id = ?", s.organizationID, id).Scan(&mainAccount)
+				if mainAccount > 0 {
 					resp, err := s.paymentProvider.FetchCustomerDetails(s.customerID)
 					if err == nil {
 						for _, i := range resp.Instruments {
