@@ -43,9 +43,11 @@ func newTreeGridService(db *sql.DB, accountID int, organizationUuid, language st
 	}
 	var oid int
 	accountDB.QueryRow("SELECT organizations.id FROM organizations WHERE organization_uuid = ?", organizationUuid).Scan(&oid)
+	var mainAccount int
+	accountDB.QueryRow("SELECT oraginzation_main_account FROM organization_accounts WHERE organization_id = ? AND organization_user_id = ?", oid, accountID).Scan(&mainAccount)
 	var customerID string
 	accountDB.QueryRow(`SELECT user_payment_gateway_id FROM accounts_cards ac JOIN accounts a on ac.user_id = a.id WHERE ac.user_id = ? AND is_default = ?`, accountID, true).Scan(&customerID)
-	userService := service.NewUserService(db, accountDB, oid, customerID, authProvider, paymentProvider, simpleOrganizationRepository, language)
+	userService := service.NewUserService(db, accountDB, oid, mainAccount, customerID, authProvider, paymentProvider, simpleOrganizationRepository, language)
 
 	return &treegridService{
 		db:          db,
