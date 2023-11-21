@@ -250,7 +250,10 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				} else {
 					return i18n.TranslationErrorToI18n(s.language, err)
 				}
-
+			}
+			_, err = s.db.Exec("DELETE FROM user_group_lines WHERE user_id = ?", id)
+			if err != nil {
+				return i18n.TranslationErrorToI18n(s.language, err)
 			}
 			if s.customerID != "" {
 				var mainAccount int
