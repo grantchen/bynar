@@ -158,28 +158,6 @@ func (s *ConnectableSQL) removeWhereTag(sql string) string {
 	return sql
 }
 
-// ConcatParentWhereToSQL concatenates where to sql
-func ConcatParentWhereToSQL(sql, where string) string {
-	if where != "" {
-		where = strings.TrimSpace(where)
-		where = strings.TrimPrefix(where, "AND")
-		where = strings.TrimPrefix(where, "WHERE")
-		sql = strings.ReplaceAll(sql, ParentWhereTag, where+" AND "+ParentWhereTag)
-	}
-	return sql
-}
-
-// ConcatChildWhereToSQL concatenates where to sql
-func ConcatChildWhereToSQL(sql, where string) string {
-	if where != "" {
-		where = strings.TrimSpace(where)
-		where = strings.TrimPrefix(where, "AND")
-		where = strings.TrimPrefix(where, "WHERE")
-		sql = strings.ReplaceAll(sql, ChildWhereTag, where+" AND "+ChildWhereTag)
-	}
-	return sql
-}
-
 const (
 	// paramPlaceHolder is a placeholder for param in sql
 	sqlParamPlaceHolder = "?"
@@ -250,6 +228,7 @@ func NamedQuery(sql string, data map[string]interface{}) (string, []interface{},
 	return cond, vals, nil
 }
 
+// createMultiPlaceholders creates multi placeholders
 func createMultiPlaceholders(num int) string {
 	if 0 == num {
 		return ""
