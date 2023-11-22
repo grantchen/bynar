@@ -50,15 +50,14 @@ func ParseSortParams(sortValsStr string, sortTypesStr string) (SortParams, error
 }
 
 // OrderByChildQuery - making 'ORDER BY' query from SortParams and fieldsMapping
-func (s SortParams) OrderByChildQuery(itemFields map[string]bool) (res string) {
-	for k, v := range s {
-		if itemFields == nil {
-			res += fmt.Sprintf("%s %s, ", k, v)
-			continue
-		}
+func (s SortParams) OrderByChildQuery(childFieldMapping map[string][]string) (res string) {
+	if childFieldMapping == nil {
+		return ""
+	}
 
-		if itemFields[k] {
-			res += fmt.Sprintf("%s %s, ", k, v)
+	for k, v := range s {
+		if f, ok := childFieldMapping[k]; ok {
+			res += fmt.Sprintf("%s %s, ", f[0], v)
 		}
 	}
 
@@ -69,37 +68,14 @@ func (s SortParams) OrderByChildQuery(itemFields map[string]bool) (res string) {
 	return
 }
 
-// OrderByQueryExludeChild - making 'ORDER BY' query from SortParams and fieldsMapping EXCLUDING child sort params
-func (s SortParams) OrderByQueryExludeChild(childFields map[string]bool, fieldAlias map[string]string) (res string) {
+// OrderByQueryExcludeChild - making 'ORDER BY' query from SortParams and fieldsMapping EXCLUDING child sort params
+func (s SortParams) OrderByQueryExcludeChild(childFieldMapping map[string][]string, parentFieldMapping map[string][]string) (res string) {
 	for k, v := range s {
-		if childFields == nil || childFields[k] {
+		if childFieldMapping == nil || len(childFieldMapping[k]) > 0 {
 			continue
 		}
 
-		if f, ok := fieldAlias[k]; ok {
-			// res += fmt.Sprintf("%s %s, ", k, v)
-
-			res += fmt.Sprintf("%s %s, ", f, v)
-		}
-	}
-
-	if len(res) > 0 {
-		res = " ORDER BY " + res[:len(res)-2]
-	}
-
-	return
-}
-
-// OrderByQueryExludeChild - making 'ORDER BY' query from SortParams and fieldsMapping EXCLUDING child sort params
-func (s SortParams) OrderByQueryExludeChild2(childFields map[string]bool, fieldAlias map[string][]string) (res string) {
-	for k, v := range s {
-		if childFields == nil || childFields[k] {
-			continue
-		}
-
-		if f, ok := fieldAlias[k]; ok {
-			// res += fmt.Sprintf("%s %s, ", k, v)
-
+		if f, ok := parentFieldMapping[k]; ok {
 			res += fmt.Sprintf("%s %s, ", f[0], v)
 		}
 	}

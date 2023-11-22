@@ -22,7 +22,6 @@ type SimpleGridRowRepository interface {
 
 type SimpleGridRepositoryCfg struct {
 	MainCol       string
-	MapSorted     map[string]bool
 	QueryString   string
 	QueryJoin     string
 	QueryCount    string
@@ -66,7 +65,7 @@ func (s *simpleGridRepository) getPageData(tg *Treegrid, additionWhere string) (
 
 	FilterWhere, FilterArgs := PrepQuerySimple(tg.FilterParams, s.fieldMapping)
 
-	query = query + ParentDummyWhere + FilterWhere + " " + additionWhere + tg.OrderByChildQuery(s.cfg.MapSorted)
+	query = query + ParentDummyWhere + FilterWhere + " " + additionWhere + tg.OrderByChildQuery(s.fieldMapping)
 	query = AppendLimitToQuery(query, s.pageSize, pos)
 	rows, err := s.db.Query(query, FilterArgs...)
 
@@ -159,14 +158,6 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 	return tableData, nil
 }
 
-func createOrderMapping(fieldsMapping map[string][]string) map[string]bool {
-	result := make(map[string]bool)
-	for k, _ := range fieldsMapping {
-		result[k] = true
-	}
-	return result
-}
-
 // GetPageCount implements SimpleGridRowRepository
 func (s *simpleGridRepository) GetPageCount(tg *Treegrid) (int64, error) {
 	var query string
@@ -197,7 +188,7 @@ func NewSimpleGridRowRepository(db *sql.DB, tableName string, fieldMapping map[s
 		tableName:    tableName,
 		fieldMapping: fieldMapping,
 		pageSize:     maxPage,
-		cfg:          &SimpleGridRepositoryCfg{MapSorted: createOrderMapping(fieldMapping)},
+		cfg:          &SimpleGridRepositoryCfg{},
 	}
 }
 
@@ -206,9 +197,6 @@ func NewSimpleGridRowRepositoryWithCfg(db *sql.DB,
 	fieldMapping map[string][]string,
 	maxPage int,
 	cfg *SimpleGridRepositoryCfg) SimpleGridRowRepository {
-	if cfg.MapSorted == nil {
-		cfg.MapSorted = createOrderMapping(fieldMapping)
-	}
 	return &simpleGridRepository{
 		db:           db,
 		tableName:    tableName,
