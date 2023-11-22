@@ -1,12 +1,13 @@
 module git-codecommit.eu-central-1.amazonaws.com/v1/repos/main
 
-go 1.19
+go 1.21.4
 
 require (
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts v0.0.0-00010101000000-000000000000
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/cards v0.0.0-00010101000000-000000000000
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup v0.0.0-00010101000000-000000000000
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices v0.0.0-00010101000000-000000000000
+	git-codecommit.eu-central-1.amazonaws.com/v1/repos/languages v0.0.0-00010101000000-000000000000
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations v0.0.0-00010101000000-000000000000
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments v0.0.0-00010101000000-000000000000
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs v0.0.0
@@ -16,7 +17,6 @@ require (
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers v0.0.0-00010101000000-000000000000
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups v0.0.0-00010101000000-000000000000
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/warehouses v0.0.0-00010101000000-000000000000
-	git-codecommit.eu-central-1.amazonaws.com/v1/repos/languages v0.0.0-00010101000000-000000000000
 	github.com/joho/godotenv v1.4.0
 )
 
