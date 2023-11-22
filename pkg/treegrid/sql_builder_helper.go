@@ -2,7 +2,6 @@ package treegrid
 
 import (
 	"fmt"
-	"reflect"
 	"regexp"
 	"strings"
 )
@@ -159,11 +158,6 @@ func (s *ConnectableSQL) removeWhereTag(sql string) string {
 	return sql
 }
 
-const (
-	// paramPlaceHolder is a placeholder for param in sql
-	sqlParamPlaceHolder = "?"
-)
-
 // sqlNamedSearchHandle is a regexp for named search
 var sqlNamedSearchHandle = regexp.MustCompile(`{{\S+?}}`)
 
@@ -190,60 +184,4 @@ func NamedSQL(sql string, data map[string]string) (string, error) {
 		return "", err
 	}
 	return sqlStr, nil
-}
-
-// NamedQuery is used for expressing complex query
-func NamedQuery(sql string, data map[string]interface{}) (string, []interface{}, error) {
-	length := len(data)
-	if length == 0 {
-		return sql, nil, nil
-	}
-
-	vals := make([]interface{}, 0, length)
-	var err error
-	cond := sqlNamedSearchHandle.ReplaceAllStringFunc(sql, func(paramName string) string {
-		paramName = strings.TrimRight(strings.TrimLeft(paramName, "{"), "}")
-		val, ok := data[paramName]
-		if !ok {
-			err = fmt.Errorf("%s not found", paramName)
-			return ""
-		}
-
-		v := reflect.ValueOf(val)
-		if v.Type().Kind() != reflect.Slice {
-			vals = append(vals, val)
-			return sqlParamPlaceHolder
-		}
-
-		length := v.Len()
-		for i := 0; i < length; i++ {
-			vals = append(vals, v.Index(i).Interface())
-		}
-
-		return createMultiPlaceholders(length)
-	})
-
-	if err != nil {
-		return "", nil, err
-	}
-	return cond, vals, nil
-}
-
-// createMultiPlaceholders creates multi placeholders
-func createMultiPlaceholders(num int) string {
-	if 0 == num {
-		return ""
-	}
-	length := (num << 1) | 1
-	buff := make([]byte, length)
-	buff[0], buff[length-1] = '(', ')'
-	ll := length - 2
-	for i := 1; i <= ll; i += 2 {
-		buff[i] = '?'
-	}
-	ll = length - 3
-	for i := 2; i <= ll; i += 2 {
-		buff[i] = ','
-	}
-	return string(buff)
 }
