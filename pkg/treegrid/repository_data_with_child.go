@@ -333,7 +333,7 @@ func (g *gridRowDataRepositoryWithChild) getJSON(sqlString string, mergedArgs []
 
 func (g *gridRowDataRepositoryWithChild) handleGroupBy(tg *Treegrid) ([]map[string]string, error) {
 	if tg.BodyParams.Rows != "" {
-		return g.getGroupData(nil, tg.BodyParams.GetRowParentWhere(), tg.BodyParams.GetRowChildWhere(), tg)
+		return g.getGroupData(tg.BodyParams.GetRowParentWhere(), tg.BodyParams.GetRowChildWhere(), tg)
 	}
 
 	querySQL := NewConnectableSQL(g.cfg.QueryParent)
@@ -360,14 +360,13 @@ func (g *gridRowDataRepositoryWithChild) handleGroupBy(tg *Treegrid) ([]map[stri
 
 		querySQL.ConcatParentWhere(childQuery)
 		querySQL.ConcatChildWhere(tg.FilterWhere["child"], tg.FilterArgs["child"]...)
-		querySQL.Append(tg.OrderByChildQuery(g.childFieldMapping))
 	}
 
-	return g.getGroupData(querySQL, querySQL.ParentWhere(), querySQL.ChildWhere(), tg)
+	return g.getGroupData(querySQL.ParentWhere(), querySQL.ChildWhere(), tg)
 }
 
-func (g *gridRowDataRepositoryWithChild) getGroupData(querySQL *ConnectableSQL, parentWhere, childWhere string, tg *Treegrid) ([]map[string]string, error) {
-	query, groupColumn := g.prepareNameCountQuery(querySQL, parentWhere, childWhere, tg)
+func (g *gridRowDataRepositoryWithChild) getGroupData(parentWhere, childWhere string, tg *Treegrid) ([]map[string]string, error) {
+	query, groupColumn := g.prepareNameCountQuery(parentWhere, childWhere, tg)
 
 	pos, _ := tg.BodyParams.IntPos()
 	query = AppendLimitToQuery(query, g.pageSize, pos)
@@ -414,18 +413,13 @@ func (g *gridRowDataRepositoryWithChild) generateChildNameCountQuery(parentWhere
 	return querySQL.AsSQL()
 }
 
-func (g *gridRowDataRepositoryWithChild) prepareNameCountQuery(querySQL *ConnectableSQL, parentWhere, childWhere string, tg *Treegrid) (query string, column Column) {
+func (g *gridRowDataRepositoryWithChild) prepareNameCountQuery(parentWhere, childWhere string, tg *Treegrid) (query string, column Column) {
 	// If both the level are equal then return the row
 	level := tg.BodyParams.GetRowLevel()
 	if level == len(tg.GroupCols) {
 		queryDataSQL := NewConnectableSQL(g.cfg.QueryParent)
-		if querySQL != nil {
-			queryDataSQL.ConcatParentWhere(querySQL.ParentQuery)
-			queryDataSQL.ConcatChildWhere(querySQL.ChildQuery)
-		} else {
-			queryDataSQL.ConcatParentWhere(parentWhere)
-			queryDataSQL.ConcatChildWhere(childWhere)
-		}
+		queryDataSQL.ConcatParentWhere(parentWhere)
+		// query all child rows, do not concat childWhere
 		query = queryDataSQL.AsSQL()
 		return
 	}
