@@ -151,10 +151,28 @@ func (g *gridRowDataRepositoryWithChild) GetPageCount(tg *Treegrid) (int64, erro
 		if !tg.WithGroupBy() {
 			querySQL.Set(g.cfg.QueryParentCount)
 		} else {
+			// if grouped columns contain any child column, join with line table
+			var joinChildSQL string
+			var err error
+			if tg.GroupCols.ContainsAny(g.childFieldMapping) {
+				joinChildSQL, err = NamedSQL(
+					`INNER JOIN {{lineTableName}} ON {{lineTableName}}.{{parentId}} = {{tableName}}.{{id}}`,
+					map[string]string{
+						"lineTableName": g.lineTableName,
+						"parentId":      g.cfg.ChildJoinFieldWithParent,
+						"tableName":     g.tableName,
+						"id":            g.cfg.ParentIdField,
+					})
+				if err != nil {
+					return 0, err
+				}
+			}
+
 			queryCountSQL, err := NamedSQL(`
 				SELECT COUNT(*) FROM (SELECT {{groupColumn}} 
 				                      FROM {{tableName}}
 				                      {{queryParentJoins}}
+				                      {{joinChildSQL}}
 				                      {{parentWhere}}
 				                      GROUP BY {{groupColumn}}) t;
 				`,
@@ -162,6 +180,7 @@ func (g *gridRowDataRepositoryWithChild) GetPageCount(tg *Treegrid) (int64, erro
 					"groupColumn":      column.DBName,
 					"tableName":        g.tableName,
 					"queryParentJoins": g.cfg.QueryParentJoins,
+					"joinChildSQL":     joinChildSQL,
 					"parentWhere":      ParentDummyWhere,
 				})
 			if err != nil {
