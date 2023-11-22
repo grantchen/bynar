@@ -225,14 +225,6 @@ func (g *gridRowDataRepositoryWithChild) GetPageCount(tg *Treegrid) (int64, erro
 	return int64(math.Ceil(float64(utils.CheckCount(rows)) / float64(g.pageSize))), nil
 }
 
-func (g *gridRowDataRepositoryWithChild) toBooleanMapping(mapInput map[string][]string) map[string]bool {
-	result := make(map[string]bool, 0)
-	for _, v := range mapInput {
-		result[v[0]] = true
-	}
-	return result
-}
-
 // GetPageData implements GridRowDataRepositoryWithChild
 func (g *gridRowDataRepositoryWithChild) GetPageData(tg *Treegrid) ([]map[string]string, error) {
 	PrepFilters(tg, g.parentFieldMapping, g.childFieldMapping)
@@ -253,7 +245,7 @@ func (g *gridRowDataRepositoryWithChild) GetPageData(tg *Treegrid) ([]map[string
 		querySQL.ConcatChildWhere(queryParentIdWhere, tg.BodyParams.ID)
 		querySQL.ConcatChildWhere(tg.FilterWhere["child"], tg.FilterArgs["child"]...)
 		// order by
-		querySQL.Append(tg.OrderByChildQuery(g.toBooleanMapping(g.childFieldMapping)))
+		querySQL.Append(tg.OrderByChildQuery(g.childFieldMapping))
 		// pagination
 		pos, _ := tg.BodyParams.IntPos()
 		querySQL.SQL = AppendLimitToQuery(querySQL.SQL, g.pageSize, pos)
@@ -292,7 +284,7 @@ func (g *gridRowDataRepositoryWithChild) GetPageData(tg *Treegrid) ([]map[string
 	}
 
 	// order by
-	querySQL.Append(tg.SortParams.OrderByQueryExludeChild2(g.toBooleanMapping(g.childFieldMapping), g.parentFieldMapping))
+	querySQL.Append(tg.SortParams.OrderByQueryExcludeChild(g.childFieldMapping, g.parentFieldMapping))
 	// pagination
 	pos, _ := tg.BodyParams.IntPos()
 	querySQL.SQL = AppendLimitToQuery(querySQL.SQL, g.pageSize, pos)
@@ -368,7 +360,7 @@ func (g *gridRowDataRepositoryWithChild) handleGroupBy(tg *Treegrid) ([]map[stri
 
 		querySQL.ConcatParentWhere(childQuery)
 		querySQL.ConcatChildWhere(tg.FilterWhere["child"], tg.FilterArgs["child"]...)
-		querySQL.Append(tg.OrderByChildQuery(g.toBooleanMapping(g.childFieldMapping)))
+		querySQL.Append(tg.OrderByChildQuery(g.childFieldMapping))
 	}
 
 	return g.getGroupData(querySQL, querySQL.ParentWhere(), querySQL.ChildWhere(), tg)
