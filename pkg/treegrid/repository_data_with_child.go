@@ -436,7 +436,7 @@ func (g *gridRowDataRepositoryWithChild) prepareNameCountQuery(parentWhere, chil
 		case column.IsItem && !secColumn.IsItem, !column.IsItem && secColumn.IsItem:
 			return g.getCascadingGroupByParentChild(column, secColumn, parentWhere, childWhere), column
 		case column.IsItem && secColumn.IsItem:
-			return g.getCascadingGroupByChildChild(column, secColumn, childWhere), column
+			return g.getCascadingGroupByChildChild(column, secColumn, parentWhere, childWhere), column
 		}
 	}
 
@@ -672,14 +672,15 @@ func (g *gridRowDataRepositoryWithChild) getCascadingGroupByParentChild(firstCol
 }
 
 // when grouping by two child columns
-func (g *gridRowDataRepositoryWithChild) getCascadingGroupByChildChild(firstCol, secondCol Column, childWhere string) string {
+func (g *gridRowDataRepositoryWithChild) getCascadingGroupByChildChild(firstCol, secondCol Column, parentWhere, childWhere string) string {
 	query, err := NamedSQL(`
 		SELECT {{firstColDBNameShort}}, COUNT(*) Count FROM (
 			SELECT
 				{{firstColDBName}}, {{secondColDBName}}, COUNT(*) Count
 			FROM {{lineTableName}}
 				{{queryChildJoins}}
-				{{childWhere}}
+				INNER JOIN {{tableName}} ON {{tableName}}.{{id}} = {{lineTableName}}.{{parentId}}
+				{{childWhere}} AND {{parentWhere}}
 			GROUP BY {{firstColDBName}}, {{secondColDBName}}) t
 		GROUP BY {{firstColDBNameShort}}
 	`,
@@ -688,8 +689,12 @@ func (g *gridRowDataRepositoryWithChild) getCascadingGroupByChildChild(firstCol,
 			"firstColDBName":      firstCol.DBName,
 			"secondColDBName":     secondCol.DBName,
 			"lineTableName":       g.lineTableName,
+			"tableName":           g.tableName,
 			"queryChildJoins":     g.cfg.QueryChildJoins,
+			"id":                  g.cfg.ParentIdField,
+			"parentId":            g.cfg.ChildJoinFieldWithParent,
 			"childWhere":          ChildDummyWhere,
+			"parentWhere":         ParentWhereTag,
 		})
 	if err != nil {
 		return ""
@@ -697,5 +702,6 @@ func (g *gridRowDataRepositoryWithChild) getCascadingGroupByChildChild(firstCol,
 
 	querySQL := NewConnectableSQL(query)
 	querySQL.ConcatChildWhere(childWhere)
+	querySQL.ConcatChildWhere(parentWhere)
 	return querySQL.AsSQL()
 }
