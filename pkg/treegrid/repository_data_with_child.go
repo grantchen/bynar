@@ -445,7 +445,7 @@ func (g *gridRowDataRepositoryWithChild) prepareNameCountQuery(querySQL *Connect
 
 		switch {
 		case !column.IsItem && !secColumn.IsItem:
-			return g.getCascadingGroupByParentParent(column, secColumn, parentWhere, childWhere), column
+			return g.getCascadingGroupByParentParent(tg, column, secColumn, parentWhere, childWhere), column
 		case column.IsItem && !secColumn.IsItem, !column.IsItem && secColumn.IsItem:
 			return g.getCascadingGroupByParentChild(column, secColumn, parentWhere, childWhere), column
 		}
@@ -619,13 +619,31 @@ func (g *gridRowDataRepositoryWithChild) addChildCondition(orignal_query string,
 	return orignal_query
 }
 
-func (g *gridRowDataRepositoryWithChild) getCascadingGroupByParentParent(firstCol, secondCol Column, parentWhere, childWhere string) string {
+func (g *gridRowDataRepositoryWithChild) getCascadingGroupByParentParent(tg *Treegrid, firstCol, secondCol Column, parentWhere, childWhere string) string {
+	// if grouped columns contain any child column, join with line table
+	var joinChildSQL string
+	var err error
+	if tg.GroupCols.ContainsAny(g.childFieldMapping) {
+		joinChildSQL, err = NamedSQL(
+			`INNER JOIN {{lineTableName}} ON {{lineTableName}}.{{parentId}} = {{tableName}}.{{id}}`,
+			map[string]string{
+				"lineTableName": g.lineTableName,
+				"parentId":      g.cfg.ChildJoinFieldWithParent,
+				"tableName":     g.tableName,
+				"id":            g.cfg.ParentIdField,
+			})
+		if err != nil {
+			return ""
+		}
+	}
+
 	query, err := NamedSQL(`
 		SELECT {{firstColDBNameShort}}, COUNT(*) Count
 		FROM (
 			SELECT {{firstColDBName}}, {{secondColDBName}}
 			FROM {{tableName}}
 			{{queryParentJoins}}
+			{{joinChildSQL}}
 			{{parentWhere}}
 			GROUP BY {{firstColDBName}}, {{secondColDBName}}
 		) t
@@ -637,6 +655,7 @@ func (g *gridRowDataRepositoryWithChild) getCascadingGroupByParentParent(firstCo
 			"secondColDBName":     secondCol.DBName,
 			"tableName":           g.tableName,
 			"queryParentJoins":    g.cfg.QueryParentJoins,
+			"joinChildSQL":        joinChildSQL,
 			"parentWhere":         ParentDummyWhere,
 		})
 	if err != nil {
