@@ -449,6 +449,8 @@ func (g *gridRowDataRepositoryWithChild) prepareNameCountQuery(querySQL *Connect
 			return g.getCascadingGroupByParentParent(tg, column, secColumn, parentWhere, childWhere), column
 		case column.IsItem && !secColumn.IsItem, !column.IsItem && secColumn.IsItem:
 			return g.getCascadingGroupByParentChild(column, secColumn, parentWhere, childWhere), column
+		case column.IsItem && secColumn.IsItem:
+			return g.getCascadingGroupByChildChild(column, secColumn, childWhere), column
 		}
 	}
 
@@ -679,6 +681,35 @@ func (g *gridRowDataRepositoryWithChild) getCascadingGroupByParentChild(firstCol
 
 	querySQL := NewConnectableSQL(query)
 	querySQL.ConcatParentWhere(parentWhere)
+	querySQL.ConcatChildWhere(childWhere)
+	return querySQL.AsSQL()
+}
+
+// when grouping by two child columns
+func (g *gridRowDataRepositoryWithChild) getCascadingGroupByChildChild(firstCol, secondCol Column, childWhere string) string {
+	query, err := NamedSQL(`
+		SELECT {{firstColDBNameShort}}, COUNT(*) Count FROM (
+			SELECT
+				{{firstColDBName}}, {{secondColDBName}}, COUNT(*) Count
+			FROM {{lineTableName}}
+				{{queryChildJoins}}
+				{{childWhere}}
+			GROUP BY {{firstColDBName}}, {{secondColDBName}}) t
+		GROUP BY {{firstColDBNameShort}}
+	`,
+		map[string]string{
+			"firstColDBNameShort": firstCol.DBNameShort,
+			"firstColDBName":      firstCol.DBName,
+			"secondColDBName":     secondCol.DBName,
+			"lineTableName":       g.lineTableName,
+			"queryChildJoins":     g.cfg.QueryChildJoins,
+			"childWhere":          ChildDummyWhere,
+		})
+	if err != nil {
+		return ""
+	}
+
+	querySQL := NewConnectableSQL(query)
 	querySQL.ConcatChildWhere(childWhere)
 	return querySQL.AsSQL()
 }
