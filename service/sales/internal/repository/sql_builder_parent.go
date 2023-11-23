@@ -14,13 +14,17 @@ const (
 	// QueryParent is a query for getting parent
 	QueryParent = `
 		SELECT sales.*,
-			   COUNT(sale_lines.id) AS Count
+			   COALESCE(lines_t.Count, 0) AS Count
 		FROM sales
 				 INNER JOIN documents ON sales.document_id = documents.id
 				 INNER JOIN stores ON sales.store_id = stores.id
-				 LEFT JOIN sale_lines ON sale_lines.parent_id = sales.id
+				 LEFT JOIN (SELECT COUNT(sale_lines.id) AS Count,
+				                   sale_lines.parent_id AS parent_id
+							FROM sale_lines
+							WHERE 2=2
+							GROUP BY parent_id) lines_t
+						   ON lines_t.parent_id = sales.id
 		WHERE 1=1
-		GROUP BY sales.id
 		`
 
 	// QueryParentJoins is a query for getting parent joins

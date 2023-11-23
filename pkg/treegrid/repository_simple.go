@@ -65,7 +65,8 @@ func (s *simpleGridRepository) getPageData(tg *Treegrid, additionWhere string) (
 
 	FilterWhere, FilterArgs := PrepQuerySimple(tg.FilterParams, s.fieldMapping)
 
-	query = query + ParentDummyWhere + FilterWhere + " " + additionWhere + tg.OrderByChildQuery(s.fieldMapping)
+	query = query + ParentDummyWhere + FilterWhere + " " + additionWhere +
+		tg.OrderByChildQuery(s.fieldMapping, fmt.Sprintf("%s.id ASC", s.tableName))
 	query = AppendLimitToQuery(query, s.pageSize, pos)
 	rows, err := s.db.Query(query, FilterArgs...)
 

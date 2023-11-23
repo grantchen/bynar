@@ -17,8 +17,8 @@ type ConnectableSQL struct {
 	SQL  string        // sql
 	Args []interface{} // sql args
 
-	ParentQuery string // parent query
-	ChildQuery  string // child query
+	parentQuery string // parent query
+	childQuery  string // child query
 }
 
 // NewConnectableSQL creates a new ConnectableSQL
@@ -26,8 +26,8 @@ func NewConnectableSQL(sql string, args ...interface{}) *ConnectableSQL {
 	return &ConnectableSQL{
 		SQL:         sql,
 		Args:        args,
-		ParentQuery: ParentWhereTag,
-		ChildQuery:  ChildWhereTag,
+		parentQuery: ParentWhereTag,
+		childQuery:  ChildWhereTag,
 	}
 }
 
@@ -55,12 +55,20 @@ func (s *ConnectableSQL) ConcatChildWhere(where string, args ...interface{}) {
 
 // ParentWhere returns parent where
 func (s *ConnectableSQL) ParentWhere() string {
-	return " WHERE " + s.removeWhereTag(s.getWhereCondition(s.ParentQuery))
+	query := s.removeWhereTag(s.getWhereCondition(s.parentQuery), ParentWhereTag)
+	if query == "" {
+		return " WHERE TRUE"
+	}
+	return " WHERE " + query
 }
 
 // ChildWhere returns child where
 func (s *ConnectableSQL) ChildWhere() string {
-	return " WHERE " + s.removeWhereTag(s.getWhereCondition(s.ChildQuery))
+	query := s.removeWhereTag(s.getWhereCondition(s.childQuery), ChildWhereTag)
+	if query == "" {
+		return " WHERE TRUE"
+	}
+	return " WHERE " + query
 }
 
 // AsSQL returns sql string
@@ -94,12 +102,12 @@ func (s *ConnectableSQL) concatWhereToTag(isParent bool, where string, args ...i
 			if sqlIndex != 0 {
 				if isParent {
 					//s.parentQueries = append(s.parentQueries, where)
-					s.ParentQuery = strings.ReplaceAll(s.ParentQuery, tag, s.whereToSQL(concatWhere, args)+tag)
-					s.ChildQuery = strings.ReplaceAll(s.ChildQuery, tag, s.ParentQuery)
+					s.parentQuery = strings.ReplaceAll(s.parentQuery, tag, s.whereToSQL(concatWhere, args)+tag)
+					s.childQuery = strings.ReplaceAll(s.childQuery, tag, s.parentQuery)
 				} else {
 					//s.childQueries = append(s.childQueries, where)
-					s.ChildQuery = strings.ReplaceAll(s.ChildQuery, tag, s.whereToSQL(concatWhere, args)+tag)
-					s.ParentQuery = strings.ReplaceAll(s.ParentQuery, tag, s.ChildQuery)
+					s.childQuery = strings.ReplaceAll(s.childQuery, tag, s.whereToSQL(concatWhere, args)+tag)
+					s.parentQuery = strings.ReplaceAll(s.parentQuery, tag, s.childQuery)
 				}
 			}
 
@@ -152,9 +160,9 @@ func (s *ConnectableSQL) whereToSQL(where string, args []interface{}) string {
 }
 
 // removeWhereTag removes where tag
-func (s *ConnectableSQL) removeWhereTag(sql string) string {
-	sql = strings.ReplaceAll(sql, "AND "+ChildWhereTag, "")
-	sql = strings.ReplaceAll(sql, "AND "+ParentWhereTag, "")
+func (s *ConnectableSQL) removeWhereTag(sql, tag string) string {
+	sql = strings.ReplaceAll(sql, "AND "+tag, "")
+	sql = strings.ReplaceAll(sql, tag, "")
 	return sql
 }
 
