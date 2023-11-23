@@ -11,11 +11,15 @@ const (
 	// QueryParent is a query for getting parent rows
 	QueryParent = `
 		SELECT payments.*,
-			   COUNT(payment_lines.id) AS Count
+			   COALESCE(lines_t.Count, 0) AS Count
 		FROM payments
-				 LEFT JOIN payment_lines ON payment_lines.parent_id = payments.id
+				 LEFT JOIN (SELECT COUNT(payment_lines.id) AS Count,
+				                   payment_lines.parent_id AS parent_id
+							FROM payment_lines
+							WHERE 2=2
+							GROUP BY parent_id) lines_t
+						   ON lines_t.parent_id = payments.id
 		WHERE 1=1
-		GROUP BY payments.id
 		`
 
 	// QueryParentJoins is a query for getting parent rows with joins

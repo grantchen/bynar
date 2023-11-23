@@ -53,11 +53,15 @@ const (
 			   procurements.total_exclusive_vat_lcy,
 			   procurements.total_vat_lcy,
 			   procurements.total_inclusive_vat_lcy,
-			   COUNT(procurement_lines.id) AS Count
+			   COALESCE(lines_t.Count, 0) AS Count
 		FROM procurements
-				 LEFT JOIN procurement_lines ON procurement_lines.parent_id = procurements.id
+				 LEFT JOIN (SELECT COUNT(procurement_lines.id) AS Count,
+								   procurement_lines.parent_id AS parent_id
+							FROM procurement_lines
+							WHERE 2=2
+							GROUP BY parent_id) lines_t
+						   ON lines_t.parent_id = procurements.id
 		WHERE 1=1
-		GROUP BY procurements.id
 		`
 
 	// empty
