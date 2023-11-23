@@ -252,7 +252,9 @@ func getModuleFromPath(r *http.Request) *ModulePath {
 	query, _ := url.QueryUnescape(string(data))
 	logrus.Info("module data ", query)
 	if modulePath.pathFeature == "upload" {
-		if strings.Contains(query, "Added") {
+		if strings.Contains(query, "Group") {
+			modulePath.pathFeature = "data"
+		} else if strings.Contains(query, "Added") {
 			modulePath.pathFeature += ":Added"
 		} else if strings.Contains(query, "Deleted") {
 			modulePath.pathFeature += ":Deleted"
