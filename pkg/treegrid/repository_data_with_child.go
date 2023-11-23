@@ -319,7 +319,6 @@ func (g *gridRowDataRepositoryWithChild) getJSON(sqlString string, mergedArgs []
 		if !tg.BodyParams.GetItemsRequest() {
 			entry["Expanded"] = "0"
 			// entry["MinLevels"] = "2"
-			entry["has_child"] = "1"
 		}
 
 		tableData = append(tableData, entry)
@@ -480,10 +479,6 @@ func (g *gridRowDataRepositoryWithChild) getParentData(level int, groupCols []st
 			for k := range row.StringValues() {
 				tempObj[k] = row.StringValues()[k]
 			}
-
-			// for expendable parent rows
-			tempObj["has_child"] = "1"
-
 			tableData = append(tableData, tempObj)
 			continue
 		}
