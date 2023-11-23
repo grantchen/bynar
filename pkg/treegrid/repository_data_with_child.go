@@ -244,7 +244,7 @@ func (g *gridRowDataRepositoryWithChild) GetPageData(tg *Treegrid) ([]map[string
 		querySQL.ConcatChildWhere(queryParentIdWhere, tg.BodyParams.ID)
 		querySQL.ConcatChildWhere(tg.FilterWhere["child"], tg.FilterArgs["child"]...)
 		// order by
-		querySQL.Append(tg.OrderByChildQuery(g.childFieldMapping))
+		querySQL.Append(tg.OrderByChildQuery(g.childFieldMapping, fmt.Sprintf("%s.id ASC", g.lineTableName)))
 		// pagination
 		pos, _ := tg.BodyParams.IntPos()
 		querySQL.SQL = AppendLimitToQuery(querySQL.SQL, g.pageSize, pos)
@@ -283,7 +283,7 @@ func (g *gridRowDataRepositoryWithChild) GetPageData(tg *Treegrid) ([]map[string
 	}
 
 	// order by
-	querySQL.Append(tg.SortParams.OrderByQueryExcludeChild(g.childFieldMapping, g.parentFieldMapping))
+	querySQL.Append(tg.SortParams.OrderByQueryExcludeChild(g.childFieldMapping, g.parentFieldMapping, fmt.Sprintf("%s.id ASC", g.tableName)))
 	// pagination
 	pos, _ := tg.BodyParams.IntPos()
 	querySQL.SQL = AppendLimitToQuery(querySQL.SQL, g.pageSize, pos)

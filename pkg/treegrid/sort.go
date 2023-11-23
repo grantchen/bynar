@@ -54,7 +54,7 @@ func ParseSortParams(sortValsStr string, sortTypesStr string) (SortParams, error
 }
 
 // OrderByChildQuery - making 'ORDER BY' query from SortParams and fieldsMapping
-func (s SortParams) OrderByChildQuery(childFieldMapping map[string][]string) (res string) {
+func (s SortParams) OrderByChildQuery(childFieldMapping map[string][]string, defaultSort string) (res string) {
 	if childFieldMapping == nil {
 		return ""
 	}
@@ -66,14 +66,16 @@ func (s SortParams) OrderByChildQuery(childFieldMapping map[string][]string) (re
 	}
 
 	if len(res) > 0 {
-		res = " ORDER BY " + res[:len(res)-2]
+		res = fmt.Sprintf(" ORDER BY %s, %s", res[:len(res)-2], defaultSort)
+	} else {
+		res = fmt.Sprintf(" ORDER BY %s", defaultSort)
 	}
 
 	return
 }
 
 // OrderByQueryExcludeChild - making 'ORDER BY' query from SortParams and fieldsMapping EXCLUDING child sort params
-func (s SortParams) OrderByQueryExcludeChild(childFieldMapping map[string][]string, parentFieldMapping map[string][]string) (res string) {
+func (s SortParams) OrderByQueryExcludeChild(childFieldMapping map[string][]string, parentFieldMapping map[string][]string, defaultSort string) (res string) {
 	for _, sort := range s {
 		if childFieldMapping == nil || len(childFieldMapping[sort.Col]) > 0 {
 			continue
@@ -85,7 +87,9 @@ func (s SortParams) OrderByQueryExcludeChild(childFieldMapping map[string][]stri
 	}
 
 	if len(res) > 0 {
-		res = " ORDER BY " + res[:len(res)-2]
+		res = fmt.Sprintf(" ORDER BY %s, %s", res[:len(res)-2], defaultSort)
+	} else {
+		res = fmt.Sprintf(" ORDER BY %s", defaultSort)
 	}
 
 	return
