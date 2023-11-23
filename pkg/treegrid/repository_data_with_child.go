@@ -19,7 +19,6 @@ type GridRowDataRepositoryWithChild interface {
 
 type GridRowDataRepositoryWithChildCfg struct {
 	MainCol                  string
-	MapSorted                map[string]bool
 	QueryParentJoins         string
 	QueryParentCount         string
 	QueryChildJoins          string
@@ -296,8 +295,6 @@ func (g *gridRowDataRepositoryWithChild) getJSON(sqlString string, mergedArgs []
 	stmt, err := g.db.Prepare(sqlString)
 	if err != nil {
 		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, sqlString)
-	} else {
-		fmt.Println(sqlString)
 	}
 	defer stmt.Close()
 
