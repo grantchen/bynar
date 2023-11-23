@@ -74,7 +74,7 @@ type key string
 const RequestContextKey key = "reqContext"
 
 var PolicyMap = map[string][]string{
-	"list":   {"data", "page"},
+	"list":   {"data", "page", "upload", "cell"},
 	"add":    {"upload:Added", "upload"},
 	"update": {"upload:Changed", "upload"},
 	"delete": {"upload:Deleted", "upload"},
