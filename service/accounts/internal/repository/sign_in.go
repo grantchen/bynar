@@ -74,10 +74,6 @@ func (r *accountRepositoryHandler) SelectSignInColumns(uid string) (*model.SignI
 		// user not exists in accounts if user added in user list
 		logrus.Error("query row: [%w]", err)
 		// return nil, fmt.Errorf("query row: [%w]", err)
-		err = r.db.QueryRow("SELECT organization_user_id FROM organization_accounts WHERE organization_user_uid = ?", uid).Scan(&signIn.AccountId)
-		if err != nil {
-			logrus.Error("query row: [%w]", err)
-		}
 	}
 
 	return &signIn, nil
