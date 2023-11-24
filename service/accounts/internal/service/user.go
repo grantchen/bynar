@@ -105,7 +105,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		if err1 != nil {
 			return err1
 		}
-		err = gr.ValidateOnLimitLength(repository.UserFieldNames, 100, s.language)
+		err = gr.ValidateOnLimitLength(repository.UserFieldNamesString, 100, s.language)
 		if err != nil {
 			return err
 		}
