@@ -10,3 +10,11 @@ var UserFieldNames = map[string][]string{
 	"theme":               {"theme"},
 	"policies":            {"policies"},
 }
+
+var UserFieldNamesString = map[string][]string{
+	"email":               {"email"},
+	"full_name":           {"full_name"},
+	"phone":               {"phone"},
+	"language_preference": {"language_preference"},
+	"theme":               {"theme"},
+}
