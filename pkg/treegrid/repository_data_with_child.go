@@ -230,7 +230,7 @@ func (g *gridRowDataRepositoryWithChild) GetPageCount(tg *Treegrid) (int64, erro
 func (g *gridRowDataRepositoryWithChild) GetPageData(tg *Treegrid) ([]map[string]string, error) {
 	PrepFilters(tg, g.parentFieldMapping, g.childFieldMapping)
 
-	// items request
+	// items request(with or without group by)
 	if tg.BodyParams.GetItemsRequest() {
 		querySQL := NewConnectableSQL(g.cfg.QueryChild)
 		queryParentIdWhere, err := NamedSQL(`
@@ -259,7 +259,7 @@ func (g *gridRowDataRepositoryWithChild) GetPageData(tg *Treegrid) ([]map[string
 		return g.handleGroupBy(tg)
 	}
 
-	// parent request
+	// parent request without group by
 	querySQL := NewConnectableSQL(g.cfg.QueryParent)
 	querySQL.ConcatParentWhere(tg.FilterWhere["parent"], tg.FilterArgs["parent"]...)
 	if tg.FilterWhere["child"] != "" {
@@ -321,7 +321,10 @@ func (g *gridRowDataRepositoryWithChild) getJSON(sqlString string, mergedArgs []
 		entry := rowVals.StringValues()
 		if !tg.BodyParams.GetItemsRequest() {
 			entry["Expanded"] = "0"
+			entry["Def"] = "Node"
 			// entry["MinLevels"] = "2"
+		} else {
+			entry["Def"] = "Data"
 		}
 
 		tableData = append(tableData, entry)
@@ -525,6 +528,7 @@ func (g *gridRowDataRepositoryWithChild) getParentData(level int, groupCols []st
 			for k := range row.StringValues() {
 				tempObj[k] = row.StringValues()[k]
 			}
+			tempObj["Def"] = "Node"
 			tableData = append(tableData, tempObj)
 			continue
 		}

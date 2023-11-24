@@ -91,6 +91,7 @@ func (s *simpleGridRepository) getPageData(tg *Treegrid, additionWhere string) (
 		if !tg.BodyParams.GetItemsRequest() {
 			entry["Expanded"] = "0"
 			entry["Count"] = "0"
+			entry["Def"] = "Node"
 		}
 
 		tableData = append(tableData, entry)
