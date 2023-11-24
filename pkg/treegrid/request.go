@@ -56,7 +56,11 @@ func ParseRequestUpload(req *PostRequest, identityStore IdentityStorage) (*GridL
 			continue
 		}
 
+		// store parent id of child row
+		ch.StoreGridParentID()
 		parentID := ch.GetParentID()
+		ch["Parent"] = parentID
+
 		if _, ok := trList.childRows[parentID]; !ok {
 			trList.childRows[parentID] = make([]GridRow, 0, 10)
 		}
@@ -122,7 +126,7 @@ func ParseRequestUpload2(req *PostRequest) (*GridList, error) {
 
 // SetGridRowIdentity sets required params for indentifying grid row
 // sets params:
-// "Def": "Node" | "Data" | "R"
+// "Def": "Node" | "Data"
 func SetGridRowIdentity(gr GridRow, identityStore IdentityStorage) (isChild bool, err error) {
 	id := gr.GetID()
 
@@ -134,18 +138,6 @@ func SetGridRowIdentity(gr GridRow, identityStore IdentityStorage) (isChild bool
 		}
 
 		if val == "Data" { // all data already are set
-			return true, nil
-		}
-
-		// add data after grouped
-		if val == "R" {
-			// parent row
-			if gr.GetParentID() == "0" {
-				return false, nil
-			}
-
-			// child row
-			gr["Parent"] = gr.GetGroupIDStr(gr.GetParentID())
 			return true, nil
 		}
 

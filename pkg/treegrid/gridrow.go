@@ -20,15 +20,14 @@ const (
 
 // use when grouping by
 const reqID = "reqID"
+const reqParentID = "reqParentID"
 
 func (f GridRow) IsChild() bool {
 	panic("not implemented yet")
 }
 
 func (f GridRow) GetParentID() string {
-	pID, _ := f.GetValString("Parent")
-
-	return pID
+	return f.removeGroupID(f.getOriginParentID())
 }
 
 func (f GridRow) GetLineID() string {
@@ -310,20 +309,6 @@ func (g GridRow) GetIDInt() (id int) {
 	return id
 }
 
-func (g *GridRow) GetGroupIDStr(id string) string {
-	// check is group
-	if strings.Contains(id, "$") { // id when group by have format: (CR[0-9]+\$)+<real_id>
-		idGroup := strings.Split(id, "$")
-		if len(idGroup) == 3 {
-			return idGroup[1]
-		}
-
-		return idGroup[len(idGroup)-1]
-	}
-
-	return id
-}
-
 func (g *GridRow) removeGroupID(id string) string {
 	//check is group
 	if strings.Contains(id, "$") { // id when group by have format: (CR[0-9]+\$)+<real_id>
@@ -378,6 +363,17 @@ func (g GridRow) GetTreeGridID() (id interface{}) {
 
 func (g GridRow) StoreGridTreeID() {
 	g[reqID] = g.getOriginID()
+}
+
+// StoreGridParentID store parent id of child row
+func (g GridRow) StoreGridParentID() {
+	g[reqParentID] = g.getOriginParentID()
+}
+
+// return Parent from treegrid req
+func (g GridRow) getOriginParentID() string {
+	pID, _ := g.GetValString("Parent")
+	return pID
 }
 
 func (g GridRow) GetValString(name string) (string, bool) {

@@ -316,9 +316,11 @@ func (g *gridRowDataRepositoryWithChild) getJSON(sqlString string, mergedArgs []
 		if !tg.BodyParams.GetItemsRequest() {
 			entry["Expanded"] = "0"
 			entry["Def"] = "Node"
+			entry["CDef"] = "Data"
 			// entry["MinLevels"] = "2"
 		} else {
 			entry["Def"] = "Data"
+			entry["CDef"] = ""
 		}
 
 		tableData = append(tableData, entry)
@@ -494,12 +496,14 @@ func (g *gridRowDataRepositoryWithChild) getParentData(tg *Treegrid, querySQL *C
 				tempObj[k] = row.StringValues()[k]
 			}
 			tempObj["Def"] = "Node"
+			tempObj["CDef"] = "Data"
 			tableData = append(tableData, tempObj)
 			continue
 		}
 
 		// remove Def for editable parent rows
 		tempObj["Def"] = "Group"
+		tempObj["CDef"] = "Node"
 
 		docType := row.GetValue(groupColumn.DBNameShort)
 		if docType == "" {
@@ -550,6 +554,7 @@ func (g *gridRowDataRepositoryWithChild) getChildData(tg *Treegrid, querySQL *Co
 	for rows.Next() {
 		tempObj := make(map[string]string)
 		tempObj["Def"] = "Group"
+		tempObj["CDef"] = "Node"
 		tempObj["Expanded"] = "0"
 
 		err := row.Parse(rows)
