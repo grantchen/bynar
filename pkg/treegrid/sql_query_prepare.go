@@ -224,10 +224,14 @@ func PrepRowsQueryComplex(fieldConds []RowsFieldCond, fieldAliasesParent map[str
 		where, arg := column.WhereSQL(cond.Value)
 		if column.IsItem {
 			rowsWhere["child"] += fmt.Sprintf(" AND %s", where)
-			rowsArgs["child"] = append(rowsArgs["child"], arg)
+			if arg != nil {
+				rowsArgs["child"] = append(rowsArgs["child"], arg)
+			}
 		} else {
 			rowsWhere["parent"] += fmt.Sprintf(" AND %s", where)
-			rowsArgs["parent"] = append(rowsArgs["parent"], arg)
+			if arg != nil {
+				rowsArgs["parent"] = append(rowsArgs["parent"], arg)
+			}
 		}
 
 	}
