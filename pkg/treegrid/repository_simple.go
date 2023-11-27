@@ -68,9 +68,13 @@ func (s *simpleGridRepository) getPageData(tg *Treegrid, additionWhere string, a
 	query = query + ParentDummyWhere + FilterWhere + " " + additionWhere +
 		tg.OrderByChildQuery(s.fieldMapping, fmt.Sprintf("%s.id ASC", s.tableName))
 	query = AppendLimitToQuery(query, s.pageSize, pos)
-	rows, err := s.db.Query(query, append(FilterArgs, additionWhereArgs...)...)
+	stmt, err := s.db.Prepare(query)
+	if err != nil {
+		return nil, fmt.Errorf("prepare query: '%s': [%w]", query, err)
+	}
+	defer stmt.Close()
 
-	logger.Debug("query getPageData: ", query, "addition where: ", additionWhere)
+	rows, err := stmt.Query(append(FilterArgs, additionWhereArgs...)...)
 	if err != nil {
 		return nil, fmt.Errorf("do query: '%s': [%w]", query, err)
 	}
@@ -122,10 +126,15 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 
 	pos, _ := tg.BodyParams.IntPos()
 	query = AppendLimitToQuery(query, s.pageSize, pos)
-	rows, err := s.db.Query(query, queryArgs...)
-
+	stmt, err := s.db.Prepare(query)
 	if err != nil {
-		return nil, fmt.Errorf("do query: '%s': [%w]", query, err)
+		return nil, fmt.Errorf("prepare query: '%s': [%w]", query, err)
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(queryArgs...)
+	if err != nil {
+		return nil, fmt.Errorf("query rows: [%w]", err)
 	}
 	defer rows.Close()
 
@@ -176,9 +185,13 @@ func (s *simpleGridRepository) GetPageCount(tg *Treegrid) (int64, error) {
 		query = BuildSimpleQueryGroupByCount(s.tableName, s.fieldMapping, tg.GroupCols, where)
 	}
 
-	logger.Debug("query GetPageCount: ", query)
+	stmt, err := s.db.Prepare(query)
+	if err != nil {
+		return 0, fmt.Errorf("prepare query: '%s': [%w]", query, err)
+	}
+	defer stmt.Close()
 
-	rows, err := s.db.Query(query, FilterArgs...)
+	rows, err := stmt.Query(FilterArgs...)
 	if err != nil {
 		fmt.Printf("parse rows: [%v]", err)
 		return 0, err

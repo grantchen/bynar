@@ -216,7 +216,13 @@ func (g *gridRowDataRepositoryWithChild) GetPageCount(tg *Treegrid) (int64, erro
 		querySQL.ConcatParentWhere(filterWhere["parent"], filterArgs["parent"]...)
 	}
 
-	rows, err := g.db.Query(querySQL.SQL, querySQL.Args...)
+	stmt, err := g.db.Prepare(querySQL.SQL)
+	if err != nil {
+		return 0, fmt.Errorf("db prepare: [%w], query: [%s]", err, querySQL.SQL)
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(querySQL.Args...)
 	if err != nil {
 		log.Println(err, "query", querySQL.SQL, "colData", column)
 		return 0, err
