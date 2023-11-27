@@ -1,9 +1,9 @@
 package treegrid
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 )
 
 type BodyParam struct {
@@ -13,65 +13,56 @@ type BodyParam struct {
 	Col              string `json:"Col,omitempty"`
 	Val              string `json:"Val,omitempty"`
 	TreegridOriginID string // using for keep id from treegrid, especially with child row, and group with $
+
+	RowsFields []RowsFieldCond // using for keep rows
+	RowsLevel  int             // using for keep rows level
 }
 
-// SetBodyParamRows sets rows param for body. Example: rows = "2|13|19|WHERE filed=1WHERE child_field=2"
-func SetBodyParamRows(level int, parentWhere, childWhere string) string {
-	return fmt.Sprintf("%d|%d|%d|%s%s", level, len(parentWhere), len(childWhere), parentWhere, childWhere)
+// RowsFieldCond defines rows field
+type RowsFieldCond struct {
+	GridName string `json:"name"`
+	Value    string `json:"value"`
 }
 
-// GetRowLevel gets from rows level. Example: rows = "2WHERE filed=1", level = 1
-func (b *BodyParam) GetRowLevel() int {
+// ParseRows parses rows string param
+func (b *BodyParam) ParseRows() error {
 	if b.Rows == "" {
-		return 0
+		b.RowsFields = make([]RowsFieldCond, 0)
+		return nil
 	}
 
-	id, _ := strconv.Atoi(b.Rows[:1])
+	var err error
+	// parse rows level
+	b.RowsLevel, err = strconv.Atoi(b.Rows[:1])
+	if err != nil {
+		return err
+	}
 
-	return id
+	// parse rows map
+	var rowsM []RowsFieldCond
+	if err = json.Unmarshal([]byte(b.Rows[1:]), &rowsM); err != nil {
+		return err
+	}
+	b.RowsFields = rowsM
+
+	return nil
 }
 
-// GetRowParentWhere gets from rows parent where clause. Example: rows = "2|13|19|WHERE filed=1WHERE child_field=2"
-func (b *BodyParam) GetRowParentWhere() string {
-	if b.Rows == "" {
-		return ""
+// GetNewRows gets new rows string param
+func (b *BodyParam) GetNewRows(level int, cond RowsFieldCond) (string, error) {
+	newRowsFields := b.RowsFields
+	newRowsFields = append(newRowsFields, cond)
+	paramsJSON, err := json.Marshal(newRowsFields)
+	if err != nil {
+		return "", err
 	}
-
-	splitN := strings.SplitN(b.Rows, "|", 4)
-	if len(splitN) != 4 {
-		return ""
-	}
-
-	parentLen, _ := strconv.Atoi(splitN[1])
-	return splitN[3][:parentLen]
-}
-
-// GetRowChildWhere gets from rows child where clause. Example: rows = "2|13|19|WHERE filed=1WHERE child_field=2"
-func (b *BodyParam) GetRowChildWhere() string {
-	if b.Rows == "" {
-		return ""
-	}
-
-	splitN := strings.SplitN(b.Rows, "|", 4)
-	if len(splitN) != 4 {
-		return ""
-	}
-
-	parentLen, _ := strconv.Atoi(splitN[1])
-	return splitN[3][parentLen:]
+	rows := fmt.Sprintf("%d%s", level, string(paramsJSON))
+	return rows, nil
 }
 
 // GetItemsRequest defines type of response - Transfer of TransferItems
 // Conditions for items response:  "id" is digit and "rows" == ""
 func (b *BodyParam) GetItemsRequest() bool {
-
-	//check is group, move outside, parse request
-	// if strings.Contains(b.ID, "$") {
-	// 	idGroup := strings.Split(b.ID, "$")
-	// 	newId := idGroup[len(idGroup)-1]
-	// 	b.ID = newId
-	// }
-
 	if _, ok := b.IntID(); !ok {
 		return false
 	}
@@ -88,13 +79,6 @@ func (b *BodyParam) IntID() (int, bool) {
 	if b.ID == "" {
 		return 0, false
 	}
-
-	//check is group, move to outside, parse request
-	// if strings.Contains(b.ID, "$") {
-	// 	idGroup := strings.Split(b.ID, "$")
-	// 	newId := idGroup[len(idGroup)-1]
-	// 	b.ID = newId
-	// }
 
 	id, err := strconv.Atoi(b.ID)
 	if err != nil {

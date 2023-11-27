@@ -21,6 +21,7 @@ func NewColumn(gridName string, ChildFields map[string][]string, ParentFieldAlia
 	}
 
 	if val, ok := ParentFieldAliases[gridName]; ok {
+		c.IsItem = false
 		c.DBName = val[0]
 	}
 
@@ -41,14 +42,14 @@ func NewColumn(gridName string, ChildFields map[string][]string, ParentFieldAlia
 }
 
 // WhereSQL return where sql for column
-func (c Column) WhereSQL(val string) (whereSQL string) {
+func (c Column) WhereSQL(val string) (where string, arg interface{}) {
 	if c.IsDate {
 		if val == "" {
-			return fmt.Sprintf("%s IS NULL", c.DBName)
+			return fmt.Sprintf("%s IS NULL", c.DBName), nil
 		}
 	}
 
-	return fmt.Sprintf("%s='%s'", c.DBName, val)
+	return fmt.Sprintf("%s = ?", c.DBName), val
 }
 
 // Type return type for column

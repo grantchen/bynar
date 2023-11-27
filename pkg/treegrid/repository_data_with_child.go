@@ -229,6 +229,7 @@ func (g *gridRowDataRepositoryWithChild) GetPageCount(tg *Treegrid) (int64, erro
 // GetPageData implements GridRowDataRepositoryWithChild
 func (g *gridRowDataRepositoryWithChild) GetPageData(tg *Treegrid) ([]map[string]string, error) {
 	PrepFilters(tg, g.parentFieldMapping, g.childFieldMapping)
+	PrepRows(tg, g.parentFieldMapping, g.childFieldMapping)
 
 	// items request(with or without group by)
 	if tg.BodyParams.GetItemsRequest() {
@@ -256,7 +257,7 @@ func (g *gridRowDataRepositoryWithChild) GetPageData(tg *Treegrid) ([]map[string
 
 	// GROUP BY
 	if tg.WithGroupBy() {
-		return g.handleGroupBy(tg)
+		return g.getGroupData(tg)
 	}
 
 	// parent request without group by
@@ -333,30 +334,21 @@ func (g *gridRowDataRepositoryWithChild) getJSON(sqlString string, mergedArgs []
 	return tableData, nil
 }
 
-func (g *gridRowDataRepositoryWithChild) handleGroupBy(tg *Treegrid) ([]map[string]string, error) {
-	if tg.BodyParams.Rows != "" {
-		return g.getGroupData(tg.BodyParams.GetRowParentWhere(), tg.BodyParams.GetRowChildWhere(), tg)
-	}
-
-	// first level grouped rowsu
-	return g.getGroupData("WHERE TRUE", "WHERE TRUE", tg)
-}
-
-func (g *gridRowDataRepositoryWithChild) getGroupData(parentRowsWhere, childRowsWhere string, tg *Treegrid) ([]map[string]string, error) {
-	query, groupColumn := g.prepareNameCountQuery(parentRowsWhere, childRowsWhere, tg)
+func (g *gridRowDataRepositoryWithChild) getGroupData(tg *Treegrid) ([]map[string]string, error) {
+	querySQL, groupColumn := g.prepareNameCountQuery(tg)
 
 	pos, _ := tg.BodyParams.IntPos()
-	query = AppendLimitToQuery(query, g.pageSize, pos)
+	querySQL.SQL = AppendLimitToQuery(querySQL.SQL, g.pageSize, pos)
 
 	if groupColumn.IsItem {
-		return g.getChildData(tg.BodyParams.GetRowLevel(), tg.GroupCols, parentRowsWhere, childRowsWhere, query, groupColumn)
+		return g.getChildData(tg, querySQL, groupColumn)
 	}
 
-	return g.getParentData(tg.BodyParams.GetRowLevel(), tg.GroupCols, parentRowsWhere, childRowsWhere, query, groupColumn)
+	return g.getParentData(tg, querySQL, groupColumn)
 }
 
 // generateChildNameCountQuery generates query for child name count
-func (g *gridRowDataRepositoryWithChild) generateChildNameCountQuery(tg *Treegrid, parentRowsWhere, childRowsWhere string, column Column) string {
+func (g *gridRowDataRepositoryWithChild) generateChildNameCountQuery(tg *Treegrid, column Column) (querySQL *ConnectableSQL) {
 	queryCountSQL, err := NamedSQL(`
 		SELECT {{groupColumnShort}}, COUNT(*) AS Count
 		FROM (SELECT {{groupColumn}} AS {{groupColumnShort}}, {{tableName}}.id
@@ -379,50 +371,34 @@ func (g *gridRowDataRepositoryWithChild) generateChildNameCountQuery(tg *Treegri
 			"childWhere":       ChildWhereTag,
 		})
 	if err != nil {
-		return ""
+		return
 	}
 
-	querySQL := NewConnectableSQL(queryCountSQL)
-	querySQL.ConcatParentWhere(parentRowsWhere)
-	querySQL.ConcatChildWhere(childRowsWhere)
+	querySQL = NewConnectableSQL(queryCountSQL)
+	querySQL.ConcatParentWhere(tg.RowsWhere["parent"], tg.RowsArgs["parent"]...)
+	querySQL.ConcatChildWhere(tg.RowsWhere["child"], tg.RowsArgs["child"]...)
 	querySQL.ConcatParentWhere(tg.FilterWhere["parent"], tg.FilterArgs["parent"]...)
 	querySQL.ConcatChildWhere(tg.FilterWhere["child"], tg.FilterArgs["child"]...)
-
-	return querySQL.AsSQL()
+	return querySQL
 }
 
-func (g *gridRowDataRepositoryWithChild) prepareNameCountQuery(parentRowsWhere, childRowsWhere string, tg *Treegrid) (query string, column Column) {
+func (g *gridRowDataRepositoryWithChild) prepareNameCountQuery(tg *Treegrid) (querySQL *ConnectableSQL, column Column) {
 	// If both the level are equal then return the row
-	level := tg.BodyParams.GetRowLevel()
+	level := tg.BodyParams.RowsLevel
 	// query parent rows
 	if level == len(tg.GroupCols) {
-		queryDataSQL := NewConnectableSQL(g.cfg.QueryParent)
-		queryDataSQL.ConcatParentWhere(parentRowsWhere)
-		// query all child rows with filter, do not concat childRowsWhere
-		queryDataSQL.ConcatParentWhere(tg.FilterWhere["parent"], tg.FilterArgs["parent"]...)
+		querySQL = NewConnectableSQL(g.cfg.QueryParent)
+		querySQL.ConcatParentWhere(tg.RowsWhere["parent"], tg.RowsArgs["parent"]...)
+		// query all child rows with filter, do not concat child RowsWhere
+		querySQL.ConcatParentWhere(tg.FilterWhere["parent"], tg.FilterArgs["parent"]...)
 		if tg.FilterWhere["child"] != "" {
-			childQuery, err := NamedSQL(`
-				{{tableName}}.{{id}} IN (SELECT {{lineTableName}}.{{parentId}} 
-										 FROM {{lineTableName}} 
-										 {{queryChildJoins}}
-										 {{childWhere}})
-				`,
-				map[string]string{
-					"tableName":       g.tableName,
-					"id":              g.cfg.ParentIdField,
-					"lineTableName":   g.lineTableName,
-					"parentId":        g.cfg.ChildJoinFieldWithParent,
-					"queryChildJoins": g.cfg.QueryChildJoins,
-					"childWhere":      ChildDummyWhere,
-				})
+			parentIn, err := g.childQueryToParentIn()
 			if err != nil {
 				return
 			}
-
-			queryDataSQL.ConcatParentWhere(childQuery)
-			queryDataSQL.ConcatChildWhere(tg.FilterWhere["child"], tg.FilterArgs["child"]...)
+			querySQL.ConcatParentWhere(parentIn)
+			querySQL.ConcatChildWhere(tg.FilterWhere["child"], tg.FilterArgs["child"]...)
 		}
-		query = queryDataSQL.AsSQL()
 		return
 	}
 
@@ -434,11 +410,11 @@ func (g *gridRowDataRepositoryWithChild) prepareNameCountQuery(parentRowsWhere, 
 
 		switch {
 		case !column.IsItem && !secColumn.IsItem:
-			return g.getCascadingGroupByParentParent(tg, column, secColumn, parentRowsWhere, childRowsWhere), column
+			return g.getCascadingGroupByParentParent(tg, column, secColumn), column
 		case column.IsItem && !secColumn.IsItem, !column.IsItem && secColumn.IsItem:
-			return g.getCascadingGroupByParentChild(tg, column, secColumn, parentRowsWhere, childRowsWhere), column
+			return g.getCascadingGroupByParentChild(tg, column, secColumn), column
 		case column.IsItem && secColumn.IsItem:
-			return g.getCascadingGroupByChildChild(tg, column, secColumn, parentRowsWhere, childRowsWhere), column
+			return g.getCascadingGroupByChildChild(tg, column, secColumn), column
 		}
 	}
 
@@ -447,8 +423,7 @@ func (g *gridRowDataRepositoryWithChild) prepareNameCountQuery(parentRowsWhere, 
 			column.DBName = val[0]
 		}
 
-		query = g.generateChildNameCountQuery(tg, parentRowsWhere, childRowsWhere, column)
-		return query, column
+		return g.generateChildNameCountQuery(tg, column), column
 	}
 
 	// only one groupBy clause, query parent rows
@@ -466,43 +441,34 @@ func (g *gridRowDataRepositoryWithChild) prepareNameCountQuery(parentRowsWhere, 
 			"parentWhere":      ParentDummyWhere,
 		})
 	if err != nil {
-		return "", column
+		return
 	}
 
-	querySQL := NewConnectableSQL(queryCountSQL)
-	querySQL.ConcatParentWhere(parentRowsWhere)
+	querySQL = NewConnectableSQL(queryCountSQL)
+	querySQL.ConcatParentWhere(tg.RowsWhere["parent"], tg.RowsArgs["parent"]...)
 	querySQL.ConcatParentWhere(tg.FilterWhere["parent"], tg.FilterArgs["parent"]...)
 	if tg.FilterWhere["child"] != "" {
-		childQuery, err := NamedSQL(`
-				{{tableName}}.{{id}} IN (SELECT {{lineTableName}}.{{parentId}} 
-										 FROM {{lineTableName}} 
-										 {{queryChildJoins}}
-										 {{childWhere}})
-				`,
-			map[string]string{
-				"tableName":       g.tableName,
-				"id":              g.cfg.ParentIdField,
-				"lineTableName":   g.lineTableName,
-				"parentId":        g.cfg.ChildJoinFieldWithParent,
-				"queryChildJoins": g.cfg.QueryChildJoins,
-				"childWhere":      ChildDummyWhere,
-			})
+		parentIn, err := g.childQueryToParentIn()
 		if err != nil {
 			return
 		}
-
-		querySQL.ConcatParentWhere(childQuery)
+		querySQL.ConcatParentWhere(parentIn)
 		querySQL.ConcatChildWhere(tg.FilterWhere["child"], tg.FilterArgs["child"]...)
 	}
-	query = querySQL.AsSQL()
 
 	return
 }
 
-func (g *gridRowDataRepositoryWithChild) getParentData(level int, groupCols []string, parentWhere, childWhere string, query string, groupColumn Column) ([]map[string]string, error) {
-	rows, err := g.db.Query(query)
+func (g *gridRowDataRepositoryWithChild) getParentData(tg *Treegrid, querySQL *ConnectableSQL, groupColumn Column) ([]map[string]string, error) {
+	stmt, err := g.db.Prepare(querySQL.SQL)
 	if err != nil {
-		return nil, fmt.Errorf("do query: '%s': [%w]", query, err)
+		return nil, fmt.Errorf("db prepare: [%w], query: [%s]", err, querySQL.SQL)
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(querySQL.Args...)
+	if err != nil {
+		return nil, fmt.Errorf("do query: [%w], query: [%s]", err, querySQL.AsSQL())
 	}
 	defer rows.Close()
 
@@ -524,7 +490,7 @@ func (g *gridRowDataRepositoryWithChild) getParentData(level int, groupCols []st
 		}
 		tempObj["Count"] = row.GetValue("Count")
 
-		if level == len(groupCols) {
+		if tg.BodyParams.RowsLevel == len(tg.GroupCols) {
 			for k := range row.StringValues() {
 				tempObj[k] = row.StringValues()[k]
 			}
@@ -548,21 +514,31 @@ func (g *gridRowDataRepositoryWithChild) getParentData(level int, groupCols []st
 			tempObj[g.cfg.MainCol+"Format"] = "yyyy-MM-dd"
 		}
 
-		val := docType
-		where2 := " AND " + groupColumn.WhereSQL(val)
-
 		// Builds new attribute Rows for identification
-		tempObj["Rows"] = SetBodyParamRows(level+1, parentWhere+where2, childWhere)
+		tempObj["Rows"], err = tg.BodyParams.GetNewRows(
+			tg.BodyParams.RowsLevel+1,
+			RowsFieldCond{GridName: groupColumn.GridName, Value: row.GetValue(groupColumn.DBNameShort)},
+		)
+		if err != nil {
+			return nil, err
+		}
+
 		tableData = append(tableData, tempObj)
 	}
 
 	return tableData, nil
 }
 
-func (g *gridRowDataRepositoryWithChild) getChildData(level int, groupCols []string, parentWhere, childWhere string, query string, groupColumn Column) ([]map[string]string, error) {
-	rows, err := g.db.Query(query)
+func (g *gridRowDataRepositoryWithChild) getChildData(tg *Treegrid, querySQL *ConnectableSQL, groupColumn Column) ([]map[string]string, error) {
+	stmt, err := g.db.Prepare(querySQL.SQL)
 	if err != nil {
-		return nil, fmt.Errorf("do query: [%w], query: [%s]", err, query)
+		return nil, fmt.Errorf("db prepare: [%w], query: [%s]", err, querySQL.SQL)
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(querySQL.Args...)
+	if err != nil {
+		return nil, fmt.Errorf("do query: [%w], query: [%s]", err, querySQL.AsSQL())
 	}
 	defer rows.Close()
 
@@ -584,25 +560,18 @@ func (g *gridRowDataRepositoryWithChild) getChildData(level int, groupCols []str
 
 		tempObj["Count"] = row.GetValue("Count")
 		tempObj[g.cfg.MainCol] = row.GetValue(groupColumn.DBNameShort)
-		if level == len(groupCols) {
+		if tg.BodyParams.RowsLevel == len(tg.GroupCols) {
 			tableData = append(tableData, row.StringValues())
 			continue
 		}
 
-		// rows where condition
-		var rowsParentWhere string
-		var rowsChildWhere string
-
-		// If grouped by child column
-		if strings.Index(parentWhere, " AND "+groupColumn.DBName+"='") > 0 {
-			// If the column is already added in the WHERE clause
-			// Just update the query to adjust column value
-			rowsParentWhere = utils.ReplaceColumnValueInQuery(parentWhere, groupColumn.DBName, row.GetValue(groupColumn.DBNameShort))
-		} else {
-			rowsParentWhere = g.addChildCondition(parentWhere, groupColumn.DBName, row.GetValue(groupColumn.DBNameShort))
+		tempObj["Rows"], err = tg.BodyParams.GetNewRows(
+			tg.BodyParams.RowsLevel+1,
+			RowsFieldCond{GridName: groupColumn.GridName, Value: row.GetValue(groupColumn.DBNameShort)},
+		)
+		if err != nil {
+			return nil, err
 		}
-		rowsChildWhere = childWhere + " AND " + groupColumn.DBName + "='" + row.GetValue(groupColumn.DBNameShort) + "' "
-		tempObj["Rows"] = SetBodyParamRows(level+1, rowsParentWhere, rowsChildWhere)
 
 		tableData = append(tableData, tempObj)
 	}
@@ -610,27 +579,7 @@ func (g *gridRowDataRepositoryWithChild) getChildData(level int, groupCols []str
 	return tableData, nil
 }
 
-func (g *gridRowDataRepositoryWithChild) addChildCondition(parentWhere, colName string, colValue string) string {
-	tmp := fmt.Sprintf("%s IN ( SELECT %s FROM %s", g.cfg.ParentIdField, g.cfg.ChildJoinFieldWithParent, g.lineTableName)
-	if strings.Index(parentWhere, tmp) > 0 {
-		// If already filtered on child column(s)
-		parentWhere = strings.Replace(parentWhere, ")", " AND "+colName+"='"+colValue+"' )", 1)
-	} else {
-		// parentWhere += ` AND transfers.id IN ( SELECT Parent FROM transfers_items
-		// INNER JOIN items ON transfers_items.item_uuid = items.id
-		// INNER JOIN units ON transfers_items.item_unit_uuid = units.id
-		// INNER JOIN item_types ON items.type_uuid = item_types.id
-		// WHERE ` + colName + "='" + colValue + "' ) "
-
-		parentWhere += fmt.Sprintf(` AND %s.%s IN ( SELECT %s FROM %s `, g.tableName, g.cfg.ParentIdField, g.cfg.ChildJoinFieldWithParent, g.lineTableName) +
-			g.cfg.QueryChildJoins +
-			" WHERE " + colName + "='" + colValue + "' ) "
-	}
-
-	return parentWhere
-}
-
-func (g *gridRowDataRepositoryWithChild) getCascadingGroupByParentParent(tg *Treegrid, firstCol, secondCol Column, parentRowsWhere, childRowsWhere string) string {
+func (g *gridRowDataRepositoryWithChild) getCascadingGroupByParentParent(tg *Treegrid, firstCol, secondCol Column) (querySQL *ConnectableSQL) {
 	// if grouped columns contain any child column, join with line table
 	var joinChildSQL string
 	var err error
@@ -644,7 +593,7 @@ func (g *gridRowDataRepositoryWithChild) getCascadingGroupByParentParent(tg *Tre
 				"id":            g.cfg.ParentIdField,
 			})
 		if err != nil {
-			return ""
+			return nil
 		}
 	}
 
@@ -670,40 +619,26 @@ func (g *gridRowDataRepositoryWithChild) getCascadingGroupByParentParent(tg *Tre
 			"parentWhere":         ParentDummyWhere,
 		})
 	if err != nil {
-		return ""
+		return nil
 	}
 
-	querySQL := NewConnectableSQL(query)
-	querySQL.ConcatParentWhere(parentRowsWhere)
+	querySQL = NewConnectableSQL(query)
+	querySQL.ConcatParentWhere(tg.RowsWhere["parent"], tg.RowsArgs["parent"]...)
 	querySQL.ConcatParentWhere(tg.FilterWhere["parent"], tg.FilterArgs["parent"]...)
 	if tg.FilterWhere["child"] != "" {
-		childQuery, err := NamedSQL(`
-				{{tableName}}.{{id}} IN (SELECT {{lineTableName}}.{{parentId}} 
-										 FROM {{lineTableName}} 
-										 {{queryChildJoins}}
-										 {{childWhere}})
-				`,
-			map[string]string{
-				"tableName":       g.tableName,
-				"id":              g.cfg.ParentIdField,
-				"lineTableName":   g.lineTableName,
-				"parentId":        g.cfg.ChildJoinFieldWithParent,
-				"queryChildJoins": g.cfg.QueryChildJoins,
-				"childWhere":      ChildDummyWhere,
-			})
+		parentIn, err := g.childQueryToParentIn()
 		if err != nil {
-			return ""
+			return nil
 		}
-
-		querySQL.ConcatParentWhere(childQuery)
+		querySQL.ConcatParentWhere(parentIn)
 		querySQL.ConcatChildWhere(tg.FilterWhere["child"], tg.FilterArgs["child"]...)
 	}
 
-	return querySQL.AsSQL()
+	return querySQL
 }
 
 // when grouping by two parent (tansfer) columns
-func (g *gridRowDataRepositoryWithChild) getCascadingGroupByParentChild(tg *Treegrid, firstCol, secondCol Column, parentRowsWhere, childRowsWhere string) string {
+func (g *gridRowDataRepositoryWithChild) getCascadingGroupByParentChild(tg *Treegrid, firstCol, secondCol Column) (querySQL *ConnectableSQL) {
 	query, err := NamedSQL(`
 		SELECT {{firstColDBNameShort}}, COUNT(*) Count FROM (
 			SELECT
@@ -728,19 +663,19 @@ func (g *gridRowDataRepositoryWithChild) getCascadingGroupByParentChild(tg *Tree
 			"childWhere":          ChildWhereTag,
 		})
 	if err != nil {
-		return ""
+		return
 	}
 
-	querySQL := NewConnectableSQL(query)
-	querySQL.ConcatParentWhere(parentRowsWhere)
-	querySQL.ConcatChildWhere(childRowsWhere)
+	querySQL = NewConnectableSQL(query)
+	querySQL.ConcatParentWhere(tg.RowsWhere["parent"], tg.RowsArgs["parent"]...)
+	querySQL.ConcatChildWhere(tg.RowsWhere["child"], tg.RowsArgs["child"]...)
 	querySQL.ConcatParentWhere(tg.FilterWhere["parent"], tg.FilterArgs["parent"]...)
 	querySQL.ConcatChildWhere(tg.FilterWhere["child"], tg.FilterArgs["child"]...)
-	return querySQL.AsSQL()
+	return querySQL
 }
 
 // when grouping by two child columns
-func (g *gridRowDataRepositoryWithChild) getCascadingGroupByChildChild(tg *Treegrid, firstCol, secondCol Column, parentRowsWhere, childRowsWhere string) string {
+func (g *gridRowDataRepositoryWithChild) getCascadingGroupByChildChild(tg *Treegrid, firstCol, secondCol Column) (querySQL *ConnectableSQL) {
 	query, err := NamedSQL(`
 		SELECT {{firstColDBNameShort}}, COUNT(*) AS Count
 		FROM (
@@ -766,13 +701,35 @@ func (g *gridRowDataRepositoryWithChild) getCascadingGroupByChildChild(tg *Treeg
 			"parentWhere":         ParentWhereTag,
 		})
 	if err != nil {
-		return ""
+		return
 	}
 
-	querySQL := NewConnectableSQL(query)
-	querySQL.ConcatChildWhere(childRowsWhere)
-	querySQL.ConcatParentWhere(parentRowsWhere)
+	querySQL = NewConnectableSQL(query)
+	querySQL.ConcatChildWhere(tg.RowsWhere["child"], tg.RowsArgs["child"]...)
+	querySQL.ConcatParentWhere(tg.RowsWhere["parent"], tg.RowsArgs["parent"]...)
 	querySQL.ConcatChildWhere(tg.FilterWhere["child"], tg.FilterArgs["child"]...)
 	querySQL.ConcatParentWhere(tg.FilterWhere["parent"], tg.FilterArgs["parent"]...)
-	return querySQL.AsSQL()
+	return querySQL
+}
+
+// childQueryToParentIn generates parent id in query from child query
+func (g *gridRowDataRepositoryWithChild) childQueryToParentIn() (string, error) {
+	parentIn, err := NamedSQL(`
+		{{tableName}}.{{id}} IN (SELECT {{lineTableName}}.{{parentId}} 
+							 FROM {{lineTableName}} 
+							 {{queryChildJoins}}
+							 {{childWhere}})
+		`,
+		map[string]string{
+			"tableName":       g.tableName,
+			"id":              g.cfg.ParentIdField,
+			"lineTableName":   g.lineTableName,
+			"parentId":        g.cfg.ChildJoinFieldWithParent,
+			"queryChildJoins": g.cfg.QueryChildJoins,
+			"childWhere":      ChildDummyWhere,
+		})
+	if err != nil {
+		return "", err
+	}
+	return parentIn, nil
 }
