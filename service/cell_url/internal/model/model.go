@@ -10,7 +10,7 @@ type WarehouseInfo struct {
 	ProductBarcode     string `json:"product_barcode,omitempty"`
 	Quantity           string `json:"quantity,omitempty"`
 	AvgCost            string `json:"avg_cost,omitempty"`
-	Name               string `json:"GridName,omitempty"`
+	Name               string `json:"Name,omitempty"`
 }
 
 type Grid struct {
