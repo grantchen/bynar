@@ -264,25 +264,11 @@ func (g *gridRowDataRepositoryWithChild) GetPageData(tg *Treegrid) ([]map[string
 	querySQL := NewConnectableSQL(g.cfg.QueryParent)
 	querySQL.ConcatParentWhere(tg.FilterWhere["parent"], tg.FilterArgs["parent"]...)
 	if tg.FilterWhere["child"] != "" {
-		childQuery, err := NamedSQL(`
-				{{tableName}}.{{id}} IN (SELECT {{lineTableName}}.{{parentId}} 
-										 FROM {{lineTableName}} 
-										 {{queryChildJoins}}
-										 {{childWhere}})
-				`,
-			map[string]string{
-				"tableName":       g.tableName,
-				"id":              g.cfg.ParentIdField,
-				"lineTableName":   g.lineTableName,
-				"parentId":        g.cfg.ChildJoinFieldWithParent,
-				"queryChildJoins": g.cfg.QueryChildJoins,
-				"childWhere":      ChildDummyWhere,
-			})
+		parentIn, err := g.childQueryToParentIn()
 		if err != nil {
 			return nil, err
 		}
-
-		querySQL.ConcatParentWhere(childQuery)
+		querySQL.ConcatParentWhere(parentIn)
 		querySQL.ConcatChildWhere(tg.FilterWhere["child"], tg.FilterArgs["child"]...)
 	}
 
@@ -389,15 +375,19 @@ func (g *gridRowDataRepositoryWithChild) prepareNameCountQuery(tg *Treegrid) (qu
 	if level == len(tg.GroupCols) {
 		querySQL = NewConnectableSQL(g.cfg.QueryParent)
 		querySQL.ConcatParentWhere(tg.RowsWhere["parent"], tg.RowsArgs["parent"]...)
-		// query all child rows with filter, do not concat child RowsWhere
 		querySQL.ConcatParentWhere(tg.FilterWhere["parent"], tg.FilterArgs["parent"]...)
-		if tg.FilterWhere["child"] != "" {
+		// query all child rows with filter, do not concat child RowsWhere
+		if tg.FilterWhere["child"] != "" || tg.RowsWhere["child"] != "" {
 			parentIn, err := g.childQueryToParentIn()
 			if err != nil {
 				return
 			}
-			querySQL.ConcatParentWhere(parentIn)
-			querySQL.ConcatChildWhere(tg.FilterWhere["child"], tg.FilterArgs["child"]...)
+
+			parentInSQL := NewConnectableSQL(parentIn)
+			parentInSQL.ConcatChildWhere(tg.RowsWhere["child"], tg.RowsArgs["child"]...) // only concat to parentInSQL!
+			// concat parentInSQL to querySQL
+			querySQL.ConcatParentWhere(parentInSQL.SQL, parentInSQL.Args...)
+			querySQL.ConcatChildWhere(tg.FilterWhere["child"], tg.FilterArgs["child"]...) // concat to querySQL
 		}
 		return
 	}
@@ -418,6 +408,7 @@ func (g *gridRowDataRepositoryWithChild) prepareNameCountQuery(tg *Treegrid) (qu
 		}
 	}
 
+	// last group is item(one or multiple groupBy clauses)
 	if column.IsItem {
 		if val, ok := g.childFieldMapping[column.GridName]; ok {
 			column.DBName = val[0]
