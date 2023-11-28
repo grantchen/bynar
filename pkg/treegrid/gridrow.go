@@ -312,11 +312,14 @@ func (g GridRow) GetIDInt() (id int) {
 // getRealID return real id of row
 func (g *GridRow) getRealID(id string) string {
 	if strings.Contains(id, "$") { // splitId when group by have format: (CR[0-9]+\$)+<real_id>
+		realId := ""
 		for _, splitId := range strings.Split(id, "$") {
 			if !g.isAutoID(splitId) {
-				return splitId
+				// real id is the last
+				realId = splitId
 			}
 		}
+		return realId
 	}
 
 	return id
@@ -333,19 +336,24 @@ func (g *GridRow) isAutoID(id string) bool {
 	return idPrefix == "AR" || idPrefix == "GR" || idPrefix == "CR"
 }
 
-func (g *GridRow) removeGroupIDInterface(input interface{}) interface{} {
-	// idString := id.(string)
+// getRealIDInterface return real id interface of row
+func (g *GridRow) getRealIDInterface(input interface{}) interface{} {
 	idStr, _ := input.(string)
-	if strings.Contains(idStr, "$") { // id when group by have format: (CR[0-9]+\$)+<real_id>
-		idGroup := strings.Split(idStr, "$")
-		newId := idGroup[len(idGroup)-1]
-		return newId
+	if strings.Contains(idStr, "$") { // splitId when group by have format: (CR[0-9]+\$)+<real_id>
+		realId := ""
+		for _, splitId := range strings.Split(idStr, "$") {
+			if !g.isAutoID(splitId) {
+				// real id is the last
+				realId = splitId
+			}
+		}
+		return realId
 	}
 	return input
 }
 
 func (g GridRow) GetID() (id interface{}) {
-	return g.removeGroupIDInterface(g.getOriginID())
+	return g.getRealIDInterface(g.getOriginID())
 }
 
 func (g GridRow) getOriginID() (id interface{}) {
