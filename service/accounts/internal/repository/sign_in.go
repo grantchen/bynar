@@ -74,6 +74,10 @@ func (r *accountRepositoryHandler) SelectSignInColumns(uid string) (*model.SignI
 		// user not exists in accounts if user added in user list
 		logrus.Error("query row: [%w]", err)
 		// return nil, fmt.Errorf("query row: [%w]", err)
+		err = r.db.QueryRow(`SELECT a.id FROM organization_accounts oa1 JOIN organization_accounts oa2 ON oa1.organization_id = oa2.organization_id JOIN accounts a ON oa2.organization_user_uid = a.uid WHERE oa1.organization_user_uid = ? ORDER BY oa2.id ASC LIMIT 1`, uid).Scan(&signIn.AccountId)
+		if err != nil {
+			logrus.Error("query row: [%w]", err)
+		}
 	}
 
 	return &signIn, nil
