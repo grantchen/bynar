@@ -269,12 +269,13 @@ func (g *gridRowDataRepositoryWithChild) GetPageData(tg *Treegrid) ([]map[string
 	// parent request without group by
 	querySQL := NewConnectableSQL(g.cfg.QueryParent)
 	querySQL.ConcatParentWhere(tg.FilterWhere["parent"], tg.FilterArgs["parent"]...)
-	if tg.FilterWhere["child"] != "" {
+	if tg.FilterWhere["child"] != "" || tg.RowsWhere["child"] != "" {
 		parentIn, err := g.childQueryToParentIn()
 		if err != nil {
 			return nil, err
 		}
 		querySQL.ConcatParentWhere(parentIn)
+		querySQL.ConcatChildWhere(tg.RowsWhere["child"], tg.RowsArgs["child"]...)
 		querySQL.ConcatChildWhere(tg.FilterWhere["child"], tg.FilterArgs["child"]...)
 	}
 
@@ -423,7 +424,7 @@ func (g *gridRowDataRepositoryWithChild) prepareNameCountQuery(tg *Treegrid) (qu
 		return g.generateChildNameCountQuery(tg, column), column
 	}
 
-	// only one groupBy clause, query parent rows
+	// last group is parent(multiple groupBy clauses)
 	queryCountSQL, err := NamedSQL(`
 		SELECT {{groupColumn}}, COUNT(*) AS Count
 		FROM {{tableName}}
@@ -444,12 +445,13 @@ func (g *gridRowDataRepositoryWithChild) prepareNameCountQuery(tg *Treegrid) (qu
 	querySQL = NewConnectableSQL(queryCountSQL)
 	querySQL.ConcatParentWhere(tg.RowsWhere["parent"], tg.RowsArgs["parent"]...)
 	querySQL.ConcatParentWhere(tg.FilterWhere["parent"], tg.FilterArgs["parent"]...)
-	if tg.FilterWhere["child"] != "" {
+	if tg.FilterWhere["child"] != "" || tg.RowsWhere["child"] != "" {
 		parentIn, err := g.childQueryToParentIn()
 		if err != nil {
 			return
 		}
 		querySQL.ConcatParentWhere(parentIn)
+		querySQL.ConcatChildWhere(tg.RowsWhere["child"], tg.RowsArgs["child"]...)
 		querySQL.ConcatChildWhere(tg.FilterWhere["child"], tg.FilterArgs["child"]...)
 	}
 
@@ -622,12 +624,13 @@ func (g *gridRowDataRepositoryWithChild) getCascadingGroupByParentParent(tg *Tre
 	querySQL = NewConnectableSQL(query)
 	querySQL.ConcatParentWhere(tg.RowsWhere["parent"], tg.RowsArgs["parent"]...)
 	querySQL.ConcatParentWhere(tg.FilterWhere["parent"], tg.FilterArgs["parent"]...)
-	if tg.FilterWhere["child"] != "" {
+	if tg.FilterWhere["child"] != "" || tg.RowsWhere["child"] != "" {
 		parentIn, err := g.childQueryToParentIn()
 		if err != nil {
 			return nil
 		}
 		querySQL.ConcatParentWhere(parentIn)
+		querySQL.ConcatChildWhere(tg.RowsWhere["child"], tg.RowsArgs["child"]...)
 		querySQL.ConcatChildWhere(tg.FilterWhere["child"], tg.FilterArgs["child"]...)
 	}
 
