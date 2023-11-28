@@ -96,6 +96,7 @@ func (s *simpleGridRepository) getPageData(tg *Treegrid, additionWhere string, a
 			entry["Expanded"] = "0"
 			entry["Count"] = "0"
 			entry["Def"] = "Node"
+			entry["CDef"] = "Data"
 		}
 
 		tableData = append(tableData, entry)
@@ -152,6 +153,7 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 		}
 		entry := rowVals.StringValues()
 		entry["Def"] = "Group"
+		entry["CDef"] = "Node"
 		entry["Expanded"] = "0"
 		tgCol := tg.GroupCols[level]
 		if s.cfg != nil && s.cfg.MainCol != "" {
