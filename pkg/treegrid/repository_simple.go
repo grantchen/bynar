@@ -65,8 +65,8 @@ func (s *simpleGridRepository) getPageData(tg *Treegrid, additionWhere string, a
 
 	FilterWhere, FilterArgs := PrepQuerySimple(tg.FilterParams, s.fieldMapping)
 
-	query = query + ParentDummyWhere + FilterWhere + " " + additionWhere +
-		tg.OrderByChildQuery(s.fieldMapping, fmt.Sprintf("%s.id ASC", s.tableName))
+	query = JoinSQLs(query, ParentDummyWhere, FilterWhere, additionWhere,
+		tg.OrderByChildQuery(s.fieldMapping, fmt.Sprintf("%s.id ASC", s.tableName)))
 	query = AppendLimitToQuery(query, s.pageSize, pos)
 	stmt, err := s.db.Prepare(query)
 	if err != nil {
@@ -108,20 +108,20 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 	rowsWhere, rowsArgs := PrepRowsSimple(tg.BodyParams, s.fieldMapping)
 	// last level of group by, get data from table
 	if level == len(tg.GroupCols) {
-		return s.getPageData(tg, rowsWhere+s.cfg.AdditionWhere, rowsArgs)
+		return s.getPageData(tg, JoinSQLs(rowsWhere, s.cfg.AdditionWhere), rowsArgs)
 	}
 
 	var queryArgs []interface{}
 	FilterWhere, FilterArgs := PrepQuerySimple(tg.FilterParams, s.fieldMapping)
 	if level > 0 {
-		FilterWhere = FilterWhere + rowsWhere + s.cfg.AdditionWhere
+		FilterWhere = JoinSQLs(FilterWhere, rowsWhere, s.cfg.AdditionWhere)
 		queryArgs = append(FilterArgs, rowsArgs...)
 	} else {
-		FilterWhere = FilterWhere + s.cfg.AdditionWhere
+		FilterWhere = JoinSQLs(FilterWhere, s.cfg.AdditionWhere)
 		queryArgs = FilterArgs
 	}
 
-	groupWhere := ParentDummyWhere + FilterWhere
+	groupWhere := JoinSQLs(ParentDummyWhere, FilterWhere)
 	query := BuildSimpleQueryGroupBy(s.tableName, s.fieldMapping, tg.GroupCols, groupWhere, level, s.cfg.QueryJoin)
 
 	pos, _ := tg.BodyParams.IntPos()
@@ -179,9 +179,9 @@ func (s *simpleGridRepository) GetPageCount(tg *Treegrid) (int64, error) {
 	FilterWhere, FilterArgs := PrepQuerySimple(tg.FilterParams, s.fieldMapping)
 	if !tg.WithGroupBy() {
 		query = BuildSimpleQueryCount(s.tableName, s.fieldMapping, s.cfg.QueryCount)
-		query = query + ParentDummyWhere + FilterWhere + s.cfg.AdditionWhere
+		query = JoinSQLs(query, ParentDummyWhere, FilterWhere, s.cfg.AdditionWhere)
 	} else {
-		where := ParentDummyWhere + FilterWhere + s.cfg.AdditionWhere
+		where := JoinSQLs(ParentDummyWhere, FilterWhere, s.cfg.AdditionWhere)
 		query = BuildSimpleQueryGroupByCount(s.tableName, s.fieldMapping, tg.GroupCols, where)
 	}
 

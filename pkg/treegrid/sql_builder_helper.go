@@ -34,7 +34,7 @@ func (s *ConnectableSQL) Set(sql string, args ...interface{}) {
 
 // Append appends sql and args
 func (s *ConnectableSQL) Append(sql string, args ...interface{}) {
-	s.SQL += sql
+	s.SQL += " " + sql
 	s.Args = append(s.Args, args...)
 }
 
@@ -149,4 +149,9 @@ func NamedSQL(sql string, data map[string]string) (string, error) {
 		return "", err
 	}
 	return sqlStr, nil
+}
+
+// JoinSQLs joins sqls with space
+func JoinSQLs(sqls ...string) string {
+	return strings.Join(sqls, " ")
 }
