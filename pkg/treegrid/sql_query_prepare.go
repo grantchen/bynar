@@ -1,6 +1,7 @@
 package treegrid
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -200,6 +201,42 @@ func PrepareFilters(operator int, colName, val string) (whereSql string, args []
 	}
 
 	return " (" + whereSql + ") ", args
+}
+
+// PrepRows prepares rows where query with parent and child
+func PrepRows(tr *Treegrid, fieldAliasesParent map[string][]string, fieldAliasesChild map[string][]string) {
+	tr.RowsWhere, tr.RowsArgs = PrepRowsQueryComplex(tr.BodyParams.RowsFields, fieldAliasesParent, fieldAliasesChild)
+}
+
+// PrepRowsSimple prepares rows where query with parent only
+func PrepRowsSimple(bodyParams BodyParam, fieldAliases map[string][]string) (string, []interface{}) {
+	rowsWhere, rowsArgs := PrepRowsQueryComplex(bodyParams.RowsFields, fieldAliases, make(map[string][]string))
+	return rowsWhere["parent"], rowsArgs["parent"]
+}
+
+// PrepRowsQueryComplex prepares rows where query
+func PrepRowsQueryComplex(fieldConds []RowsFieldCond, fieldAliasesParent map[string][]string, fieldAliasesChild map[string][]string) (map[string]string, map[string][]interface{}) {
+	rowsWhere := make(map[string]string)
+	rowsArgs := make(map[string][]interface{})
+
+	for _, cond := range fieldConds {
+		column := NewColumn(cond.GridName, fieldAliasesChild, fieldAliasesParent)
+		where, arg := column.WhereSQL(cond.Value)
+		if column.IsItem {
+			rowsWhere["child"] += fmt.Sprintf(" AND %s", where)
+			if arg != nil {
+				rowsArgs["child"] = append(rowsArgs["child"], arg)
+			}
+		} else {
+			rowsWhere["parent"] += fmt.Sprintf(" AND %s", where)
+			if arg != nil {
+				rowsArgs["parent"] = append(rowsArgs["parent"], arg)
+			}
+		}
+
+	}
+
+	return rowsWhere, rowsArgs
 }
 
 func IsDateCol(colName string) bool {

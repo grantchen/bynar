@@ -16,18 +16,13 @@ const ChildWhereTag = "2=2"
 type ConnectableSQL struct {
 	SQL  string        // sql
 	Args []interface{} // sql args
-
-	parentQuery string // parent query
-	childQuery  string // child query
 }
 
 // NewConnectableSQL creates a new ConnectableSQL
 func NewConnectableSQL(sql string, args ...interface{}) *ConnectableSQL {
 	return &ConnectableSQL{
-		SQL:         sql,
-		Args:        args,
-		parentQuery: ParentWhereTag,
-		childQuery:  ChildWhereTag,
+		SQL:  sql,
+		Args: args,
 	}
 }
 
@@ -39,7 +34,7 @@ func (s *ConnectableSQL) Set(sql string, args ...interface{}) {
 
 // Append appends sql and args
 func (s *ConnectableSQL) Append(sql string, args ...interface{}) {
-	s.SQL += sql
+	s.SQL += " " + sql
 	s.Args = append(s.Args, args...)
 }
 
@@ -51,24 +46,6 @@ func (s *ConnectableSQL) ConcatParentWhere(where string, args ...interface{}) {
 // ConcatChildWhere concatenates where to child where in sql
 func (s *ConnectableSQL) ConcatChildWhere(where string, args ...interface{}) {
 	s.concatWhereToTag(false, where, args...)
-}
-
-// ParentWhere returns parent where
-func (s *ConnectableSQL) ParentWhere() string {
-	query := s.removeWhereTag(s.getWhereCondition(s.parentQuery), ParentWhereTag)
-	if query == "" {
-		return " WHERE TRUE"
-	}
-	return " WHERE " + query
-}
-
-// ChildWhere returns child where
-func (s *ConnectableSQL) ChildWhere() string {
-	query := s.removeWhereTag(s.getWhereCondition(s.childQuery), ChildWhereTag)
-	if query == "" {
-		return " WHERE TRUE"
-	}
-	return " WHERE " + query
 }
 
 // AsSQL returns sql string
@@ -98,19 +75,6 @@ func (s *ConnectableSQL) concatWhereToTag(isParent bool, where string, args ...i
 	for {
 		i := strings.Index(sqlAfterIndex, tag)
 		if i == -1 {
-			// save where to s.parentQueries or s.childQueries
-			if sqlIndex != 0 {
-				if isParent {
-					//s.parentQueries = append(s.parentQueries, where)
-					s.parentQuery = strings.ReplaceAll(s.parentQuery, tag, s.whereToSQL(concatWhere, args)+tag)
-					s.childQuery = strings.ReplaceAll(s.childQuery, tag, s.parentQuery)
-				} else {
-					//s.childQueries = append(s.childQueries, where)
-					s.childQuery = strings.ReplaceAll(s.childQuery, tag, s.whereToSQL(concatWhere, args)+tag)
-					s.parentQuery = strings.ReplaceAll(s.parentQuery, tag, s.childQuery)
-				}
-			}
-
 			return
 		}
 
@@ -159,13 +123,6 @@ func (s *ConnectableSQL) whereToSQL(where string, args []interface{}) string {
 	return where
 }
 
-// removeWhereTag removes where tag
-func (s *ConnectableSQL) removeWhereTag(sql, tag string) string {
-	sql = strings.ReplaceAll(sql, "AND "+tag, "")
-	sql = strings.ReplaceAll(sql, tag, "")
-	return sql
-}
-
 // sqlNamedSearchHandle is a regexp for named search
 var sqlNamedSearchHandle = regexp.MustCompile(`{{\S+?}}`)
 
@@ -192,4 +149,9 @@ func NamedSQL(sql string, data map[string]string) (string, error) {
 		return "", err
 	}
 	return sqlStr, nil
+}
+
+// JoinSQLs joins sqls with space
+func JoinSQLs(sqls ...string) string {
+	return strings.Join(sqls, " ")
 }

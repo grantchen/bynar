@@ -11,6 +11,9 @@ type Treegrid struct {
 	RawGroupBy   string
 	BodyParams   BodyParam
 
+	RowsWhere map[string]string        // using for keep rows where clause
+	RowsArgs  map[string][]interface{} // using for keep rows where args
+
 	SortParams
 	GroupCols
 	FilterParams
@@ -51,7 +54,11 @@ func NewTreegrid(req *Request) (*Treegrid, error) {
 			newId := idGroup[len(idGroup)-1]
 			tr.BodyParams.TreegridOriginID = tr.BodyParams.ID
 			tr.BodyParams.ID = newId
+		}
 
+		err = tr.BodyParams.ParseRows()
+		if err != nil {
+			return nil, err
 		}
 	}
 

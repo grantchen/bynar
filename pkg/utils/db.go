@@ -106,20 +106,6 @@ func CheckCountWithError(rows *sql.Rows) (rowCount int, err error) {
 	return rowCount, nil
 }
 
-// Returns the replaced column in the query.
-func ReplaceColumnValueInQuery(orignal_query string, col_name string, col_value string) string {
-	updated_query := ""
-	if strings.Index(orignal_query, " AND "+col_name+"=''") > 0 {
-		// If the column value was empty
-		updated_query = strings.Replace(orignal_query, " AND "+col_name+"=''", " AND "+col_name+"='"+col_value+"'", 1)
-	} else {
-		// If the column value was not empty
-		sub_string := GetStringBetween(orignal_query, " AND "+col_name+"='", "'")
-		updated_query = strings.Replace(orignal_query, sub_string, col_value, 1)
-	}
-	return updated_query
-}
-
 // TODO
 // Generate organization connection
 func GenerateOrganizationConnection(tenantUuid, organizationUuid string) string {
