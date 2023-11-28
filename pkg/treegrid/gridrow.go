@@ -27,7 +27,7 @@ func (f GridRow) IsChild() bool {
 }
 
 func (f GridRow) GetParentID() string {
-	return f.removeGroupID(f.getOriginParentID())
+	return f.getRealID(f.getOriginParentID())
 }
 
 func (f GridRow) GetLineID() string {
@@ -291,13 +291,13 @@ func (g GridRow) GetActionType() GridRowActionType {
 
 func (g GridRow) GetIDStr() (id string) {
 	if val, ok := g["NewId"]; ok {
-		return g.removeGroupID(val.(string))
+		return g.getRealID(val.(string))
 	}
 
 	for name, val := range g {
 		if name == "id" {
 			id, _ = val.(string)
-			id = g.removeGroupID(id)
+			id = g.getRealID(id)
 		}
 	}
 
@@ -309,15 +309,28 @@ func (g GridRow) GetIDInt() (id int) {
 	return id
 }
 
-func (g *GridRow) removeGroupID(id string) string {
-	//check is group
-	if strings.Contains(id, "$") { // id when group by have format: (CR[0-9]+\$)+<real_id>
-		idGroup := strings.Split(id, "$")
-		newId := idGroup[len(idGroup)-1]
-		return newId
+// getRealID return real id of row
+func (g *GridRow) getRealID(id string) string {
+	if strings.Contains(id, "$") { // splitId when group by have format: (CR[0-9]+\$)+<real_id>
+		for _, splitId := range strings.Split(id, "$") {
+			if !g.isAutoID(splitId) {
+				return splitId
+			}
+		}
 	}
 
 	return id
+}
+
+// isAutoID check if id is auto generated id
+// AutoIdPrefix="AR" GroupIdPrefix="GR" ChildIdPrefix="CR"
+func (g *GridRow) isAutoID(id string) bool {
+	if len(id) < 2 {
+		return false
+	}
+
+	idPrefix := id[:2]
+	return idPrefix == "AR" || idPrefix == "GR" || idPrefix == "CR"
 }
 
 func (g *GridRow) removeGroupIDInterface(input interface{}) interface{} {
