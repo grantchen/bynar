@@ -2,15 +2,18 @@ package model
 
 import "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
 
+// ConfirmEmailResponse confirm email api return struct
 type ConfirmEmailResponse struct {
 	AccountID int `json:"accountID"`
 }
 
+// VerifyCardResponse verify card api return struct
 type VerifyCardResponse struct {
 	CustomerID string `json:"customerID"`
 	SourceID   string `json:"sourceID"`
 }
 
+// CreateUserResponse create user api return struct
 type CreateUserResponse struct {
 	Token string `json:"token"`
 }
@@ -58,6 +61,7 @@ type SignIn struct {
 	AccountId int `json:"account_id"`
 }
 
+// UserProfileResponse user profile api return struct
 type UserProfileResponse struct {
 	Email       string `json:"email"`
 	PhoneNumber string `json:"phoneNumber"`

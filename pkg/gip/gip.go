@@ -19,6 +19,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 )
 
+// GipError is the error response from google identify platform
 type GipError struct {
 	Error struct {
 		Message string `json:"message"`

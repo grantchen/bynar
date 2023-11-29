@@ -83,6 +83,7 @@ func Error(w http.ResponseWriter, msg string) {
 	http.Error(w, string(data), http.StatusInternalServerError)
 }
 
+// MethodNotAllowed response for method not allowed
 func MethodNotAllowed(w http.ResponseWriter) {
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 	w.Header().Add("Access-Control-Allow-Methods", "GET, POST, PUT")
@@ -90,6 +91,7 @@ func MethodNotAllowed(w http.ResponseWriter) {
 	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 }
 
+// renderJSON render json response
 func renderJSON(w http.ResponseWriter, v interface{}) {
 	data, err := json.Marshal(v)
 	if err != nil {

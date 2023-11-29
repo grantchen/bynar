@@ -14,15 +14,21 @@ import (
 
 // AccountService is a interface which provide helper methods to access account related operations
 type AccountService interface {
+	// Signup is a service method which check the account is exist
 	Signup(email string) *errors.Error
+	// ConfirmEmail is a service method which confirms the email of new account
 	ConfirmEmail(email, timestamp, signature string) (int, *errors.Error)
+	// VerifyCard is a service method which verify card of new account
 	VerifyCard(token, email, name string) (string, string, *errors.Error)
+	// CreateUser is a service method which handles the logic of new user registration
 	CreateUser(email, code, sign, token, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID, tenantCode string) (string, *errors.Error)
 	// SignIn user sign in with Google identify platform oobCode
 	SignIn(email, oobCode string) (string, *errors.Error)
 	// SendSignInEmail send sign in email of Google identify platform
 	SendSignInEmail(email string) *errors.Error
+	// VerifyEmail check email is stored in db and google identify platform
 	VerifyEmail(email string) *errors.Error
+	// GetUserDetails after signing get user info
 	GetUserDetails(db *sql.DB, uid string, userId int) (*model.GetUserResponse, *errors.Error)
 	// UploadFileToGCS upload user's profile picture to google cloud storage
 	UploadFileToGCS(db *sql.DB, organizationUuid string, userId int, multipartReader *multipart.Reader) (string, *errors.Error)

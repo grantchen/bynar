@@ -2,6 +2,7 @@ package config
 
 import "os"
 
+// localConfig is the implementation of AppConfig for local environment
 type localConfig struct {
 }
 
