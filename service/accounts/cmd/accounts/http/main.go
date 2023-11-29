@@ -44,11 +44,6 @@ func main() {
 		log.Panic(err)
 	}
 
-	// db, err := sql_db.NewConnection(appConfig.GetAccountManagementConnection())
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
 	authProvider, err := gip.NewGIPClient()
 	if err != nil {
 		log.Fatal(err)

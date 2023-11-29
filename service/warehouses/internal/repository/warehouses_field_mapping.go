@@ -1,5 +1,6 @@
 package repository
 
+// WarehousesFieldNames is a map of field names to sql column names
 var WarehousesFieldNames = map[string][]string{
 	"id":                         {"id"},
 	"code":                       {"code"},

@@ -1,21 +1,25 @@
 package model
 
+// SignupRequest user sign_up request struct
 type SignupRequest struct {
 	Email string `json:"email" valid:""`
 }
 
+// ConfirmEmailRequest user confirm email request struct
 type ConfirmEmailRequest struct {
 	Email     string `json:"email" valid:""`
 	Timestamp string `json:"timestamp" valid:""`
 	Signature string `json:"signature" valid:""`
 }
 
+// VerifyCardRequest user verify card request struct
 type VerifyCardRequest struct {
 	Token string `json:"token" valid:""`
 	Email string `json:"email" valid:""`
 	Name  string `json:"name" valid:""`
 }
 
+// CreateUserRequest user create user request struct
 type CreateUserRequest struct {
 	Username            string `json:"username" valid:""`
 	FullName            string `json:"fullName" valid:""`
@@ -49,14 +53,17 @@ type SendSignInEmailRequest struct {
 	Email string `json:"email" valid:""`
 }
 
+// UpdateUserLanguagePreferenceRequest user update language preference request struct
 type UpdateUserLanguagePreferenceRequest struct {
 	LanguagePreference string `json:"languagePreference" valid:""`
 }
 
+// UpdateUserThemePreferenceRequest user update theme preference request struct
 type UpdateUserThemePreferenceRequest struct {
 	ThemePreference string `json:"themePreference" valid:""`
 }
 
+// UpdateUserProfileRequest user update profile request struct
 type UpdateUserProfileRequest struct {
 	Email       string `json:"email" valid:""`
 	FullName    string `json:"fullName" valid:""`
