@@ -165,3 +165,7 @@ A address set to ip 34.160.127.53
 * Upload https Certificate
 
 Network services -> Load balancing -> bynar-backend -> EDIT -> Frontend configuration -> Add Frontend IP and protocol -> Upload https certificate.
+
+* change bynar-frontend base url
+
+change bynar-frontend source .env file REACT_APP_BASE_URL to backend domain
