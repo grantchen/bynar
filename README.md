@@ -157,15 +157,34 @@ Current avaliable sevices are:
  * procurements
  * languages
 
-## How to config domain
-* DNS A address set
+## How to config custom domain
 
-A address set to ip 34.160.127.53
+### Create A records
 
-* Upload https Certificate
+create A records for custom domain www.example.com and example.com, use the following:
 
-Network services -> Load balancing -> bynar-backend -> EDIT -> Frontend configuration -> Add Frontend IP and protocol -> Upload https certificate.
+```
+NAME                  TYPE     DATA
+www                   A        34.36.185.109
+@                     A        34.36.185.109
+```
 
-* change bynar-frontend base url
+### Create an SSL certificate resource
 
-change bynar-frontend source .env file REACT_APP_BASE_URL to backend domain
+Please reference below guide:
+
+https://cloud.google.com/load-balancing/docs/https/setting-up-https-serverless?hl=en#ssl_certificate_resource
+
+### Create load balancer
+
+Please reference below guide:
+
+https://cloud.google.com/load-balancing/docs/https/setting-up-https-serverless?hl=en#creating_the_load_balancer
+
+- ip select 34.36.185.109
+- Protocol select https, and select certificate which you set in above step
+- Enable HTTP to HTTPS redirect
+
+### Change bynar-frontend base url
+
+change bynar-frontend source .env file REACT_APP_BASE_URL to backend custom domain
