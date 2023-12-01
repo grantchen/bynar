@@ -40,6 +40,8 @@ other = "Wert außerhalb des zulässigen Bereichs für das Feld: {{.Field}}."
 other = "Erforderliche Felder dürfen nicht leer sein: {{.Field}}."
 [ValueDuplicated]
 other = "Diess Feld wird wiederholt: {{.Field}}."
+[FieldsCombinationDuplicated]
+other = "Die Feldkombination ist doppelt vorhanden: {{.Fields}}."
 [ValidateOnNotNegativeNumber]
 other = "{{.Field}} : Feld darf nicht negativ sein."
 [ValidateOnPositiveNumber]

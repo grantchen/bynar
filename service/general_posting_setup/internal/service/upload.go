@@ -94,14 +94,21 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		}
 		status, _ := gr.GetValInt("status")
 		if status == 1 {
-			for _, field := range fieldsCombinationValidating {
-				ok, err := u.tgGeneralPostingSetupSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
-				if !ok || err != nil {
-					templateData := map[string]string{
-						"Field": field,
-					}
-					return i18n.TranslationI18n(u.language, "ValueDuplicated", templateData)
+			field := "code"
+			ok, err := u.tgGeneralPostingSetupSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
+			if !ok || err != nil {
+				templateData := map[string]string{
+					"Field": field,
 				}
+				return i18n.TranslationI18n(u.language, "ValueDuplicated", templateData)
+			}
+
+			ok, err = u.tgGeneralPostingSetupSimpleRepository.ValidateOnIntegrity(tx, gr, fieldsCombinationValidating)
+			if !ok || err != nil {
+				templateData := map[string]string{
+					"Fields": "general_product_posting_group_id, general_business_posting_group_id",
+				}
+				return i18n.TranslationI18n(u.language, "FieldsCombinationDuplicated", templateData)
 			}
 		}
 		err = u.tgGeneralPostingSetupSimpleRepository.Add(tx, gr)
@@ -140,19 +147,23 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			return i18n.TranslationI18n(u.language, "InvalidCondition", map[string]string{})
 		}
 
-		logger.Debug("status: ", generalPostingSetup.Status, "check: ", generalPostingSetup.Status == 1)
-		status, _ := gr.GetValInt("status")
-		if status == 1 {
+		if generalPostingSetup.Status == 1 {
 			newGr := gr.MergeWithMap(generalPostingSetup.ToMap())
-			logger.Debug("newMap", newGr)
-			for _, field := range fieldsCombinationValidating {
-				ok, err := u.tgGeneralPostingSetupSimpleRepository.ValidateOnIntegrity(tx, newGr, []string{field})
-				if !ok || err != nil {
-					templateData := map[string]string{
-						"Field": field,
-					}
-					return i18n.TranslationI18n(u.language, "ValueDuplicated", templateData)
+			field := "code"
+			ok, err := u.tgGeneralPostingSetupSimpleRepository.ValidateOnIntegrity(tx, newGr, []string{field})
+			if !ok || err != nil {
+				templateData := map[string]string{
+					"Field": field,
 				}
+				return i18n.TranslationI18n(u.language, "ValueDuplicated", templateData)
+			}
+
+			ok, err = u.tgGeneralPostingSetupSimpleRepository.ValidateOnIntegrity(tx, newGr, fieldsCombinationValidating)
+			if !ok || err != nil {
+				templateData := map[string]string{
+					"Fields": "general_product_posting_group_id, general_business_posting_group_id",
+				}
+				return i18n.TranslationI18n(u.language, "FieldsCombinationDuplicated", templateData)
 			}
 		}
 		err = u.tgGeneralPostingSetupSimpleRepository.Update(tx, gr)

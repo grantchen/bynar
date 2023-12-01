@@ -2,6 +2,7 @@ package utils
 
 import (
 	"database/sql"
+	stderr "errors"
 	"fmt"
 	"os"
 	"strings"
@@ -104,6 +105,46 @@ func CheckCountWithError(rows *sql.Rows) (rowCount int, err error) {
 	}
 
 	return rowCount, nil
+}
+
+// CheckExist checks if row exists
+func CheckExist(db *sql.DB, query string, args ...any) (exists bool, err error) {
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	var existFlag int
+	if err = stmt.QueryRow(args...).Scan(&existFlag); err != nil {
+		if stderr.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return true, nil
+}
+
+// CheckExistInTx checks if row exists in transaction
+func CheckExistInTx(tx *sql.Tx, query string, args ...any) (exists bool, err error) {
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	var existFlag int
+	if err = stmt.QueryRow(args...).Scan(&existFlag); err != nil {
+		if stderr.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return true, nil
 }
 
 // TODO

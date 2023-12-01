@@ -40,6 +40,8 @@ other = "Out of range value for field: {{.Field}}."
 other = "Required fields cannot be blank: {{.Field}}."
 [ValueDuplicated]
 other = "Field is duplicate: {{.Field}}."
+[FieldsCombinationDuplicated]
+other = "Fields combination is duplicate: {{.Fields}}."
 [ValidateOnNotNegativeNumber]
 other = "{{.Field}} : field must be not negative."
 [ValidateOnPositiveNumber]

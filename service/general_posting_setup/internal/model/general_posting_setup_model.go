@@ -8,23 +8,17 @@ import (
 )
 
 type GeneralPostingSetup struct {
-	ID                             int `json:"id,string"`
-	Archived                       int `json:"archived,string"`
-	Status                         int `json:"status,string"`
-	GeneralProductPostingGroupID   int `json:"general_product_posting_group_id,string"`
-	GeneralBussinessPostingGroupID int `json:"general_business_posting_group_id,string"`
+	ID                             int    `json:"id,string"`
+	Code                           string `json:"code"`
+	Archived                       int    `json:"archived,string"`
+	Status                         int    `json:"status,string"`
+	GeneralProductPostingGroupID   int    `json:"general_product_posting_group_id,string"`
+	GeneralBussinessPostingGroupID int    `json:"general_business_posting_group_id,string"`
 }
-
-// type generalPostingSetupDTO struct {
-// 	ID                             int `json:"id"`
-// 	Archived                       int `json:"archived"`
-// 	Status                         int `json:"status"`
-// 	GeneralProductPostingGroupID   int `json:"general_product_posting_group_id"`
-// 	GeneralBussinessPostingGroupID int `json:"general_business_posting_group_id"`
-// }
 
 func defaultGeneralPostingSetup() *GeneralPostingSetup {
 	return &GeneralPostingSetup{
+		Code:                           "",
 		Status:                         1,
 		Archived:                       0,
 		GeneralProductPostingGroupID:   0,
@@ -66,6 +60,9 @@ func ParseFromMapStr(input map[string]string) (*GeneralPostingSetup, error) {
 		return nil, err
 	}
 
-	json.Unmarshal(jsonData, &result)
+	err = json.Unmarshal(jsonData, &result)
+	if err != nil {
+		return nil, err
+	}
 	return result, nil
 }
