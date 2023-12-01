@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
@@ -181,8 +180,6 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 // saveUserGroupLine saves user group lines
 func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, parentID interface{}) error {
 	for _, item := range tr.Items {
-		logger.Debug("save group line: ", tr, "parentID: ", parentID)
-
 		var err error
 		switch item.GetActionType() {
 		case treegrid.GridRowActionAdd:
@@ -191,20 +188,23 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, pare
 				return err
 			}
 
-			logger.Debug("add child row")
 			userId := item["user_id"]
-			ok, err := s.checkValidUser(tx, userId)
-
-			if err != nil || !ok {
+			exists, err := s.checkValidUser(tx, userId)
+			if err != nil {
+				return fmt.Errorf("check valid user error: [%w]", err)
+			}
+			if !exists {
 				templateData := map[string]string{
 					"UserId": fmt.Sprintf("%s", userId),
 				}
 				return i18n.TranslationI18n(s.language, "UserNotExist", templateData)
 			}
 
-			ok, err = s.userExistInLine(tx, userId)
-
-			if err != nil || !ok {
+			exists, err = s.userExistInLine(tx, parentID, userId)
+			if err != nil {
+				return fmt.Errorf("check user exist in line error: [%w]", err)
+			}
+			if exists {
 				templateData := map[string]string{
 					"UserId": fmt.Sprintf("%s", userId),
 				}
@@ -219,8 +219,6 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, pare
 			// DO NOTHING WITH ACTION UPDATE, NOT ALLOW UPDATE LINES TABLE
 			return i18n.TranslationI18n(s.language, "UpdateChildLine", map[string]string{})
 		case treegrid.GridRowActionDeleted:
-			logger.Debug("delete child")
-
 			// re-assign user_group_lines id
 			item["id"] = item.GetID()
 			err = s.updateGRUserGroupRepositoryWithChild.SaveLineDelete(tx, item)
@@ -235,68 +233,20 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, tr *treegrid.MainRow, pare
 	return nil
 }
 
-// getUserIdFromUserGroupLineId gets user id from user group line id
-func (s *UploadService) getUserIdFromUserGroupLineId(tx *sql.Tx, userGroupLineId string) (int, error) {
-	query := `SELECT user_id FROM user_group_lines WHERE id = ?`
-	args := []interface{}{userGroupLineId}
-	rows, err := tx.Query(query, args...)
-	if err != nil {
-		return 0, fmt.Errorf("query: [%w], sql string: [%s]", err, query)
-	}
-	defer rows.Close()
-	rowVals, err := utils.NewRowVals(rows)
-	if err != nil {
-		return 0, fmt.Errorf("new row vals: [%w], row vals: [%v]", err, rowVals)
-	}
-
-	rows.Next()
-	if err := rowVals.Parse(rows); err != nil {
-		return 0, fmt.Errorf("parse rows: [%w]", err)
-	}
-
-	entry := rowVals.StringValues()
-	userId, _ := strconv.Atoi(entry["user_id"])
-	if err != nil {
-		return 0, fmt.Errorf("parse id error: [%w]", err)
-	}
-	return userId, nil
-}
-
 // checkValidUser checks if user is valid
 func (s *UploadService) checkValidUser(tx *sql.Tx, userId interface{}) (bool, error) {
-	query := `
-	SELECT COUNT(*) as Count FROM users where id = ?
-	`
-	params := []interface{}{userId}
-	rows, err := s.db.Query(query, params...)
-
-	if err != nil {
-		return false, err
-	}
-	defer rows.Close()
-	count, err := utils.CheckCountWithError(rows)
-	if err != nil {
-		return false, err
-	}
-
-	return count == 1, nil
+	return utils.CheckExist(
+		s.db,
+		"SELECT 1 FROM users WHERE id = ?",
+		userId,
+	)
 }
 
 // userExistInLine checks if user exist in line
-func (s *UploadService) userExistInLine(tx *sql.Tx, userId interface{}) (bool, error) {
-	query := `
-	SELECT COUNT(*) as Count FROM user_group_lines where user_id = ?
-	`
-	params := []interface{}{userId}
-	rows, err := s.db.Query(query, params...)
-	if err != nil {
-		return false, err
-	}
-	defer rows.Close()
-	count, err := utils.CheckCountWithError(rows)
-	if err != nil {
-		return false, err
-	}
-
-	return count == 0, nil
+func (s *UploadService) userExistInLine(tx *sql.Tx, userGroupID, userId interface{}) (bool, error) {
+	return utils.CheckExistInTx(
+		tx,
+		"SELECT 1 FROM user_group_lines WHERE parent_id = ? AND user_id = ?",
+		userGroupID, userId,
+	)
 }
