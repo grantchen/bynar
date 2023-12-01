@@ -57,10 +57,13 @@ func (u *uploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 			isCommit = false
 			break
 		}
-		resp.Changes = append(resp.Changes, gr)
-		resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
 	}
 	if isCommit == true {
+		for _, gr := range grList {
+			resp.Changes = append(resp.Changes, gr)
+			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
+		}
+
 		if err = tx.Commit(); err != nil {
 			return nil, fmt.Errorf("commit transaction: [%w]", err)
 		}

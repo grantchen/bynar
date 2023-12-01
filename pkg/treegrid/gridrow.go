@@ -161,8 +161,13 @@ func (f GridRow) MakeValidateOnIntegrityQuery(tableName string, fieldsMapping ma
 		whereCondition += fmt.Sprintf(" AND %s = ? ", dbFields[0])
 		args = append(args, f[field])
 	}
-	whereCondition += " AND id != ? "
-	args = append(args, f.GetID())
+
+	// only when action is changed, we need to add condition id != ?
+	if f.GetActionType() == GridRowActionChanged {
+		whereCondition += " AND id != ? "
+		args = append(args, f.GetID())
+	}
+
 	query = fmt.Sprintf(queryFormat, tableName, whereCondition)
 	return
 }
