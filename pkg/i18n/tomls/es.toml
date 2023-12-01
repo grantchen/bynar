@@ -40,6 +40,8 @@ other = "Valor fuera de rango para el campo: {{.Field}}."
 other = "Los campos obligatorios no pueden estar en blanco: {{.Field}}."
 [ValueDuplicated]
 other = "El campo está duplicado: {{.Field}}."
+[FieldsCombinationDuplicated]
+other = "La combinación de campos está duplicada: {{.Fields}}."
 [ValidateOnNotNegativeNumber]
 other = "{{.Field}} : El campo no debe ser negativo."
 [ValidateOnPositiveNumber]

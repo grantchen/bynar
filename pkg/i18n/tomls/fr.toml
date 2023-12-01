@@ -40,6 +40,8 @@ other = "Valeur hors plage pour le champ: {{.Field}}."
 other = "Les champs obligatoires ne peuvent pas être vides: {{.Field}}."
 [ValueDuplicated]
 other = "Le champ est en double: {{.Field}} ."
+[FieldsCombinationDuplicated]
+other = "La combinaison de champs est en double: {{.Fields}}."
 [ValidateOnNotNegativeNumber]
 other = "{{.Field}} : le champ ne doit pas être négatif."
 [ValidateOnPositiveNumber]
