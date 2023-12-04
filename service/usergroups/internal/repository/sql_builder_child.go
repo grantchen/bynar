@@ -32,8 +32,5 @@ const (
 			   users.email
 		FROM users
 		where full_name like ?
-		  AND id not in (SELECT user_id
-						 FROM user_group_lines
-						 where parent_id = ?)
 		`
 )

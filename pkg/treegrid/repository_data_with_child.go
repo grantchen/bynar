@@ -3,12 +3,10 @@ package treegrid
 import (
 	"database/sql"
 	"fmt"
-	"log"
-	"math"
-	"strings"
-
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
+	"log"
+	"math"
 )
 
 type GridRowDataRepositoryWithChild interface {
@@ -63,17 +61,10 @@ func NewGridRowDataRepositoryWithChild(
 // GetChildSuggestion implements GridRowDataRepositoryWithChild
 func (g *gridRowDataRepositoryWithChild) GetChildSuggestion(tg *Treegrid) ([]map[string]interface{}, error) {
 	var query string
-	id := tg.BodyParams.ID
-	origin := tg.BodyParams.TreegridOriginID
-	split := strings.Split(origin, "$")
-
-	if len(split) > 1 {
-		id = split[len(split)-2]
-	}
 	searchValue := "%" + tg.BodyParams.Val + "%"
 	query = g.cfg.QueryChildSuggestion
 	AppendLimitToQuery(query, g.pageSize, 0)
-	params := []interface{}{searchValue, id}
+	params := []interface{}{searchValue}
 	logger.Debug("query: ", query, "param: ", params)
 	data, err := g.getJSON(query, params, tg)
 	if err != nil {
