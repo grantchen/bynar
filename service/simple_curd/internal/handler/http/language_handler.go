@@ -71,6 +71,7 @@ func (h *LanguageHandler) HandleGetAllLanguage(w http.ResponseWriter, r *http.Re
 }
 
 func (h *LanguageHandler) handleChanges(row *model.Changes) (changedRow *model.ChangedRow, err error) {
+	changedRow = new(model.ChangedRow)
 	changedRow.Id = row.Id
 	changedRow.Color = "rgb(255, 255, 166)"
 	defer func() {

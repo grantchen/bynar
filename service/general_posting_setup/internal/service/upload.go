@@ -1,16 +1,15 @@
 package service
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
-	"log"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 )
 
 type uploadService struct {
@@ -36,38 +35,17 @@ func NewUploadService(db *sql.DB,
 
 // Handle implements UploadService
 func (u *uploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
-	resp := &treegrid.PostResponse{Changes: []map[string]interface{}{}}
-	// Create new transaction
 	grList, err := treegrid.ParseRequestUploadSingleRow(req)
 	if err != nil {
 		return nil, fmt.Errorf("parse requst: [%w]", err)
 	}
-	tx, err := u.db.BeginTx(context.Background(), nil)
-	if err != nil {
-		return nil, fmt.Errorf("begin transaction: [%w]", err)
-	}
-	defer tx.Rollback()
-	isCommit := true
-	for _, gr := range grList {
-		if err = u.handle(tx, gr); err != nil {
-			log.Println("Err", err)
-			resp.IO.Result = -1
-			resp.IO.Message += err.Error() + "\n"
-			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(gr))
-			isCommit = false
-			break
-		}
-	}
-	if isCommit == true {
-		for _, gr := range grList {
-			resp.Changes = append(resp.Changes, gr)
-			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(gr))
-		}
 
-		if err = tx.Commit(); err != nil {
-			return nil, fmt.Errorf("commit transaction: [%w]", err)
-		}
-	}
+	resp := treegrid.HandleSingleRows(grList, func(gr treegrid.GridRow) error {
+		err = utils.WithTransaction(u.db, func(tx *sql.Tx) error {
+			return u.handle(tx, gr)
+		})
+		return i18n.TranslationErrorToI18n(u.language, err)
+	})
 
 	return resp, nil
 }
@@ -183,7 +161,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				return i18n.TranslationErrorToI18n(u.language, err)
 			}
 		} else {
-			return nil
+			return err
 		}
 	default:
 		return err

@@ -2,6 +2,7 @@ package treegrid
 
 import (
 	"fmt"
+	"log"
 )
 
 // because in case child row maybe has id which concat with parent's id: ex: 2-line has id: CR5$2-line, copy origin to mark this id
@@ -88,42 +89,6 @@ func ParseRequestUpload(req *PostRequest, identityStore IdentityStorage) (*GridL
 	return trList, nil
 }
 
-// use by task2
-func ParseRequestUpload2(req *PostRequest) (*GridList, error) {
-	trList := &GridList{
-		mainRows:  make(map[string]GridRow),
-		childRows: make(map[string][]GridRow),
-	}
-
-	for k, change := range req.Changes {
-		changeType, ok := change[ChangeTypeField].(string)
-		if !ok {
-			return nil, fmt.Errorf("undefined change type: [%v]", change[ChangeTypeField])
-		}
-
-		ID := change[FieldNameID].(string)
-
-		// check if change is transfer of item
-		switch changeType {
-		case ChangeTypeNode:
-			trList.mainRows[ID] = req.Changes[k]
-		case ChangeTypeItem:
-			parentID, _ := change[FieldNameParent].(string)
-
-			if _, ok := trList.childRows[parentID]; !ok {
-				trList.childRows[parentID] = make([]GridRow, 0, 10)
-			}
-
-			trList.childRows[parentID] = append(trList.childRows[parentID], req.Changes[k])
-
-		default:
-			return trList, fmt.Errorf("undefined change type: '%s'", changeType)
-		}
-	}
-
-	return trList, nil
-}
-
 // SetGridRowIdentity sets required params for indentifying grid row
 // sets params:
 // "Def": "Node" | "Data"
@@ -172,4 +137,59 @@ func (l *GridList) MainRows() []*MainRow {
 	}
 
 	return mainRows
+}
+
+// HandleSingleRows - handle single rows
+func HandleSingleRows(grList []GridRow, save func(gr GridRow) error) *PostResponse {
+	resp := &PostResponse{Changes: []map[string]interface{}{}}
+	for _, gr := range grList {
+		if err := save(gr); err != nil {
+			log.Println("Err", err)
+			resp.IO.Result = -1
+			resp.IO.Message += err.Error() + "\n"
+			resp.Changes = append(resp.Changes, GenMapColorChangeError(gr))
+		} else {
+			resp.Changes = append(resp.Changes, GenMapColorChangeSuccess(gr))
+			resp.Changes = append(resp.Changes, gr)
+		}
+	}
+
+	return resp
+}
+
+// HandleRowsWithChild - handle rows with child
+func HandleRowsWithChild(trList *GridList, saveMainRow func(mr *MainRow) error, saveLine func(mr *MainRow, item GridRow) error) *PostResponse {
+	resp := &PostResponse{}
+	for _, mr := range trList.MainRows() {
+		// handle parent row
+		err := saveMainRow(mr)
+		if err != nil {
+			resp.IO.Result = -1
+			resp.IO.Message += err.Error() + "\n"
+			resp.Changes = append(resp.Changes, GenMapColorChangeError(mr.Fields))
+		} else {
+			resp.Changes = append(resp.Changes, GenMapColorChangeSuccess(mr.Fields))
+			resp.Changes = append(resp.Changes, mr.Fields)
+		}
+
+		// failed to add new parent row
+		if err != nil && mr.Fields.GetActionType() == GridRowActionAdd {
+			// skip child rows
+			continue
+		}
+
+		for _, item := range mr.Items {
+			// handle child row
+			if err = saveLine(mr, item); err != nil {
+				resp.IO.Result = -1
+				resp.IO.Message += err.Error() + "\n"
+				resp.Changes = append(resp.Changes, GenMapColorChangeError(item))
+			} else {
+				resp.Changes = append(resp.Changes, GenMapColorChangeSuccess(item))
+				resp.Changes = append(resp.Changes, item)
+			}
+		}
+	}
+
+	return resp
 }

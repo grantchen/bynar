@@ -61,9 +61,9 @@ func TranslationErrorToI18n(language string, err error) error {
 		return e
 	}
 
-	localizer := i18n.NewLocalizer(globalBundle, language)
 	translationMessage := ""
 	if err != nil {
+		localizer := i18n.NewLocalizer(globalBundle, language)
 		translationMessage = err.Error()
 		for key, code := range errMsgToTranslationMap {
 			if strings.Contains(translationMessage, key) {
