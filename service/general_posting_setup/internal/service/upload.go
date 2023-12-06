@@ -125,7 +125,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 
 		err = u.checkGeneralPostSetupCondition(generalPostingSetup)
 		if err != nil {
-			return i18n.TranslationI18n(u.language, "InvalidCondition", map[string]string{})
+			return i18n.TranslationErrorToI18n(u.language, err)
 		}
 
 		if generalPostingSetup.Status == 1 {
