@@ -131,7 +131,7 @@ func (l *languageRepostory) GetAllLanguage() []*model.Language {
 	defer rows.Close()
 
 	for rows.Next() {
-		var lng *model.Language
+		lng := new(model.Language)
 		if err := rows.Scan(&lng.Id, &lng.Country, &lng.Language, &lng.Two_letters, &lng.Three_letters, &lng.Number); err != nil {
 			log.Fatalln(err)
 		}

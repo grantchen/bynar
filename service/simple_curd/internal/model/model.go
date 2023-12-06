@@ -24,6 +24,7 @@ type Changes struct {
 // ChangedRow: used to return Messages for POST update
 type ChangedRow struct {
 	Id      string `json:"id,omitempty"`
+	NewId   string `json:"NewId,omitempty"`
 	Changed int    `json:"Changed,omitempty"`
 	Added   int    `json:"Added,omitempty"`
 	Deleted int    `json:"Deleted,omitempty"`

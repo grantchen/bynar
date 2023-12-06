@@ -8,7 +8,6 @@ import (
 )
 
 type GeneralPostingSetup struct {
-	ID                             int    `json:"id,string"`
 	Code                           string `json:"code"`
 	Archived                       int    `json:"archived,string"`
 	Status                         int    `json:"status,string"`
@@ -48,7 +47,10 @@ func ParseWithDefaultValue(gr treegrid.GridRow, defaultValue GeneralPostingSetup
 		return nil, err
 	}
 
-	json.Unmarshal(jsonData, &result)
+	err = json.Unmarshal(jsonData, &result)
+	if err != nil {
+		return nil, err
+	}
 	return result, nil
 }
 
