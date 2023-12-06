@@ -131,7 +131,7 @@ func (u *uploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		if generalPostingSetup.Status == 1 {
 			newGr := gr.MergeWithMap(generalPostingSetup.ToMap())
 			field := "code"
-			ok, err := u.tgGeneralPostingSetupSimpleRepository.ValidateOnIntegrity(tx, newGr, []string{field})
+			ok, err := u.tgGeneralPostingSetupSimpleRepository.ValidateOnIntegrity(tx, newGr, []string{"status", field})
 			if !ok || err != nil {
 				templateData := map[string]string{
 					"Field": field,
