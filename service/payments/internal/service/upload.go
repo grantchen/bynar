@@ -1,17 +1,16 @@
 package service
 
 import (
-	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
+	"strings"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
-	"log"
-	"strings"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 )
 
 // UploadService is the service for upload
@@ -53,50 +52,21 @@ func NewUploadService(db *sql.DB,
 
 // Handle handles the upload request
 func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
-	resp := &treegrid.PostResponse{}
-	// Create new transaction
-	b, _ := json.Marshal(req)
-	logger.Debug("request: ", string(b))
 	trList, err := treegrid.ParseRequestUpload(req, u.updateGRPaymentRepositoryWithChild)
-
 	if err != nil {
 		return nil, fmt.Errorf("parse request: [%w]", err)
 	}
 
-	tx, err := u.db.BeginTx(context.Background(), nil)
-	if err != nil {
-		return nil, fmt.Errorf("begin transaction: [%w]", err)
-	}
-	defer tx.Rollback()
-	m := make(map[string]interface{}, 0)
-	var handleErr error
-	for _, tr := range trList.MainRows() {
-		if tr.Fields["id"] == "Group" {
-			continue
-		}
+	resp := treegrid.HandleMainRowsLinesWithChild(
+		trList,
+		func(mr *treegrid.MainRow) error {
+			err = utils.WithTransaction(u.db, func(tx *sql.Tx) error {
+				return u.handle(tx, mr)
+			})
+			return i18n.TranslationErrorToI18n(u.language, err)
+		},
+	)
 
-		if handleErr = u.handle(tx, tr); handleErr != nil {
-			log.Println("Err", handleErr)
-
-			resp.IO.Result = -1
-			resp.IO.Message += handleErr.Error() + "\n"
-			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeError(tr.Fields))
-			break
-		}
-		resp.Changes = append(resp.Changes, tr.Fields)
-		resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(tr.Fields))
-		resp.Changes = append(resp.Changes, m)
-
-		for k := range tr.Items {
-			resp.Changes = append(resp.Changes, tr.Items[k])
-			resp.Changes = append(resp.Changes, treegrid.GenMapColorChangeSuccess(tr.Items[k]))
-		}
-	}
-	if handleErr == nil {
-		if err := tx.Commit(); err != nil {
-			return nil, fmt.Errorf("commit transaction: [%w]", err)
-		}
-	}
 	return resp, nil
 }
 

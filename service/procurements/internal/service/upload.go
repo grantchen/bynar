@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
@@ -45,30 +44,17 @@ func NewUploadService(db *sql.DB,
 
 // Handle: upload handle
 func (s *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
-	resp := &treegrid.PostResponse{}
-
 	trList, err := treegrid.ParseRequestUpload(req, s.gridRowRepository)
 	if err != nil {
 		return nil, fmt.Errorf("parse requst: [%w]", err)
 	}
 
-	// handle all transfer, check error and make proper response
-	for _, tr := range trList.MainRows() {
-		if tr.Fields["id"] == "Group" {
-			continue
-		}
-		if err := s.handle(tr); err != nil {
-			log.Println("Err", err)
-
-			resp.IO.Result = -1
-			resp.IO.Message += err.Error() + "\n"
-		}
-
-		resp.Changes = append(resp.Changes, tr.Fields)
-		for k := range tr.Items {
-			resp.Changes = append(resp.Changes, tr.Items[k])
-		}
-	}
+	resp := treegrid.HandleMainRowsLinesWithChild(
+		trList,
+		func(mr *treegrid.MainRow) error {
+			return i18n.TranslationErrorToI18n(s.language, s.handle(mr))
+		},
+	)
 
 	return resp, nil
 }

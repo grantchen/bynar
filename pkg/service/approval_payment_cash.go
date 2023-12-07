@@ -2,11 +2,12 @@ package service
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
-	"strconv"
-	"strings"
 )
 
 type approvalCashPaymentService struct {
@@ -33,6 +34,8 @@ func (s *approvalCashPaymentService) Check(tr *treegrid.MainRow, accountID int, 
 		if !strings.HasPrefix(strID, "CR") {
 			return s.checkActionDeleted(tr, language)
 		}
+		return true, nil
+	case treegrid.GridRowActionNone:
 		return true, nil
 	}
 	templateData := map[string]string{

@@ -2,9 +2,10 @@ package treegrid
 
 import (
 	"fmt"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"strconv"
 	"strings"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 )
 
 type (
@@ -16,6 +17,7 @@ const (
 	GridRowActionAdd     GridRowActionType = "Added"
 	GridRowActionDeleted GridRowActionType = "Deleted"
 	GridRowActionChanged GridRowActionType = "Changed"
+	GridRowActionNone    GridRowActionType = "None" // no need to handle
 )
 
 // use when grouping by
@@ -288,6 +290,8 @@ func (g GridRow) GetActionType() GridRowActionType {
 			return GridRowActionDeleted
 		case string(GridRowActionChanged):
 			return GridRowActionChanged
+		case string(GridRowActionNone):
+			return GridRowActionNone
 		}
 	}
 

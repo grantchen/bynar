@@ -11,6 +11,11 @@ type (
 		Added   int         `json:"Added,omitempty"`
 		Deleted int         `json:"Deleted,omitempty"`
 		Color   string      `json:"Color,omitempty"`
+
+		// keep row position
+		Parent interface{} `json:"Parent,omitempty"`
+		Next   interface{} `json:"Next,omitempty"`
+		Prev   interface{} `json:"Prev,omitempty"`
 	}
 
 	// PostRequest struct for mapping to post requests
@@ -34,25 +39,19 @@ type (
 	}
 )
 
-func GenColorChangeError(gr GridRow) ChangedRow {
-	return ChangedRow{Id: gr.GetTreeGridID(), Color: "rgb(255,0,0)"}
-}
+// ChangedErrorColor is the color for error row
+const ChangedErrorColor = "rgb(255,0,0)"
 
-func GenColorChangeSuccess(gr GridRow) ChangedRow {
-	return ChangedRow{Id: gr.GetTreeGridID(), Color: "rgb(255, 255, 166)"}
+// ChangedSuccessColor is the color for success row
+const ChangedSuccessColor = "rgb(255, 255, 166)"
+
+func GenColorChangeError(gr GridRow) ChangedRow {
+	return ChangedRow{Id: gr.GetTreeGridID(), Color: ChangedErrorColor}
 }
 
 func GenMapColorChangeError(gr GridRow) map[string]interface{} {
 	var inInterface map[string]interface{}
 	change := GenColorChangeError(gr)
-	inrec, _ := json.Marshal(change)
-	json.Unmarshal(inrec, &inInterface)
-	return inInterface
-}
-
-func GenMapColorChangeSuccess(gr GridRow) map[string]interface{} {
-	var inInterface map[string]interface{}
-	change := GenColorChangeSuccess(gr)
 	inrec, _ := json.Marshal(change)
 	json.Unmarshal(inrec, &inInterface)
 	return inInterface
@@ -64,8 +63,6 @@ func CreateSuggestionResult(suggestionKey string, suggestion *Suggestion, tr *Tr
 	result["id"] = tr.BodyParams.TreegridOriginID
 	return result
 }
-
-type ChangeItemType string
 
 // MakeResponseBody creates a new PostResponse with empty Changes and Body
 func MakeResponseBody(resp *PostResponse) *PostResponse {
@@ -82,4 +79,45 @@ func MakeResponseBody(resp *PostResponse) *PostResponse {
 	}
 
 	return resp
+}
+
+// GenGridRowChangeError generates a ChangedRow with error
+func GenGridRowChangeError(gr GridRow) ChangedRow {
+	if gr["ChangedRow"] != nil {
+		return gr["ChangedRow"].(ChangedRow)
+	}
+
+	return ChangedRow{
+		Id:      gr.GetTreeGridID(),
+		NewId:   "",
+		Changed: 0,
+		Added:   0,
+		Deleted: 0,
+		Color:   ChangedErrorColor,
+		Next:    gr["Next"],
+		Prev:    gr["Prev"],
+	}
+}
+
+// SetGridRowChangedResult sets ChangedRow to GridRow
+func SetGridRowChangedResult(gr GridRow, changedRow ChangedRow) {
+	gr["ChangedRow"] = changedRow
+}
+
+// GetGridRowChangedResult gets ChangedRow map from GridRow
+func GetGridRowChangedResult(gr GridRow) map[string]interface{} {
+	changedRow, ok := gr["ChangedRow"].(ChangedRow)
+	if !ok {
+		return make(map[string]interface{})
+	}
+
+	return changedRow.ToMap()
+}
+
+// ToMap converts ChangedRow to map[string]interface{}
+func (r ChangedRow) ToMap() map[string]interface{} {
+	var m map[string]interface{}
+	bytes, _ := json.Marshal(r)
+	_ = json.Unmarshal(bytes, &m)
+	return m
 }
