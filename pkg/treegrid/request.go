@@ -3,6 +3,7 @@ package treegrid
 import (
 	"fmt"
 	"log"
+	"strconv"
 )
 
 // because in case child row maybe has id which concat with parent's id: ex: 2-line has id: CR5$2-line, copy origin to mark this id
@@ -27,6 +28,8 @@ func ParseRequestUploadSingleRow(req *PostRequest) ([]GridRow, error) {
 	for k := range req.Changes {
 		ch := GridRow(req.Changes[k])
 		ch.StoreGridTreeID()
+		// set ChangeRow for each row
+		SetGridRowChangedResult(ch, GenGridRowChangeError(ch))
 		grRowList = append(grRowList, ch)
 	}
 	return grRowList, nil
@@ -45,6 +48,8 @@ func ParseRequestUpload(req *PostRequest, identityStore IdentityStorage) (*GridL
 		ch := GridRow(req.Changes[k])
 		// store origin id of gridtree, very useful in case row is child
 		ch.StoreGridTreeID()
+		// set ChangeRow for each row
+		SetGridRowChangedResult(ch, GenGridRowChangeError(ch))
 
 		isChild, err := SetGridRowIdentity(ch, identityStore)
 		if err != nil {
@@ -80,8 +85,8 @@ func ParseRequestUpload(req *PostRequest, identityStore IdentityStorage) (*GridL
 		}
 
 		trList.mainRows[k] = GridRow{
-			"id":                         k,
-			string(GridRowActionChanged): "1",
+			"id":                      k,
+			string(GridRowActionNone): "1",
 		}
 		trList.mainRows[k].StoreGridTreeID()
 	}
@@ -147,11 +152,8 @@ func HandleSingleRows(grList []GridRow, save func(gr GridRow) error) *PostRespon
 			log.Println("Err", err)
 			resp.IO.Result = -1
 			resp.IO.Message += err.Error() + "\n"
-			resp.Changes = append(resp.Changes, GenMapColorChangeError(gr))
-		} else {
-			resp.Changes = append(resp.Changes, GenMapColorChangeSuccess(gr))
-			resp.Changes = append(resp.Changes, gr)
 		}
+		resp.Changes = append(resp.Changes, GetGridRowChangedResult(gr))
 	}
 
 	return resp
@@ -166,15 +168,15 @@ func HandleRowsWithChild(trList *GridList, saveMainRow func(mr *MainRow) error, 
 		if err != nil {
 			resp.IO.Result = -1
 			resp.IO.Message += err.Error() + "\n"
-			resp.Changes = append(resp.Changes, GenMapColorChangeError(mr.Fields))
-		} else {
-			resp.Changes = append(resp.Changes, GenMapColorChangeSuccess(mr.Fields))
-			resp.Changes = append(resp.Changes, mr.Fields)
 		}
+		resp.Changes = append(resp.Changes, GetGridRowChangedResult(mr.Fields))
 
 		// failed to add new parent row
 		if err != nil && mr.Fields.GetActionType() == GridRowActionAdd {
-			// skip child rows
+			// skip child rows handle
+			for _, item := range mr.Items {
+				resp.Changes = append(resp.Changes, GetGridRowChangedResult(item))
+			}
 			continue
 		}
 
@@ -183,13 +185,61 @@ func HandleRowsWithChild(trList *GridList, saveMainRow func(mr *MainRow) error, 
 			if err = saveLine(mr, item); err != nil {
 				resp.IO.Result = -1
 				resp.IO.Message += err.Error() + "\n"
+			}
+			resp.Changes = append(resp.Changes, GetGridRowChangedResult(item))
+		}
+	}
+
+	return resp
+}
+
+// HandleMainRowsLinesWithChild - handle the main rows with child(handle child rows in each main row)
+func HandleMainRowsLinesWithChild(trList *GridList, saveMainRowWithLines func(mr *MainRow) error) *PostResponse {
+	resp := &PostResponse{}
+	for _, mr := range trList.MainRows() {
+		// handle parent row
+		err := saveMainRowWithLines(mr)
+		if err != nil {
+			resp.IO.Result = -1
+			resp.IO.Message += err.Error() + "\n"
+
+			if mr.Fields.GetActionType() != GridRowActionNone {
+				// generate error for parent row
+				resp.Changes = append(resp.Changes, GenMapColorChangeError(mr.Fields))
+			}
+
+			for _, item := range mr.Items {
+				// child rows response
 				resp.Changes = append(resp.Changes, GenMapColorChangeError(item))
-			} else {
-				resp.Changes = append(resp.Changes, GenMapColorChangeSuccess(item))
-				resp.Changes = append(resp.Changes, item)
+			}
+		} else {
+			resp.Changes = append(resp.Changes, GetGridRowChangedResult(mr.Fields))
+
+			for _, item := range mr.Items {
+				// child rows response
+				resp.Changes = append(resp.Changes, GetGridRowChangedResult(item))
 			}
 		}
 	}
 
 	return resp
+}
+
+// IsParentPersisted checks if parent is persisted(is a number id)
+func IsParentPersisted(parentId interface{}) bool {
+	switch parentId.(type) {
+	case int, int64:
+		return true
+	case string:
+		parent, ok := parentId.(string)
+		if !ok {
+			return false
+		}
+
+		if _, err := strconv.Atoi(parent); err == nil {
+			return true
+		}
+	}
+
+	return false
 }

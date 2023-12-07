@@ -33,6 +33,8 @@ func (s *approvalService) Check(tr *treegrid.MainRow, accountID int, language st
 		return s.checkActionUpdated(tr, accountID)
 	case treegrid.GridRowActionDeleted:
 		return s.checkActionDeleted(tr)
+	case treegrid.GridRowActionNone:
+		return true, nil
 	}
 
 	return false, errors.New("undefined action type :" + string(tr.Fields.GetActionType()))

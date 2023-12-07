@@ -58,7 +58,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 		},
 		func(mr *treegrid.MainRow, item treegrid.GridRow) error {
 			err = utils.WithTransaction(u.db, func(tx *sql.Tx) error {
-				if err = u.saveUserGroupLine(tx, item, mr.Fields.GetID()); err != nil {
+				if err = u.saveUserGroupLine(tx, item); err != nil {
 					userGroupLineTemplateData := map[string]string{
 						"Message": err.Error(),
 					}
@@ -137,7 +137,8 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 }
 
 // saveUserGroupLine saves user group lines
-func (s *UploadService) saveUserGroupLine(tx *sql.Tx, item treegrid.GridRow, parentID interface{}) error {
+func (s *UploadService) saveUserGroupLine(tx *sql.Tx, item treegrid.GridRow) error {
+	parentID := item.GetParentID()
 	var err error
 	switch item.GetActionType() {
 	case treegrid.GridRowActionAdd:

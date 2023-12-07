@@ -3,8 +3,9 @@ package treegrid
 import (
 	"database/sql"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"math"
+
+	"github.com/sirupsen/logrus"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
@@ -229,6 +230,8 @@ func NewSimpleGridRowRepositoryWithCfg(db *sql.DB,
 
 // Delete implements SimpleGridRowRepository
 func (s *simpleGridRepository) Delete(tx *sql.Tx, gr GridRow) error {
+	changedRow := GenGridRowChangeError(gr)
+
 	query, args := gr.MakeDeleteQuery(s.tableName)
 	fmt.Printf("query: %s, %s\n", query, gr.GetID())
 	args = append(args, gr.GetID())
@@ -237,11 +240,17 @@ func (s *simpleGridRepository) Delete(tx *sql.Tx, gr GridRow) error {
 		return fmt.Errorf("exec query: [%w], query: %s, args count: %d", err, query, len(args))
 	}
 
+	changedRow.Color = ChangedSuccessColor
+	changedRow.Deleted = 1
+	SetGridRowChangedResult(gr, changedRow)
+
 	return nil
 }
 
 // Add implements SimpleGridRowRepository
 func (s *simpleGridRepository) Add(tx *sql.Tx, gr GridRow) error {
+	changedRow := GenGridRowChangeError(gr)
+
 	query, args := gr.MakeInsertQuery(s.tableName, s.fieldMapping)
 	logger.Debug(query, "args", args)
 	res, err := tx.Exec(query, args...)
@@ -254,12 +263,18 @@ func (s *simpleGridRepository) Add(tx *sql.Tx, gr GridRow) error {
 	}
 
 	// update id for row and child items
-	gr["NewId"] = newID
+	changedRow.Color = ChangedSuccessColor
+	changedRow.Added = 1
+	changedRow.NewId = fmt.Sprintf("%v$%d", changedRow.Parent, newID) // full id
+	SetGridRowChangedResult(gr, changedRow)
+
 	return nil
 }
 
 // Update implements SimpleGridRowRepository
 func (s *simpleGridRepository) Update(tx *sql.Tx, gr GridRow) error {
+	changedRow := GenGridRowChangeError(gr)
+
 	query, args := gr.MakeUpdateQuery(s.tableName, s.fieldMapping)
 	if len(args) == 0 {
 		return fmt.Errorf("not field update detected")
@@ -269,6 +284,10 @@ func (s *simpleGridRepository) Update(tx *sql.Tx, gr GridRow) error {
 	if _, err := tx.Exec(query, args...); err != nil {
 		return fmt.Errorf("exec query: [%w], query: %s, args: %d", err, query, len(args))
 	}
+
+	changedRow.Color = ChangedSuccessColor
+	changedRow.Changed = 1
+	SetGridRowChangedResult(gr, changedRow)
 
 	return nil
 }
