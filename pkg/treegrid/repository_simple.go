@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/sirupsen/logrus"
 
@@ -266,7 +265,7 @@ func (s *simpleGridRepository) Add(tx *sql.Tx, gr GridRow) error {
 	// update id for row and child items
 	changedRow.Color = ChangedSuccessColor
 	changedRow.Added = 1
-	changedRow.NewId = strconv.FormatInt(newID, 10)
+	changedRow.NewId = fmt.Sprintf("%v$%d", changedRow.Parent, newID) // full id
 	SetGridRowChangedResult(gr, changedRow)
 
 	return nil

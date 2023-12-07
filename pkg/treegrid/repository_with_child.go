@@ -3,7 +3,6 @@ package treegrid
 import (
 	"database/sql"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
@@ -114,7 +113,7 @@ func (s *gridRowRepository) SaveMainRow(tx *sql.Tx, tr *MainRow) error {
 		// update id for row and child items
 		changedRow.Color = ChangedSuccessColor
 		changedRow.Added = 1
-		changedRow.NewId = strconv.FormatInt(newID, 10)
+		changedRow.NewId = fmt.Sprintf("%v$%d", changedRow.Parent, newID) // full id
 		SetGridRowChangedResult(tr.Fields, changedRow)
 
 		for k := range tr.Items {
@@ -207,7 +206,7 @@ func (s *gridRowRepository) SaveLines(tx *sql.Tx, tr *MainRow) error {
 
 			changedRow.Color = ChangedSuccessColor
 			changedRow.Added = 1
-			changedRow.NewId = fmt.Sprintf("%d%s", newID, lineSuffix)
+			changedRow.NewId = fmt.Sprintf("%v$%d%s", changedRow.Parent, newID, lineSuffix) // full id
 			SetGridRowChangedResult(item, changedRow)
 
 			continue
@@ -268,7 +267,7 @@ func (s *gridRowRepository) SaveLineAdd(tx *sql.Tx, item GridRow) error {
 
 	changedRow.Color = ChangedSuccessColor
 	changedRow.Added = 1
-	changedRow.NewId = fmt.Sprintf("%d%s", newID, lineSuffix)
+	changedRow.NewId = fmt.Sprintf("%v$%d%s", changedRow.Parent, newID, lineSuffix) // full id
 	SetGridRowChangedResult(item, changedRow)
 	return nil
 }
