@@ -94,6 +94,7 @@ func GenGridRowChangeError(gr GridRow) ChangedRow {
 		Added:   0,
 		Deleted: 0,
 		Color:   ChangedErrorColor,
+		Parent:  gr["Parent"],
 		Next:    gr["Next"],
 		Prev:    gr["Prev"],
 	}
