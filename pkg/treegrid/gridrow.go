@@ -287,12 +287,16 @@ func (f GridRow) MakeDeleteQuery(tableName string) (query string, args []interfa
 }
 
 func (g GridRow) GetActionType() GridRowActionType {
+	// if a new added row is deleted, it should be deleted
+	// it has "Added" and "Deleted" tag, example: {"id":"_","Deleted":1,"Added":1}]}
+	if _, ok := g["Deleted"]; ok {
+		return GridRowActionDeleted
+	}
+
 	for name := range g {
 		switch name {
 		case string(GridRowActionAdd):
 			return GridRowActionAdd
-		case string(GridRowActionDeleted):
-			return GridRowActionDeleted
 		case string(GridRowActionChanged):
 			return GridRowActionChanged
 		case string(GridRowActionNone):
