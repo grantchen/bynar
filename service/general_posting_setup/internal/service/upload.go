@@ -40,7 +40,7 @@ func (u *uploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 		return nil, fmt.Errorf("parse requst: [%w]", err)
 	}
 
-	resp := treegrid.HandleSingleRows(grList, func(gr treegrid.GridRow) error {
+	resp := treegrid.HandleSingleTreegridRows(grList, func(gr treegrid.GridRow) error {
 		err = utils.WithTransaction(u.db, func(tx *sql.Tx) error {
 			return u.handle(tx, gr)
 		})

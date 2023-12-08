@@ -49,7 +49,7 @@ func (s *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 		return nil, fmt.Errorf("parse requst: [%w]", err)
 	}
 
-	resp := treegrid.HandleMainRowsLinesWithChild(
+	resp := treegrid.HandleTreegridWithChildMainRowsLines(
 		trList,
 		func(mr *treegrid.MainRow) error {
 			return i18n.TranslationErrorToI18n(s.language, s.handle(mr))

@@ -28,8 +28,9 @@ func ParseRequestUploadSingleRow(req *PostRequest) ([]GridRow, error) {
 	for k := range req.Changes {
 		ch := GridRow(req.Changes[k])
 		ch.StoreGridTreeID()
-		// set ChangeRow for each row
-		SetGridRowChangedResult(ch, GenGridRowChangeError(ch))
+		// set default ChangeRow for each row,
+		// it will be set success if no error occurs in row processing(Add, Update, Delete)
+		SetGridRowChangedResult(ch, GenGridRowChange(ch))
 		grRowList = append(grRowList, ch)
 	}
 	return grRowList, nil
@@ -48,8 +49,9 @@ func ParseRequestUpload(req *PostRequest, identityStore IdentityStorage) (*GridL
 		ch := GridRow(req.Changes[k])
 		// store origin id of gridtree, very useful in case row is child
 		ch.StoreGridTreeID()
-		// set ChangeRow for each row
-		SetGridRowChangedResult(ch, GenGridRowChangeError(ch))
+		// set default ChangeRow for each row,
+		// it will be set success if no error occurs in row processing(Add, Update, Delete)
+		SetGridRowChangedResult(ch, GenGridRowChange(ch))
 
 		isChild, err := SetGridRowIdentity(ch, identityStore)
 		if err != nil {
@@ -144,8 +146,10 @@ func (l *GridList) MainRows() []*MainRow {
 	return mainRows
 }
 
-// HandleSingleRows - handle single rows
-func HandleSingleRows(grList []GridRow, save func(gr GridRow) error) *PostResponse {
+// HandleSingleTreegridRows - handle rows of single treegrid one by one,
+// and return response for Upload API
+// save func is used to save each row
+func HandleSingleTreegridRows(grList []GridRow, save func(gr GridRow) error) *PostResponse {
 	resp := &PostResponse{Changes: []map[string]interface{}{}}
 	for _, gr := range grList {
 		if err := save(gr); err != nil {
@@ -153,14 +157,19 @@ func HandleSingleRows(grList []GridRow, save func(gr GridRow) error) *PostRespon
 			resp.IO.Result = -1
 			resp.IO.Message += err.Error() + "\n"
 		}
+
+		// set row change result(been set in row handle func)
 		resp.Changes = append(resp.Changes, GetGridRowChangedResult(gr))
 	}
 
 	return resp
 }
 
-// HandleRowsWithChild - handle rows with child
-func HandleRowsWithChild(trList *GridList, saveMainRow func(mr *MainRow) error, saveLine func(mr *MainRow, item GridRow) error) *PostResponse {
+// HandleTreegridWithChildRows - handle rows of treegrid with child one by one,
+// and return response for Upload API,
+// saveMainRow is used to save parent row,
+// saveLine is used to save child row
+func HandleTreegridWithChildRows(trList *GridList, saveMainRow func(mr *MainRow) error, saveLine func(mr *MainRow, item GridRow) error) *PostResponse {
 	resp := &PostResponse{}
 	for _, mr := range trList.MainRows() {
 		// handle parent row
@@ -169,12 +178,15 @@ func HandleRowsWithChild(trList *GridList, saveMainRow func(mr *MainRow) error, 
 			resp.IO.Result = -1
 			resp.IO.Message += err.Error() + "\n"
 		}
+
+		// set parent row change result(been set in row handle func)
 		resp.Changes = append(resp.Changes, GetGridRowChangedResult(mr.Fields))
 
-		// failed to add new parent row
+		// failed to add new parent row, skip child rows handle
+		// set error color(default RowChange) for child rows
 		if err != nil && mr.Fields.GetActionType() == GridRowActionAdd {
-			// skip child rows handle
 			for _, item := range mr.Items {
+				// default RowChange is error color
 				resp.Changes = append(resp.Changes, GetGridRowChangedResult(item))
 			}
 			continue
@@ -186,6 +198,8 @@ func HandleRowsWithChild(trList *GridList, saveMainRow func(mr *MainRow) error, 
 				resp.IO.Result = -1
 				resp.IO.Message += err.Error() + "\n"
 			}
+
+			// set child row change result(been set in row handle func)
 			resp.Changes = append(resp.Changes, GetGridRowChangedResult(item))
 		}
 	}
@@ -193,30 +207,34 @@ func HandleRowsWithChild(trList *GridList, saveMainRow func(mr *MainRow) error, 
 	return resp
 }
 
-// HandleMainRowsLinesWithChild - handle the main rows with child(handle child rows in each main row)
-func HandleMainRowsLinesWithChild(trList *GridList, saveMainRowWithLines func(mr *MainRow) error) *PostResponse {
+// HandleTreegridWithChildMainRowsLines - handle the main rows with lines of treegrid with child one by one,
+// and return response for Upload API.
+// All child rows under a parent row are in the same transaction as the parent row.
+// saveMainRowWithLines is used to save parent row with child lines
+func HandleTreegridWithChildMainRowsLines(trList *GridList, saveMainRowWithLines func(mr *MainRow) error) *PostResponse {
 	resp := &PostResponse{}
 	for _, mr := range trList.MainRows() {
-		// handle parent row
+		// handle parent row with child lines
 		err := saveMainRowWithLines(mr)
 		if err != nil {
 			resp.IO.Result = -1
 			resp.IO.Message += err.Error() + "\n"
 
+			// if action is not none(is add, update or delete), set result color for parent row
 			if mr.Fields.GetActionType() != GridRowActionNone {
-				// generate error for parent row
 				resp.Changes = append(resp.Changes, GenMapColorChangeError(mr.Fields))
 			}
 
 			for _, item := range mr.Items {
-				// child rows response
+				// set child row error color
 				resp.Changes = append(resp.Changes, GenMapColorChangeError(item))
 			}
 		} else {
+			// set parent row change result(been set in row handle func)
 			resp.Changes = append(resp.Changes, GetGridRowChangedResult(mr.Fields))
 
 			for _, item := range mr.Items {
-				// child rows response
+				// set child row change result(been set in row handle func)
 				resp.Changes = append(resp.Changes, GetGridRowChangedResult(item))
 			}
 		}
@@ -225,7 +243,7 @@ func HandleMainRowsLinesWithChild(trList *GridList, saveMainRowWithLines func(mr
 	return resp
 }
 
-// IsParentPersisted checks if parent is persisted(is a number id)
+// IsParentPersisted checks if parent is persisted(is a number id), default parent is letters id from front-end
 func IsParentPersisted(parentId interface{}) bool {
 	switch parentId.(type) {
 	case int, int64:

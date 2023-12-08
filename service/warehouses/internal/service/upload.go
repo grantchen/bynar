@@ -3,6 +3,7 @@ package service
 import (
 	"database/sql"
 	"fmt"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
@@ -39,7 +40,7 @@ func (u *uploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 		return nil, fmt.Errorf("parse requst: [%w]", err)
 	}
 
-	resp := treegrid.HandleSingleRows(grList, func(gr treegrid.GridRow) error {
+	resp := treegrid.HandleSingleTreegridRows(grList, func(gr treegrid.GridRow) error {
 		err = utils.WithTransaction(u.db, func(tx *sql.Tx) error {
 			return u.handle(tx, gr)
 		})

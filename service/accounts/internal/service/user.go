@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	stderr "errors"
 	"fmt"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"strings"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 
 	"github.com/sirupsen/logrus"
 
@@ -47,7 +48,7 @@ func (s *UserService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse,
 		return nil, fmt.Errorf("parse requst: [%w]", err)
 	}
 
-	resp := treegrid.HandleSingleRows(grList, func(gr treegrid.GridRow) error {
+	resp := treegrid.HandleSingleTreegridRows(grList, func(gr treegrid.GridRow) error {
 		err = utils.WithTransaction(s.db, func(tx *sql.Tx) error {
 			return s.handle(tx, gr)
 		})
