@@ -95,7 +95,7 @@ func (s *gridRowRepository) SaveMainRow(tx *sql.Tx, tr *MainRow) error {
 		args  []interface{}
 	)
 
-	changedRow := GenGridRowChangeError(tr.Fields)
+	changedRow := GenGridRowChange(tr.Fields)
 
 	switch tr.Fields.GetActionType() {
 	case GridRowActionAdd:
@@ -110,16 +110,17 @@ func (s *gridRowRepository) SaveMainRow(tx *sql.Tx, tr *MainRow) error {
 			return fmt.Errorf("last inserted id: [%w]", err)
 		}
 
-		// update id for row and child items
+		// if add success, set success color for row
 		changedRow.Color = ChangedSuccessColor
 		changedRow.Added = 1
+		// set new id for row
 		changedRow.NewId = fmt.Sprintf("%v$%d", changedRow.Parent, newID) // full id
 		SetGridRowChangedResult(tr.Fields, changedRow)
 
 		for k := range tr.Items {
 			tr.Items[k]["Parent"] = newID
 
-			// update parent id for ChangedRow of child row
+			// update parent id in ChangedRow of child row
 			if childChangedRow, ok := tr.Items[k]["ChangedRow"].(ChangedRow); ok {
 				childChangedRow.Parent = newID
 				tr.Items[k]["ChangedRow"] = childChangedRow
@@ -142,6 +143,7 @@ func (s *gridRowRepository) SaveMainRow(tx *sql.Tx, tr *MainRow) error {
 			return fmt.Errorf("exec query: [%w], query: %s, args count: %d", err, query, len(args))
 		}
 
+		// if update success, set success color for row
 		changedRow.Color = ChangedSuccessColor
 		changedRow.Changed = 1
 		SetGridRowChangedResult(tr.Fields, changedRow)
@@ -162,6 +164,7 @@ func (s *gridRowRepository) SaveMainRow(tx *sql.Tx, tr *MainRow) error {
 			return fmt.Errorf("exec query: [%w], query: %s, args count: %d", err, query, len(args))
 		}
 
+		// if delete success, set success color for row
 		changedRow.Color = ChangedSuccessColor
 		changedRow.Deleted = 1
 		SetGridRowChangedResult(tr.Fields, changedRow)
@@ -183,11 +186,11 @@ func (s *gridRowRepository) SaveLines(tx *sql.Tx, tr *MainRow) error {
 			args  []interface{}
 		)
 
-		changedRow := GenGridRowChangeError(item)
+		changedRow := GenGridRowChange(item)
 
 		switch item.GetActionType() {
 		case GridRowActionAdd:
-			// if parent is not persisted, return error
+			// if parent is not persisted, no need to save child rows
 			if !IsParentPersisted(item["Parent"]) {
 				return fmt.Errorf("parent not saved")
 			}
@@ -204,8 +207,10 @@ func (s *gridRowRepository) SaveLines(tx *sql.Tx, tr *MainRow) error {
 				return fmt.Errorf("get last inserted id: [%w]", err)
 			}
 
+			// if add success, set success color for row
 			changedRow.Color = ChangedSuccessColor
 			changedRow.Added = 1
+			// set new id for row
 			changedRow.NewId = fmt.Sprintf("%v$%d%s", changedRow.Parent, newID, lineSuffix) // full id
 			SetGridRowChangedResult(item, changedRow)
 
@@ -219,6 +224,7 @@ func (s *gridRowRepository) SaveLines(tx *sql.Tx, tr *MainRow) error {
 				return fmt.Errorf("exec query: [%w], query: %s", err, query)
 			}
 
+			// if update success, set success color for row
 			changedRow.Color = ChangedSuccessColor
 			changedRow.Changed = 1
 			SetGridRowChangedResult(item, changedRow)
@@ -233,6 +239,7 @@ func (s *gridRowRepository) SaveLines(tx *sql.Tx, tr *MainRow) error {
 				return fmt.Errorf("exec query: [%w], query: %s", err, query)
 			}
 
+			// if delete success, set success color for row
 			changedRow.Color = ChangedSuccessColor
 			changedRow.Deleted = 1
 			SetGridRowChangedResult(item, changedRow)
@@ -247,9 +254,9 @@ func (s *gridRowRepository) SaveLines(tx *sql.Tx, tr *MainRow) error {
 }
 
 func (s *gridRowRepository) SaveLineAdd(tx *sql.Tx, item GridRow) error {
-	changedRow := GenGridRowChangeError(item)
+	changedRow := GenGridRowChange(item)
 
-	// if parent is not persisted, return error
+	// if parent is not persisted, no need to save child rows
 	if !IsParentPersisted(item["Parent"]) {
 		return fmt.Errorf("parent not saved")
 	}
@@ -265,15 +272,17 @@ func (s *gridRowRepository) SaveLineAdd(tx *sql.Tx, item GridRow) error {
 		return fmt.Errorf("get last inserted id: [%w]", err)
 	}
 
+	// if add success, set success color for row
 	changedRow.Color = ChangedSuccessColor
 	changedRow.Added = 1
+	// set new id for row
 	changedRow.NewId = fmt.Sprintf("%v$%d%s", changedRow.Parent, newID, lineSuffix) // full id
 	SetGridRowChangedResult(item, changedRow)
 	return nil
 }
 
 func (s *gridRowRepository) SaveLineUpdate(tx *sql.Tx, item GridRow) error {
-	changedRow := GenGridRowChangeError(item)
+	changedRow := GenGridRowChange(item)
 
 	query, args := item.MakeUpdateQuery(s.lineTableName, s.childFieldMapping)
 	args = append(args, getLineID(item.GetIDStr()))
@@ -283,6 +292,7 @@ func (s *gridRowRepository) SaveLineUpdate(tx *sql.Tx, item GridRow) error {
 		return fmt.Errorf("exec query: [%w], query: %s", err, query)
 	}
 
+	// if update success, set success color for row
 	changedRow.Color = ChangedSuccessColor
 	changedRow.Changed = 1
 	SetGridRowChangedResult(item, changedRow)
@@ -291,7 +301,7 @@ func (s *gridRowRepository) SaveLineUpdate(tx *sql.Tx, item GridRow) error {
 }
 
 func (s *gridRowRepository) SaveLineDelete(tx *sql.Tx, item GridRow) error {
-	changedRow := GenGridRowChangeError(item)
+	changedRow := GenGridRowChange(item)
 
 	query, args := item.MakeDeleteQuery(s.lineTableName)
 	args = append(args, getLineID(item.GetIDStr()))
@@ -301,6 +311,7 @@ func (s *gridRowRepository) SaveLineDelete(tx *sql.Tx, item GridRow) error {
 		return fmt.Errorf("exec query: [%w], query: %s", err, query)
 	}
 
+	// if delete success, set success color for row
 	changedRow.Color = ChangedSuccessColor
 	changedRow.Deleted = 1
 	SetGridRowChangedResult(item, changedRow)

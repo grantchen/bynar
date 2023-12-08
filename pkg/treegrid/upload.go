@@ -12,10 +12,10 @@ type (
 		Deleted int         `json:"Deleted,omitempty"`
 		Color   string      `json:"Color,omitempty"`
 
-		// keep row position
-		Parent interface{} `json:"Parent,omitempty"`
-		Next   interface{} `json:"Next,omitempty"`
-		Prev   interface{} `json:"Prev,omitempty"`
+		// for keeping row position
+		Parent interface{} `json:"Parent,omitempty"` // Parent row id
+		Next   interface{} `json:"Next,omitempty"`   // Next row id
+		Prev   interface{} `json:"Prev,omitempty"`   // Prev row id
 	}
 
 	// PostRequest struct for mapping to post requests
@@ -81,8 +81,10 @@ func MakeResponseBody(resp *PostResponse) *PostResponse {
 	return resp
 }
 
-// GenGridRowChangeError generates a ChangedRow with error
-func GenGridRowChangeError(gr GridRow) ChangedRow {
+// GenGridRowChange get or generate a ChangedRow, which is used to return response for Upload API,
+// generate a new error color ChangedRow if not exists,
+// it will be set success if no error occurs in row processing(Add, Update, Delete)
+func GenGridRowChange(gr GridRow) ChangedRow {
 	if gr["ChangedRow"] != nil {
 		return gr["ChangedRow"].(ChangedRow)
 	}

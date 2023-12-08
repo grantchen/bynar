@@ -57,7 +57,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 		return nil, fmt.Errorf("parse request: [%w]", err)
 	}
 
-	resp := treegrid.HandleMainRowsLinesWithChild(
+	resp := treegrid.HandleTreegridWithChildMainRowsLines(
 		trList,
 		func(mr *treegrid.MainRow) error {
 			err = utils.WithTransaction(u.db, func(tx *sql.Tx) error {

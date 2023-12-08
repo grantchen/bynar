@@ -17,7 +17,12 @@ const (
 	GridRowActionAdd     GridRowActionType = "Added"
 	GridRowActionDeleted GridRowActionType = "Deleted"
 	GridRowActionChanged GridRowActionType = "Changed"
-	GridRowActionNone    GridRowActionType = "None" // no need to handle
+
+	// GridRowActionNone is no need to handle tag,
+	// if only child lines change without a parent, no need to handle parent.
+	// ParseRequestUpload in pkg/treegrid/request.go will create a parent row as parent of child lines
+	// and set the action type of row to GridRowActionNone, means no need to handle parent row
+	GridRowActionNone GridRowActionType = "None" // no need to handle
 )
 
 // use when grouping by

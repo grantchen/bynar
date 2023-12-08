@@ -230,7 +230,7 @@ func NewSimpleGridRowRepositoryWithCfg(db *sql.DB,
 
 // Delete implements SimpleGridRowRepository
 func (s *simpleGridRepository) Delete(tx *sql.Tx, gr GridRow) error {
-	changedRow := GenGridRowChangeError(gr)
+	changedRow := GenGridRowChange(gr)
 
 	query, args := gr.MakeDeleteQuery(s.tableName)
 	fmt.Printf("query: %s, %s\n", query, gr.GetID())
@@ -240,6 +240,7 @@ func (s *simpleGridRepository) Delete(tx *sql.Tx, gr GridRow) error {
 		return fmt.Errorf("exec query: [%w], query: %s, args count: %d", err, query, len(args))
 	}
 
+	// if delete success, set success color for row
 	changedRow.Color = ChangedSuccessColor
 	changedRow.Deleted = 1
 	SetGridRowChangedResult(gr, changedRow)
@@ -249,7 +250,7 @@ func (s *simpleGridRepository) Delete(tx *sql.Tx, gr GridRow) error {
 
 // Add implements SimpleGridRowRepository
 func (s *simpleGridRepository) Add(tx *sql.Tx, gr GridRow) error {
-	changedRow := GenGridRowChangeError(gr)
+	changedRow := GenGridRowChange(gr)
 
 	query, args := gr.MakeInsertQuery(s.tableName, s.fieldMapping)
 	logger.Debug(query, "args", args)
@@ -262,9 +263,10 @@ func (s *simpleGridRepository) Add(tx *sql.Tx, gr GridRow) error {
 		return fmt.Errorf("last inserted id: [%w]", err)
 	}
 
-	// update id for row and child items
+	// if add success, set success color for row
 	changedRow.Color = ChangedSuccessColor
 	changedRow.Added = 1
+	// set new id for row
 	changedRow.NewId = fmt.Sprintf("%v$%d", changedRow.Parent, newID) // full id
 	SetGridRowChangedResult(gr, changedRow)
 
@@ -273,7 +275,7 @@ func (s *simpleGridRepository) Add(tx *sql.Tx, gr GridRow) error {
 
 // Update implements SimpleGridRowRepository
 func (s *simpleGridRepository) Update(tx *sql.Tx, gr GridRow) error {
-	changedRow := GenGridRowChangeError(gr)
+	changedRow := GenGridRowChange(gr)
 
 	query, args := gr.MakeUpdateQuery(s.tableName, s.fieldMapping)
 	if len(args) == 0 {
@@ -285,6 +287,7 @@ func (s *simpleGridRepository) Update(tx *sql.Tx, gr GridRow) error {
 		return fmt.Errorf("exec query: [%w], query: %s, args: %d", err, query, len(args))
 	}
 
+	// if update success, set success color for row
 	changedRow.Color = ChangedSuccessColor
 	changedRow.Changed = 1
 	SetGridRowChangedResult(gr, changedRow)
