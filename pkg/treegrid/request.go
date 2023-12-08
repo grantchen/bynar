@@ -179,8 +179,11 @@ func HandleTreegridWithChildRows(trList *GridList, saveMainRow func(mr *MainRow)
 			resp.IO.Message += err.Error() + "\n"
 		}
 
-		// set parent row change result(been set in row handle func)
-		resp.Changes = append(resp.Changes, GetGridRowChangedResult(mr.Fields))
+		// if action is not none(is add, update or delete), set result color for parent row
+		if mr.Fields.GetActionType() != GridRowActionNone {
+			// set parent row change result(been set in row handle func)
+			resp.Changes = append(resp.Changes, GetGridRowChangedResult(mr.Fields))
+		}
 
 		// failed to add new parent row, skip child rows handle
 		// set error color(default RowChange) for child rows
