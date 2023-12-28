@@ -1,6 +1,6 @@
 module git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup
 
-go 1.19
+go 1.21
 
 require git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs v0.0.0
 

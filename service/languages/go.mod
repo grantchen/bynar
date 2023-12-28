@@ -18,9 +18,6 @@ require (
 	firebase.google.com/go/v4 v4.12.0 // indirect
 	github.com/BurntSushi/toml v1.0.0 // indirect
 	github.com/MicahParks/keyfunc v1.9.0 // indirect
-	github.com/aws/aws-lambda-go v1.40.0 // indirect
-	github.com/aws/aws-sdk-go v1.44.237 // indirect
-	github.com/aws/aws-secretsmanager-caching-go v1.1.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -30,7 +27,6 @@ require (
 	github.com/google/uuid v1.3.1 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.5 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
-	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/nicksnyder/go-i18n/v2 v2.2.2 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	go.opencensus.io v0.24.0 // indirect

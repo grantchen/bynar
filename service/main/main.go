@@ -6,9 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
-
 	"github.com/joho/godotenv"
 
 	accountshttphandler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/http"
@@ -22,6 +19,8 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	sqldb "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
