@@ -3,7 +3,7 @@ package treegrid
 import "encoding/json"
 
 type (
-	// ChangedRow: used to return Messages for POST update
+	// ChangedRow used to return Messages for POST update
 	ChangedRow struct {
 		Id      interface{} `json:"id,omitempty"`
 		NewId   string      `json:"NewId,omitempty"`
@@ -26,7 +26,7 @@ type (
 		Changes []map[string]interface{} `json:"Changes,omitempty"`
 	}
 
-	// Response struct for json responses
+	// PostResponse Response struct for json responses
 	PostResponse struct {
 		IO struct {
 			Message string
@@ -53,7 +53,7 @@ func GenMapColorChangeError(gr GridRow) map[string]interface{} {
 	var inInterface map[string]interface{}
 	change := GenColorChangeError(gr)
 	inrec, _ := json.Marshal(change)
-	json.Unmarshal(inrec, &inInterface)
+	_ = json.Unmarshal(inrec, &inInterface)
 	return inInterface
 }
 

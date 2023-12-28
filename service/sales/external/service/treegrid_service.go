@@ -3,23 +3,24 @@ package service
 import (
 	"context"
 	"database/sql"
-	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
-	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
+
+	pkgrepository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
+	pkgservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/internal/service"
 )
 
-// treegridService implements treegrid.TreeGridService
+// treegridService implements treegrid.Service
 type treegridService struct {
 	db            *sql.DB
 	saleService   service.SaleService
 	uploadService *service.UploadService
 }
 
-// newTreeGridService returns new treegrid.TreeGridService
-func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.TreeGridService {
+// newTreeGridService returns new treegrid.Service
+func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.Service {
 	gridRowDataRepositoryWithChild := treegrid.NewGridRowDataRepositoryWithChild(
 		db,
 		"sales",
@@ -54,19 +55,19 @@ func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.Tre
 	)
 
 	saleRepository := repository.NewSaleRepository(db)
-	workflowRepository := pkg_repository.NewWorkflowRepository(db)
-	unitRepository := pkg_repository.NewUnitRepository(db)
-	currencyRepository := pkg_repository.NewCurrencyRepository(db)
-	inventoryRepository := pkg_repository.NewInventoryRepository(db)
-	boundFlowRepository := pkg_repository.NewBoundFlows()
+	workflowRepository := pkgrepository.NewWorkflowRepository(db)
+	unitRepository := pkgrepository.NewUnitRepository(db)
+	currencyRepository := pkgrepository.NewCurrencyRepository(db)
+	inventoryRepository := pkgrepository.NewInventoryRepository(db)
+	boundFlowRepository := pkgrepository.NewBoundFlows()
 
-	documentRepository := pkg_repository.NewDocuments(db, "procurements")
+	documentRepository := pkgrepository.NewDocuments(db, "procurements")
 
-	approvalSvc := pkg_service.NewApprovalCashPaymentService(pkg_repository.NewApprovalOrder(
+	approvalSvc := pkgservice.NewApprovalCashPaymentService(pkgrepository.NewApprovalOrder(
 		workflowRepository,
 		saleRepository),
 	)
-	docSvc := pkg_service.NewDocumentService(documentRepository)
+	docSvc := pkgservice.NewDocumentService(documentRepository)
 
 	uploadService := service.NewUploadService(
 		db,
@@ -90,29 +91,29 @@ func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.Tre
 }
 
 // NewTreeGridServiceFactory returns new treegrid.TreeGridServiceFactoryFunc
-func NewTreeGridServiceFactory() treegrid.TreeGridServiceFactoryFunc {
-	return func(db *sql.DB, accountID int, organizationUuid string, permissionInfo *treegrid.PermissionInfo, language string) treegrid.TreeGridService {
+func NewTreeGridServiceFactory() treegrid.ServiceFactoryFunc {
+	return func(db *sql.DB, accountID int, organizationUuid string, permissionInfo *treegrid.PermissionInfo, language string) treegrid.Service {
 		return newTreeGridService(db, accountID, language)
 	}
 }
 
-// GetCellData implements treegrid.TreeGridService
-func (s *treegridService) GetCellData(ctx context.Context, req *treegrid.Treegrid) (*treegrid.PostResponse, error) {
+// GetCellData implements treegrid.Service
+func (s *treegridService) GetCellData(_ context.Context, req *treegrid.Treegrid) (*treegrid.PostResponse, error) {
 	return s.saleService.GetCellSuggestion(req)
 }
 
-// GetPageCount implements treegrid.TreeGridService
+// GetPageCount implements treegrid.Service
 func (s *treegridService) GetPageCount(tr *treegrid.Treegrid) (float64, error) {
 	count, err := s.saleService.GetPageCount(tr)
 	return float64(count), err
 }
 
-// GetPageData implements treegrid.TreeGridService
+// GetPageData implements treegrid.Service
 func (s *treegridService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
 	return s.saleService.GetPageData(tr)
 }
 
-// Upload implements treegrid.TreeGridService
+// Upload implements treegrid.Service
 func (s *treegridService) Upload(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	return s.uploadService.Handle(req)
 }

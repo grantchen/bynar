@@ -37,17 +37,17 @@ func NewUploadService(db *sql.DB,
 }
 
 // Handle hanldes the upload request
-func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
+func (s *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	grList, err := treegrid.ParseRequestUploadSingleRow(req)
 	if err != nil {
 		return nil, fmt.Errorf("parse requst: [%w]", err)
 	}
 
 	resp := treegrid.HandleSingleTreegridRows(grList, func(gr treegrid.GridRow) error {
-		err = utils.WithTransaction(u.db, func(tx *sql.Tx) error {
-			return u.handle(tx, gr)
+		err = utils.WithTransaction(s.db, func(tx *sql.Tx) error {
+			return s.handle(tx, gr)
 		})
-		return i18n.TranslationErrorToI18n(u.language, err)
+		return i18n.TranslationErrorToI18n(s.language, err)
 	})
 
 	return resp, nil
@@ -66,7 +66,9 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 		if err1 != nil {
 			return errors.NewUnknownError("prepare sql error", errors.ErrCode).WithInternalCause(err)
 		}
-		defer stmt.Close()
+		defer func(stmt *sql.Stmt) {
+			_ = stmt.Close()
+		}(stmt)
 		err = stmt.QueryRow(s.userID).Scan(&parentId)
 		if err != nil {
 			return i18n.TranslationI18n(s.language, "NoUserGroupLineFound", map[string]string{})

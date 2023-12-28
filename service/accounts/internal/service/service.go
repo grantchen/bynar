@@ -2,10 +2,11 @@ package service
 
 import (
 	"database/sql"
+	"mime/multipart"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
-	"mime/multipart"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
@@ -34,9 +35,9 @@ type AccountService interface {
 	UploadFileToGCS(db *sql.DB, organizationUuid string, userId int, multipartReader *multipart.Reader) (string, *errors.Error)
 	// DeleteFileFromGCS delete user's profile picture from google cloud storage
 	DeleteFileFromGCS(db *sql.DB, organizationUuid string, userId int) *errors.Error
-	// Update user language preference
+	// UpdateUserLanguagePreference Update user language preference
 	UpdateUserLanguagePreference(db *sql.DB, uid string, userId int, languagePreference string) *errors.Error
-	// Update user theme preference
+	// UpdateUserThemePreference Update user theme preference
 	UpdateUserThemePreference(db *sql.DB, userId int, themePreference string) *errors.Error
 	// UpdateUserProfile update user profile
 	UpdateUserProfile(db *sql.DB, userId int, uid string, userProfile model.UpdateUserProfileRequest) *errors.Error

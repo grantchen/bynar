@@ -2,12 +2,13 @@ package i18n
 
 import (
 	"errors"
+	"os"
+	"strings"
+
 	"github.com/BurntSushi/toml"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/text/language"
-	"os"
-	"strings"
 )
 
 var errMsgToTranslationMap = map[string]string{

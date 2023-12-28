@@ -11,8 +11,8 @@ type mysqlDataGridRepository struct {
 	db *sql.DB
 }
 
-// GetGridData implements DataGridRepository
-func (repository *mysqlDataGridRepository) SearchWarehousesByValue(ctx context.Context, value string) ([]*model.WarehouseInfo, error) {
+// SearchWarehousesByValue implements DataGridRepository
+func (repository *mysqlDataGridRepository) SearchWarehousesByValue(_ context.Context, value string) ([]*model.WarehouseInfo, error) {
 	var lsWareHouses []*model.WarehouseInfo
 
 	stmt, err := repository.db.Prepare(`

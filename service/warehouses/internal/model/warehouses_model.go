@@ -25,7 +25,7 @@ func (g Warehouses) ToMap() map[string]interface{} {
 	jsonData, _ := json.Marshal(g)
 
 	var m map[string]interface{}
-	json.Unmarshal(jsonData, &m)
+	_ = json.Unmarshal(jsonData, &m)
 	return m
 }
 
@@ -37,6 +37,6 @@ func ParseFromMapStr(input map[string]string) (*Warehouses, error) {
 		return nil, err
 	}
 
-	json.Unmarshal(jsonData, &result)
+	_ = json.Unmarshal(jsonData, &result)
 	return result, nil
 }

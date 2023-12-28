@@ -51,7 +51,7 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 }
 
 // handle handles upload request of single row
-func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
+func (u *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	fieldsValidating := []string{"code"}
 	positiveFieldsValidating := []string{"subsidiaries_uuid", "address_uuid", "contact_uuid", "responsibility_center_uuid"}
 
@@ -59,63 +59,63 @@ func (s *UploadService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	// add addition here
 	switch gr.GetActionType() {
 	case treegrid.GridRowActionAdd:
-		err = gr.ValidateOnRequiredAll(repository.SiteFieldNames, s.language)
+		err = gr.ValidateOnRequiredAll(repository.SiteFieldNames, u.language)
 		if err != nil {
 			return err
 		}
-		err = gr.ValidateOnLimitLength(repository.SiteFieldNames, 100, s.language)
+		err = gr.ValidateOnLimitLength(repository.SiteFieldNames, 100, u.language)
 		if err != nil {
 			return err
 		}
 		for _, field := range positiveFieldsValidating {
-			err = gr.ValidateOnNotNegativeNumber(map[string][]string{field: repository.SiteFieldNames[field]}, s.language)
+			err = gr.ValidateOnNotNegativeNumber(map[string][]string{field: repository.SiteFieldNames[field]}, u.language)
 			if err != nil {
 				return err
 			}
 		}
 
 		for _, field := range fieldsValidating {
-			ok, err := s.siteSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
+			ok, err := u.siteSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
 				templateData := map[string]string{
 					"Field": field,
 				}
-				return i18n.TranslationI18n(s.language, "ValueDuplicated", templateData)
+				return i18n.TranslationI18n(u.language, "ValueDuplicated", templateData)
 			}
 		}
-		err = s.siteSimpleRepository.Add(tx, gr)
+		err = u.siteSimpleRepository.Add(tx, gr)
 	case treegrid.GridRowActionChanged:
-		err = gr.ValidateOnRequired(repository.SiteFieldNames, s.language)
+		err = gr.ValidateOnRequired(repository.SiteFieldNames, u.language)
 		if err != nil {
 			return err
 		}
-		err = gr.ValidateOnLimitLength(repository.SiteFieldNames, 100, s.language)
+		err = gr.ValidateOnLimitLength(repository.SiteFieldNames, 100, u.language)
 		if err != nil {
 			return err
 		}
 		for _, field := range positiveFieldsValidating {
-			err = gr.ValidateOnNotNegativeNumber(map[string][]string{field: repository.SiteFieldNames[field]}, s.language)
+			err = gr.ValidateOnNotNegativeNumber(map[string][]string{field: repository.SiteFieldNames[field]}, u.language)
 			if err != nil {
 				return err
 			}
 		}
 
 		for _, field := range fieldsValidating {
-			ok, err := s.siteSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
+			ok, err := u.siteSimpleRepository.ValidateOnIntegrity(tx, gr, []string{field})
 			if !ok || err != nil {
 				templateData := map[string]string{
 					"Field": field,
 				}
-				return i18n.TranslationI18n(s.language, "ValueDuplicated", templateData)
+				return i18n.TranslationI18n(u.language, "ValueDuplicated", templateData)
 			}
 		}
-		err = s.siteSimpleRepository.Update(tx, gr)
+		err = u.siteSimpleRepository.Update(tx, gr)
 	case treegrid.GridRowActionDeleted:
-		err = s.siteSimpleRepository.Delete(tx, gr)
+		err = u.siteSimpleRepository.Delete(tx, gr)
 
 	default:
 		return fmt.Errorf("undefined row type: %s", gr.GetActionType())
 	}
 
-	return i18n.TranslationErrorToI18n(s.language, err)
+	return i18n.TranslationErrorToI18n(u.language, err)
 }

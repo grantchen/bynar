@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 
@@ -95,7 +96,7 @@ func (s *workflowRepository) checkActionAdded(conn *sql.DB, tr *treegrid.MainRow
 
 	err := conn.QueryRow(query, storeID, docID, accountID, tr.Status()).Scan(&appOrder)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil
 		}
 
@@ -111,7 +112,7 @@ func (s *workflowRepository) checkActionAdded(conn *sql.DB, tr *treegrid.MainRow
 	return false, nil
 }
 
-func (s *workflowRepository) checkActionUpdated(conn *sql.DB, tr *treegrid.MainRow, accountID int) (bool, error) {
+func (s *workflowRepository) checkActionUpdated(conn *sql.DB, tr *treegrid.MainRow, _ int) (bool, error) {
 	query := `
 	SELECT document_id, store_id, status 
 	FROM transfers

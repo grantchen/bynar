@@ -7,6 +7,6 @@ const (
 
 	QueryJoin = ``
 
-	// use only in this module
+	// QuerySelectWithoutJoin use only in this module
 	QuerySelectWithoutJoin = `SELECT * FROM general_posting_setup`
 )

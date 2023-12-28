@@ -4,12 +4,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 )
 
 // GetOrganizationAccount gets the organization account.
-func (r *accountRepositoryHandler) GetOrganizationAccount(language string, accountID int, organizationUuid string) (*model.GetOrganizationAccountResponse, error) {
+func (r *accountRepositoryHandler) GetOrganizationAccount(_ string, accountID int, _ string) (*model.GetOrganizationAccountResponse, error) {
 	stmt, err := r.db.Prepare(`
 		SELECT a.email,
 			   a.full_name,
@@ -32,7 +33,9 @@ func (r *accountRepositoryHandler) GetOrganizationAccount(language string, accou
 		return nil, err
 	}
 
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 	var res model.GetOrganizationAccountResponse
 	err = stmt.QueryRow(accountID).Scan(
 		&res.Email,
@@ -62,7 +65,9 @@ func (r *accountRepositoryHandler) IsOrganizationVATDuplicated(language string, 
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	var existFlag int
 	if err = stmt.QueryRow(vat, organizationUuid).Scan(&existFlag); err != nil {
@@ -79,7 +84,7 @@ func (r *accountRepositoryHandler) IsOrganizationVATDuplicated(language string, 
 // UpdateOrganizationAccount updates the organization account.
 func (r *accountRepositoryHandler) UpdateOrganizationAccount(
 	db *sql.DB,
-	language string,
+	_ string,
 	accountID int,
 	organizationUserId int,
 	organizationUuid string,
@@ -94,7 +99,10 @@ func (r *accountRepositoryHandler) UpdateOrganizationAccount(
 	if err != nil {
 		return err
 	}
-	defer updateUserStmt.Close()
+	defer func(updateUserStmt *sql.Stmt) {
+		_ = updateUserStmt.Close()
+	}(updateUserStmt)
+
 	_, err = updateUserStmt.Exec(req.Email, req.FullName, req.PhoneNumber, organizationUserId)
 	if err != nil {
 		return err
@@ -104,7 +112,9 @@ func (r *accountRepositoryHandler) UpdateOrganizationAccount(
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func(tx *sql.Tx) {
+		_ = tx.Rollback()
+	}(tx)
 
 	updateAccountStmt, err := tx.Prepare(`
 		UPDATE accounts
@@ -122,7 +132,10 @@ func (r *accountRepositoryHandler) UpdateOrganizationAccount(
 	if err != nil {
 		return err
 	}
-	defer updateAccountStmt.Close()
+	defer func(updateAccountStmt *sql.Stmt) {
+		_ = updateAccountStmt.Close()
+	}(updateAccountStmt)
+
 	_, err = updateAccountStmt.Exec(
 		req.Email,
 		req.FullName,
@@ -150,7 +163,10 @@ func (r *accountRepositoryHandler) UpdateOrganizationAccount(
 	if err != nil {
 		return err
 	}
-	defer updateOrgStmt.Close()
+	defer func(updateOrgStmt *sql.Stmt) {
+		_ = updateOrgStmt.Close()
+	}(updateOrgStmt)
+
 	_, err = updateOrgStmt.Exec(
 		req.OrganizationName,
 		req.VAT,
@@ -165,14 +181,16 @@ func (r *accountRepositoryHandler) UpdateOrganizationAccount(
 }
 
 // DeleteOrganizationAccount deletes the organization account.
-func (r *accountRepositoryHandler) DeleteOrganizationAccount(db *sql.DB, language string, tenantUuid string, organizationUuid string) error {
+func (r *accountRepositoryHandler) DeleteOrganizationAccount(_ *sql.DB, language string, tenantUuid string, organizationUuid string) error {
 	var organizationID int
 	var tenantID int
 	queryOrganizationStmt, err := r.db.Prepare(`SELECT id, tenant_id FROM organizations WHERE organization_uuid = ? LIMIT 1;`)
 	if err != nil {
 		return err
 	}
-	defer queryOrganizationStmt.Close()
+	defer func(queryOrganizationStmt *sql.Stmt) {
+		_ = queryOrganizationStmt.Close()
+	}(queryOrganizationStmt)
 
 	err = queryOrganizationStmt.QueryRow(organizationUuid).Scan(&organizationID, &tenantID)
 	if err != nil {
@@ -207,7 +225,9 @@ func (r *accountRepositoryHandler) IsCanDeleteOrganizationAccount(language strin
 	if err != nil {
 		return err
 	}
-	defer queryInvoiceStmt.Close()
+	defer func(queryInvoiceStmt *sql.Stmt) {
+		_ = queryInvoiceStmt.Close()
+	}(queryInvoiceStmt)
 
 	var existFlag int
 	if err = queryInvoiceStmt.QueryRow(organizationUuid).Scan(&existFlag); err != nil {
@@ -222,12 +242,14 @@ func (r *accountRepositoryHandler) IsCanDeleteOrganizationAccount(language strin
 }
 
 // GetOrganizationIdByUuid gets the organization id by uuid.
-func (r *accountRepositoryHandler) GetOrganizationIdByUuid(language string, organizationUuid string) (int, error) {
+func (r *accountRepositoryHandler) GetOrganizationIdByUuid(_ string, organizationUuid string) (int, error) {
 	stmt, err := r.db.Prepare(`SELECT id FROM organizations WHERE organization_uuid = ? LIMIT 1;`)
 	if err != nil {
 		return 0, err
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	var organizationID int
 	err = stmt.QueryRow(organizationUuid).Scan(&organizationID)
@@ -239,7 +261,7 @@ func (r *accountRepositoryHandler) GetOrganizationIdByUuid(language string, orga
 }
 
 // GetCustomerIDsByOrganizationID gets the customer ids of checkout users by organization id.
-func (r *accountRepositoryHandler) GetCustomerIDsByOrganizationID(language string, organizationID int) ([]string, error) {
+func (r *accountRepositoryHandler) GetCustomerIDsByOrganizationID(_ string, organizationID int) ([]string, error) {
 	// pluck user_payment_gateway_id from accounts_cards by user_id(which associated to accounts.id by organization_accounts)
 	stmt, err := r.db.Prepare(`
 		SELECT DISTINCT ac.user_payment_gateway_id
@@ -250,13 +272,17 @@ func (r *accountRepositoryHandler) GetCustomerIDsByOrganizationID(language strin
 	if err != nil {
 		return nil, err
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	rows, err := stmt.Query(organizationID)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	var customerIDs []string
 	for rows.Next() {
@@ -272,19 +298,23 @@ func (r *accountRepositoryHandler) GetCustomerIDsByOrganizationID(language strin
 }
 
 // GetGipUserUidsByOrganizationID gets the gip user uids by organization id.
-func (r *accountRepositoryHandler) GetGipUserUidsByOrganizationID(language string, organizationID int) ([]string, error) {
+func (r *accountRepositoryHandler) GetGipUserUidsByOrganizationID(_ string, organizationID int) ([]string, error) {
 	// pluck organization_user_uid from organization_accounts by organization_id
 	stmt, err := r.db.Prepare(`SELECT organization_user_uid FROM organization_accounts WHERE organization_id = ?;`)
 	if err != nil {
 		return nil, err
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	rows, err := stmt.Query(organizationID)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	var gipUserUids []string
 	for rows.Next() {
@@ -300,19 +330,24 @@ func (r *accountRepositoryHandler) GetGipUserUidsByOrganizationID(language strin
 }
 
 // deleteAccount deletes the account data of the organization in accounts_management.
-func (r *accountRepositoryHandler) deleteAccount(language string, organizationID int, tenantID int) error {
+func (r *accountRepositoryHandler) deleteAccount(_ string, organizationID int, tenantID int) error {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func(tx *sql.Tx) {
+		_ = tx.Rollback()
+	}(tx)
 
 	// delete tenants_management by organization_id and tenant_id
 	deleteTenantsManagementStmt, err := tx.Prepare(`DELETE FROM tenants_management WHERE organization_id = ? AND tenant_id = ?;`)
 	if err != nil {
 		return err
 	}
-	defer deleteTenantsManagementStmt.Close()
+	defer func(deleteTenantsManagementStmt *sql.Stmt) {
+		_ = deleteTenantsManagementStmt.Close()
+	}(deleteTenantsManagementStmt)
+
 	_, err = deleteTenantsManagementStmt.Exec(organizationID, tenantID)
 	if err != nil {
 		return err
@@ -323,7 +358,9 @@ func (r *accountRepositoryHandler) deleteAccount(language string, organizationID
 	if err != nil {
 		return err
 	}
-	defer decreaseOrganizationsOfTenantsStmt.Close()
+	defer func(decreaseOrganizationsOfTenantsStmt *sql.Stmt) {
+		_ = decreaseOrganizationsOfTenantsStmt.Close()
+	}(decreaseOrganizationsOfTenantsStmt)
 	_, err = decreaseOrganizationsOfTenantsStmt.Exec(tenantID)
 	if err != nil {
 		return err
@@ -340,7 +377,10 @@ func (r *accountRepositoryHandler) deleteAccount(language string, organizationID
 	if err != nil {
 		return err
 	}
-	defer deleteAccountsCardsStmt.Close()
+	defer func(deleteAccountsCardsStmt *sql.Stmt) {
+		_ = deleteAccountsCardsStmt.Close()
+	}(deleteAccountsCardsStmt)
+
 	_, err = deleteAccountsCardsStmt.Exec(organizationID)
 	if err != nil {
 		return err
@@ -357,7 +397,10 @@ func (r *accountRepositoryHandler) deleteAccount(language string, organizationID
 	if err != nil {
 		return err
 	}
-	defer deleteInvoicesStmt.Close()
+	defer func(deleteInvoicesStmt *sql.Stmt) {
+		_ = deleteInvoicesStmt.Close()
+	}(deleteInvoicesStmt)
+
 	_, err = deleteInvoicesStmt.Exec(organizationID)
 	if err != nil {
 		return err
@@ -373,7 +416,10 @@ func (r *accountRepositoryHandler) deleteAccount(language string, organizationID
 	if err != nil {
 		return err
 	}
-	defer deleteAccountsStmt.Close()
+	defer func(deleteAccountsStmt *sql.Stmt) {
+		_ = deleteAccountsStmt.Close()
+	}(deleteAccountsStmt)
+
 	_, err = deleteAccountsStmt.Exec(organizationID)
 	if err != nil {
 		return err
@@ -384,7 +430,10 @@ func (r *accountRepositoryHandler) deleteAccount(language string, organizationID
 	if err != nil {
 		return err
 	}
-	defer deleteOrganizationAccountsStmt.Close()
+	defer func(deleteOrganizationAccountsStmt *sql.Stmt) {
+		_ = deleteOrganizationAccountsStmt.Close()
+	}(deleteOrganizationAccountsStmt)
+
 	_, err = deleteOrganizationAccountsStmt.Exec(organizationID)
 	if err != nil {
 		return err
@@ -395,7 +444,10 @@ func (r *accountRepositoryHandler) deleteAccount(language string, organizationID
 	if err != nil {
 		return err
 	}
-	defer deleteOrganizationsStmt.Close()
+	defer func(deleteOrganizationsStmt *sql.Stmt) {
+		_ = deleteOrganizationsStmt.Close()
+	}(deleteOrganizationsStmt)
+
 	_, err = deleteOrganizationsStmt.Exec(organizationID)
 	if err != nil {
 		return err
@@ -411,12 +463,14 @@ func (r *accountRepositoryHandler) deleteAccount(language string, organizationID
 }
 
 // deleteEnvironment deletes the environment of the organization.
-func (r *accountRepositoryHandler) deleteEnvironment(language, tenantUuid, organizationUuid string) error {
+func (r *accountRepositoryHandler) deleteEnvironment(_, tenantUuid, organizationUuid string) error {
 	db, err := r.getEnvironmentDB(tenantUuid)
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		_ = db.Close()
+	}(db)
 
 	_, err = db.Exec(fmt.Sprintf("DROP SCHEMA `%s`", organizationUuid))
 	if err != nil {

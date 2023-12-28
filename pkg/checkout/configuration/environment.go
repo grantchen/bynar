@@ -7,8 +7,9 @@
 package configuration
 
 import (
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/constant"
 	"os"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/constant"
 )
 
 // Environment checkout env interface

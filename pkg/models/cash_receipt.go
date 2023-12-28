@@ -33,9 +33,9 @@ type CashReceiptLine struct {
 }
 
 type CashManagement struct {
-	Id          int
-	Type        int
-	Bank_Id     int
-	Currency_Id int
-	Amount      float32
+	Id         int
+	Type       int
+	BankId     int
+	CurrencyId int
+	Amount     float32
 }

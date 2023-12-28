@@ -13,14 +13,6 @@ import (
 )
 
 var (
-	// ModuleID is hardcoded as provided in the specification.
-	ModuleID = 8
-
-	connectionStringKey = "bynar"
-	awsRegion           = "eu-central-1"
-
-	httpAuthorizationHeader = "Authorization"
-
 	// no permission error message
 	noPermissionErrorMessage = "no permission"
 	// no permission error reason
@@ -36,7 +28,7 @@ type HTTPTreeGridHandler struct {
 	AccountManagerService    service.AccountManagerService
 }
 
-func (h *HTTPTreeGridHandler) getDB(r *http.Request) *sql.DB {
+func (h *HTTPTreeGridHandler) getDB(_ *http.Request) *sql.DB {
 	return nil
 }
 
@@ -63,9 +55,9 @@ func (h *HTTPTreeGridHandler) HTTPHandleGetPageCount(w http.ResponseWriter, r *h
 
 	allPages, _ := h.CallbackGetPageCountFunc(treegr)
 
-	response, err := json.Marshal((map[string]interface{}{
+	response, err := json.Marshal(map[string]interface{}{
 		"Body": []string{`#@@@` + fmt.Sprintf("%v", allPages)},
-	}))
+	})
 
 	if err != nil {
 		log.Println(err)
@@ -75,7 +67,7 @@ func (h *HTTPTreeGridHandler) HTTPHandleGetPageCount(w http.ResponseWriter, r *h
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-type", "application/json")
-	w.Write(response)
+	_, _ = w.Write(response)
 }
 
 func (h *HTTPTreeGridHandler) HTTPHandleGetPageData(w http.ResponseWriter, r *http.Request) {
@@ -103,7 +95,7 @@ func (h *HTTPTreeGridHandler) HTTPHandleGetPageData(w http.ResponseWriter, r *ht
 
 	response, _ = h.CallbackGetPageDataFunc(trGrid)
 
-	addData := [][]map[string]string{}
+	var addData [][]map[string]string
 	addData = append(addData, response)
 
 	result, _ := json.Marshal(map[string][][]map[string]string{
@@ -112,7 +104,7 @@ func (h *HTTPTreeGridHandler) HTTPHandleGetPageData(w http.ResponseWriter, r *ht
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-type", "application/json")
-	w.Write(result)
+	_, _ = w.Write(result)
 }
 
 func (h *HTTPTreeGridHandler) HTTPHandleUpload(w http.ResponseWriter, r *http.Request) {

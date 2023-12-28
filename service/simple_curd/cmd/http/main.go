@@ -7,12 +7,13 @@ import (
 	"net/http"
 	"os"
 
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
-	http_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/simplecurd/internal/handler/http"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/simplecurd/internal/repository"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/simplecurd/internal/service"
 	"github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
+
+	sqldb "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	httphandler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/simplecurd/internal/handler/http"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/simplecurd/internal/repository"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/simplecurd/internal/service"
 )
 
 func main() {
@@ -38,7 +39,7 @@ func initMySQLDB() (*sql.DB, error) {
 		log.Fatalln(err)
 	}
 
-	db, err := sql_db.NewConnection(cfg.FormatDSN())
+	db, err := sqldb.NewConnection(cfg.FormatDSN())
 	if err != nil {
 		panic(err.Error())
 	}
@@ -52,7 +53,7 @@ func handleRequests() {
 
 	languageRepostory := repository.NewLanguageRepository(mysqlDB, "languages")
 	languageService := service.NewLanguageService(languageRepostory)
-	httpLanguageHandler := http_handler.NewLanguageHandler(languageService)
+	httpLanguageHandler := httphandler.NewLanguageHandler(languageService)
 
 	http.HandleFunc("/languages", httpLanguageHandler.HandleGetAllLanguage)
 	http.HandleFunc("/languages/update", httpLanguageHandler.HandleUpdateRequest)

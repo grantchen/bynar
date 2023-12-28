@@ -64,7 +64,7 @@ func (r *RowValues) Parse(rows *sql.Rows) error {
 	return nil
 }
 
-// func(r *RowValues)
+// GetValue func(r *RowValues)
 func (r *RowValues) GetValue(columnName string) string {
 	// return fmt.Sprintf("%v", r.values[columnName])
 	if val, ok := r.values[columnName].([]byte); ok {
@@ -93,27 +93,15 @@ func CheckCount(rows *sql.Rows) (rowCount int) {
 	return rowCount
 }
 
-// CheckCountWithError checks count value from sql.Rows
-func CheckCountWithError(rows *sql.Rows) (rowCount int, err error) {
-	if !rows.Next() {
-		return 0, err
-	}
-
-	err = rows.Scan(&rowCount)
-	if err != nil {
-		return 0, err
-	}
-
-	return rowCount, nil
-}
-
 // CheckExist checks if row exists
 func CheckExist(db *sql.DB, query string, args ...any) (exists bool, err error) {
 	stmt, err := db.Prepare(query)
 	if err != nil {
 		return false, err
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	var existFlag int
 	if err = stmt.QueryRow(args...).Scan(&existFlag); err != nil {
@@ -133,7 +121,9 @@ func CheckExistInTx(tx *sql.Tx, query string, args ...any) (exists bool, err err
 	if err != nil {
 		return false, err
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	var existFlag int
 	if err = stmt.QueryRow(args...).Scan(&existFlag); err != nil {
@@ -147,7 +137,7 @@ func CheckExistInTx(tx *sql.Tx, query string, args ...any) (exists bool, err err
 	return true, nil
 }
 
-// TODO
+// GenerateOrganizationConnection TODO
 // Generate organization connection
 func GenerateOrganizationConnection(tenantUuid, organizationUuid string) string {
 	envs := strings.Split(os.Getenv(tenantUuid), "/")

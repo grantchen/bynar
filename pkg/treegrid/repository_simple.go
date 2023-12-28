@@ -11,7 +11,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 )
 
-// use for table with no child
+// SimpleGridRowRepository use for table with no child
 type SimpleGridRowRepository interface {
 	Add(tx *sql.Tx, gr GridRow) error
 	Update(tx *sql.Tx, gr GridRow) error
@@ -73,13 +73,17 @@ func (s *simpleGridRepository) getPageData(tg *Treegrid, additionWhere string, a
 	if err != nil {
 		return nil, fmt.Errorf("prepare query: '%s': [%w]", query, err)
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	rows, err := stmt.Query(append(FilterArgs, additionWhereArgs...)...)
 	if err != nil {
 		return nil, fmt.Errorf("do query: '%s': [%w]", query, err)
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	rowVals, err := utils.NewRowVals(rows)
 	if err != nil {
@@ -132,13 +136,17 @@ func (s *simpleGridRepository) GetPageDataGroupBy(tg *Treegrid) ([]map[string]st
 	if err != nil {
 		return nil, fmt.Errorf("prepare query: '%s': [%w]", query, err)
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	rows, err := stmt.Query(queryArgs...)
 	if err != nil {
 		return nil, fmt.Errorf("query rows: [%w]", err)
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	rowVals, err := utils.NewRowVals(rows)
 	if err != nil {
@@ -192,14 +200,18 @@ func (s *simpleGridRepository) GetPageCount(tg *Treegrid) (int64, error) {
 	if err != nil {
 		return 0, fmt.Errorf("prepare query: '%s': [%w]", query, err)
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	rows, err := stmt.Query(FilterArgs...)
 	if err != nil {
 		fmt.Printf("parse rows: [%v]", err)
 		return 0, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	return int64(math.Ceil(float64(utils.CheckCount(rows)) / float64(s.pageSize))), nil
 }

@@ -9,8 +9,8 @@ import (
 	"time"
 )
 
-// The totp token is generated based on the current time
-func GenerateTotpToken(secret string) string {
+// GenerateTotpToken The totp token is generated based on the current time
+func _(secret string) string {
 	key, _ := base32.StdEncoding.DecodeString(secret)
 	hash := hmac.New(sha1.New, key)
 	hash.Write([]byte(time.Now().UTC().Format("2006-01-02 15:04:05")))

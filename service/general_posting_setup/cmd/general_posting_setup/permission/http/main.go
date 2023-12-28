@@ -4,15 +4,16 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/external/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
-	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
-	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
-	"github.com/joho/godotenv"
-	"github.com/sirupsen/logrus"
+	pkgrepository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
+	pkgservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 )
 
 func main() {
@@ -42,18 +43,18 @@ func main() {
 		log.Panic(err)
 	}
 
-	accountRepository := pkg_repository.NewAccountManagerRepository(dbAccount)
-	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, authProvider)
+	accountRepository := pkgrepository.NewAccountManagerRepository(dbAccount)
+	accountService := pkgservice.NewAccountManagerService(dbAccount, accountRepository, authProvider)
 
 	treegridService := service.NewTreeGridServiceFactory()
-	handler := &handler.HTTPTreeGridHandlerWithDynamicDB{
+	h := &handler.HTTPTreeGridHandlerWithDynamicDB{
 		AccountManagerService:  accountService,
 		TreeGridServiceFactory: treegridService,
 		ConnectionPool:         connectionPool,
 		PathPrefix:             "/general_posting_setup",
 	}
 
-	handler.HandleHTTPReqWithAuthenMWAndDefaultPath()
+	h.HandleHTTPReqWithAuthenMWAndDefaultPath()
 
 	// server
 	log.Println("start server at 8080!")

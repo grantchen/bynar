@@ -9,10 +9,10 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	sqldb "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
-	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
-	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
+	pkgrepository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
+	pkgservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/internal/service"
@@ -28,13 +28,13 @@ func main() {
 	connAccountString := appConfig.GetAccountManagementConnection()
 	// connString := "root:Munrfe2020@tcp(bynar-cet.ccwuyxj7ucnd.eu-central-1.rds.amazonaws.com:3306)/bynar"
 	connString = "root:123456@tcp(localhost:3306)/46542255-9d45-49d5-939d-84bc55b1a938"
-	db, err := sql_db.NewConnection(connString)
+	db, err := sqldb.NewConnection(connString)
 
 	if err != nil {
 		log.Panic(err)
 	}
 
-	dbAccount, _ := sql_db.NewConnection(connAccountString)
+	dbAccount, _ := sqldb.NewConnection(connAccountString)
 
 	gridRowDataRepositoryWithChild := treegrid.NewGridRowDataRepositoryWithChild(
 		db,
@@ -83,10 +83,10 @@ func main() {
 		log.Panic(err)
 	}
 
-	accountRepository := pkg_repository.NewAccountManagerRepository(dbAccount)
-	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, authProvider)
+	accountRepository := pkgrepository.NewAccountManagerRepository(dbAccount)
+	accountService := pkgservice.NewAccountManagerService(dbAccount, accountRepository, authProvider)
 
-	handler := &handler.HTTPTreeGridHandler{
+	h := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,
 		CallbackGetPageDataFunc: userGroupService.GetPageData,
 		CallBackGetCellDataFunc: userGroupService.GetCellSuggestion,
@@ -97,10 +97,10 @@ func main() {
 		AccountManagerService: accountService,
 	}
 
-	http.HandleFunc("/upload", handler.HTTPHandleUpload)
-	http.HandleFunc("/data", handler.HTTPHandleGetPageCount)
-	http.HandleFunc("/page", handler.HTTPHandleGetPageData)
-	http.HandleFunc("/cell", handler.HTTPHandleCell)
+	http.HandleFunc("/upload", h.HTTPHandleUpload)
+	http.HandleFunc("/data", h.HTTPHandleGetPageCount)
+	http.HandleFunc("/page", h.HTTPHandleGetPageData)
+	http.HandleFunc("/cell", h.HTTPHandleCell)
 
 	// server
 	log.Println("start server at 8080!")

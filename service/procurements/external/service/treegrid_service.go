@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
-	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
+	pkgrepository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
+	pkgservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/procurements/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/procurements/internal/service"
@@ -17,7 +17,7 @@ type treegridService struct {
 	uploadService       *service.UploadService
 }
 
-func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.TreeGridService {
+func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.Service {
 	gridRowDataRepositoryWithChild := treegrid.NewGridRowDataRepositoryWithChild(
 		db,
 		"procurements",
@@ -37,19 +37,19 @@ func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.Tre
 			ParentIdField:            "id",
 		},
 	)
-	procurementRepository := pkg_repository.NewProcurementRepository(db)
-	unitRepo := pkg_repository.NewUnitRepository(db)
-	currencyRepo := pkg_repository.NewCurrencyRepository(db)
-	invRepo := pkg_repository.NewInventoryRepository(db)
-	documentRepository := pkg_repository.NewDocuments(db, "procurements")
-	workflowRepository := pkg_repository.NewWorkflowRepository(db)
+	procurementRepository := pkgrepository.NewProcurementRepository(db)
+	unitRepo := pkgrepository.NewUnitRepository(db)
+	currencyRepo := pkgrepository.NewCurrencyRepository(db)
+	invRepo := pkgrepository.NewInventoryRepository(db)
+	documentRepository := pkgrepository.NewDocuments(db, "procurements")
+	workflowRepository := pkgrepository.NewWorkflowRepository(db)
 	// init services
-	approvalSvc := pkg_service.NewApprovalCashPaymentService(pkg_repository.NewApprovalOrder(
+	approvalSvc := pkgservice.NewApprovalCashPaymentService(pkgrepository.NewApprovalOrder(
 		workflowRepository,
 		procurementRepository),
 	)
 
-	docSvc := pkg_service.NewDocumentService(documentRepository)
+	docSvc := pkgservice.NewDocumentService(documentRepository)
 
 	procService := service.NewProcurementSvc(db, gridRowDataRepositoryWithChild, procurementRepository, unitRepo, currencyRepo, invRepo, language)
 
@@ -66,29 +66,29 @@ func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.Tre
 	}
 }
 
-func NewTreeGridServiceFactory() treegrid.TreeGridServiceFactoryFunc {
-	return func(db *sql.DB, accountID int, organizationUuid string, permissionInfo *treegrid.PermissionInfo, language string) treegrid.TreeGridService {
+func NewTreeGridServiceFactory() treegrid.ServiceFactoryFunc {
+	return func(db *sql.DB, accountID int, organizationUuid string, permissionInfo *treegrid.PermissionInfo, language string) treegrid.Service {
 		return newTreeGridService(db, accountID, language)
 	}
 }
 
-// GetCellData implements treegrid.TreeGridService
-func (*treegridService) GetCellData(ctx context.Context, req *treegrid.Treegrid) (*treegrid.PostResponse, error) {
+// GetCellData implements treegrid.Service
+func (*treegridService) GetCellData(_ context.Context, _ *treegrid.Treegrid) (*treegrid.PostResponse, error) {
 	panic("unimplemented")
 }
 
-// GetPageCount implements treegrid.TreeGridService
+// GetPageCount implements treegrid.Service
 func (s *treegridService) GetPageCount(tr *treegrid.Treegrid) (float64, error) {
 	count, err := s.procurementsService.GetPageCount(tr)
 	return float64(count), err
 }
 
-// GetPageData implements treegrid.TreeGridService
+// GetPageData implements treegrid.Service
 func (s *treegridService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
 	return s.procurementsService.GetPageData(tr)
 }
 
-// Upload implements treegrid.TreeGridService
+// Upload implements treegrid.Service
 func (s *treegridService) Upload(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	return s.uploadService.Handle(req)
 }

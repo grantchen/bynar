@@ -9,12 +9,12 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/sites/external/handler/service"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	sqldb "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
-	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
-	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
+	pkgrepository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
+	pkgservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 )
 
 func main() {
@@ -25,7 +25,7 @@ func main() {
 	appConfig := config.NewLocalConfig()
 
 	accountManagementConnectionString := appConfig.GetAccountManagementConnection()
-	dbAccount, err := sql_db.NewConnection(accountManagementConnectionString)
+	dbAccount, err := sqldb.NewConnection(accountManagementConnectionString)
 
 	if err != nil {
 		log.Panic(err)
@@ -36,8 +36,8 @@ func main() {
 		log.Panic(err)
 	}
 
-	accountRepository := pkg_repository.NewAccountManagerRepository(dbAccount)
-	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, authProvider)
+	accountRepository := pkgrepository.NewAccountManagerRepository(dbAccount)
+	accountService := pkgservice.NewAccountManagerService(dbAccount, accountRepository, authProvider)
 
 	connectionPool := connection.NewPool()
 	defer func() {
@@ -47,14 +47,14 @@ func main() {
 	}()
 
 	treegridService := service.NewTreeGridServiceFactory()
-	handler := &handler.HTTPTreeGridHandlerWithDynamicDB{
+	h := &handler.HTTPTreeGridHandlerWithDynamicDB{
 		AccountManagerService:  accountService,
 		TreeGridServiceFactory: treegridService,
 		ConnectionPool:         connectionPool,
 		PathPrefix:             "/apprunnerurl/sites",
 	}
 
-	handler.HandleHTTPReqWithAuthenMWAndDefaultPath()
+	h.HandleHTTPReqWithAuthenMWAndDefaultPath()
 
 	// server
 	log.Println("start server at 8080!")

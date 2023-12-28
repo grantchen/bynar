@@ -10,12 +10,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"mime/multipart"
 	"path"
 	"strings"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 )
 
 var profilePictureType = []string{"png", "jpg", "jpeg"}
@@ -26,7 +27,9 @@ func (s *accountServiceHandler) UploadFileToGCS(db *sql.DB, organizationUuid str
 	if err != nil {
 		return "", errors.NewUnknownError("file read fail", "").WithInternalCause(err)
 	}
-	defer part.Close()
+	defer func(part *multipart.Part) {
+		_ = part.Close()
+	}(part)
 
 	ext := path.Ext(part.FileName())
 	// check file type is jpg or png
@@ -76,7 +79,7 @@ func (s *accountServiceHandler) DeleteFileFromGCS(db *sql.DB, organizationUuid s
 	return nil
 }
 
-// Update user language preference
+// UpdateUserLanguagePreference Update user language preference
 func (s *accountServiceHandler) UpdateUserLanguagePreference(db *sql.DB, uid string, userId int, languagePreference string) *errors.Error {
 	// Update the language_preference field in the users table
 	if err := s.ar.UpdateUserLanguagePreference(db, userId, languagePreference); err != nil {
@@ -100,7 +103,7 @@ func (s *accountServiceHandler) UpdateUserLanguagePreference(db *sql.DB, uid str
 	return nil
 }
 
-// Update user theme preference
+// UpdateUserThemePreference Update user theme preference
 func (s *accountServiceHandler) UpdateUserThemePreference(db *sql.DB, userId int, themePreference string) *errors.Error {
 	// Update the theme field in the users table
 	if err := s.ar.UpdateUserThemePreference(db, userId, themePreference); err != nil {

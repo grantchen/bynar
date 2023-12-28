@@ -28,7 +28,8 @@ func (u *userRepository) GetUserGroupID(accountID int) (int, error) {
 	return id, nil
 }
 
-func NewUserRepository(conn *sql.DB, accountID, moduleID int) UserRepository {
+// return new userRepository
+func _(conn *sql.DB, accountID, moduleID int) UserRepository {
 	return &userRepository{conn: conn, accountID: accountID, moduleID: moduleID}
 }
 
@@ -62,6 +63,6 @@ WHERE w.module = ? AND ugi.account_id = ?
 	return true, nil
 }
 
-func (u *userRepository) GetUserID(accountID int) (int, error) {
+func (u *userRepository) GetUserID(_ int) (int, error) {
 	return 0, nil
 }

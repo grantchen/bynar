@@ -5,19 +5,19 @@ import (
 	"net/http"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	sqldb "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
-	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
-	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
+	pkgrepository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
+	pkgservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/procurements/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/procurements/internal/service"
 )
 
-// TODO: get throug request
+// AccountID TODO: get throug request
 var (
-	AccountID int = 123456
+	AccountID = 123456
 )
 
 func main() {
@@ -28,7 +28,7 @@ func main() {
 
 	appConfig := config.NewAWSSecretsManagerConfig(secretmanager)
 	connString := appConfig.GetDBConnection()
-	db, err := sql_db.NewConnection(connString)
+	db, err := sqldb.NewConnection(connString)
 
 	if err != nil {
 		log.Panic(err)
@@ -59,15 +59,15 @@ func main() {
 		repository.ProcurementFieldNames,
 		repository.ProcurementLineFieldNames)
 
-	procurementRepository := pkg_repository.NewProcurementRepository(db)
-	workflowRepository := pkg_repository.NewWorkflowRepository(db)
-	unitRepository := pkg_repository.NewUnitRepository(db)
-	currencyRepository := pkg_repository.NewCurrencyRepository(db)
-	inventoryRepository := pkg_repository.NewInventoryRepository(db)
+	procurementRepository := pkgrepository.NewProcurementRepository(db)
+	workflowRepository := pkgrepository.NewWorkflowRepository(db)
+	unitRepository := pkgrepository.NewUnitRepository(db)
+	currencyRepository := pkgrepository.NewCurrencyRepository(db)
+	inventoryRepository := pkgrepository.NewInventoryRepository(db)
 
-	documentRepository := pkg_repository.NewDocuments(db, "procurements")
+	documentRepository := pkgrepository.NewDocuments(db, "procurements")
 
-	approvalSvc := pkg_service.NewApprovalCashPaymentService(pkg_repository.NewApprovalOrder(
+	approvalSvc := pkgservice.NewApprovalCashPaymentService(pkgrepository.NewApprovalOrder(
 		workflowRepository,
 		procurementRepository),
 	)
@@ -81,7 +81,7 @@ func main() {
 		inventoryRepository,
 		"en")
 
-	docSvc := pkg_service.NewDocumentService(documentRepository)
+	docSvc := pkgservice.NewDocumentService(documentRepository)
 
 	uploadSvc := service.NewUploadService(
 		db,
@@ -93,10 +93,10 @@ func main() {
 		procrSvc,
 	)
 
-	handler := &handler.HTTPTreeGridHandler{
+	h := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc: uploadSvc.Handle,
 	}
-	http.HandleFunc("/upload", handler.HTTPHandleUpload)
+	http.HandleFunc("/upload", h.HTTPHandleUpload)
 	log.Println("start server at 8080!")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 

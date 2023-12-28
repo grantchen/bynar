@@ -33,7 +33,7 @@ func (g GeneralPostingSetup) ToMap() map[string]interface{} {
 	jsonData, _ := json.Marshal(g)
 
 	var m map[string]interface{}
-	json.Unmarshal(jsonData, &m)
+	_ = json.Unmarshal(jsonData, &m)
 	return m
 }
 

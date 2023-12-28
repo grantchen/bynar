@@ -69,7 +69,7 @@ func (tr *Treegrid) WithGroupBy() bool {
 	return len(tr.RawGroupBy) != 0
 }
 
-// Refresh sets new filter params
+// SetFilters sets new filter params
 func (tr *Treegrid) SetFilters(filterParams []map[string]interface{}) {
 	tr.FilterParams = filterParams
 }

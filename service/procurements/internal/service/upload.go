@@ -8,7 +8,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
-	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
+	pkgservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/procurements/internal/repository"
 )
@@ -16,8 +16,8 @@ import (
 type UploadService struct {
 	db                  *sql.DB
 	language            string
-	approvalService     pkg_service.ApprovalCashPaymentService
-	docSvc              pkg_service.DocumentService
+	approvalService     pkgservice.ApprovalCashPaymentService
+	docSvc              pkgservice.DocumentService
 	gridRowRepository   treegrid.GridRowRepositoryWithChild
 	accountId           int
 	procurementsService ProcurementsService
@@ -25,8 +25,8 @@ type UploadService struct {
 
 func NewUploadService(db *sql.DB,
 	language string,
-	approvalService pkg_service.ApprovalCashPaymentService,
-	docSvc pkg_service.DocumentService,
+	approvalService pkgservice.ApprovalCashPaymentService,
+	docSvc pkgservice.DocumentService,
 	gridRowRepository treegrid.GridRowRepositoryWithChild,
 	accountId int,
 	procurementsService ProcurementsService,
@@ -42,7 +42,7 @@ func NewUploadService(db *sql.DB,
 	}
 }
 
-// Handle: upload handle
+// Handle upload handle
 func (s *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	trList, err := treegrid.ParseRequestUpload(req, s.gridRowRepository)
 	if err != nil {
@@ -111,7 +111,9 @@ func (s *UploadService) handle(tr *treegrid.MainRow) error {
 	if err != nil {
 		return fmt.Errorf("begin transaction: [%w]", err)
 	}
-	defer tx.Rollback()
+	defer func(tx *sql.Tx) {
+		_ = tx.Rollback()
+	}(tx)
 
 	if err := s.gridRowRepository.Save(tx, tr); err != nil {
 		return fmt.Errorf("procecurement svc save '%s': [%w]", tr.IDString(), err)

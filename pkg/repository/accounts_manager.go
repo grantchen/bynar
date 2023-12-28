@@ -26,7 +26,7 @@ type PermissionInfo struct {
 }
 
 // CheckPermission implements AccountManagerRepository
-func (a *accountManagerRepository) CheckPermission(accountID int, organizationID int) (*PermissionInfo, bool, error) {
+func (a *accountManagerRepository) CheckPermission(_ int, organizationID int) (*PermissionInfo, bool, error) {
 	queryCheck := `SELECT organizations.id as organization_id, organizations.archived, tenants.status,
 						tenants_management.status as mstatus,tenants_management.suspended, tenants.enterprise, tenants.secret_name,
 						tenants_management.organization_id as tm_organization_id
@@ -40,7 +40,9 @@ func (a *accountManagerRepository) CheckPermission(accountID int, organizationID
 		return nil, false, fmt.Errorf("db prepare: [%w], sql string: [%s], organization: [%d]", err, queryCheck, organizationID)
 	}
 
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	rows, err := stmt.Query(organizationID)
 	if err != nil {
@@ -52,7 +54,7 @@ func (a *accountManagerRepository) CheckPermission(accountID int, organizationID
 		count += 1
 		permissionInfo := &PermissionInfo{Id: -1, OrganizationId: -1, Archived: -1, Status: -1, Suspended: -1, MStatus: -1,
 			Enterprise: -1, SecretName: ""}
-		rows.Scan(
+		_ = rows.Scan(
 			&permissionInfo.OrganizationId, &permissionInfo.Archived,
 			&permissionInfo.Status, &permissionInfo.MStatus, &permissionInfo.Suspended,
 			&permissionInfo.Enterprise, &permissionInfo.SecretName,
@@ -60,7 +62,9 @@ func (a *accountManagerRepository) CheckPermission(accountID int, organizationID
 		)
 		return permissionInfo, true, nil
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	return nil, false, nil
 }
@@ -79,7 +83,9 @@ func (a *accountManagerRepository) CheckRole(accountID int) (map[string]int, err
 		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s], account: [%d]", err, query, accountID)
 	}
 
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	rows, err := stmt.Query(accountID)
 	if err != nil {
@@ -117,7 +123,9 @@ func (a *accountManagerRepository) CheckRole(accountID int) (map[string]int, err
 
 	}
 
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	return nil, fmt.Errorf("not policies found with accountID: %d", accountID)
 }

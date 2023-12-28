@@ -64,6 +64,6 @@ const (
 		WHERE 1=1
 		`
 
-	// empty
+	// QueryParentJoins empty
 	QueryParentJoins = ``
 )

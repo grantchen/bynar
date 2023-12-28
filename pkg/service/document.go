@@ -2,6 +2,7 @@ package service
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -41,7 +42,7 @@ func (d *documentService) Handle(tx *sql.Tx, modelID, docID int, docNo string) e
 
 	docSeries, err := d.store.GetDocumentSeries(doc.SeriesID)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			logger.Debug("no document series with id ", doc.SeriesID)
 
 			return nil

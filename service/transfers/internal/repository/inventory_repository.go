@@ -34,7 +34,7 @@ type inventoryRepository struct {
 }
 
 // NewInventoryRepository returns a new InventoryRepository
-func NewInventoryRepository(db *sql.DB) InventoryRepository {
+func NewInventoryRepository(_ *sql.DB) InventoryRepository {
 	return &inventoryRepository{}
 }
 
@@ -191,7 +191,7 @@ func move(tx *sql.Tx, trItem item) error {
 
 	var invDest inventory
 	row = tx.QueryRow(query, trItem.LocationDestID, trItem.ItemID)
-	if err := row.Scan(&invDest.ID, &invDest.Quantity, &invDest.Value, &invDest.ValueFIFO); err != nil && err != sql.ErrNoRows {
+	if err := row.Scan(&invDest.ID, &invDest.Quantity, &invDest.Value, &invDest.ValueFIFO); err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return fmt.Errorf("row scan: [%w]", err)
 	}
 

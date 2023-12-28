@@ -19,8 +19,8 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 )
 
-// GipError is the error response from google identify platform
-type GipError struct {
+// Error is the error response from google identify platform
+type Error struct {
 	Error struct {
 		Message string `json:"message"`
 	} `json:"error"`
@@ -99,8 +99,8 @@ func (g gipClient) CreateUser(ctx context.Context, email, displayName, phoneNumb
 	if err != nil {
 		logrus.Errorf("error creating user: %s", err.Error())
 		strs := strings.Split(err.Error(), "\n")
-		var e GipError
-		json.Unmarshal([]byte(strings.Join(strs[1:], "\n")), &e)
+		var e Error
+		_ = json.Unmarshal([]byte(strings.Join(strs[1:], "\n")), &e)
 		if len(e.Error.Message) == 0 {
 			e.Error.Message = err.Error()
 		}
@@ -146,8 +146,8 @@ func (g gipClient) UpdateUser(ctx context.Context, uid string, params map[string
 		}
 		logrus.Errorf("error updating user: %s", err.Error())
 		strs := strings.Split(err.Error(), "\n")
-		var e GipError
-		json.Unmarshal([]byte(strings.Join(strs[1:], "\n")), &e)
+		var e Error
+		_ = json.Unmarshal([]byte(strings.Join(strs[1:], "\n")), &e)
 		if len(e.Error.Message) == 0 {
 			e.Error.Message = err.Error()
 		}
@@ -364,7 +364,10 @@ func (g gipClient) postRequest(url string, req []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected http status code: %d", resp.StatusCode)
 	}

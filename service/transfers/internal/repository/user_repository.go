@@ -10,6 +10,6 @@ type userRepository struct {
 }
 
 // NewUserRepository returns a new UserRepository
-func NewUserRepository(db *sql.DB) UserRepository {
+func NewUserRepository(_ *sql.DB) UserRepository {
 	return &userRepository{}
 }

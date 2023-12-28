@@ -2,14 +2,15 @@ package http_handler
 
 import (
 	"database/sql"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
-	i18n "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/service"
@@ -234,7 +235,7 @@ func (h *AccountHandler) DeleteProfileImage(w http.ResponseWriter, r *http.Reque
 	render.Ok(w, nil)
 }
 
-// Update user language preference
+// UpdateUserLanguagePreference Update user language preference
 func (h *AccountHandler) UpdateUserLanguagePreference(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		render.MethodNotAllowed(w)
@@ -264,7 +265,7 @@ func (h *AccountHandler) UpdateUserLanguagePreference(w http.ResponseWriter, r *
 	render.Ok(w, nil)
 }
 
-// Update user theme preference
+// UpdateUserThemePreference Update user theme preference
 func (h *AccountHandler) UpdateUserThemePreference(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		render.MethodNotAllowed(w)

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/simplecurd/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/simplecurd/internal/repository"
@@ -15,15 +14,14 @@ type languageService struct {
 }
 
 var (
-	ErrMissingRequiredParams = errors.New("missing required params")
-	ErrAlreadyExist          = errors.New("already exist")
+	ErrAlreadyExist = errors.New("already exist")
 )
 
 // AddNewLanguage implements LanguageService
 func (l *languageService) AddNewLanguage(row *model.Changes) (*model.Language, error) {
 	newLang, err := gridRowToLanguage(row)
 	if err != nil {
-		return nil, fmt.Errorf("Parse param error: [%w]", err)
+		return nil, fmt.Errorf("parse param error: [%w]", err)
 	}
 
 	ok, err := l.langRepository.ValidateOnIntegrity(newLang.Id, newLang.Country, newLang.Number)
@@ -43,10 +41,10 @@ func (l *languageService) AddNewLanguage(row *model.Changes) (*model.Language, e
 func gridRowToLanguage(row *model.Changes) (*model.Language, error) {
 	id, err := strconv.Atoi(row.Id)
 	lang := &model.Language{
-		Country:       row.Country,
-		Language:      row.Language,
-		Two_letters:   row.TwoLetters,
-		Three_letters: row.ThreeLetters,
+		Country:      row.Country,
+		Language:     row.Language,
+		TwoLetters:   row.TwoLetters,
+		ThreeLetters: row.ThreeLetters,
 	}
 	if err == nil {
 		lang.Id = id
@@ -58,23 +56,6 @@ func gridRowToLanguage(row *model.Changes) (*model.Language, error) {
 	}
 
 	return lang, nil
-}
-
-func validateOnRequiredAll(row *model.Changes) error {
-	switch {
-	case strings.TrimSpace(row.Country) == "":
-		return fmt.Errorf("[%w]: %s", ErrMissingRequiredParams, "country")
-	case strings.TrimSpace(row.Number) == "":
-		return fmt.Errorf("[%w]: %s", ErrMissingRequiredParams, "number")
-	case strings.TrimSpace(row.Language) == "":
-		return fmt.Errorf("[%w]: %s", ErrMissingRequiredParams, "language")
-	case strings.TrimSpace(row.TwoLetters) == "":
-		return fmt.Errorf("[%w]: %s", ErrMissingRequiredParams, "two_letters")
-	case strings.TrimSpace(row.ThreeLetters) == "":
-		return fmt.Errorf("[%w]: %s", ErrMissingRequiredParams, "three_letters")
-	}
-
-	return nil
 }
 
 // DeleteLanguage implements LanguageService

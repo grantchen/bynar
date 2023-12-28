@@ -3,10 +3,11 @@ package gip
 import (
 	"context"
 	"errors"
-	"github.com/joho/godotenv"
 	"log"
 	"os"
 	"testing"
+
+	"github.com/joho/godotenv"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -60,7 +61,9 @@ func Test_gipClient_IsUserExists(t *testing.T) {
 		t.Fatal("uid is empty")
 	}
 
-	defer client.DeleteUser(context.Background(), uid)
+	defer func(client *gipClient, ctx context.Context, uid string) {
+		_ = client.DeleteUser(ctx, uid)
+	}(client, context.Background(), uid)
 
 	exists, err = client.IsUserExists(context.Background(), email)
 	if err != nil {
@@ -103,7 +106,9 @@ func Test_gipClient_UpdateUser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.DeleteUser(context.Background(), uid)
+	defer func(client *gipClient, ctx context.Context, uid string) {
+		_ = client.DeleteUser(ctx, uid)
+	}(client, context.Background(), uid)
 
 	updateParams := map[string]interface{}{
 		"email":       "lucy@test.com",
@@ -156,7 +161,9 @@ func Test_gipClient_SignIn(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.DeleteUser(context.Background(), uid)
+	defer func(client *gipClient, ctx context.Context, uid string) {
+		_ = client.DeleteUser(ctx, uid)
+	}(client, context.Background(), uid)
 
 	idToken, err := client.SignIn(context.Background(), uid, map[string]interface{}{
 		"organization_account": true,
@@ -179,7 +186,9 @@ func Test_gipClient_VerifyIDToken(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.DeleteUser(context.Background(), uid)
+	defer func(client *gipClient, ctx context.Context, uid string) {
+		_ = client.DeleteUser(ctx, uid)
+	}(client, context.Background(), uid)
 
 	claims := map[string]interface{}{
 		"uid":                  "1627658579",
@@ -224,7 +233,9 @@ func Test_gipClient_VerifyIDTokenAndCheckRevoked(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.DeleteUser(context.Background(), uid)
+	defer func(client *gipClient, ctx context.Context, uid string) {
+		_ = client.DeleteUser(ctx, uid)
+	}(client, context.Background(), uid)
 
 	claims := map[string]interface{}{
 		"uid":                  "1627658579",

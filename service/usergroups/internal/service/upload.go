@@ -74,45 +74,45 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 }
 
 // saveUserGroup saves user group
-func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
+func (u *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 	fieldsValidating := []string{"code"}
 
 	var err error
 	switch tr.Fields.GetActionType() {
 	case treegrid.GridRowActionAdd:
-		err = tr.Fields.ValidateOnRequiredAll(repository.UserGroupFieldNames, s.language)
+		err = tr.Fields.ValidateOnRequiredAll(repository.UserGroupFieldNames, u.language)
 		if err != nil {
 			return err
 		}
-		err = tr.Fields.ValidateOnLimitLength(repository.UserGroupFieldNames, 100, s.language)
+		err = tr.Fields.ValidateOnLimitLength(repository.UserGroupFieldNames, 100, u.language)
 		if err != nil {
 			return err
 		}
 		for _, field := range fieldsValidating {
-			ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
+			ok, err := u.updateGRUserGroupRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
 			if !ok || err != nil {
 				templateData := map[string]string{
 					"Field": field,
 				}
-				return i18n.TranslationI18n(s.language, "ValueDuplicated", templateData)
+				return i18n.TranslationI18n(u.language, "ValueDuplicated", templateData)
 			}
 		}
 	case treegrid.GridRowActionChanged:
-		err = tr.Fields.ValidateOnRequired(repository.UserGroupFieldNames, s.language)
+		err = tr.Fields.ValidateOnRequired(repository.UserGroupFieldNames, u.language)
 		if err != nil {
 			return err
 		}
-		err = tr.Fields.ValidateOnLimitLength(repository.UserGroupFieldNames, 100, s.language)
+		err = tr.Fields.ValidateOnLimitLength(repository.UserGroupFieldNames, 100, u.language)
 		if err != nil {
 			return err
 		}
 		for _, field := range fieldsValidating {
-			ok, err := s.updateGRUserGroupRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
+			ok, err := u.updateGRUserGroupRepository.ValidateOnIntegrity(tx, tr.Fields, []string{field})
 			if !ok || err != nil {
 				templateData := map[string]string{
 					"Field": field,
 				}
-				return i18n.TranslationI18n(s.language, "ValueDuplicated", templateData)
+				return i18n.TranslationI18n(u.language, "ValueDuplicated", templateData)
 			}
 		}
 	case treegrid.GridRowActionDeleted:
@@ -124,31 +124,33 @@ func (s *UploadService) saveUserGroup(tx *sql.Tx, tr *treegrid.MainRow) error {
 				return err
 			}
 
-			defer stmt.Close()
+			defer func(stmt *sql.Stmt) {
+				_ = stmt.Close()
+			}(stmt)
 
 			_, err = stmt.Exec(idStr)
 			if err != nil {
-				return i18n.TranslationErrorToI18n(s.language, err)
+				return i18n.TranslationErrorToI18n(u.language, err)
 			}
 		}
 	}
 
-	return s.updateGRUserGroupRepositoryWithChild.SaveMainRow(tx, tr)
+	return u.updateGRUserGroupRepositoryWithChild.SaveMainRow(tx, tr)
 }
 
 // saveUserGroupLine saves user group lines
-func (s *UploadService) saveUserGroupLine(tx *sql.Tx, item treegrid.GridRow) error {
+func (u *UploadService) saveUserGroupLine(tx *sql.Tx, item treegrid.GridRow) error {
 	parentID := item.GetParentID()
 	var err error
 	switch item.GetActionType() {
 	case treegrid.GridRowActionAdd:
-		err = item.ValidateOnRequiredAll(map[string][]string{"user_id": repository.UserGroupLineFieldNames["user_id"]}, s.language)
+		err = item.ValidateOnRequiredAll(map[string][]string{"user_id": repository.UserGroupLineFieldNames["user_id"]}, u.language)
 		if err != nil {
 			return err
 		}
 
 		userId := item["user_id"]
-		exists, err := s.checkValidUser(tx, userId)
+		exists, err := u.checkValidUser(tx, userId)
 		if err != nil {
 			return fmt.Errorf("check valid user error: [%w]", err)
 		}
@@ -156,10 +158,10 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, item treegrid.GridRow) err
 			templateData := map[string]string{
 				"UserId": fmt.Sprintf("%s", userId),
 			}
-			return i18n.TranslationI18n(s.language, "UserNotExist", templateData)
+			return i18n.TranslationI18n(u.language, "UserNotExist", templateData)
 		}
 
-		exists, err = s.userExistInLine(tx, parentID, userId)
+		exists, err = u.userExistInLine(tx, parentID, userId)
 		if err != nil {
 			return fmt.Errorf("check user exist in line error: [%w]", err)
 		}
@@ -167,20 +169,20 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, item treegrid.GridRow) err
 			templateData := map[string]string{
 				"UserId": fmt.Sprintf("%s", userId),
 			}
-			return i18n.TranslationI18n(s.language, "UserBelongSpecificUserGroupLines", templateData)
+			return i18n.TranslationI18n(u.language, "UserBelongSpecificUserGroupLines", templateData)
 		}
 
-		err = s.updateGRUserGroupRepositoryWithChild.SaveLineAdd(tx, item)
+		err = u.updateGRUserGroupRepositoryWithChild.SaveLineAdd(tx, item)
 		if err != nil {
 			return fmt.Errorf("add child user groups line error: [%w]", err)
 		}
 	case treegrid.GridRowActionChanged:
 		// DO NOTHING WITH ACTION UPDATE, NOT ALLOW UPDATE LINES TABLE
-		return i18n.TranslationI18n(s.language, "UpdateChildLine", map[string]string{})
+		return i18n.TranslationI18n(u.language, "UpdateChildLine", map[string]string{})
 	case treegrid.GridRowActionDeleted:
 		// re-assign user_group_lines id
 		item["id"] = item.GetID()
-		err = s.updateGRUserGroupRepositoryWithChild.SaveLineDelete(tx, item)
+		err = u.updateGRUserGroupRepositoryWithChild.SaveLineDelete(tx, item)
 		if err != nil {
 			return fmt.Errorf("delete child user group line error: [%w]", err)
 		}
@@ -192,16 +194,16 @@ func (s *UploadService) saveUserGroupLine(tx *sql.Tx, item treegrid.GridRow) err
 }
 
 // checkValidUser checks if user is valid
-func (s *UploadService) checkValidUser(tx *sql.Tx, userId interface{}) (bool, error) {
+func (u *UploadService) checkValidUser(_ *sql.Tx, userId interface{}) (bool, error) {
 	return utils.CheckExist(
-		s.db,
+		u.db,
 		"SELECT 1 FROM users WHERE id = ?",
 		userId,
 	)
 }
 
 // userExistInLine checks if user exist in line
-func (s *UploadService) userExistInLine(tx *sql.Tx, userGroupID, userId interface{}) (bool, error) {
+func (u *UploadService) userExistInLine(tx *sql.Tx, userGroupID, userId interface{}) (bool, error) {
 	return utils.CheckExistInTx(
 		tx,
 		"SELECT 1 FROM user_group_lines WHERE parent_id = ? AND user_id = ?",

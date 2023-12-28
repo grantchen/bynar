@@ -1,7 +1,6 @@
 package i18n
 
 import (
-	"errors"
 	"fmt"
 	"runtime"
 )
@@ -26,18 +25,6 @@ func NewError(language, message string) *Error {
 	}
 	err.withStack()
 	return err
-}
-
-// FromError try to convert an error to *Error.
-// It supports wrapped errors.
-func FromError(err error) *Error {
-	if err == nil {
-		return nil
-	}
-	if se := new(Error); errors.As(err, &se) {
-		return se
-	}
-	return nil
 }
 
 // Error returns the error message.

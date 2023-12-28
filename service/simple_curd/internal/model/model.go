@@ -1,12 +1,12 @@
 package model
 
 type Language struct {
-	Id            int    `json:"id"`
-	Country       string `json:"country"`
-	Language      string `json:"language"`
-	Two_letters   string `json:"two_letters"`
-	Three_letters string `json:"three_letters"`
-	Number        int64  `json:"number"`
+	Id           int    `json:"id"`
+	Country      string `json:"country"`
+	Language     string `json:"language"`
+	TwoLetters   string `json:"two_letters"`
+	ThreeLetters string `json:"three_letters"`
+	Number       int64  `json:"number"`
 }
 
 type Changes struct {
@@ -21,7 +21,7 @@ type Changes struct {
 	Number       string `json:"number,omitempty"`
 }
 
-// ChangedRow: used to return Messages for POST update
+// ChangedRow used to return Messages for POST update
 type ChangedRow struct {
 	Id      string `json:"id,omitempty"`
 	NewId   string `json:"NewId,omitempty"`

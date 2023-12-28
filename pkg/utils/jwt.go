@@ -47,12 +47,3 @@ func extractPayload(token string) ([]byte, error) {
 
 	return payload, nil
 }
-
-func UnmarshalClaimsFromJWT(token string, output interface{}) error {
-	payload, err := extractPayload(token)
-	if err != nil {
-		return err
-	}
-
-	return json.Unmarshal(payload, output)
-}

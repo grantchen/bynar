@@ -12,8 +12,9 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"github.com/joho/godotenv"
+
+	sqldb "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 )
 
 func main() {
@@ -30,7 +31,7 @@ func initMySQLDB() (*sql.DB, error) {
 	connString := config.GetMySqlUsername() + ":" + config.GetMySqlPassword() + "@tcp(" +
 		config.GetMySqlHost() + ":" + config.GetMySqlPort() + ")/" + config.GetMySqlDBName()
 
-	db, err := sql_db.NewConnection(connString)
+	db, err := sqldb.NewConnection(connString)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -39,7 +40,7 @@ func initMySQLDB() (*sql.DB, error) {
 }
 
 func handleRequests() {
-	config.Load()
+	_ = config.Load()
 
 	mysqlDB, _ := initMySQLDB()
 

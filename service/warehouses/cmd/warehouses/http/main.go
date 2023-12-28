@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	sqldb "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/warehouses/internal/repository"
@@ -14,7 +14,7 @@ import (
 func main() {
 	connString := "root:123456@tcp(localhost:3306)/bynar"
 	// connString := "root:Munrfe2020@tcp(bynar-cet.ccwuyxj7ucnd.eu-central-1.rds.amazonaws.com:3306)/bynar"
-	db, err := sql_db.NewConnection(connString)
+	db, err := sqldb.NewConnection(connString)
 
 	if err != nil {
 		log.Panic(err)
@@ -42,7 +42,7 @@ func main() {
 		"en",
 	)
 
-	handler := &handler.HTTPTreeGridHandler{
+	h := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,
 		CallbackGetPageDataFunc: warehousesService.GetPageData,
 		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) (float64, error) {
@@ -50,9 +50,9 @@ func main() {
 			return float64(count), err
 		},
 	}
-	http.HandleFunc("/apprunnerurl/warehouses/upload", handler.HTTPHandleUpload)
-	http.HandleFunc("/apprunnerurl/warehouses/data", handler.HTTPHandleGetPageCount)
-	http.HandleFunc("/apprunnerurl/warehouses/page", handler.HTTPHandleGetPageData)
+	http.HandleFunc("/apprunnerurl/warehouses/upload", h.HTTPHandleUpload)
+	http.HandleFunc("/apprunnerurl/warehouses/data", h.HTTPHandleGetPageCount)
+	http.HandleFunc("/apprunnerurl/warehouses/page", h.HTTPHandleGetPageData)
 
 	log.Println("start server at 8080!")
 	log.Fatal(http.ListenAndServe(":8080", nil))
