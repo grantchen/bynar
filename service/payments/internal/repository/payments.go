@@ -193,7 +193,9 @@ func (s *paymentRepository) GetLines(tx *sql.Tx, parentID interface{}, applied i
 	if err != nil {
 		return nil, fmt.Errorf("do query: [%w], query: %s, id: %v", err, query, parentID)
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	for rows.Next() {
 		line := &models.PaymentLine{}

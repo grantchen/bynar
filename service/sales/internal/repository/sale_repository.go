@@ -3,9 +3,9 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"strings"
 
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
 )
 
@@ -143,7 +143,9 @@ func (s *saleRepository) GetSaleLines(tx *sql.Tx, parentID interface{}) ([]*mode
 	if err != nil {
 		return nil, fmt.Errorf("do query: [%w], query: %s, id: %v", err, query, parentID)
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	for rows.Next() {
 		line := &models.SaleLine{}

@@ -7,12 +7,14 @@
 package repository
 
 import (
+	"database/sql"
 	"fmt"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"github.com/sirupsen/logrus"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
+	sqldb "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 )
 
 // SelectSignInColumns query accounts,organization_accounts,organizations,tenants columns to generate idToken of
@@ -38,7 +40,9 @@ func (r *accountRepositoryHandler) SelectSignInColumns(uid string) (*model.SignI
 	if err != nil {
 		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, querySql)
 	}
-	defer prepare.Close()
+	defer func(prepare *sql.Stmt) {
+		_ = prepare.Close()
+	}(prepare)
 	err = prepare.QueryRow(uid).Scan(&signIn.Uid,
 		&signIn.OrganizationUserId, &signIn.OrganizationAccount,
 		&signIn.OrganizationStatus, &signIn.OrganizationVerified, &signIn.OrganizationUuid,
@@ -48,17 +52,22 @@ func (r *accountRepositoryHandler) SelectSignInColumns(uid string) (*model.SignI
 	}
 
 	// Query 'users' table
-	db, err := sql_db.InitializeConnection(utils.GenerateOrganizationConnection(signIn.TenantUuid, signIn.OrganizationUuid))
+	db, err := sqldb.InitializeConnection(utils.GenerateOrganizationConnection(signIn.TenantUuid, signIn.OrganizationUuid))
 	if err != nil {
 		return nil, err
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		_ = db.Close()
+	}(db)
+
 	querySql = `select coalesce(language_preference,''),coalesce(theme,'') from users where id = ? and status = ?`
 	stmt, err := db.Prepare(querySql)
 	if err != nil {
 		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, querySql)
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 	if err = stmt.QueryRow(signIn.OrganizationUserId, true).Scan(&signIn.Language, &signIn.Theme); err != nil {
 		return nil, fmt.Errorf("query row: [%w]", err)
 	}
@@ -69,7 +78,9 @@ func (r *accountRepositoryHandler) SelectSignInColumns(uid string) (*model.SignI
 	if err != nil {
 		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, querySql)
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 	if err = stmt.QueryRow(uid).Scan(&signIn.AccountId); err != nil {
 		// user not exists in accounts if user added in user list
 		logrus.Error("query row: [%w]", err)

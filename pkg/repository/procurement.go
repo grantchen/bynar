@@ -88,7 +88,7 @@ func (s *procurementRepository) GetStatus(id interface{}) (status int, err error
 	return
 }
 
-func (p *procurementRepository) GetProcurement(tx *sql.Tx, id interface{}) (m *models.Procurement, err error) {
+func (s *procurementRepository) GetProcurement(tx *sql.Tx, id interface{}) (m *models.Procurement, err error) {
 	query := `
 	SELECT ` + strings.Join(procurementFields, ", ") + `
 	FROM procurements
@@ -145,7 +145,7 @@ func (p *procurementRepository) GetProcurement(tx *sql.Tx, id interface{}) (m *m
 	return
 }
 
-func (p *procurementRepository) SaveProcurement(tx *sql.Tx, m *models.Procurement) (err error) {
+func (s *procurementRepository) SaveProcurement(tx *sql.Tx, m *models.Procurement) (err error) {
 	query := `
 	UPDATE procurements
 	SET ` + strings.Join(procurementFields[1:], " = ?, ") + " = ? " + `
@@ -230,7 +230,7 @@ var procurementLineFields = []string{
 	"total_inclusive_vat_lcy",
 }
 
-func (p *procurementRepository) GetProcurementLines(tx *sql.Tx, id interface{}) ([]*models.ProcurementLine, error) {
+func (s *procurementRepository) GetProcurementLines(tx *sql.Tx, id interface{}) ([]*models.ProcurementLine, error) {
 	query := `
 	SELECT ` + strings.Join(procurementLineFields, ",") + `
 	FROM procurement_lines
@@ -242,7 +242,9 @@ func (p *procurementRepository) GetProcurementLines(tx *sql.Tx, id interface{}) 
 	if err != nil {
 		return nil, fmt.Errorf("do query: [%w], query: %s, id: %v", err, query, id)
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	for rows.Next() {
 		prLine := &models.ProcurementLine{}
@@ -280,7 +282,7 @@ func (p *procurementRepository) GetProcurementLines(tx *sql.Tx, id interface{}) 
 	return res, nil
 }
 
-func (p *procurementRepository) SaveProcurementLine(tx *sql.Tx, prLine *models.ProcurementLine) (err error) {
+func (s *procurementRepository) SaveProcurementLine(tx *sql.Tx, prLine *models.ProcurementLine) (err error) {
 	logger.Debug("save procurement line", prLine.ID, "unit value", prLine.ItemUnitValue)
 
 	query := `

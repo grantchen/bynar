@@ -17,7 +17,7 @@ type treegridService struct {
 	uploadService   service.UploadService
 }
 
-func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.TreeGridService {
+func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.Service {
 	logger.Debug("accountID:", accountID)
 	simpleLanguageRepository := treegrid.NewSimpleGridRowRepositoryWithCfg(db, "languages", repository.LanguageFieldNames,
 		100, &treegrid.SimpleGridRepositoryCfg{
@@ -36,29 +36,29 @@ func newTreeGridService(db *sql.DB, accountID int, language string) treegrid.Tre
 	}
 }
 
-func NewTreeGridServiceFactory() treegrid.TreeGridServiceFactoryFunc {
-	return func(db *sql.DB, accountID int, languageUuid string, permissionInfo *treegrid.PermissionInfo, language string) treegrid.TreeGridService {
+func NewTreeGridServiceFactory() treegrid.ServiceFactoryFunc {
+	return func(db *sql.DB, accountID int, languageUuid string, permissionInfo *treegrid.PermissionInfo, language string) treegrid.Service {
 		return newTreeGridService(db, accountID, language)
 	}
 }
 
-// GetCellData implements treegrid.TreeGridService
-func (*treegridService) GetCellData(ctx context.Context, req *treegrid.Treegrid) (*treegrid.PostResponse, error) {
+// GetCellData implements treegrid.Service
+func (*treegridService) GetCellData(_ context.Context, _ *treegrid.Treegrid) (*treegrid.PostResponse, error) {
 	panic("unimplemented")
 }
 
-// GetPageCount implements treegrid.TreeGridService
+// GetPageCount implements treegrid.Service
 func (s *treegridService) GetPageCount(tr *treegrid.Treegrid) (float64, error) {
 	count, err := s.languageService.GetPageCount(tr)
 	return float64(count), err
 }
 
-// GetPageData implements treegrid.TreeGridService
+// GetPageData implements treegrid.Service
 func (s *treegridService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
 	return s.languageService.GetPageData(tr)
 }
 
-// Upload implements treegrid.TreeGridService
+// Upload implements treegrid.Service
 func (s *treegridService) Upload(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	return s.uploadService.Handle(req)
 }

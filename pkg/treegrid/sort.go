@@ -10,9 +10,7 @@ import (
 type SortType string
 
 const (
-	// sort by ASC
-	SortASC SortType = "0"
-	// sort by DESC
+	// SortDESC sort by DESC
 	SortDESC SortType = "1"
 )
 

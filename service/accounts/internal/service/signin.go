@@ -4,15 +4,17 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"firebase.google.com/go/v4/auth"
 	"fmt"
 	"os"
+
+	"firebase.google.com/go/v4/auth"
+
+	"github.com/sirupsen/logrus"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
-	"github.com/sirupsen/logrus"
 )
 
 // SignIn is a service method which handles the logic of user login

@@ -12,15 +12,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/configuration"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/constant"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/models"
-	"github.com/sirupsen/logrus"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+
+	"github.com/sirupsen/logrus"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/configuration"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/constant"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/models"
 )
 
 // checkout payment client struct
@@ -72,7 +75,13 @@ func (p paymentClient) GenerateAuthToken(scope string) (models.AccessTokenRespon
 	if err != nil {
 		return accessToken, err
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(res.Body)
+
 	if res.StatusCode != 200 {
 		var errResp models.AccessTokenErrorResponse
 		err = json.NewDecoder(res.Body).Decode(&errResp)
@@ -127,7 +136,12 @@ func (p paymentClient) ValidateCard(userDetails *models.ValidateCardRequest) (mo
 	if err != nil {
 		return resp, err
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(res.Body)
 
 	if res.StatusCode != 201 && res.StatusCode != 202 {
 		var errResp models.CheckOutErrorResponse
@@ -163,7 +177,12 @@ func (p paymentClient) DeleteCard(sourceID string) error {
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(res.Body)
 
 	if res.StatusCode != 204 {
 		var errResp models.CheckOutErrorResponse
@@ -194,7 +213,12 @@ func (p paymentClient) DeleteCustomer(customerID string) error {
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(res.Body)
 
 	if res.StatusCode != http.StatusNoContent {
 		var errResp models.CheckOutErrorResponse
@@ -237,7 +261,12 @@ func (p paymentClient) UpdateCustomer(customerInfo models.UpdateCustomer, custom
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(res.Body)
 
 	if res.StatusCode != http.StatusNoContent {
 		var errResp models.CheckOutErrorResponse
@@ -269,7 +298,12 @@ func (p paymentClient) FetchPaymentDetails(paymentID string) (paymentDetails mod
 	if err != nil {
 		return paymentDetails, err
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(res.Body)
 
 	if res.StatusCode != 200 {
 		var errResp models.CheckOutErrorResponse
@@ -308,7 +342,12 @@ func (p paymentClient) FetchCustomerDetails(customerID string) (models.CustomerR
 	if err != nil {
 		return customerDetails, err
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(res.Body)
 
 	if res.StatusCode != 200 {
 		var errResp models.CheckOutErrorResponse

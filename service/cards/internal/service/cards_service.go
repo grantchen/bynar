@@ -4,14 +4,15 @@ import (
 	"database/sql"
 	"strings"
 
+	"github.com/sirupsen/logrus"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/cards/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/models"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
-	"github.com/sirupsen/logrus"
 )
 
-// AddCard: add card through checkout and db
+// AddCard add card through checkout and db
 func (r *cardServiceHandler) AddCard(req *models.ValidateCardRequest) error {
 	// get user card num in db
 	total, err := r.cr.CountCard(req.ID)
@@ -55,7 +56,7 @@ func (r *cardServiceHandler) AddCard(req *models.ValidateCardRequest) error {
 	return nil
 }
 
-// ListCards: list user's cards from checkout and db
+// ListCards list user's cards from checkout and db
 func (r *cardServiceHandler) ListCards(accountID int) (model.ListCardsResponse, error) {
 	card, ins, err := r.cr.ListCards(accountID)
 	if err != nil {
@@ -78,7 +79,7 @@ func (r *cardServiceHandler) ListCards(accountID int) (model.ListCardsResponse, 
 	return card, nil
 }
 
-// UpdateCard: set default card of user in checkout and db
+// UpdateCard set default card of user in checkout and db
 func (r *cardServiceHandler) UpdateCard(accountID int, sourceID string) error {
 	// get card from checkout
 	cardDetails, err := r.cr.FetchCardBySourceID(sourceID)
@@ -110,7 +111,7 @@ func (r *cardServiceHandler) UpdateCard(accountID int, sourceID string) error {
 	return nil
 }
 
-// DeleteCard: delete card in checkout and db
+// DeleteCard delete card in checkout and db
 func (r *cardServiceHandler) DeleteCard(accountID int, sourceID string) error {
 	// get card from checkout
 	cardDetails, err := r.cr.FetchCardBySourceID(sourceID)

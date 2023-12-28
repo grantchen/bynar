@@ -3,10 +3,11 @@ package treegrid
 import (
 	"database/sql"
 	"fmt"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"log"
 	"math"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 )
 
 type GridRowDataRepositoryWithChild interface {
@@ -211,14 +212,18 @@ func (g *gridRowDataRepositoryWithChild) GetPageCount(tg *Treegrid) (int64, erro
 	if err != nil {
 		return 0, fmt.Errorf("db prepare: [%w], query: [%s]", err, querySQL.SQL)
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	rows, err := stmt.Query(querySQL.Args...)
 	if err != nil {
 		log.Println(err, "query", querySQL.SQL, "colData", column)
 		return 0, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	return int64(math.Ceil(float64(utils.CheckCount(rows)) / float64(g.pageSize))), nil
 }
@@ -284,13 +289,17 @@ func (g *gridRowDataRepositoryWithChild) getJSON(sqlString string, mergedArgs []
 	if err != nil {
 		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, sqlString)
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	rows, err := stmt.Query(mergedArgs...)
 	if err != nil {
 		return nil, fmt.Errorf("query: [%w], sql string: [%s]", err, sqlString)
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	rowVals, err := utils.NewRowVals(rows)
 	if err != nil {
@@ -456,13 +465,17 @@ func (g *gridRowDataRepositoryWithChild) getParentData(tg *Treegrid, querySQL *C
 	if err != nil {
 		return nil, fmt.Errorf("db prepare: [%w], query: [%s]", err, querySQL.SQL)
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	rows, err := stmt.Query(querySQL.Args...)
 	if err != nil {
 		return nil, fmt.Errorf("do query: [%w], query: [%s]", err, querySQL.AsSQL())
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	row, err := utils.NewRowVals(rows)
 	if err != nil {
@@ -528,13 +541,17 @@ func (g *gridRowDataRepositoryWithChild) getChildData(tg *Treegrid, querySQL *Co
 	if err != nil {
 		return nil, fmt.Errorf("db prepare: [%w], query: [%s]", err, querySQL.SQL)
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	rows, err := stmt.Query(querySQL.Args...)
 	if err != nil {
 		return nil, fmt.Errorf("do query: [%w], query: [%s]", err, querySQL.AsSQL())
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	row, err := utils.NewRowVals(rows)
 	if err != nil {

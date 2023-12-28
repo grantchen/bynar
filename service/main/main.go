@@ -6,35 +6,34 @@ import (
 	"net/http"
 	"os"
 
-	connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
-
 	"github.com/joho/godotenv"
 
-	accounts_http_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/http"
-	accounts_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/service"
-	cards_http_handler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/cards/external/handler/http"
-	general_posting_setup_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/external/service"
-	invoices_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/external/handler/service"
-	languages_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/languages/external/handler/service"
-	organizations_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/external/handler/service"
-	payments_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/external/service"
+	accountshttphandler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/http"
+	accountsservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/service"
+	cardshttphandler "git-codecommit.eu-central-1.amazonaws.com/v1/repos/cards/external/handler/http"
+	generalpostingsetupservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/general_posting_setup/external/service"
+	invoicesservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/external/handler/service"
+	languagesservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/languages/external/handler/service"
+	organizationsservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/organizations/external/handler/service"
+	paymentsservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/external/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	sqldb "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	connection "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db/connection"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/render"
-	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
-	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
+	pkgrepository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
+	pkgservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
-	procurements_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/procurements/external/service"
-	sale_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/external/service"
-	sites_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/sites/external/handler/service"
-	transfers_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/external/handler/service"
-	user_group_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/external/service"
-	warehouses_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/warehouses/external/service"
+	procurementsservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/procurements/external/service"
+	saleservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/external/service"
+	sitesservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/sites/external/handler/service"
+	transfersservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/external/handler/service"
+	usergroupservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/external/service"
+	warehousesservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/warehouses/external/service"
 )
 
 type HandlerMapping struct {
@@ -43,7 +42,7 @@ type HandlerMapping struct {
 }
 
 type HandlerMappingWithPermission struct {
-	factoryFunc treegrid.TreeGridServiceFactoryFunc
+	factoryFunc treegrid.ServiceFactoryFunc
 	prefixPath  string
 }
 
@@ -67,7 +66,7 @@ func main() {
 	accountManagementConnectionString := appConfig.GetAccountManagementConnection()
 	logger.Debug("connection string account: ", accountManagementConnectionString)
 
-	accountDB, err := sql_db.NewConnection(accountManagementConnectionString)
+	accountDB, err := sqldb.NewConnection(accountManagementConnectionString)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -86,7 +85,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	accountHandler := accounts_http_handler.NewHTTPHandler(accountDB, authProvider, paymentProvider, cloudStorageProvider)
+	accountHandler := accountshttphandler.NewHTTPHandler(accountDB, authProvider, paymentProvider, cloudStorageProvider)
 
 	// Signup endpoints
 	http.Handle("/signup", render.CorsMiddleware(http.HandlerFunc(accountHandler.Signup)))
@@ -110,7 +109,7 @@ func main() {
 	http.Handle("/update-organization-account", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.UpdateOrganizationAccount))))
 	http.Handle("/delete-organization-account", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(accountHandler.DeleteOrganizationAccount))))
 
-	cardsHandler := cards_http_handler.NewHTTPHandler(accountDB, authProvider, paymentProvider)
+	cardsHandler := cardshttphandler.NewHTTPHandler(accountDB, authProvider, paymentProvider)
 	// Cards endpoints
 	http.Handle(prefix+"/cards/list", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(cardsHandler.ListCards))))
 	http.Handle(prefix+"/cards/add", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(cardsHandler.AddCard))))
@@ -118,21 +117,21 @@ func main() {
 	http.Handle(prefix+"/cards/delete", render.CorsMiddleware(handler.VerifyIdTokenAndInitDynamicDB(http.HandlerFunc(cardsHandler.DeleteCard))))
 
 	// TreeGrid Components that require authentication, but not permission
-	accountRepository := pkg_repository.NewAccountManagerRepository(accountDB)
-	accountService := pkg_service.NewAccountManagerService(accountDB, accountRepository, authProvider)
+	accountRepository := pkgrepository.NewAccountManagerRepository(accountDB)
+	accountService := pkgservice.NewAccountManagerService(accountDB, accountRepository, authProvider)
 	lsHandlerMappingWithAuthentication := make([]*HandlerMappingWithPermission, 0)
 	lsHandlerMappingWithAuthentication = append(lsHandlerMappingWithAuthentication,
-		&HandlerMappingWithPermission{factoryFunc: invoices_service.NewTreeGridServiceFactory(), prefixPath: "/invoices"},
+		&HandlerMappingWithPermission{factoryFunc: invoicesservice.NewTreeGridServiceFactory(), prefixPath: "/invoices"},
 	)
 	for _, handlerMappingWithAuthentication := range lsHandlerMappingWithAuthentication {
-		handler := &handler.HTTPTreeGridHandlerWithDynamicDB{
+		h := &handler.HTTPTreeGridHandlerWithDynamicDB{
 			AccountManagerService:  accountService,
 			TreeGridServiceFactory: handlerMappingWithAuthentication.factoryFunc,
 			ConnectionPool:         connectionPool,
 			PathPrefix:             prefix + handlerMappingWithAuthentication.prefixPath,
 			IsValidatePermissions:  false,
 		}
-		handler.HandleHTTPReqWithAuthenMWAndDefaultPath()
+		h.HandleHTTPReqWithAuthenMWAndDefaultPath()
 	}
 
 	lsHandlerMapping := make([]*HandlerMapping, 0)
@@ -151,28 +150,28 @@ func main() {
 	// _______________________________________ COMPONENT WITH PERMISSION______________________________________________
 	lsHandlerMappingWithPermission := make([]*HandlerMappingWithPermission, 0)
 	lsHandlerMappingWithPermission = append(lsHandlerMappingWithPermission,
-		&HandlerMappingWithPermission{factoryFunc: organizations_service.NewTreeGridServiceFactory(), prefixPath: "/organizations"},
-		&HandlerMappingWithPermission{factoryFunc: sites_service.NewTreeGridServiceFactory(), prefixPath: "/sites"},
-		&HandlerMappingWithPermission{factoryFunc: transfers_service.NewTreeGridServiceFactory(), prefixPath: "/transfers"},
-		&HandlerMappingWithPermission{factoryFunc: accounts_service.NewTreeGridServiceFactory(), prefixPath: "/user_list"},
-		&HandlerMappingWithPermission{factoryFunc: general_posting_setup_service.NewTreeGridServiceFactory(), prefixPath: "/general_posting_setup"},
-		&HandlerMappingWithPermission{factoryFunc: user_group_service.NewTreeGridServiceFactory(), prefixPath: "/user_groups"},
-		&HandlerMappingWithPermission{factoryFunc: warehouses_service.NewTreeGridServiceFactory(), prefixPath: "/warehouses"},
-		&HandlerMappingWithPermission{factoryFunc: sale_service.NewTreeGridServiceFactory(), prefixPath: "/sales"},
-		&HandlerMappingWithPermission{factoryFunc: payments_service.NewTreeGridServiceFactory(), prefixPath: "/payments"},
-		&HandlerMappingWithPermission{factoryFunc: procurements_service.NewTreeGridServiceFactory(), prefixPath: "/procurements"},
-		&HandlerMappingWithPermission{factoryFunc: languages_service.NewTreeGridServiceFactory(), prefixPath: "/languages"},
+		&HandlerMappingWithPermission{factoryFunc: organizationsservice.NewTreeGridServiceFactory(), prefixPath: "/organizations"},
+		&HandlerMappingWithPermission{factoryFunc: sitesservice.NewTreeGridServiceFactory(), prefixPath: "/sites"},
+		&HandlerMappingWithPermission{factoryFunc: transfersservice.NewTreeGridServiceFactory(), prefixPath: "/transfers"},
+		&HandlerMappingWithPermission{factoryFunc: accountsservice.NewTreeGridServiceFactory(), prefixPath: "/user_list"},
+		&HandlerMappingWithPermission{factoryFunc: generalpostingsetupservice.NewTreeGridServiceFactory(), prefixPath: "/general_posting_setup"},
+		&HandlerMappingWithPermission{factoryFunc: usergroupservice.NewTreeGridServiceFactory(), prefixPath: "/user_groups"},
+		&HandlerMappingWithPermission{factoryFunc: warehousesservice.NewTreeGridServiceFactory(), prefixPath: "/warehouses"},
+		&HandlerMappingWithPermission{factoryFunc: saleservice.NewTreeGridServiceFactory(), prefixPath: "/sales"},
+		&HandlerMappingWithPermission{factoryFunc: paymentsservice.NewTreeGridServiceFactory(), prefixPath: "/payments"},
+		&HandlerMappingWithPermission{factoryFunc: procurementsservice.NewTreeGridServiceFactory(), prefixPath: "/procurements"},
+		&HandlerMappingWithPermission{factoryFunc: languagesservice.NewTreeGridServiceFactory(), prefixPath: "/languages"},
 	)
 
 	for _, handlerMappingWithPermission := range lsHandlerMappingWithPermission {
-		handler := &handler.HTTPTreeGridHandlerWithDynamicDB{
+		h := &handler.HTTPTreeGridHandlerWithDynamicDB{
 			AccountManagerService:  accountService,
 			TreeGridServiceFactory: handlerMappingWithPermission.factoryFunc,
 			ConnectionPool:         connectionPool,
 			PathPrefix:             prefix + handlerMappingWithPermission.prefixPath,
 			IsValidatePermissions:  true,
 		}
-		handler.HandleHTTPReqWithAuthenMWAndDefaultPath()
+		h.HandleHTTPReqWithAuthenMWAndDefaultPath()
 	}
 
 	log.Println("start server at 8080!")

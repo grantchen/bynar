@@ -11,12 +11,11 @@ import (
 type GridRowRepositoryWithChild interface {
 	IsChild(gr GridRow) bool
 	GetParentID(gr GridRow) (parentID interface{}, err error)
-	// GetStatus(id interface{}) (status interface{}, err error)
 	Save(tx *sql.Tx, tr *MainRow) error
 	SaveMainRow(tx *sql.Tx, tr *MainRow) error
 	SaveLines(tx *sql.Tx, tr *MainRow) error
 
-	// use for custom save lines.
+	// SaveLineAdd use for custom save lines.
 	SaveLineAdd(tx *sql.Tx, gr GridRow) error
 	SaveLineUpdate(tx *sql.Tx, gr GridRow) error
 	SaveLineDelete(tx *sql.Tx, gr GridRow) error
@@ -33,7 +32,7 @@ type gridRowRepository struct {
 type SaveLineCallBack struct {
 }
 
-// use for table pair with format table and table_lines, only for update
+// NewGridRepository use for table pair with format table and table_lines, only for update
 func NewGridRepository(conn *sql.DB, tableName, lineTableName string, parentFieldMapping, childFieldMapping map[string][]string) GridRowRepositoryWithChild {
 	return &gridRowRepository{
 		conn:               conn,

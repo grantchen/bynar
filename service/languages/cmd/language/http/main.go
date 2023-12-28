@@ -7,7 +7,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/languages/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/languages/internal/service"
 
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	sqldb "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
@@ -17,7 +17,7 @@ func main() {
 	// connString := appConfig.GetDBConnection()
 	connString := "root:123456@tcp(localhost:3306)/bynar"
 	// connString := "root:Munrfe2020@tcp(bynar-cet.ccwuyxj7ucnd.eu-central-1.rds.amazonaws.com:3306)/bynar"
-	db, err := sql_db.NewConnection(connString)
+	db, err := sqldb.NewConnection(connString)
 
 	if err != nil {
 		log.Panic(err)
@@ -33,7 +33,7 @@ func main() {
 
 	uploadService, _ := service.NewUploadService(db, languageService, simpleLanguageRepository, "en")
 
-	handler := &handler.HTTPTreeGridHandler{
+	h := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,
 		CallbackGetPageDataFunc: languageService.GetPageData,
 		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) (float64, error) {
@@ -41,9 +41,9 @@ func main() {
 			return float64(count), err
 		},
 	}
-	http.HandleFunc("/upload", handler.HTTPHandleUpload)
-	http.HandleFunc("/data", handler.HTTPHandleGetPageCount)
-	http.HandleFunc("/page", handler.HTTPHandleGetPageData)
+	http.HandleFunc("/upload", h.HTTPHandleUpload)
+	http.HandleFunc("/data", h.HTTPHandleGetPageCount)
+	http.HandleFunc("/page", h.HTTPHandleGetPageData)
 
 	log.Println("start server at 8080!")
 	log.Fatal(http.ListenAndServe(":8080", nil))

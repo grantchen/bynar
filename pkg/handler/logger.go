@@ -9,9 +9,11 @@ package handler
 import (
 	"database/sql"
 	goErrors "errors"
+
+	"github.com/sirupsen/logrus"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
-	"github.com/sirupsen/logrus"
 )
 
 // LogInternalError log internal error messages

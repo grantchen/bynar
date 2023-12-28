@@ -1,6 +1,6 @@
 module git-codecommit.eu-central-1.amazonaws.com/v1/repos/simplecurd
 
-go 1.19
+go 1.21
 
 require (
 	github.com/go-sql-driver/mysql v1.7.0

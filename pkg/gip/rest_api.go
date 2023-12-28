@@ -32,7 +32,9 @@ func SendRegistrationEmail(email, continueUrl string) error {
 	if err != nil {
 		return err
 	}
-	defer req.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(req.Body)
 
 	httpClient, err := oAuthClient.newHttpClient(context.Background())
 	if err != nil {
@@ -42,7 +44,10 @@ func SendRegistrationEmail(email, continueUrl string) error {
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(res.Body)
+
 	resData, _ := io.ReadAll(res.Body)
 	if res.StatusCode != 200 {
 		logrus.Error("Send email error: ", string(resData))
@@ -70,13 +75,19 @@ func SignInWithEmailLink(email, oobCode string) error {
 	if err != nil {
 		return err
 	}
-	defer req.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(req.Body)
+
 	httpClient, err := oAuthClient.newHttpClient(context.Background())
 	res, err := httpClient.Do(req)
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(res.Body)
+
 	response, _ := io.ReadAll(res.Body)
 	if res.StatusCode != 200 {
 		return errors.New(string(response))

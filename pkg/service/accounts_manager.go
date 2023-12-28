@@ -30,7 +30,7 @@ func NewAccountManagerService(
 }
 
 // CheckPermission implements AccountManagerService
-func (a *accountManagerRepository) CheckPermission(claims *middleware.IdTokenClaims) (*repository.PermissionInfo, bool, error) {
+func (a *accountManagerRepository) CheckPermission(_ *middleware.IdTokenClaims) (*repository.PermissionInfo, bool, error) {
 
 	// TODO:
 	permission, ok, err := a.accountManagerRepository.CheckPermission(0, 0)
@@ -45,7 +45,7 @@ func (a *accountManagerRepository) CheckPermission(claims *middleware.IdTokenCla
 }
 
 // GetNewStringConnection implements AccountManagerService
-func (a *accountManagerRepository) GetNewStringConnection(tenantUuid, organizationUuid string, permission *repository.PermissionInfo) (string, error) {
+func (a *accountManagerRepository) GetNewStringConnection(tenantUuid, organizationUuid string, _ *repository.PermissionInfo) (string, error) {
 	if len(os.Getenv(tenantUuid)) == 0 {
 		return "", errors.New("no mysql conn environment of " + tenantUuid)
 	}

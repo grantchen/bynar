@@ -48,22 +48,22 @@ func (u *ProcurementSvc) GetPageData(tr *treegrid.Treegrid) ([]map[string]string
 	return u.gridRowDataRepositoryWithChild.GetPageData(tr)
 }
 
-func (s *ProcurementSvc) GetTx(tx *sql.Tx, id interface{}) (*models.Procurement, error) {
-	return s.procRep.GetProcurement(tx, id)
+func (u *ProcurementSvc) GetTx(tx *sql.Tx, id interface{}) (*models.Procurement, error) {
+	return u.procRep.GetProcurement(tx, id)
 }
 
-func (s *ProcurementSvc) Save(tx *sql.Tx, m *models.Procurement) error {
-	return s.procRep.SaveProcurement(tx, m)
+func (u *ProcurementSvc) Save(tx *sql.Tx, m *models.Procurement) error {
+	return u.procRep.SaveProcurement(tx, m)
 }
 
-func (s *ProcurementSvc) Handle(tx *sql.Tx, m *models.Procurement) error {
+func (u *ProcurementSvc) Handle(tx *sql.Tx, m *models.Procurement) error {
 	// update quantity
-	lines, err := s.procRep.GetProcurementLines(tx, m.ID)
+	lines, err := u.procRep.GetProcurementLines(tx, m.ID)
 	if err != nil {
 		return fmt.Errorf("get lines: [%w]", err)
 	}
 
-	disc, err := s.currencyRep.GetDiscount(m.InvoiceDiscountID)
+	disc, err := u.currencyRep.GetDiscount(m.InvoiceDiscountID)
 	if err != nil {
 		logger.Debug("get procurement discount")
 
@@ -71,7 +71,7 @@ func (s *ProcurementSvc) Handle(tx *sql.Tx, m *models.Procurement) error {
 	}
 	m.Discount = disc
 	// get currency
-	currency, err := s.currencyRep.GetCurrency(m.CurrencyID)
+	currency, err := u.currencyRep.GetCurrency(m.CurrencyID)
 	if err != nil {
 		return fmt.Errorf("get currency: [%w]", err)
 	}
@@ -81,7 +81,7 @@ func (s *ProcurementSvc) Handle(tx *sql.Tx, m *models.Procurement) error {
 
 	// handle lines
 	for _, v := range lines {
-		if err := s.HandleLine(tx, m, v); err != nil {
+		if err := u.HandleLine(tx, m, v); err != nil {
 			return fmt.Errorf("handle line: [%w], id: %d", err, v.ID)
 		}
 
@@ -100,27 +100,27 @@ func (s *ProcurementSvc) Handle(tx *sql.Tx, m *models.Procurement) error {
 		m.TotalInclusiveVat += v.TotalInclusiveVat
 		m.TotalInclusiveVatLcy += v.TotalInclusiveVatLcy
 
-		if err := s.procRep.SaveProcurementLine(tx, v); err != nil {
+		if err := u.procRep.SaveProcurementLine(tx, v); err != nil {
 			return fmt.Errorf("save procurement line: [%w]", err)
 		}
 
-		cost, err := s.handleInventory(tx, v)
+		cost, err := u.handleInventory(tx, v)
 		if err != nil {
 			return fmt.Errorf("handle inventory: [%w], id: %d", err, v.ID)
 		}
 
-		if err := s.handleInboundFlow(tx, m, v, cost); err != nil {
+		if err := u.handleInboundFlow(tx, m, v, cost); err != nil {
 			return fmt.Errorf("handle inventory: [%w], id: %d", err, v.ID)
 		}
 
 	}
 
-	return s.procRep.SaveProcurement(tx, m)
+	return u.procRep.SaveProcurement(tx, m)
 }
 
-func (s *ProcurementSvc) HandleLine(tx *sql.Tx, pr *models.Procurement, l *models.ProcurementLine) (err error) {
+func (u *ProcurementSvc) HandleLine(_ *sql.Tx, pr *models.Procurement, l *models.ProcurementLine) (err error) {
 	// calc quantity
-	unit, err := s.unitRep.Get(l.ItemUnitID)
+	unit, err := u.unitRep.Get(l.ItemUnitID)
 	if err != nil {
 		return fmt.Errorf("get unit: [%w], id %d", err, l.ItemUnitID)
 	}
@@ -129,7 +129,7 @@ func (s *ProcurementSvc) HandleLine(tx *sql.Tx, pr *models.Procurement, l *model
 	l.ItemUnitValue = unit.Value
 	l.Quantity = l.InputQuantity * unit.Value
 	// calc discount
-	disc, err := s.currencyRep.GetDiscount(l.DiscountID)
+	disc, err := u.currencyRep.GetDiscount(l.DiscountID)
 	if err != nil {
 		logger.Debug("get discount by id: [%w], id %d", err, l.DiscountID)
 
@@ -148,7 +148,7 @@ func (s *ProcurementSvc) HandleLine(tx *sql.Tx, pr *models.Procurement, l *model
 	l.TotalExclusiveVat = l.SubtotalExclusiveVat - l.TotalDiscount
 
 	// calc vat
-	vat, err := s.currencyRep.GetVat(l.VatID)
+	vat, err := u.currencyRep.GetVat(l.VatID)
 	if err != nil {
 		logger.Debug("get vat: [%w], id %d", err, l.VatID)
 	}
@@ -167,8 +167,8 @@ func (s *ProcurementSvc) HandleLine(tx *sql.Tx, pr *models.Procurement, l *model
 	return nil
 }
 
-func (s *ProcurementSvc) handleInventory(tx *sql.Tx, l *models.ProcurementLine) (cost float32, err error) {
-	inv, err := s.inventoryRep.GetInventory(tx, l.ItemID, l.LocationID)
+func (u *ProcurementSvc) handleInventory(tx *sql.Tx, l *models.ProcurementLine) (cost float32, err error) {
+	inv, err := u.inventoryRep.GetInventory(tx, l.ItemID, l.LocationID)
 	if err != nil {
 		return 0, fmt.Errorf("get inventory: [%w], itemID: %d, locationID: %d", err, l.ItemID, l.LocationID)
 	}
@@ -184,10 +184,10 @@ func (s *ProcurementSvc) handleInventory(tx *sql.Tx, l *models.ProcurementLine) 
 		return
 	}
 
-	return cost, s.inventoryRep.AddValues(tx, l.ItemID, l.LocationID, l.Quantity, l.TotalInclusiveVatLcy)
+	return cost, u.inventoryRep.AddValues(tx, l.ItemID, l.LocationID, l.Quantity, l.TotalInclusiveVatLcy)
 }
 
-func (s *ProcurementSvc) handleInboundFlow(tx *sql.Tx, pr *models.Procurement, l *models.ProcurementLine, cost float32) (err error) {
+func (u *ProcurementSvc) handleInboundFlow(tx *sql.Tx, pr *models.Procurement, l *models.ProcurementLine, cost float32) (err error) {
 	inFlow := models.InboundFlow{
 		PostingDate:      pr.PostingDate,
 		ItemID:           l.ItemID,
@@ -199,13 +199,13 @@ func (s *ProcurementSvc) handleInboundFlow(tx *sql.Tx, pr *models.Procurement, l
 		OutboundValue:    l.Quantity * cost,
 	}
 
-	err = s.boundFlowRep.SaveInboundFlow(tx, inFlow)
+	err = u.boundFlowRep.SaveInboundFlow(tx, inFlow)
 
 	return
 }
 
 // validate item_id
-func (s *ProcurementSvc) validateItemID(tx *sql.Tx, item treegrid.GridRow) error {
+func (u *ProcurementSvc) validateItemID(tx *sql.Tx, item treegrid.GridRow) error {
 	id, ok := item["item_id"]
 	if !ok {
 		return nil
@@ -215,28 +215,30 @@ func (s *ProcurementSvc) validateItemID(tx *sql.Tx, item treegrid.GridRow) error
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 	var existFlag int
 	if err = stmt.QueryRow(id).Scan(&existFlag); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return i18n.TranslationI18n(s.language, "ItemNotExist", map[string]string{
+			return i18n.TranslationI18n(u.language, "ItemNotExist", map[string]string{
 				"ItemId": fmt.Sprint(id),
 			})
 		}
 
-		return i18n.TranslationErrorToI18n(s.language, err)
+		return i18n.TranslationErrorToI18n(u.language, err)
 	}
 
 	return nil
 }
 
-func (s *ProcurementSvc) ValidateParams(db *sql.DB, item treegrid.GridRow) error {
+func (u *ProcurementSvc) ValidateParams(db *sql.DB, item treegrid.GridRow) error {
 	tx, err := db.BeginTx(context.Background(), nil)
 	if err != nil {
 		return nil
 	}
 
-	err = s.validateItemID(tx, item)
+	err = u.validateItemID(tx, item)
 	if err != nil {
 		return err
 	}

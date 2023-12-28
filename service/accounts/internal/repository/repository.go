@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model/organization_schema"
 )
@@ -15,9 +16,9 @@ type AccountRepository interface {
 	GetOrganizationDetail(organizationUuid string) (*model.Organization, error)
 	// GetUserAccountDetail get accounts detail by uid provided
 	GetUserAccountDetail(uid string) (*model.Account, error)
-	// Update user language preference
+	// UpdateUserLanguagePreference Update user language preference
 	UpdateUserLanguagePreference(db *sql.DB, userId int, languagePreference string) error
-	// Update user theme preference
+	// UpdateUserThemePreference Update user theme preference
 	UpdateUserThemePreference(db *sql.DB, userId int, themePreference string) error
 	// UpdateProfilePhotoOfUsers update profile_photo column in users
 	UpdateProfilePhotoOfUsers(db *sql.DB, userId int, profilePhoto string) error

@@ -12,7 +12,7 @@ func PrepFilters(tr *Treegrid, fieldAliasesParent map[string][]string, fieldAlia
 	tr.FilterWhere, tr.FilterArgs = PrepQueryComplex(tr.FilterParams, fieldAliasesParent, fieldAliasesChild)
 }
 
-// with parent and child
+// PrepQueryComplex with parent and child
 func PrepQueryComplex(f FilterParams, fieldAliasesParent map[string][]string, fieldAliasesChild map[string][]string) (map[string]string, map[string][]interface{}) {
 	FilterWhere := map[string]string{}
 	FilterArgs := map[string][]interface{}{}
@@ -64,7 +64,7 @@ func PrepQueryComplex(f FilterParams, fieldAliasesParent map[string][]string, fi
 	return FilterWhere, FilterArgs
 }
 
-// only without child
+// PrepQuerySimple only without child
 func PrepQuerySimple(f FilterParams, fieldAliases map[string][]string) (string, []interface{}) {
 	dummyMap := make(map[string][]string, 0)
 	FilterWhere, FilterArgs := PrepQueryComplex(f, fieldAliases, dummyMap)

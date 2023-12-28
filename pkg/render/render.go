@@ -19,7 +19,7 @@ func CorsMiddleware(next http.Handler) http.Handler {
 			if len(data) > 0 {
 				logrus.Info("request body is ", string(data))
 			}
-			r.Body.Close() //  must close
+			_ = r.Body.Close() //  must close
 			r.Body = io.NopCloser(bytes.NewBuffer(data))
 		}
 		if r.Method == "OPTIONS" {
@@ -102,7 +102,7 @@ func renderJSON(w http.ResponseWriter, v interface{}) {
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 	w.Header().Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
 	w.Header().Add("Access-Control-Allow-Headers", "*")
-	w.Write(data)
+	_, _ = w.Write(data)
 }
 
 // ErrorWithHttpCode failure response

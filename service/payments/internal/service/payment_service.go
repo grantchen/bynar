@@ -3,9 +3,10 @@ package service
 import (
 	"database/sql"
 	"fmt"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/models"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/repository"
-	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
+	pkgrepository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
@@ -19,9 +20,9 @@ type paymentService struct {
 	gridRowDataRepositoryWithChild treegrid.GridRowDataRepositoryWithChild
 	db                             *sql.DB
 	paymentRepository              repository.PaymentRepository
-	procRepository                 pkg_repository.ProcurementRepository
-	currRepository                 pkg_repository.CurrencyRepository
-	cashManageRepository           pkg_repository.CashManagementRepository
+	procRepository                 pkgrepository.ProcurementRepository
+	currRepository                 pkgrepository.CurrencyRepository
+	cashManageRepository           pkgrepository.CashManagementRepository
 }
 
 // GetPageCount implements PaymentsService
@@ -100,7 +101,7 @@ func (u *paymentService) handlePayment(tx *sql.Tx, m *models.Payment) error {
 }
 
 // HandleLine implements PaymentsService
-func (u *paymentService) HandleLine(tx *sql.Tx, payment *models.Payment, line *models.PaymentLine) (err error) {
+func (u *paymentService) HandleLine(tx *sql.Tx, _ *models.Payment, line *models.PaymentLine) (err error) {
 	pr, err := u.procRepository.GetProcurement(tx, line.AppliesDocumentID)
 	if err != nil {
 		return fmt.Errorf("get procurement: [%w], id: %d", err, line.AppliesDocumentID)
@@ -133,9 +134,9 @@ func NewPaymentService(
 	db *sql.DB,
 	gridRowDataRepositoryWithChild treegrid.GridRowDataRepositoryWithChild,
 	paymentRepository repository.PaymentRepository,
-	procRepository pkg_repository.ProcurementRepository,
-	currRepository pkg_repository.CurrencyRepository,
-	cashManageRepository pkg_repository.CashManagementRepository,
+	procRepository pkgrepository.ProcurementRepository,
+	currRepository pkgrepository.CurrencyRepository,
+	cashManageRepository pkgrepository.CashManagementRepository,
 ) PaymentService {
 	return &paymentService{
 		db:                             db,

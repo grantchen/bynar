@@ -11,10 +11,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"net/http"
 	"strings"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 )
 
 // IdTokenClaims idToken decode struct
@@ -91,7 +92,7 @@ func VerifyIdToken(r *http.Request) (int, *IdTokenClaims, error) {
 	}
 	claims, err := client.VerifyIDToken(context.Background(), idToken)
 	if err != nil {
-		if err == gip.ErrIDTokenInvalid {
+		if errors.Is(err, gip.ErrIDTokenInvalid) {
 			return http.StatusUnauthorized, nil, err
 		}
 		return http.StatusInternalServerError, nil, err

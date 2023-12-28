@@ -13,7 +13,7 @@ var (
 	ChildDummyWhere = " WHERE 2=2 "
 )
 
-func BuildSimpleQueryCount(tableName string, fieldMapping map[string][]string, defaultQueryCount string) string {
+func BuildSimpleQueryCount(tableName string, _ map[string][]string, defaultQueryCount string) string {
 	if defaultQueryCount != "" {
 		return defaultQueryCount
 	}

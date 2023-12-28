@@ -81,7 +81,7 @@ func (s *accountServiceHandler) VerifyCard(token, email, name string) (string, s
 }
 
 // CreateUser is a service method which handles the logic of new user registration
-func (s *accountServiceHandler) CreateUser(email, timestamp, signature, token, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID, tenantCode string) (string, *errpkg.Error) {
+func (s *accountServiceHandler) CreateUser(email, _, _, _, fullName, country, addressLine, addressLine2, city, postalCode, state, phoneNumber, organizationName, vat, organisationCountry, customerID, sourceID, tenantCode string) (string, *errpkg.Error) {
 	// recheck user exist
 	exist, err := s.authProvider.IsUserExists(context.Background(), email)
 	if err != nil {

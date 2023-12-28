@@ -1,9 +1,13 @@
 package main
 
 import (
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
 	"log"
 	"net/http"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gcs"
+
+	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/http"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/external/handler/service"
@@ -13,10 +17,8 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/render"
-	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
-	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
-	"github.com/joho/godotenv"
-	"github.com/sirupsen/logrus"
+	pkgrepository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
+	pkgservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 )
 
 const prefix = "/apprunnerurl"
@@ -57,8 +59,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	accountRepository := pkg_repository.NewAccountManagerRepository(dbAccount)
-	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, authProvider)
+	accountRepository := pkgrepository.NewAccountManagerRepository(dbAccount)
+	accountService := pkgservice.NewAccountManagerService(dbAccount, accountRepository, authProvider)
 
 	httpHandler := http_handler.NewHTTPHandler(dbAccount, authProvider, paymentProvider, gcsProvider)
 

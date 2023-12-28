@@ -1,6 +1,8 @@
 module git-codecommit.eu-central-1.amazonaws.com/v1/repos/cellurls
 
-go 1.18
+go 1.21
+
+toolchain go1.21.4
 
 require (
 	git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs v0.0.0

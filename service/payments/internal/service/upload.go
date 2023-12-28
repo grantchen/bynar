@@ -8,7 +8,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
-	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
+	pkgservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 )
@@ -20,8 +20,8 @@ type UploadService struct {
 	updateGRPaymentRepositoryWithChild treegrid.GridRowRepositoryWithChild
 	updateGRPaymentLineRepository      treegrid.SimpleGridRowRepository
 	language                           string
-	approvalService                    pkg_service.ApprovalCashPaymentService
-	docSvc                             pkg_service.DocumentService
+	approvalService                    pkgservice.ApprovalCashPaymentService
+	docSvc                             pkgservice.DocumentService
 	accountId                          int
 	paymentService                     PaymentService
 }
@@ -32,8 +32,8 @@ func NewUploadService(db *sql.DB,
 	updateGRPaymentRepositoryWithChild treegrid.GridRowRepositoryWithChild,
 	updateGRPaymentLineRepository treegrid.SimpleGridRowRepository,
 	language string,
-	approvalService pkg_service.ApprovalCashPaymentService,
-	docSvc pkg_service.DocumentService,
+	approvalService pkgservice.ApprovalCashPaymentService,
+	docSvc pkgservice.DocumentService,
 	accountId int,
 	paymentService PaymentService,
 ) *UploadService {
@@ -186,7 +186,9 @@ func (u *UploadService) savePayment(tx *sql.Tx, tr *treegrid.MainRow) error {
 				return i18n.TranslationI18n(u.language, "FailedToDelete", templateData)
 			}
 
-			defer stmt.Close()
+			defer func(stmt *sql.Stmt) {
+				_ = stmt.Close()
+			}(stmt)
 
 			_, err = stmt.Exec(idStr)
 			if err != nil {

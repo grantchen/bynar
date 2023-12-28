@@ -7,14 +7,13 @@ import (
 	"strconv"
 	"strings"
 
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
-	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
-
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/logger"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/models"
+	pkgrepository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/utils"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/sales/internal/repository"
 )
 
@@ -28,10 +27,10 @@ type UploadService struct {
 	approvalService                 service.ApprovalService
 	docSvc                          service.DocumentService
 	saleRep                         repository.SaleRepository
-	unitRep                         pkg_repository.UnitRepository
-	currencyRep                     pkg_repository.CurrencyRepository
-	inventoryRep                    pkg_repository.InventoryRepository
-	boundFlowRep                    pkg_repository.BoundFlowRepository
+	unitRep                         pkgrepository.UnitRepository
+	currencyRep                     pkgrepository.CurrencyRepository
+	inventoryRep                    pkgrepository.InventoryRepository
+	boundFlowRep                    pkgrepository.BoundFlowRepository
 }
 
 // NewUploadService returns new instance of UploadService
@@ -43,10 +42,10 @@ func NewUploadService(db *sql.DB,
 	approvalService service.ApprovalService,
 	docSvc service.DocumentService,
 	saleRep repository.SaleRepository,
-	unitRep pkg_repository.UnitRepository,
-	currencyRep pkg_repository.CurrencyRepository,
-	inventoryRep pkg_repository.InventoryRepository,
-	boundFlowRep pkg_repository.BoundFlowRepository,
+	unitRep pkgrepository.UnitRepository,
+	currencyRep pkgrepository.CurrencyRepository,
+	inventoryRep pkgrepository.InventoryRepository,
+	boundFlowRep pkgrepository.BoundFlowRepository,
 ) *UploadService {
 	return &UploadService{
 		db:                              db,
@@ -65,8 +64,8 @@ func NewUploadService(db *sql.DB,
 }
 
 // Handle handles upload request
-func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
-	trList, err := treegrid.ParseRequestUpload(req, u.updateGRSaleRepositoryWithChild)
+func (s *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
+	trList, err := treegrid.ParseRequestUpload(req, s.updateGRSaleRepositoryWithChild)
 	if err != nil {
 		return nil, fmt.Errorf("parse request: [%w]", err)
 	}
@@ -74,10 +73,10 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 	resp := treegrid.HandleTreegridWithChildMainRowsLines(
 		trList,
 		func(mr *treegrid.MainRow) error {
-			err = utils.WithTransaction(u.db, func(tx *sql.Tx) error {
-				return u.handle(tx, mr)
+			err = utils.WithTransaction(s.db, func(tx *sql.Tx) error {
+				return s.handle(tx, mr)
 			})
-			return i18n.TranslationErrorToI18n(u.language, err)
+			return i18n.TranslationErrorToI18n(s.language, err)
 		},
 	)
 
@@ -131,7 +130,7 @@ func (s *UploadService) save(tx *sql.Tx, tr *treegrid.MainRow) error {
 		})
 	}
 
-	if err := s.saveSaleLine(tx, tr, tr.Fields.GetID()); err != nil {
+	if err := s.saveSaleLine(tx, tr); err != nil {
 		return i18n.TranslationI18n(s.language, "SaveSaleLine", map[string]string{
 			"Message": err.Error(),
 		})
@@ -213,7 +212,9 @@ func (s *UploadService) saveSale(tx *sql.Tx, tr *treegrid.MainRow) error {
 				return err
 			}
 
-			defer stmt.Close()
+			defer func(stmt *sql.Stmt) {
+				_ = stmt.Close()
+			}(stmt)
 
 			_, err = stmt.Exec(idStr)
 			if err != nil {
@@ -226,7 +227,7 @@ func (s *UploadService) saveSale(tx *sql.Tx, tr *treegrid.MainRow) error {
 }
 
 // saveSaleLine saves sale lines
-func (s *UploadService) saveSaleLine(tx *sql.Tx, tr *treegrid.MainRow, parentID interface{}) error {
+func (s *UploadService) saveSaleLine(tx *sql.Tx, tr *treegrid.MainRow) error {
 	requiredFieldsMapping := tr.Fields.FilterFieldsMapping(
 		repository.SaleLineFieldNames,
 		[]string{
@@ -398,7 +399,7 @@ func (s *UploadService) HandleSale(tx *sql.Tx, m *models.Sale) error {
 }
 
 // HandleLine handles sale line calculation
-func (s *UploadService) HandleLine(tx *sql.Tx, pr *models.Sale, l *models.SaleLine) (err error) {
+func (s *UploadService) HandleLine(_ *sql.Tx, pr *models.Sale, l *models.SaleLine) (err error) {
 	// calc quantity
 	unit, err := s.unitRep.Get(l.ItemUnitID)
 	if err != nil {
@@ -498,7 +499,7 @@ func (s *UploadService) handleInventory(tx *sql.Tx, l *models.SaleLine) (currInv
 }
 
 // handleBoundFlows handles bound flows calculation and saving to db
-func (s *UploadService) handleBoundFlows(tx *sql.Tx, pr *models.Sale, l *models.SaleLine, moduleID int, currInv, newInv models.Inventory) (err error) {
+func (s *UploadService) handleBoundFlows(tx *sql.Tx, pr *models.Sale, _ *models.SaleLine, moduleID int, currInv, newInv models.Inventory) (err error) {
 	inFlow := models.InboundFlow{
 		ModuleID:         moduleID,
 		ParentID:         pr.ID,
@@ -550,7 +551,9 @@ func (s *UploadService) validateStoreID(tx *sql.Tx, tr *treegrid.MainRow) error 
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	var existFlag int
 	if err = stmt.QueryRow(id).Scan(&existFlag); err != nil {
@@ -578,7 +581,9 @@ func (s *UploadService) validateItemID(tx *sql.Tx, item treegrid.GridRow) error 
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	var existFlag int
 	if err = stmt.QueryRow(id).Scan(&existFlag); err != nil {
@@ -606,7 +611,9 @@ func (s *UploadService) validateItemUnitID(tx *sql.Tx, item treegrid.GridRow) er
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	var existFlag int
 	if err = stmt.QueryRow(id).Scan(&existFlag); err != nil {

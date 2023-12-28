@@ -18,8 +18,8 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
 
-// db to gip key
-var GIP_KEYS = map[string]string{
+// GipKeys db to gip key
+var GipKeys = map[string]string{
 	"email":     "email",
 	"full_name": "displayName",
 	"phone":     "phoneNumber",
@@ -41,7 +41,7 @@ func NewUserService(db *sql.DB, accountDB *sql.DB, organizationID int, customerI
 	return &UserService{db, accountDB, organizationID, customerID, authProvider, paymentProvider, simpleOrganizationService, language}
 }
 
-// Handle implements treegrid.TreeGridService
+// Handle implements treegrid.Service
 func (s *UserService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	grList, err := treegrid.ParseRequestUploadSingleRow(req)
 	if err != nil {
@@ -58,13 +58,13 @@ func (s *UserService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse,
 	return resp, nil
 }
 
-// GetPageCount implements treegrid.TreeGridService
+// GetPageCount implements treegrid.Service
 func (s *UserService) GetPageCount(tr *treegrid.Treegrid) (float64, error) {
 	count, err := s.simpleOrganizationRepository.GetPageCount(tr)
 	return float64(count), err
 }
 
-// GetPageData implements treegrid.TreeGridService
+// GetPageData implements treegrid.Service
 func (s *UserService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
 
 	return s.simpleOrganizationRepository.GetPageData(tr)
@@ -184,7 +184,7 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 				customClaims := map[string]interface{}{}
 				for _, i := range gr.UpdatedFields() {
 					if i != "reqID" && i != "policies" {
-						key, ok := GIP_KEYS[i]
+						key, ok := GipKeys[i]
 						if ok {
 							if i == "status" {
 								status, _ := gr.GetValInt(i)
@@ -241,12 +241,12 @@ func (s *UserService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			}
 			if s.customerID != "" {
 				var mainAccount int
-				s.accountDB.QueryRow("SELECT oraginzation_main_account FROM organization_accounts WHERE organization_id = ? AND organization_user_id = ?", s.organizationID, id).Scan(&mainAccount)
+				_ = s.accountDB.QueryRow("SELECT oraginzation_main_account FROM organization_accounts WHERE organization_id = ? AND organization_user_id = ?", s.organizationID, id).Scan(&mainAccount)
 				if mainAccount > 0 {
 					resp, err := s.paymentProvider.FetchCustomerDetails(s.customerID)
 					if err == nil {
 						for _, i := range resp.Instruments {
-							s.paymentProvider.DeleteCard(i.ID)
+							_ = s.paymentProvider.DeleteCard(i.ID)
 						}
 					}
 				}

@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	sqldb "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/transfers/internal/repository"
@@ -19,7 +19,7 @@ func main() {
 	// dbConnString := appConfig.GetDBConnection()
 	dbConnString := "root:123456@tcp(localhost:3306)/46542255-9d45-49d5-939d-84bc55b1a938"
 
-	db, err := sql_db.NewConnection(dbConnString)
+	db, err := sqldb.NewConnection(dbConnString)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -72,7 +72,7 @@ func main() {
 		accountID,
 		"en",
 	)
-	handler := &handler.HTTPTreeGridHandler{
+	h := &handler.HTTPTreeGridHandler{
 		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) (float64, error) {
 			count, err := transferService.GetPageCount(tr)
 			return float64(count), err
@@ -83,9 +83,9 @@ func main() {
 		},
 	}
 
-	http.HandleFunc("/data", handler.HTTPHandleGetPageCount)
-	http.HandleFunc("/page", handler.HTTPHandleGetPageData)
-	http.HandleFunc("/upload", handler.HTTPHandleUpload)
+	http.HandleFunc("/data", h.HTTPHandleGetPageCount)
+	http.HandleFunc("/page", h.HTTPHandleGetPageData)
+	http.HandleFunc("/upload", h.HTTPHandleUpload)
 	log.Println("start server at 8081!")
 	log.Fatal(http.ListenAndServe(":8081", nil))
 

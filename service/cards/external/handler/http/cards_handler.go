@@ -2,9 +2,9 @@ package http_handler
 
 import (
 	"database/sql"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
-
 	"net/http"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/cards/internal/model"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/cards/internal/service"

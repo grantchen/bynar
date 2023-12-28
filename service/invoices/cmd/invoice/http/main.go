@@ -7,7 +7,7 @@ import (
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/invoices/internal/service"
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	sqldb "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
@@ -15,7 +15,7 @@ import (
 // use for test only this module without permission
 func main() {
 	connString := "root:123456@tcp(localhost:3306)/bynar"
-	db, err := sql_db.NewConnection(connString)
+	db, err := sqldb.NewConnection(connString)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -32,14 +32,14 @@ func main() {
 		})
 	treeGridService, _ := service.NewTreeGridService(db, simpleInvoiceRepository, accountID)
 
-	handler := &handler.HTTPTreeGridHandler{
+	h := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:   treeGridService.Handle,
 		CallbackGetPageDataFunc:  treeGridService.GetPageData,
 		CallbackGetPageCountFunc: treeGridService.GetPageCount,
 	}
-	http.HandleFunc("/upload", handler.HTTPHandleUpload)
-	http.HandleFunc("/data", handler.HTTPHandleGetPageCount)
-	http.HandleFunc("/page", handler.HTTPHandleGetPageData)
+	http.HandleFunc("/upload", h.HTTPHandleUpload)
+	http.HandleFunc("/data", h.HTTPHandleGetPageCount)
+	http.HandleFunc("/page", h.HTTPHandleGetPageData)
 
 	log.Println("start server at 8080!")
 	log.Fatal(http.ListenAndServe(":8080", nil))

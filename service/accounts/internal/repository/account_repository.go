@@ -9,9 +9,9 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model/organization_schema"
 
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/accounts/internal/model/organization_schema"
 )
 
 // GetOrganizationDetail query organization from database by organizationUuid
@@ -25,7 +25,9 @@ func (r *accountRepositoryHandler) GetOrganizationDetail(organizationUuid string
 	if err != nil {
 		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, querySql)
 	}
-	defer prepare.Close()
+	defer func(prepare *sql.Stmt) {
+		_ = prepare.Close()
+	}(prepare)
 	err = prepare.QueryRow(organizationUuid).Scan(&organization.ID,
 		&organization.Description, &organization.VatNumber,
 		&organization.Country, &organization.DataSovereignty,
@@ -46,7 +48,9 @@ func (r *accountRepositoryHandler) GetUserAccountDetail(uid string) (*model.Acco
 	if err != nil {
 		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, querySql)
 	}
-	defer prepare.Close()
+	defer func(prepare *sql.Stmt) {
+		_ = prepare.Close()
+	}(prepare)
 	err = prepare.QueryRow(uid, true, true).Scan(&account.ID,
 		&account.Email, &account.FullName, &account.Address, &account.Address2, &account.Phone,
 		&account.City, &account.PostalCode, &account.Country, &account.State,
@@ -57,14 +61,16 @@ func (r *accountRepositoryHandler) GetUserAccountDetail(uid string) (*model.Acco
 	return &account, nil
 }
 
-// Update user language preference
+// UpdateUserLanguagePreference Update user language preference
 func (r *accountRepositoryHandler) UpdateUserLanguagePreference(db *sql.DB, userId int, languagePreference string) error {
 	var updateSql = `update users set language_preference = ? where id = ?`
 	prepare, err := db.Prepare(updateSql)
 	if err != nil {
 		return fmt.Errorf("db prepare: [%w], sql string: [%s]", err, updateSql)
 	}
-	defer prepare.Close()
+	defer func(prepare *sql.Stmt) {
+		_ = prepare.Close()
+	}(prepare)
 	if _, err = prepare.Exec(languagePreference, userId); err != nil {
 		return fmt.Errorf("db update exec: [%w]", err)
 	}
@@ -72,14 +78,16 @@ func (r *accountRepositoryHandler) UpdateUserLanguagePreference(db *sql.DB, user
 	return nil
 }
 
-// Update user theme preference
+// UpdateUserThemePreference Update user theme preference
 func (r *accountRepositoryHandler) UpdateUserThemePreference(db *sql.DB, userId int, themePreference string) error {
 	var updateSql = `update users set theme = ? where id = ?`
 	prepare, err := db.Prepare(updateSql)
 	if err != nil {
 		return fmt.Errorf("db prepare: [%w], sql string: [%s]", err, updateSql)
 	}
-	defer prepare.Close()
+	defer func(prepare *sql.Stmt) {
+		_ = prepare.Close()
+	}(prepare)
 	if _, err = prepare.Exec(themePreference, userId); err != nil {
 		return fmt.Errorf("db update exec: [%w]", err)
 	}
@@ -94,7 +102,9 @@ func (r *accountRepositoryHandler) UpdateProfilePhotoOfUsers(db *sql.DB, userId 
 	if err != nil {
 		return fmt.Errorf("db prepare: [%w], sql string: [%s]", err, updateSql)
 	}
-	defer prepare.Close()
+	defer func(prepare *sql.Stmt) {
+		_ = prepare.Close()
+	}(prepare)
 	if _, err = prepare.Exec(profilePhoto, userId); err != nil {
 		return fmt.Errorf("db update exec: [%w]", err)
 	}
@@ -119,7 +129,9 @@ func (r *accountRepositoryHandler) GetUserDetail(db *sql.DB, userId int) (*organ
 	if err != nil {
 		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, querySql)
 	}
-	defer prepare.Close()
+	defer func(prepare *sql.Stmt) {
+		_ = prepare.Close()
+	}(prepare)
 	err = prepare.QueryRow(userId, true).Scan(
 		&user.ID, &user.Email, &user.FullName, &user.Phone, &user.Status,
 		&user.LanguagePreference, &user.Theme, &user.ProfilePhoto, &user.Policies)
@@ -136,7 +148,9 @@ func (r *accountRepositoryHandler) UpdateUserProfile(db *sql.DB, userId int, uid
 	if err != nil {
 		return fmt.Errorf("db prepare: [%w], sql string: [%s]", err, updateSql)
 	}
-	defer prepare.Close()
+	defer func(prepare *sql.Stmt) {
+		_ = prepare.Close()
+	}(prepare)
 	_, err = prepare.Exec(req.Email, req.FullName, req.PhoneNumber, req.Language, req.Theme, userId)
 	if err != nil {
 		return fmt.Errorf("db update exec: [%w]", err)
@@ -147,7 +161,9 @@ func (r *accountRepositoryHandler) UpdateUserProfile(db *sql.DB, userId int, uid
 	if err != nil {
 		return fmt.Errorf("db prepare: [%w], sql string: [%s]", err, updateSql)
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 	_, err = stmt.Exec(req.Email, req.FullName, req.PhoneNumber, uid)
 	if err != nil {
 		return fmt.Errorf("db update exec: [%w]", err)

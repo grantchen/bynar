@@ -7,13 +7,15 @@
 package checkout
 
 import (
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/configuration"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/models"
-	"github.com/joho/godotenv"
 	"log"
 	"os"
 	"testing"
+
+	"github.com/joho/godotenv"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/configuration"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout/models"
 )
 
 var client checkout.PaymentClient

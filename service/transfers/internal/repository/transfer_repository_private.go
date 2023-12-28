@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/i18n"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
@@ -112,7 +113,9 @@ func (t *transferRepository) validateDocumentID(tx *sql.Tx, tr *treegrid.MainRow
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	var existFlag int
 	if err = stmt.QueryRow(id).Scan(&existFlag); err != nil {
@@ -140,7 +143,9 @@ func (t *transferRepository) validateStoreID(tx *sql.Tx, tr *treegrid.MainRow) e
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	var existFlag int
 	if err = stmt.QueryRow(id).Scan(&existFlag); err != nil {
@@ -168,7 +173,9 @@ func (t *transferRepository) validateItemID(tx *sql.Tx, item treegrid.GridRow) e
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	var existFlag int
 	if err = stmt.QueryRow(id).Scan(&existFlag); err != nil {
@@ -196,7 +203,9 @@ func (t *transferRepository) validateItemUnitID(tx *sql.Tx, item treegrid.GridRo
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	var existFlag int
 	if err = stmt.QueryRow(id).Scan(&existFlag); err != nil {

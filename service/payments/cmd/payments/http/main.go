@@ -1,17 +1,19 @@
 package main
 
 import (
+	"log"
+	"net/http"
+
+	"github.com/joho/godotenv"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/repository"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/payments/internal/service"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
-	pkg_repository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
-	pkg_service "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
-	"github.com/joho/godotenv"
-	"log"
-	"net/http"
+	pkgrepository "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
+	pkgservice "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/service"
 
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	sqldb "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/treegrid"
 )
@@ -29,13 +31,13 @@ func main() {
 	connAccountString := appConfig.GetAccountManagementConnection()
 	// connString := "root:Munrfe2020@tcp(bynar-cet.ccwuyxj7ucnd.eu-central-1.rds.amazonaws.com:3306)/bynar"
 	connString = "2Cef1WJMcYBTnfh.root:mEt9041wub4bdbCW@tcp(gateway01.eu-central-1.prod.aws.tidbcloud.com:4000)/bynar_dev?tls=true"
-	db, err := sql_db.NewConnection(connString)
+	db, err := sqldb.NewConnection(connString)
 
 	if err != nil {
 		log.Panic(err)
 	}
 
-	dbAccount, _ := sql_db.NewConnection(connAccountString)
+	dbAccount, _ := sqldb.NewConnection(connAccountString)
 
 	gridRowDataRepositoryWithChild := treegrid.NewGridRowDataRepositoryWithChild(
 		db,
@@ -57,9 +59,9 @@ func main() {
 		},
 	)
 	paymentRepository := repository.NewPayment(db, "payments", "payment_lines")
-	procurementRepository := pkg_repository.NewProcurementRepository(db)
-	currencyRepository := pkg_repository.NewCurrencyRepository(db)
-	cashManagementRepository := pkg_repository.NewCashManagementRepository(db)
+	procurementRepository := pkgrepository.NewProcurementRepository(db)
+	currencyRepository := pkgrepository.NewCurrencyRepository(db)
+	cashManagementRepository := pkgrepository.NewCashManagementRepository(db)
 
 	paymentService := service.NewPaymentService(db, gridRowDataRepositoryWithChild, paymentRepository, procurementRepository, currencyRepository, cashManagementRepository)
 
@@ -80,14 +82,14 @@ func main() {
 		repository.PaymentFieldNames,
 		1, // arbitrary
 	)
-	workflowRepository := pkg_repository.NewWorkflowRepository(db)
-	documentRepository := pkg_repository.NewDocuments(db, "procurements")
-	approvalSvc := pkg_service.NewApprovalCashPaymentService(pkg_repository.NewApprovalOrder(
+	workflowRepository := pkgrepository.NewWorkflowRepository(db)
+	documentRepository := pkgrepository.NewDocuments(db, "procurements")
+	approvalSvc := pkgservice.NewApprovalCashPaymentService(pkgrepository.NewApprovalOrder(
 		workflowRepository,
 		paymentRepository),
 	)
 
-	docSvc := pkg_service.NewDocumentService(documentRepository)
+	docSvc := pkgservice.NewDocumentService(documentRepository)
 	//todo refactor accountID
 	uploadService := service.NewUploadService(db, grPaymentRepository, grPaymentDataUploadRepositoryWithChild, grPaymentLineRepository, "en", approvalSvc, docSvc, AccountId, paymentService)
 
@@ -96,10 +98,10 @@ func main() {
 		log.Panic(err)
 	}
 
-	accountRepository := pkg_repository.NewAccountManagerRepository(dbAccount)
-	accountService := pkg_service.NewAccountManagerService(dbAccount, accountRepository, authProvider)
+	accountRepository := pkgrepository.NewAccountManagerRepository(dbAccount)
+	accountService := pkgservice.NewAccountManagerService(dbAccount, accountRepository, authProvider)
 
-	handler := &handler.HTTPTreeGridHandler{
+	h := &handler.HTTPTreeGridHandler{
 		CallbackUploadDataFunc:  uploadService.Handle,
 		CallbackGetPageDataFunc: paymentService.GetPageData,
 		CallbackGetPageCountFunc: func(tr *treegrid.Treegrid) (float64, error) {
@@ -109,10 +111,10 @@ func main() {
 		AccountManagerService: accountService,
 	}
 
-	http.HandleFunc("/upload", handler.HTTPHandleUpload)
-	http.HandleFunc("/data", handler.HTTPHandleGetPageCount)
-	http.HandleFunc("/page", handler.HTTPHandleGetPageData)
-	http.HandleFunc("/cell", handler.HTTPHandleCell)
+	http.HandleFunc("/upload", h.HTTPHandleUpload)
+	http.HandleFunc("/data", h.HTTPHandleGetPageCount)
+	http.HandleFunc("/page", h.HTTPHandleGetPageData)
+	http.HandleFunc("/cell", h.HTTPHandleCell)
 
 	// server
 	log.Println("start server at 8081!")

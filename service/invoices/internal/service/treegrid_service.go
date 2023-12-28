@@ -54,7 +54,7 @@ func (u *TreeGridService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespo
 	return resp, nil
 }
 
-func (s *TreeGridService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
+func (u *TreeGridService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	var err error
 
 	fieldsValidating := []string{"invoice_no"}
@@ -62,27 +62,27 @@ func (s *TreeGridService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 	switch gr.GetActionType() {
 	case treegrid.GridRowActionAdd:
 		// Assigning values to other fields
-		gr["account_id"] = s.accountID
-		err1 := gr.ValidateOnRequiredAll(repository.InvoiceFieldNames, s.language)
+		gr["account_id"] = u.accountID
+		err1 := gr.ValidateOnRequiredAll(repository.InvoiceFieldNames, u.language)
 		if err1 != nil {
 			return err1
 		}
-		err = gr.ValidateOnLimitLength(repository.InvoiceFieldNames, 100, s.language)
+		err = gr.ValidateOnLimitLength(repository.InvoiceFieldNames, 100, u.language)
 		if err != nil {
 			return err
 		}
-		err = gr.ValidateOnLimitLengthToFloat(repository.InvoiceFieldNamesFloat, s.language)
+		err = gr.ValidateOnLimitLengthToFloat(repository.InvoiceFieldNamesFloat, u.language)
 		if err != nil {
 			return err
 		}
-		ok, err1 := s.invoiceSimpleRepository.ValidateOnIntegrity(tx, gr, fieldsValidating)
+		ok, err1 := u.invoiceSimpleRepository.ValidateOnIntegrity(tx, gr, fieldsValidating)
 		if !ok || err1 != nil {
 			templateData := map[string]string{
 				"Field": "invoice_no",
 			}
-			return i18n.TranslationI18n(s.language, "ValueDuplicated", templateData)
+			return i18n.TranslationI18n(u.language, "ValueDuplicated", templateData)
 		}
-		err = s.invoiceSimpleRepository.Add(tx, gr)
+		err = u.invoiceSimpleRepository.Add(tx, gr)
 	case treegrid.GridRowActionChanged:
 		// Support operations that are not "update"
 		_, ok := gr.GetValInt("id")
@@ -90,34 +90,34 @@ func (s *TreeGridService) handle(tx *sql.Tx, gr treegrid.GridRow) error {
 			return nil
 		}
 
-		err1 := gr.ValidateOnRequired(repository.InvoiceFieldNames, s.language)
+		err1 := gr.ValidateOnRequired(repository.InvoiceFieldNames, u.language)
 		if err1 != nil {
 			return err1
 		}
-		err = gr.ValidateOnLimitLength(repository.InvoiceFieldNames, 100, s.language)
+		err = gr.ValidateOnLimitLength(repository.InvoiceFieldNames, 100, u.language)
 		if err != nil {
 			return err
 		}
-		err = gr.ValidateOnLimitLengthToFloat(repository.InvoiceFieldNamesFloat, s.language)
+		err = gr.ValidateOnLimitLengthToFloat(repository.InvoiceFieldNamesFloat, u.language)
 		if err != nil {
 			return err
 		}
-		ok, err1 = s.invoiceSimpleRepository.ValidateOnIntegrity(tx, gr, fieldsValidating)
+		ok, err1 = u.invoiceSimpleRepository.ValidateOnIntegrity(tx, gr, fieldsValidating)
 		if !ok || err1 != nil {
 			templateData := map[string]string{
 				"Field": "invoice_no",
 			}
-			return i18n.TranslationI18n(s.language, "ValueDuplicated", templateData)
+			return i18n.TranslationI18n(u.language, "ValueDuplicated", templateData)
 		}
-		err = s.invoiceSimpleRepository.Update(tx, gr)
+		err = u.invoiceSimpleRepository.Update(tx, gr)
 	case treegrid.GridRowActionDeleted:
-		err = s.invoiceSimpleRepository.Delete(tx, gr)
+		err = u.invoiceSimpleRepository.Delete(tx, gr)
 	default:
 		return err
 	}
 
 	if err != nil {
-		return i18n.TranslationErrorToI18n(s.language, err)
+		return i18n.TranslationErrorToI18n(u.language, err)
 	}
 
 	return err

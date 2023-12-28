@@ -16,7 +16,8 @@ type cashReceiptRepository struct {
 	lineTableName string
 }
 
-func NewCashReceipts(conn *sql.DB, tableName, lineTableName string) CashReceiptRepository {
+// return new cashReceiptRepository
+func _(conn *sql.DB, tableName, lineTableName string) CashReceiptRepository {
 	return &cashReceiptRepository{
 		conn:          conn,
 		tableName:     tableName,
@@ -162,7 +163,9 @@ func (s *cashReceiptRepository) GetLines(tx *sql.Tx, parentID interface{}) ([]*m
 	if err != nil {
 		return nil, fmt.Errorf("do query: [%w], query: %s, id: %v", err, query, parentID)
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	for rows.Next() {
 		line := &models.CashReceiptLine{}

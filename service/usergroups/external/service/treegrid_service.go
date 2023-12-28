@@ -9,7 +9,7 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/usergroups/internal/service"
 )
 
-// treegridService implements treegrid.TreeGridService
+// treegridService implements treegrid.Service
 type treegridService struct {
 	db               *sql.DB
 	userGroupService service.UserGroupService
@@ -17,7 +17,7 @@ type treegridService struct {
 }
 
 // newTreeGridService returns a new treegridService
-func newTreeGridService(db *sql.DB, language string) treegrid.TreeGridService {
+func newTreeGridService(db *sql.DB, language string) treegrid.Service {
 	gridRowDataRepositoryWithChild := treegrid.NewGridRowDataRepositoryWithChild(
 		db,
 		"user_groups",
@@ -68,29 +68,29 @@ func newTreeGridService(db *sql.DB, language string) treegrid.TreeGridService {
 }
 
 // NewTreeGridServiceFactory returns a new treegrid.TreeGridServiceFactoryFunc
-func NewTreeGridServiceFactory() treegrid.TreeGridServiceFactoryFunc {
-	return func(db *sql.DB, AccountID int, organizationUuid string, permissionInfo *treegrid.PermissionInfo, language string) treegrid.TreeGridService {
+func NewTreeGridServiceFactory() treegrid.ServiceFactoryFunc {
+	return func(db *sql.DB, AccountID int, organizationUuid string, permissionInfo *treegrid.PermissionInfo, language string) treegrid.Service {
 		return newTreeGridService(db, language)
 	}
 }
 
-// GetCellData implements treegrid.TreeGridService
-func (s *treegridService) GetCellData(ctx context.Context, req *treegrid.Treegrid) (*treegrid.PostResponse, error) {
+// GetCellData implements treegrid.Service
+func (s *treegridService) GetCellData(_ context.Context, req *treegrid.Treegrid) (*treegrid.PostResponse, error) {
 	return s.userGroupService.GetCellSuggestion(req)
 }
 
-// GetPageCount implements treegrid.TreeGridService
+// GetPageCount implements treegrid.Service
 func (s *treegridService) GetPageCount(tr *treegrid.Treegrid) (float64, error) {
 	count, err := s.userGroupService.GetPageCount(tr)
 	return float64(count), err
 }
 
-// GetPageData implements treegrid.TreeGridService
+// GetPageData implements treegrid.Service
 func (s *treegridService) GetPageData(tr *treegrid.Treegrid) ([]map[string]string, error) {
 	return s.userGroupService.GetPageData(tr)
 }
 
-// Upload implements treegrid.TreeGridService
+// Upload implements treegrid.Service
 func (s *treegridService) Upload(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	return s.uploadService.Handle(req)
 }

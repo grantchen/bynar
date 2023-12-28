@@ -11,7 +11,8 @@ type cashReceiptService struct {
 	cashReceiptRep repository.CashReceiptRepository
 }
 
-func NewCashReceiptService(cashReceiptRep repository.CashReceiptRepository) CashReceiptService {
+// return new cashReceiptService
+func _(cashReceiptRep repository.CashReceiptRepository) CashReceiptService {
 	return &cashReceiptService{
 		cashReceiptRep: cashReceiptRep,
 	}
@@ -21,12 +22,12 @@ func (s *cashReceiptService) GetPaymentTx(tx *sql.Tx, id interface{}) (*models.C
 	return s.cashReceiptRep.Get(tx, id)
 }
 
-func (s *cashReceiptService) Handle(tx *sql.Tx, m *models.CashReceipt) error {
+func (s *cashReceiptService) Handle(_ *sql.Tx, _ *models.CashReceipt) error {
 	// todo: handle payment
 	panic("not implemented yet")
 }
 
-func (s *cashReceiptService) HandleLine(tx *sql.Tx, pr *models.CashReceipt, l *models.CashReceiptLine) (err error) {
+func (s *cashReceiptService) HandleLine(_ *sql.Tx, _ *models.CashReceipt, _ *models.CashReceiptLine) (err error) {
 	// todo: handle payment line
 	panic("not implemented yet")
 }

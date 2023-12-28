@@ -19,7 +19,7 @@ func NewHTTPDataGridHandler(dataGridService service.DataGridService) *HTTPDataGr
 }
 
 func (h *HTTPDataGridHandler) GetTreeGridViewData(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	_ = r.ParseForm()
 	context := r.Context()
 
 	// Check if the "Data" form value is not empty
@@ -30,7 +30,7 @@ func (h *HTTPDataGridHandler) GetTreeGridViewData(w http.ResponseWriter, r *http
 
 		// Parse the JSON string and extract the "Val" and "id" fields
 		m := make(map[string]interface{})
-		json.Unmarshal([]byte(tgCell), &m)
+		_ = json.Unmarshal([]byte(tgCell), &m)
 		body := m["Body"].([]interface{})
 		mapParam := body[0].(map[string]interface{})
 		val := mapParam["Val"].(string)
@@ -46,6 +46,6 @@ func (h *HTTPDataGridHandler) GetTreeGridViewData(w http.ResponseWriter, r *http
 
 		// Set the response header to indicate a JSON response and write the encoded grid data to the response writer
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		json.NewEncoder(w).Encode(gridData)
+		_ = json.NewEncoder(w).Encode(gridData)
 	}
 }

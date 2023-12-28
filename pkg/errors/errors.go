@@ -3,8 +3,9 @@ package errors
 import (
 	"errors"
 	"fmt"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"runtime"
+
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 )
 
 const (
@@ -110,25 +111,6 @@ func New(reason, message, code string) *Error {
 // NewUnknownError returns an error object for the unknown reason, message.
 func NewUnknownError(message, code string) *Error {
 	return New(UnknownReason, message, code)
-}
-
-// Newf New(code fmt.Sprintf(format, a...))
-func Newf(reason, format string, a ...interface{}) *Error {
-	return New(reason, fmt.Sprintf(format, a...), "")
-}
-
-// Errorf returns an error object for the code, message and error info.
-func Errorf(reason, format string, a ...interface{}) error {
-	return New(reason, fmt.Sprintf(format, a...), "")
-}
-
-// Reason returns the reason for a particular error.
-// It supports wrapped errors.
-func Reason(err error) string {
-	if err == nil {
-		return UnknownReason
-	}
-	return FromError(err).Reason
 }
 
 // Clone deep clone error to a new error.

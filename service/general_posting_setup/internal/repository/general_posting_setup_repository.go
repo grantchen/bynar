@@ -69,7 +69,9 @@ func (g *generalSettingUploadRepository) getGeneralPostingSetup(generalPostingSe
 	if err != nil {
 		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, query)
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	rows, err := stmt.Query(generalPostingSetupID)
 	if err != nil {
@@ -79,7 +81,7 @@ func (g *generalSettingUploadRepository) getGeneralPostingSetup(generalPostingSe
 }
 
 // IsContainCombination implements UploadRepository
-func (*generalSettingUploadRepository) IsContainCombination(tx *sql.Tx, status int, generalProductPostingGroupID int, generalBussinessPostingGroupID int) (bool, error) {
+func (*generalSettingUploadRepository) IsContainCombination(*sql.Tx, int, int, int) (bool, error) {
 	panic("unimplemented")
 }
 

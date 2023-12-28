@@ -66,15 +66,15 @@ func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostRespons
 }
 
 // handle handles upload request of single row
-func (s *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
+func (u *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 	switch tr.Status() {
 	// update/add
 	case 0:
-		if err := s.transferRepository.Save(tx, tr); err != nil {
+		if err := u.transferRepository.Save(tx, tr); err != nil {
 			return err
 		}
 	case 1:
-		ok, err := s.inventoryRepository.CheckQuantityAndValue(tx, tr)
+		ok, err := u.inventoryRepository.CheckQuantityAndValue(tx, tr)
 		if err != nil {
 			return fmt.Errorf("check inventory quantity and value: [%w]", err)
 		}
@@ -83,15 +83,15 @@ func (s *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 			return ErrInvalidQuantity
 		}
 
-		if err = s.transferRepository.Save(tx, tr); err != nil {
+		if err = u.transferRepository.Save(tx, tr); err != nil {
 			return err
 		}
 
-		if err := s.inventoryRepository.Save(tx, tr); err != nil {
+		if err := u.inventoryRepository.Save(tx, tr); err != nil {
 			return fmt.Errorf("transfer svc save: [%w]", err)
 		}
 
-		ok, err = s.documentRepository.IsAuto(tx, tr)
+		ok, err = u.documentRepository.IsAuto(tx, tr)
 		if err != nil {
 			return fmt.Errorf("document svc check if is auto: [%w]", err)
 		}
@@ -100,16 +100,16 @@ func (s *UploadService) handle(tx *sql.Tx, tr *treegrid.MainRow) error {
 			return nil
 		}
 
-		docIdStr, err := s.documentRepository.Generate(tx, tr)
+		docIdStr, err := u.documentRepository.Generate(tx, tr)
 		if err != nil {
 			return fmt.Errorf("document svc generate: [%w]", err)
 		}
 
-		if err := s.transferRepository.SaveDocumentID(tx, tr, docIdStr); err != nil {
+		if err := u.transferRepository.SaveDocumentID(tx, tr, docIdStr); err != nil {
 			return fmt.Errorf("transfer svc save document id: [%w]", err)
 		}
 	default:
-		if err := s.transferRepository.UpdateStatus(tx, tr.Status()); err != nil {
+		if err := u.transferRepository.UpdateStatus(tx, tr.Status()); err != nil {
 			return fmt.Errorf("transfer svc update status: [%w]", err)
 		}
 	}

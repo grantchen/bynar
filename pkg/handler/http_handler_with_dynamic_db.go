@@ -8,12 +8,14 @@ package handler
 
 import (
 	"context"
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
-	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
+	"database/sql"
 	"net/http"
 	"os"
 	"strings"
+
+	sqldb "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/errors"
+	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/middleware"
 )
 
 // VerifyIdTokenAndInitDynamicDB verify idToken correct and create dynamic db connection
@@ -35,14 +37,17 @@ func VerifyIdTokenAndInitDynamicDB(next http.Handler) http.Handler {
 			return
 		}
 
-		db, err := sql_db.InitializeConnection(connString)
+		db, err := sqldb.InitializeConnection(connString)
 
 		if err != nil {
 			LogInternalError(errors.NewUnknownError("new dynamic db connection fail", "").WithInternalCause(err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		defer db.Close()
+		defer func(db *sql.DB) {
+			_ = db.Close()
+		}(db)
+
 		reqContext := &middleware.TokenAndDyDynamicDBContext{
 			ConnectionString: connString,
 			DynamicDB:        db,

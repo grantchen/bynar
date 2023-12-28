@@ -69,7 +69,9 @@ func (g *warehousesRepository) getWarehouses(warehousesID int) (*sql.Rows, error
 	if err != nil {
 		return nil, fmt.Errorf("db prepare: [%w], sql string: [%s]", err, query)
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	rows, err := stmt.Query(warehousesID)
 	if err != nil {
@@ -79,7 +81,7 @@ func (g *warehousesRepository) getWarehouses(warehousesID int) (*sql.Rows, error
 }
 
 // IsContainCombination implements UploadRepository
-func (*warehousesRepository) IsContainCombination(tx *sql.Tx, status int, generalProductPostingGroupID int, generalBussinessPostingGroupID int) (bool, error) {
+func (*warehousesRepository) IsContainCombination(*sql.Tx, int, int, int) (bool, error) {
 	panic("unimplemented")
 }
 

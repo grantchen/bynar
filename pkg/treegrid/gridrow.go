@@ -42,7 +42,7 @@ func (f GridRow) GetLineID() string {
 }
 
 func (f GridRow) ValidateOnRequiredAll(fieldsMapping map[string][]string, language string) error {
-	for key, _ := range fieldsMapping {
+	for key := range fieldsMapping {
 		val, ok := f[key]
 		if !ok || val == "" {
 			templateData := map[string]string{
@@ -54,9 +54,9 @@ func (f GridRow) ValidateOnRequiredAll(fieldsMapping map[string][]string, langua
 	return nil
 }
 
-// used to check empty update key.
+// ValidateOnRequired used to check empty update key.
 func (f GridRow) ValidateOnRequired(fieldsMapping map[string][]string, language string) error {
-	for key, _ := range fieldsMapping {
+	for key := range fieldsMapping {
 		if key == "Changed" || key == "id" {
 			continue
 		}
@@ -71,9 +71,9 @@ func (f GridRow) ValidateOnRequired(fieldsMapping map[string][]string, language 
 	return nil
 }
 
-// Check Field Limit length.
+// ValidateOnLimitLength Check Field Limit length.
 func (f GridRow) ValidateOnLimitLength(fieldsMapping map[string][]string, limitLength int, language string) error {
-	for key, _ := range fieldsMapping {
+	for key := range fieldsMapping {
 		if key == "Changed" || key == "id" {
 			continue
 		}
@@ -89,9 +89,9 @@ func (f GridRow) ValidateOnLimitLength(fieldsMapping map[string][]string, limitL
 	return nil
 }
 
-// Check Field Limit length to float.
+// ValidateOnLimitLengthToFloat Check Field Limit length to float.
 func (f GridRow) ValidateOnLimitLengthToFloat(fieldsMapping map[string][]string, language string) error {
-	for key, _ := range fieldsMapping {
+	for key := range fieldsMapping {
 		if key == "Changed" || key == "id" {
 			continue
 		}
@@ -115,9 +115,9 @@ func (f GridRow) ValidateOnLimitLengthToFloat(fieldsMapping map[string][]string,
 	return nil
 }
 
-// used to check not negative number.
+// ValidateOnNotNegativeNumber used to check not negative number.
 func (f GridRow) ValidateOnNotNegativeNumber(fieldsMapping map[string][]string, language string) error {
-	for key, _ := range fieldsMapping {
+	for key := range fieldsMapping {
 		if key == "Changed" || key == "id" {
 			continue
 		}
@@ -134,9 +134,9 @@ func (f GridRow) ValidateOnNotNegativeNumber(fieldsMapping map[string][]string, 
 	return nil
 }
 
-// used to check A positive number.
+// ValidateOnPositiveNumber used to check A positive number.
 func (f GridRow) ValidateOnPositiveNumber(fieldsMapping map[string][]string, language string) error {
-	for key, _ := range fieldsMapping {
+	for key := range fieldsMapping {
 		if key == "Changed" || key == "id" {
 			continue
 		}
@@ -286,14 +286,14 @@ func (f GridRow) MakeDeleteQuery(tableName string) (query string, args []interfa
 	return fmt.Sprintf(query, tableName), args
 }
 
-func (g GridRow) GetActionType() GridRowActionType {
+func (f GridRow) GetActionType() GridRowActionType {
 	// if a new added row is deleted, it should be deleted
 	// it has "Added" and "Deleted" tag, example: {"id":"_","Deleted":1,"Added":1}]}
-	if _, ok := g["Deleted"]; ok {
+	if _, ok := f["Deleted"]; ok {
 		return GridRowActionDeleted
 	}
 
-	for name := range g {
+	for name := range f {
 		switch name {
 		case string(GridRowActionAdd):
 			return GridRowActionAdd
@@ -307,32 +307,32 @@ func (g GridRow) GetActionType() GridRowActionType {
 	return GridRowActionAdd
 }
 
-func (g GridRow) GetIDStr() (id string) {
-	if val, ok := g["NewId"]; ok {
-		return g.getRealID(val.(string))
+func (f GridRow) GetIDStr() (id string) {
+	if val, ok := f["NewId"]; ok {
+		return f.getRealID(val.(string))
 	}
 
-	for name, val := range g {
+	for name, val := range f {
 		if name == "id" {
 			id, _ = val.(string)
-			id = g.getRealID(id)
+			id = f.getRealID(id)
 		}
 	}
 
 	return
 }
 
-func (g GridRow) GetIDInt() (id int) {
-	id, _ = strconv.Atoi(g.GetIDStr())
+func (f GridRow) GetIDInt() (id int) {
+	id, _ = strconv.Atoi(f.GetIDStr())
 	return id
 }
 
 // getRealID return real id of row
-func (g *GridRow) getRealID(id string) string {
+func (f GridRow) getRealID(id string) string {
 	if strings.Contains(id, "$") { // splitId when group by have format: (CR[0-9]+\$)+<real_id>
 		realId := ""
 		for _, splitId := range strings.Split(id, "$") {
-			if !g.isAutoID(splitId) {
+			if !f.isAutoID(splitId) {
 				// real id is the last
 				realId = splitId
 			}
@@ -345,7 +345,7 @@ func (g *GridRow) getRealID(id string) string {
 
 // isAutoID check if id is auto generated id
 // AutoIdPrefix="AR" GroupIdPrefix="GR" ChildIdPrefix="CR"
-func (g *GridRow) isAutoID(id string) bool {
+func (f GridRow) isAutoID(id string) bool {
 	if len(id) < 2 {
 		return false
 	}
@@ -355,12 +355,12 @@ func (g *GridRow) isAutoID(id string) bool {
 }
 
 // getRealIDInterface return real id interface of row
-func (g *GridRow) getRealIDInterface(input interface{}) interface{} {
+func (f GridRow) getRealIDInterface(input interface{}) interface{} {
 	idStr, _ := input.(string)
 	if strings.Contains(idStr, "$") { // splitId when group by have format: (CR[0-9]+\$)+<real_id>
 		realId := ""
 		for _, splitId := range strings.Split(idStr, "$") {
-			if !g.isAutoID(splitId) {
+			if !f.isAutoID(splitId) {
 				// real id is the last
 				realId = splitId
 			}
@@ -370,16 +370,16 @@ func (g *GridRow) getRealIDInterface(input interface{}) interface{} {
 	return input
 }
 
-func (g GridRow) GetID() (id interface{}) {
-	return g.getRealIDInterface(g.getOriginID())
+func (f GridRow) GetID() (id interface{}) {
+	return f.getRealIDInterface(f.getOriginID())
 }
 
-func (g GridRow) getOriginID() (id interface{}) {
-	if val, ok := g["NewId"]; ok {
+func (f GridRow) getOriginID() (id interface{}) {
+	if val, ok := f["NewId"]; ok {
 		return val
 	}
 
-	for name, val := range g {
+	for name, val := range f {
 		if name == "id" {
 			id = val
 
@@ -390,33 +390,33 @@ func (g GridRow) getOriginID() (id interface{}) {
 	return
 }
 
-// return raw id from treegrid req, used for grouping feature when id include parent: ex id: 2-line => CR5$2-line
-func (g GridRow) GetTreeGridID() (id interface{}) {
-	id, ok := g[reqID]
+// GetTreeGridID return raw id from treegrid req, used for grouping feature when id include parent: ex id: 2-line => CR5$2-line
+func (f GridRow) GetTreeGridID() (id interface{}) {
+	id, ok := f[reqID]
 	if ok {
 		return id
 	}
 	// logger.Debug("orgin id: ", g[reqID])
-	return g.GetID()
+	return f.GetID()
 }
 
-func (g GridRow) StoreGridTreeID() {
-	g[reqID] = g.getOriginID()
+func (f GridRow) StoreGridTreeID() {
+	f[reqID] = f.getOriginID()
 }
 
 // StoreGridParentID store parent id of child row
-func (g GridRow) StoreGridParentID() {
-	g[reqParentID] = g.getOriginParentID()
+func (f GridRow) StoreGridParentID() {
+	f[reqParentID] = f.getOriginParentID()
 }
 
 // return Parent from treegrid req
-func (g GridRow) getOriginParentID() string {
-	pID, _ := g.GetValString("Parent")
+func (f GridRow) getOriginParentID() string {
+	pID, _ := f.GetValString("Parent")
 	return pID
 }
 
-func (g GridRow) GetValString(name string) (string, bool) {
-	val, ok := g[name]
+func (f GridRow) GetValString(name string) (string, bool) {
+	val, ok := f[name]
 	if !ok {
 		return "", false
 	}
@@ -433,8 +433,8 @@ func (g GridRow) GetValString(name string) (string, bool) {
 	return "", false
 }
 
-func (g GridRow) GetValInt(name string) (int, bool) {
-	val, ok := g[name]
+func (f GridRow) GetValInt(name string) (int, bool) {
+	val, ok := f[name]
 	if !ok {
 		return 0, false
 	}
@@ -457,8 +457,8 @@ func (g GridRow) GetValInt(name string) (int, bool) {
 }
 
 // GetValFloat64 return float64 value of field name
-func (g GridRow) GetValFloat64(name string) (float64, bool) {
-	val, ok := g[name]
+func (f GridRow) GetValFloat64(name string) (float64, bool) {
+	val, ok := f[name]
 	if !ok {
 		return 0, false
 	}
@@ -481,9 +481,9 @@ func (g GridRow) GetValFloat64(name string) (float64, bool) {
 	return 0, false
 }
 
-func (g GridRow) UpdatedFields() []string {
-	updatedFields := make([]string, 0, len(g))
-	for key := range g {
+func (f GridRow) UpdatedFields() []string {
+	updatedFields := make([]string, 0, len(f))
+	for key := range f {
 		switch key {
 		case string(GridRowActionAdd), string(GridRowActionChanged), string(GridRowActionDeleted):
 			continue
@@ -503,10 +503,10 @@ func (g GridRow) UpdatedFields() []string {
 	return updatedFields
 }
 
-func (g GridRow) MergeWithMap(m map[string]interface{}) GridRow {
+func (f GridRow) MergeWithMap(m map[string]interface{}) GridRow {
 	newG := make(map[string]interface{})
 
-	for k, v := range g {
+	for k, v := range f {
 		newG[k] = v
 	}
 

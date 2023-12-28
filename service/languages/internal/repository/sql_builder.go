@@ -5,7 +5,5 @@ const (
 
 	QuerySelect = `SELECT * FROM languages`
 
-	QueryJoin = ``
-
 	QueryPermissionFormat = ``
 )

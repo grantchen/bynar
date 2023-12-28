@@ -22,7 +22,7 @@ func (c *cashManagementRepository) Get(bankID int) (m *models.CashManagement, er
 	WHERE bank_id = ?
 	`
 	m = &models.CashManagement{}
-	err = c.conn.QueryRow(query, bankID).Scan(&m.Id, &m.Type, &m.Bank_Id, &m.Amount, &m.Currency_Id)
+	err = c.conn.QueryRow(query, bankID).Scan(&m.Id, &m.Type, &m.BankId, &m.Amount, &m.CurrencyId)
 
 	return
 }

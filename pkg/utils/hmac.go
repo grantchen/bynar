@@ -6,7 +6,7 @@ import (
 	"encoding/base64"
 )
 
-// Generation SHA1 signature
+// HmacSha1Signature Generation SHA1 signature
 func HmacSha1Signature(key, data string) string {
 	h := hmac.New(sha1.New, []byte(key))
 	h.Write([]byte(data))

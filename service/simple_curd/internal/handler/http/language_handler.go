@@ -55,7 +55,7 @@ func (h *LanguageHandler) HandleUpdateRequest(w http.ResponseWriter, r *http.Req
 	WriteResponse(w, resp)
 }
 
-func (h *LanguageHandler) HandleGetAllLanguage(w http.ResponseWriter, r *http.Request) {
+func (h *LanguageHandler) HandleGetAllLanguage(w http.ResponseWriter, _ *http.Request) {
 	languages := h.languageService.GetAllLanguage()
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-type", "application/json")
@@ -67,7 +67,7 @@ func (h *LanguageHandler) HandleGetAllLanguage(w http.ResponseWriter, r *http.Re
 
 	ret := []byte("{\"Body\":[" + string(jsonB) + "]}")
 
-	w.Write(ret)
+	_, _ = w.Write(ret)
 }
 
 func (h *LanguageHandler) handleChanges(row *model.Changes) (changedRow *model.ChangedRow, err error) {

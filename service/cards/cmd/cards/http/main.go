@@ -4,6 +4,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
+
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/cards/external/handler/http"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/checkout"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/config"
@@ -11,8 +14,6 @@ import (
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/gip"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/handler"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/render"
-	"github.com/joho/godotenv"
-	"github.com/sirupsen/logrus"
 )
 
 const prefix = "/apprunnerurl/cards"

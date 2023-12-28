@@ -31,17 +31,17 @@ func NewUploadService(db *sql.DB,
 	}, nil
 }
 
-func (u *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
+func (s *UploadService) Handle(req *treegrid.PostRequest) (*treegrid.PostResponse, error) {
 	grList, err := treegrid.ParseRequestUploadSingleRow(req)
 	if err != nil {
 		return nil, fmt.Errorf("parse requst: [%w]", err)
 	}
 
 	resp := treegrid.HandleSingleTreegridRows(grList, func(gr treegrid.GridRow) error {
-		err = utils.WithTransaction(u.db, func(tx *sql.Tx) error {
-			return u.handle(tx, gr)
+		err = utils.WithTransaction(s.db, func(tx *sql.Tx) error {
+			return s.handle(tx, gr)
 		})
-		return i18n.TranslationErrorToI18n(u.language, err)
+		return i18n.TranslationErrorToI18n(s.language, err)
 	})
 
 	return resp, nil

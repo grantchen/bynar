@@ -88,8 +88,8 @@ func (b *BodyParam) IntID() (int, bool) {
 	return id, true
 }
 
-// IntID converts id string to int with indicating id existence
-func (b BodyParam) IntPos() (int, bool) {
+// IntPos converts id string to int with indicating id existence
+func (b *BodyParam) IntPos() (int, bool) {
 	if b.Pos == "" {
 		return 0, false
 	}

@@ -13,7 +13,7 @@ import (
 	"net/url"
 	"strings"
 
-	sql_db "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
+	sqldb "git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/db"
 	"git-codecommit.eu-central-1.amazonaws.com/v1/repos/pkgs/repository"
 
 	"github.com/sirupsen/logrus"
@@ -38,21 +38,9 @@ const CellDataPathString = "cell"
 type HTTPTreeGridHandlerWithDynamicDB struct {
 	PathPrefix             string
 	AccountManagerService  service.AccountManagerService
-	TreeGridServiceFactory treegrid.TreeGridServiceFactoryFunc
+	TreeGridServiceFactory treegrid.ServiceFactoryFunc
 	ConnectionPool         ConnectionResolver
 	IsValidatePermissions  bool
-}
-
-func NewHTTPTreeGridHandlerWithDynamicDB(
-	accountManagerService service.AccountManagerService,
-	treeGridServiceFactory treegrid.TreeGridServiceFactoryFunc,
-	connectionPool ConnectionResolver,
-) *HTTPTreeGridHandlerWithDynamicDB {
-	return &HTTPTreeGridHandlerWithDynamicDB{
-		AccountManagerService:  accountManagerService,
-		TreeGridServiceFactory: treeGridServiceFactory,
-		ConnectionPool:         connectionPool,
-	}
 }
 
 type ReqContext struct {
@@ -85,7 +73,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) getRequestContext(r *http.Request) *R
 	return reqContext
 }
 
-func (h *HTTPTreeGridHandlerWithDynamicDB) getTreeGridService(r *http.Request) treegrid.TreeGridService {
+func (h *HTTPTreeGridHandlerWithDynamicDB) getTreeGridService(r *http.Request) treegrid.Service {
 	reqContext := h.getRequestContext(r)
 	return h.TreeGridServiceFactory(reqContext.db, reqContext.AccountID, reqContext.OrganizationUuid, reqContext.PermissionInfo, reqContext.language)
 }
@@ -119,9 +107,9 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleGetPageCount(w http.Respons
 		return
 	}
 
-	response, err := json.Marshal((map[string]interface{}{
+	response, err := json.Marshal(map[string]interface{}{
 		"Body": []string{`#@@@` + fmt.Sprintf("%v", allPages)},
-	}))
+	})
 
 	if err != nil {
 		log.Println(err)
@@ -131,7 +119,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleGetPageCount(w http.Respons
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-type", "application/json")
-	w.Write(response)
+	_, _ = w.Write(response)
 }
 
 func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleGetPageData(w http.ResponseWriter, r *http.Request) {
@@ -164,7 +152,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleGetPageData(w http.Response
 		return
 	}
 
-	addData := [][]map[string]string{}
+	var addData [][]map[string]string
 	addData = append(addData, response)
 
 	result, _ := json.Marshal(map[string][][]map[string]string{
@@ -173,7 +161,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleGetPageData(w http.Response
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-type", "application/json")
-	w.Write(result)
+	_, _ = w.Write(result)
 }
 
 func (h *HTTPTreeGridHandlerWithDynamicDB) HTTPHandleUpload(w http.ResponseWriter, r *http.Request) {
@@ -262,7 +250,7 @@ func getModuleFromPath(r *http.Request) *ModulePath {
 			modulePath.pathFeature += ":Changed"
 		}
 	}
-	r.Body.Close() //  must close
+	_ = r.Body.Close() //  must close
 	r.Body = io.NopCloser(bytes.NewBuffer(data))
 	return modulePath
 }
@@ -290,7 +278,7 @@ func (h *HTTPTreeGridHandlerWithDynamicDB) authenMW(next http.Handler) http.Hand
 		}
 		var connString string
 		// Initialize to the "accounts_management" database connection
-		db := sql_db.Conn()
+		db := sqldb.Conn()
 		// Validate permissions
 		if h.IsValidatePermissions {
 			permission := &repository.PermissionInfo{}

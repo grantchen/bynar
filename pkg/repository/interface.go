@@ -84,9 +84,9 @@ type BoundFlowRepository interface {
 }
 
 type AccountManagerRepository interface {
-	//detect if user can access endpoints or not.
+	// CheckPermission detect if user can access endpoints or not.
 	CheckPermission(accountID int, organizationID int) (*PermissionInfo, bool, error)
 
-	//detect if user can access a specfic endpoint or not
+	// CheckRole detect if user can access a specfic endpoint or not
 	CheckRole(accountID int) (map[string]int, error)
 }

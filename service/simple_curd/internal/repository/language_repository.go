@@ -18,7 +18,6 @@ type languageRepostory struct {
 
 var (
 	ErrMissingRequiredParams = errors.New("missing required params")
-	ErrAlreadyExist          = errors.New("already exist")
 )
 
 // AddNewLanguage implements LanguageRepository
@@ -32,9 +31,11 @@ func (l *languageRepostory) AddNewLanguage(newLang *model.Language) (*model.Lang
 	if err != nil {
 		return nil, fmt.Errorf("prepare statement: [%w]", err)
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
-	rs, err := stmt.Exec(newLang.Country, newLang.Language, newLang.Two_letters, newLang.Three_letters, newLang.Number)
+	rs, err := stmt.Exec(newLang.Country, newLang.Language, newLang.TwoLetters, newLang.ThreeLetters, newLang.Number)
 	if err != nil {
 		return nil, fmt.Errorf("exec statement: [%w]", err)
 	}
@@ -50,9 +51,11 @@ func (l *languageRepostory) DeleteLanguage(ID int64) error {
 	if err != nil {
 		return fmt.Errorf("prepare statement: [%w]", err)
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
-	id64 := int64(ID)
+	id64 := ID
 	if _, err := stmt.Exec(id64); err != nil {
 		return fmt.Errorf("exec statement: [%w]", err)
 	}
@@ -110,7 +113,9 @@ func (l *languageRepostory) UpdateLanguage(lang *model.Language) (*model.Languag
 	if err != nil {
 		return nil, fmt.Errorf("prepare statement: [%w]", err)
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	if _, err := stmt.Exec(colVals...); err != nil {
 		return nil, fmt.Errorf("exec statement: [%w]", err)
@@ -128,11 +133,13 @@ func (l *languageRepostory) GetAllLanguage() []*model.Language {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
 
 	for rows.Next() {
 		lng := new(model.Language)
-		if err := rows.Scan(&lng.Id, &lng.Country, &lng.Language, &lng.Two_letters, &lng.Three_letters, &lng.Number); err != nil {
+		if err := rows.Scan(&lng.Id, &lng.Country, &lng.Language, &lng.TwoLetters, &lng.ThreeLetters, &lng.Number); err != nil {
 			log.Fatalln(err)
 		}
 		languages = append(languages, lng)
@@ -155,7 +162,9 @@ func (l *languageRepostory) GetCountryAndNumber(id int) (country string, number 
 
 		return
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	err = stmt.QueryRow(id).Scan(&country, &number)
 	if err != nil {
@@ -177,7 +186,9 @@ func (l *languageRepostory) ValidateOnIntegrity(id int, country string, number i
 	if err != nil {
 		return false, fmt.Errorf("prepare statement: [%w]", err)
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		_ = stmt.Close()
+	}(stmt)
 
 	var count int
 	err = stmt.QueryRow(country, number, id).Scan(&count)

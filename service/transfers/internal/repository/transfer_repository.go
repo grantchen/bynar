@@ -36,7 +36,7 @@ func (t *transferRepository) Save(tx *sql.Tx, tr *treegrid.MainRow) error {
 }
 
 // SaveDocumentID implements TransferRepository
-func (*transferRepository) SaveDocumentID(tx *sql.Tx, tr *treegrid.MainRow, docID string) error {
+func (*transferRepository) SaveDocumentID(*sql.Tx, *treegrid.MainRow, string) error {
 	return nil
 }
 
@@ -112,7 +112,9 @@ func (t *transferRepository) SaveTransfer(tx *sql.Tx, tr *treegrid.MainRow) erro
 				return err
 			}
 
-			defer stmt.Close()
+			defer func(stmt *sql.Stmt) {
+				_ = stmt.Close()
+			}(stmt)
 
 			_, err = stmt.Exec(idStr)
 			if err != nil {
@@ -211,7 +213,7 @@ func (t *transferRepository) SaveTransferLines(tx *sql.Tx, tr *treegrid.MainRow)
 }
 
 // UpdateStatus implements TransferRepository
-func (*transferRepository) UpdateStatus(tx *sql.Tx, status int) error {
+func (*transferRepository) UpdateStatus(_ *sql.Tx, _ int) error {
 	return nil
 }
 

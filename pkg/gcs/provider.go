@@ -7,8 +7,9 @@
 package gcs
 
 import (
-	"cloud.google.com/go/storage"
 	"io"
+
+	"cloud.google.com/go/storage"
 )
 
 type CloudStorageProvider interface {
