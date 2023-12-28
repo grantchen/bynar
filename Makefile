@@ -26,4 +26,11 @@ build-lambda: common
 			echo "$$app build-lambda. $@~~"; \
 			$(MAKE) -C $(rootDir)/$$app build-lambda; \
 		done
-		
+
+tidy-service:
+	find service -type d -depth 1 -print | xargs -L 1 bash -c 'cd "$$0" && pwd && go mod tidy'
+
+tidy-pkg:
+	cd pkg && go mod tidy
+
+tidy: tidy-service tidy-pkg
